@@ -305,38 +305,62 @@
             return 100;
         }
 
-        // --- LOGIKA DURASI CAS (FIXED LOGIC) ---
+        // --- LOGIKA DURASI CAS (SESUAI KURVA MESIN ASLI DENGAN DATA GABUNGAN) ---
         function getRemainingTime(batteryPercent) {
-            // Data points dari foto: {persentase: waktu_tersisa_menit}
+            // Data point: {p: Persentase Baterai, t: Waktu Tersisa Menuju 100% (menit)}
+            // Data ini dirapikan dari semua foto yang dilampirkan, termasuk yang terbaru.
             const data = [
                 {p: 100, t: 0}, 
-                {p: 97, t: 6}, {p: 91, t: 9}, {p: 90, t: 19}, {p: 89, t: 20}, {p: 87, t: 21}, {p: 85, t: 26},
-                {p: 82, t: 25}, {p: 81, t: 26.5}, {p: 79, t: 30}, {p: 77, t: 31}, {p: 73, t: 35},
-                {p: 72, t: 35}, {p: 68, t: 42}, {p: 67, t: 43}, {p: 61, t: 47}, {p: 59, t: 48},
-                {p: 58, t: 50}, {p: 51, t: 55}, {p: 50, t: 54}, {p: 49, t: 54.5}, {p: 47, t: 56},
-                {p: 46, t: 56}, {p: 21, t: 69}, {p: 18, t: 71}
-            ];
-            
+                {p: 97, t: 6.5}, 
+                {p: 95, t: 6},  // Data baru
+                {p: 92, t: 18}, // Data baru
+                {p: 91, t: 20}, // Data baru
+                {p: 90, t: 7},  // Data baru (Menggantikan 19m)
+                {p: 89, t: 20},
+                {p: 87, t: 21},
+                {p: 85, t: 24}, 
+                {p: 82, t: 25},
+                {p: 81, t: 26.5},
+                {p: 79, t: 30},
+                {p: 77, t: 31},
+                {p: 75, t: 34}, // Data baru
+                {p: 72, t: 35},
+                {p: 67, t: 42}, 
+                {p: 62, t: 45},
+                {p: 61, t: 47},
+                {p: 59, t: 48},
+                {p: 58, t: 50},
+                {p: 51, t: 55},
+                {p: 50, t: 54}, 
+                {p: 47, t: 56},
+                {p: 46, t: 56},
+                {p: 40, t: 60}, // Data baru
+                {p: 37, t: 61},
+                {p: 21, t: 69},
+                {p: 18, t: 71}
+            ].sort((a, b) => b.p - a.p); // Urutkan menurun berdasarkan persentase
+
+            // 1. Kasus Batas (Boundary Cases)
             if (batteryPercent >= 100) return 0;
-            if (batteryPercent <= data[data.length - 1].p) return data[data.length - 1].t;
+            if (batteryPercent <= data[data.length - 1].p) return data[data.length - 1].t; // Jika di bawah 18%, anggap 71m
 
-            let lower = data.slice().reverse().find(d => d.p <= batteryPercent);
-            let upper = data.find(d => d.p > batteryPercent); 
-            
-            if (!lower && upper && batteryPercent > 97) lower = {p: 97, t: 6};
-            if (!lower && !upper) return 75;
-
-            if (lower && lower.p === batteryPercent) return lower.t;
-            if (upper && upper.p === batteryPercent) return upper.t;
-
-            if (lower && upper) {
-                const interpolatedTime = lower.t + (upper.t - lower.t) * ((batteryPercent - lower.p) / (upper.p - lower.p));
-                return interpolatedTime;
+            // 2. Interpolasi Linier
+            for (let i = 0; i < data.length - 1; i++) {
+                const lower = data[i + 1]; // Persentase lebih rendah
+                const upper = data[i];     // Persentase lebih tinggi
+                
+                if (batteryPercent <= upper.p && batteryPercent >= lower.p) {
+                    // Formula Interpolasi Linier
+                    const interpolatedTime = lower.t + (upper.t - lower.t) * ((batteryPercent - lower.p) / (upper.p - lower.p));
+                    
+                    return Math.round(interpolatedTime); 
+                }
             }
             
-            return lower ? lower.t : 75; 
+            return 75; // Nilai default jika terjadi kasus tidak terduga
         }
 
+        // Logika calculateDuration (TETAP SAMA)
         function calculateDuration(startBattery, targetLimit) {
             if (startBattery >= targetLimit) return 5; 
 
