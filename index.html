@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Fast Charging V33 (Final Logic - Light Theme)</title>
+    <title>Fast Charging V33 (Final Layout & Admin Feature)</title>
 
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
 
     <style>
-        /* TEMA CYBERPUNK PREMIUM (V31 - Diubah ke Light/Putih) */
+        /* TEMA LIGHT/PUTIH */
         :root {
-            --bg: #f0f2f5; /* Background utama: Putih/Terang */
-            --glass: #ffffff;
+            --bg: #f0f2f5; 
+            --glass: rgba(255, 255, 255, 0.7);
             --text: #1a253a;
             --text-muted: #556;
             --cyan: #008c9e;
@@ -21,8 +21,6 @@
             --card-bg: #fff;
             --input-bg: #f9f9f9;
         }
-
-        /* Dark Theme dihapus karena diminta tema putih */
         
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body {
@@ -31,7 +29,7 @@
             position: relative;
         }
 
-        /* NEW: Background Image */
+        /* Background Image */
         body::before {
             content: '';
             position: fixed;
@@ -39,7 +37,7 @@
             background-image: url('1763947427555.jpg'); 
             background-size: cover;
             background-position: center;
-            opacity: 0.2; /* Opacity 20% */
+            opacity: 0.2; 
             z-index: -1;
             transition: opacity 0.3s;
         }
@@ -74,6 +72,7 @@
         /* CARD */
         .glass-card {
             background: var(--glass); 
+            backdrop-filter: blur(5px);
             border: 1px solid var(--border); border-radius: 20px; padding: 25px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.1); margin-bottom: 25px;
         }
@@ -88,7 +87,7 @@
 
         .btn-cyan {
             width: 100%; background: linear-gradient(90deg, var(--cyan), #00bcd4);
-            border: none; padding: 16px; border-radius: 10px; color: #fff; /* Tombol terang, teks putih/hitam kontras */
+            border: none; padding: 16px; border-radius: 10px; color: #fff;
             font-family: 'Orbitron'; font-weight: 800; font-size: 16px;
             cursor: pointer; box-shadow: 0 0 20px var(--cyan-dim); margin-top: 5px;
         }
@@ -112,17 +111,32 @@
         .slot-box.active .bat-icon { border-color: var(--cyan); }
         .slot-box.active .bat-icon::before { background: var(--cyan); }
 
-        .btn-act { width: 100%; padding: 8px; border-radius: 6px; border: none; font-weight: bold; font-family: 'Orbitron'; font-size: 11px; cursor: pointer; }
-        .btn-start { background: var(--cyan); color: #fff; margin-top: auto; } /* Teks putih */
-        .btn-stop { background: rgba(255, 107, 107, 0.1); border: 1px solid var(--soft-red); color: var(--soft-red); flex: 1; }
-        .btn-edit-timer { background: rgba(0, 140, 158, 0.1); border: 1px solid var(--cyan); color: var(--cyan); flex: 1; }
+        /* PENYESUAIAN LAYOUT TOMBOL SLOT */
+        .btn-group { 
+            display: flex; 
+            flex-direction: column; /* Tombol jadi atas-bawah */
+            gap: 3px; 
+            margin-top: auto; 
+        }
+        .btn-act { 
+            width: 100%; 
+            padding: 6px; /* Padding dikurangi */
+            border-radius: 6px; 
+            border: none; 
+            font-weight: bold; 
+            font-family: 'Orbitron'; 
+            font-size: 10px; /* Ukuran font dikurangi */
+            cursor: pointer; 
+        }
+        .btn-start { background: var(--cyan); color: #fff; }
+        .btn-stop { background: rgba(255, 107, 107, 0.1); border: 1px solid var(--soft-red); color: var(--soft-red); }
+        .btn-edit-timer { background: rgba(0, 140, 158, 0.1); border: 1px solid var(--cyan); color: var(--cyan); }
 
-        .btn-group { display: flex; gap: 5px; margin-top: auto; }
 
-        /* POPUP MODAL (Dipertahankan kontras) */
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
+        /* POPUP MODAL */
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
         .modal-box { 
-            background: var(--card-bg); border: 2px solid var(--cyan); padding: 25px; /* Box jadi putih/card-bg */
+            background: var(--card-bg); border: 2px solid var(--cyan); padding: 25px;
             border-radius: 20px; width: 85%; max-width: 320px; text-align: center; 
             animation: pop 0.3s;
         }
@@ -136,9 +150,9 @@
         .btn-modal.danger { background: var(--soft-red); color: #fff; }
 
         /* ADMIN */
-        .admin-panel { background: #f0f0f0; padding: 20px; border-radius: 15px; border: 1px solid var(--soft-red); margin-top: 20px; }
-        .adm-input { background: #fff; border: 1px solid #ccc; color: #1a253a; padding: 10px; width: 100%; border-radius: 6px; }
-        .adm-btn { background: #ccc; color: #1a253a; }
+        .admin-panel { background: #fff; padding: 20px; border-radius: 15px; border: 1px solid var(--soft-red); margin-top: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .adm-input { background: #fff; border: 1px solid #ccc; color: var(--text); padding: 10px; width: 100%; border-radius: 6px; }
+        .adm-btn { background: #ccc; color: var(--text); }
         
         .footer {
             text-align: center; margin-top: 40px; font-family: 'Orbitron';
@@ -210,7 +224,7 @@
         <div id="adminPanel" class="admin-panel">
             <h4 style="color:var(--soft-red); margin:0 0 15px; font-family:'Orbitron'; text-align:center;">PANEL KONTROL</h4>
             
-            <label>MANUAL ASSIGN</label>
+            <label>MANUAL ASSIGN (PLAT BARU)</label>
             <div class="adm-row">
                 <select id="manSlot" class="adm-input" style="width:40%"><option value="0">Slot 1</option><option value="1">Slot 2</option><option value="2">Slot 3</option></select>
                 <input id="manPlat" placeholder="Plat" class="adm-input">
@@ -218,6 +232,16 @@
             <button onclick="manualAssign()" class="adm-btn" style="background:var(--cyan); color:#fff;">ISI SLOT MANUAL</button>
             <button onclick="clearSlotManual()" class="adm-btn" style="background:#ccc; color:#000;">KOSONGKAN SLOT (PAKSA)</button>
 
+            <label style="margin-top:15px;">ASSIGN ANTRIAN KE SLOT</label>
+            <div class="adm-row">
+                <select id="assignQueueIndex" class="adm-input" style="width:40%"><option value="-1">-- Pilih Antrian --</option></select>
+                <select id="assignSlotTarget" class="adm-input" style="width:40%">
+                    <option value="0">Slot 1</option>
+                    <option value="1">Slot 2</option>
+                    <option value="2">Slot 3</option>
+                </select>
+            </div>
+            <button onclick="assignQueueToSlot()" class="adm-btn" style="background:#00bcd4; color:#fff;">PINDAH KE SLOT</button>
             <label style="margin-top:15px;">BLOKIR</label>
             <div class="adm-row">
                 <input id="blockPlatInput" placeholder="Plat Diblokir" class="adm-input">
@@ -228,7 +252,7 @@
             <button onclick="stopAll()" class="adm-btn" style="background:var(--soft-red); color:#fff;">STOP SEMUA SLOT</button>
             <button onclick="resetAll()" class="adm-btn" style="border:1px solid var(--soft-red); background:none; color:var(--soft-red);">RESET DATABASE TOTAL</button>
 
-            <div onclick="document.getElementById('adminPanel').style.display='none'" style="text-align:center; margin-top:15px; font-size:10px; color:#555; cursor:pointer;">Tutup Panel</div>
+            <div onclick="document.getElementById('adminPanel').style.display='none'" style="text-align:center; margin-top:15px; font-size:10px; color:var(--text-muted); cursor:pointer;">Tutup Panel</div>
         </div>
 
         <div class="footer">Created by : MLU SQUAD</div>
@@ -252,14 +276,14 @@
         const ref = doc(db, "antrian", "utama");
 
         // --- GLOBAL CONSTANTS ---
-        const STATION_LOC = { lat: -6.171583, lng: 106.899844 }; // Lokasi Kelapa Gading
-        const MAX_DIST_KM = 0.2; // Toleransi maksimum 200 meter
-        const FONTE_TOKEN = "YOUR_FONTE_TOKEN_HERE"; // Ganti dengan token Fonte Anda
+        const STATION_LOC = { lat: -6.171583, lng: 106.899844 }; 
+        const MAX_DIST_KM = 0.2; 
+        const FONTE_TOKEN = "YOUR_FONTE_TOKEN_HERE"; 
 
         // --- GPS AND UTILITY FUNCTIONS ---
         
         function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
-            const R = 6371; // Radius bumi dalam km
+            const R = 6371;
             const dLat = deg2rad(lat2 - lat1);
             const dLon = deg2rad(lon2 - lon1);
             const a = 
@@ -277,13 +301,14 @@
             if (queueLength >= 6 && queueLength <= 10) return 90;
             if (queueLength > 10) return 85;
             if (queueLength >= 3 && queueLength <= 5) return 95;
-            return 100; // Antrian 0 - 2
+            return 100;
         }
 
         // --- LOGIKA DURASI CAS (FIXED LOGIC) ---
         function getRemainingTime(batteryPercent) {
             // Data points dari foto: {persentase: waktu_tersisa_menit}
             const data = [
+                {p: 100, t: 0}, 
                 {p: 97, t: 6}, {p: 91, t: 9}, {p: 90, t: 19}, {p: 89, t: 20}, {p: 87, t: 21}, {p: 85, t: 26},
                 {p: 82, t: 25}, {p: 81, t: 26.5}, {p: 79, t: 30}, {p: 77, t: 31}, {p: 73, t: 35},
                 {p: 72, t: 35}, {p: 68, t: 42}, {p: 67, t: 43}, {p: 61, t: 47}, {p: 59, t: 48},
@@ -292,37 +317,35 @@
             ];
             
             if (batteryPercent >= 100) return 0;
-            if (batteryPercent <= data[data.length - 1].p) return data[data.length - 1].t; // Minimal waktu di persentase terendah
+            if (batteryPercent <= data[data.length - 1].p) return data[data.length - 1].t;
 
-            // Mencari dua titik terdekat (Linear Interpolation)
-            let lower = data.find(d => d.p >= batteryPercent);
-            let upper = data.slice().reverse().find(d => d.p < batteryPercent) || {p: 0, t: 75}; 
+            let lower = data.slice().reverse().find(d => d.p <= batteryPercent);
+            let upper = data.find(d => d.p > batteryPercent); 
             
-            if (!lower) return 0; // >= 97%
+            if (!lower && upper && batteryPercent > 97) lower = {p: 97, t: 6};
+            if (!lower && !upper) return 75; // Safety fallback
 
-            if (lower.p === upper.p || batteryPercent === lower.p) return lower.t;
+            if (lower && lower.p === batteryPercent) return lower.t;
+            if (upper && upper.p === batteryPercent) return upper.t;
+
+            if (lower && upper) {
+                const interpolatedTime = lower.t + (upper.t - lower.t) * ((batteryPercent - lower.p) / (upper.p - lower.p));
+                return interpolatedTime;
+            }
             
-            // Interpolasi waktu tersisa
-            const interpolatedTime = lower.t + (upper.t - lower.t) * ((batteryPercent - lower.p) / (upper.p - lower.p));
-            
-            return interpolatedTime;
+            return lower ? lower.t : 75; 
         }
 
         function calculateDuration(startBattery, targetLimit) {
-            if (startBattery >= targetLimit) return 5; // Minimal 5 menit jika sudah lewat target
+            if (startBattery >= targetLimit) return 5; 
 
             let targetTimeRemaining = getRemainingTime(targetLimit);
             let startTimeRemaining = getRemainingTime(startBattery);
             
-            // Logika: Waktu total = Waktu tersisa dari start - Waktu tersisa dari target
             let duration = startTimeRemaining - targetTimeRemaining;
-
-            // Perbaikan untuk persentase tinggi: Jika start 99%
-            if (startBattery > 97 && targetLimit === 100) {
-                 // Estimasikan 1% di atas 97% memakan waktu 3 menit
-                duration = (100 - startBattery) * 3; 
-            }
             
+            if (duration < 0) duration = (targetLimit - startBattery) * 1.5; 
+
             return Math.max(5, Math.ceil(duration)); 
         }
 
@@ -335,7 +358,7 @@
         ];
 
         function sendWhatsAppNotification(plat, wa) {
-            if (wa.length < 9) return console.log("WA number too short. Skipping notification.");
+            if (wa.length < 9 || FONTE_TOKEN === "YOUR_FONTE_TOKEN_HERE") return console.log("WA number too short or FONTE_TOKEN not set. Skipping notification.");
 
             const index = Math.floor(Math.random() * WA_MESSAGES.length);
             const baseMessage = WA_MESSAGES[index](plat, wa);
@@ -390,9 +413,7 @@
 
         document.body.addEventListener('click', initAudioAndNotif, { once: true });
 
-        // Tombol toggle tema kini tidak berfungsi, tema light selalu aktif
         window.toggleTheme = () => {
-             // Opsional: berikan pesan jika tombol ditekan
              showPopup('info', 'TEMA TERKUNCI', 'Tema saat ini dikunci di mode Terang.');
         };
 
@@ -606,7 +627,9 @@
         onSnapshot(ref, (snap) => {
             const d = snap.data() || {};
             const slots = d.chargingSlots || [null,null,null];
+            const q = d.waitingQueue || [];
             
+            // RENDER SLOTS
             document.getElementById('slotsContainer').innerHTML = slots.map((x,i)=>{
                 if(!x) return `
                     <div class="slot-box" style="opacity:0.5; border-style:dashed;">
@@ -655,7 +678,7 @@
                     </div>`;
             }).join('');
 
-            const q = d.waitingQueue || [];
+            // RENDER QUEUE
             document.getElementById('qCount').innerText = q.length;
             document.getElementById('queueList').innerHTML = q.length ? q.map((x,i)=>`
                 <div style="display:flex; justify-content:space-between; background:var(--card-bg); padding:10px; margin-bottom:5px; border-radius:8px;">
@@ -663,6 +686,11 @@
                     <button onclick="window.delQ(${i}, '${x.name}')" style="background:none; border:none; color:var(--soft-red); cursor:pointer;">✕</button>
                 </div>
             `).join('') : '<div style="text-align:center; color:var(--text-muted); font-size:12px;">Antrian Kosong</div>';
+            
+            // RENDER ADMIN QUEUE OPTIONS
+            const assignQueueSelect = document.getElementById('assignQueueIndex');
+            assignQueueSelect.innerHTML = q.length ? q.map((x,i)=>`<option value="${i}">Antrian ${i+1}: ${x.name} (${x.startBattery}%)</option>`) : '<option value="-1">-- Antrian Kosong --</option>';
+
         });
 
         // --- SLOT ACTIONS (START/STOP) ---
@@ -686,7 +714,6 @@
                         if(q.length){ 
                             const nextItem = q.shift();
                             
-                            // Hitung ulang target dan durasi berdasarkan antrian baru
                             const target = calculateTargetLimit(q.length); 
                             const dur = calculateDuration(nextItem.startBattery, target);
 
@@ -726,6 +753,9 @@
         };
 
         window.setTimerManualPrompt = (i, currentDuration) => {
+            if(!isAdminLoggedIn) {
+                 return showPopup('error', 'AKSES DITOLAK', 'Hanya Admin yang dapat mengedit timer.');
+            }
             const setTimerAction = (newDuration) => {
                 runTransaction(db, async(t)=>{
                     const s = (await t.get(ref)).data().chargingSlots;
@@ -787,6 +817,48 @@
                 });
             });
         };
+        
+        // FITUR BARU: ASSIGN ANTRIAN KE SLOT
+        window.assignQueueToSlot = () => {
+            const queueIndex = parseInt(document.getElementById('assignQueueIndex').value);
+            const slotTarget = parseInt(document.getElementById('assignSlotTarget').value);
+
+            if (queueIndex < 0) return showPopup('error', 'Gagal', 'Pilih antrian yang valid.');
+
+            showPopup('confirm', 'PINDAH ANTRIAN', `Pindah Antrian ke Slot ${slotTarget + 1}?`, () => {
+                runTransaction(db, async(t) => {
+                    const d = (await t.get(ref)).data();
+                    let s = d.chargingSlots;
+                    let q = d.waitingQueue;
+
+                    if (!q[queueIndex]) throw "Antrian tidak ditemukan.";
+
+                    const itemToMove = q[queueIndex];
+
+                    // Hapus dari antrian
+                    q.splice(queueIndex, 1);
+                    
+                    // Hitung ulang target & durasi berdasarkan antrian yang tersisa
+                    const newTarget = calculateTargetLimit(q.length);
+                    const newDur = calculateDuration(itemToMove.startBattery, newTarget);
+                    
+                    // Masukkan ke slot dan mulai cas
+                    s[slotTarget] = {
+                        ...itemToMove,
+                        targetLimit: newTarget,
+                        durationMinutes: newDur,
+                        startTime: new Date()
+                    };
+
+                    t.update(ref, { chargingSlots: s, waitingQueue: q });
+                }).then(() => {
+                    showPopup('success', 'SUKSES', `Antrian berhasil dipindah ke Slot ${slotTarget + 1}.`);
+                }).catch(e => {
+                    showPopup('error', 'GAGAL', e);
+                });
+            });
+        };
+        // AKHIR FITUR BARU
 
         window.blockUser = async () => {
             const p = document.getElementById('blockPlatInput').value.toUpperCase().trim();
