@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>FC Kelapa Gading - Smart Charging</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* TEMA DARK/HITAM-NEON */
+        :root {
+            --accent: #CCFF00; /* Kuning Stabilo */
+            --bg: #050505; 
+            --glass: rgba(17, 17, 17, 0.7); /* Card background lebih gelap */
+            --text: #ffffff;
+            --text-muted: #888;
+            --cyan: #00d2ff; /* Warna sekunder neon */
+            --soft-red: #FF3B30;
+            --border: #333;
+            --card-bg: #111;
+            --input-bg: #222;
+        }
+        
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body {
+            margin: 0; font-family: 'Rajdhani', sans-serif; background-color: var(--bg); color: var(--text);
+            min-height: 100vh; padding: 20px; padding-bottom: 120px; transition: 0.3s;
+            position: relative;
+        }
+
+        /* Background Image (Disamarkan lebih jauh di tema gelap) */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            /* Pastikan file ini ada di server Anda */
+            background-image: url('1763947427555.jpg'); 
+            background-size: cover;
+            background-position: center;
+            opacity: 0.1; /* Opacity dikurangi */
+            z-index: -1;
+            transition: opacity 0.3s;
+        }
+
+        .container { max-width: 480px; margin: 0 auto; position: relative; z-index: 1; }
+
+        /* HEADER */
+        .header-row { 
+            display: flex; justify-content: space-between; align-items: center; 
+            margin-top: 20px; margin-bottom: 5px;
+        }
+        
+        h1 {
+            font-family: 'Orbitron', sans-serif; font-size: 24px; margin: 0;
+            /* Warna utama: Kuning Stabilo */
+            background: linear-gradient(to right, var(--text), var(--accent));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 10px rgba(204, 255, 0, 0.4); letter-spacing: 1px;
+        }
+
+        .subtitle { 
+            font-family: 'Orbitron', sans-serif; 
+            text-align: left; color: var(--text-muted); font-size: 10px; 
+            letter-spacing: 2px; margin-bottom: 25px; font-weight: bold;
+            text-transform: uppercase; border-bottom: 1px solid var(--border); padding-bottom: 15px;
+        }
+
+        /* CARD */
+        .glass-card {
+            background: var(--card-bg); 
+            backdrop-filter: blur(5px);
+            border: 1px solid var(--border); border-radius: 20px; padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5); margin-bottom: 25px;
+        }
+
+        label { display: block; font-family: 'Orbitron'; font-size: 10px; color: var(--accent); margin-bottom: 8px; letter-spacing: 1px; }
+        input.field {
+            width: 100%; background: var(--input-bg); border: 1px solid var(--border); color: var(--text);
+            padding: 15px; border-radius: 10px; 
+            font-family: 'Orbitron', sans-serif; 
+            font-size: 20px;
+            font-weight: 700; outline: none; transition: 0.3s; margin-bottom: 15px; text-align: center;
+        }
+        input.field:focus { border-color: var(--accent); box-shadow: 0 0 10px rgba(204, 255, 0, 0.2); }
+
+        .btn-cyan {
+            width: 100%; 
+            /* Diubah ke warna Accent Stabilo */
+            background: linear-gradient(90deg, var(--accent), #e6ff66); 
+            border: none; padding: 16px; border-radius: 10px; color: #000; /* Teks Hitam */
+            font-family: 'Orbitron', sans-serif; 
+            font-weight: 800; font-size: 16px;
+            cursor: pointer; box-shadow: 0 0 20px rgba(204, 255, 0, 0.3); margin-top: 5px;
+        }
+        
+        .slots-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 30px; }
+        .slot-box {
+            background: var(--card-bg); border: 1px solid var(--border); border-radius: 15px;
+            padding: 10px 5px; text-align: center; min-height: 160px; display: flex; flex-direction: column;
+            justify-content: center; position: relative;
+        }
+        .slot-box.active { border-color: var(--accent); background: rgba(204, 255, 0, 0.05); } /* Background hint */
+
+        .bat-icon {
+            width: 36px; height: 60px; border: 2px solid var(--text-muted); border-radius: 6px;
+            position: relative; margin: 0 auto 10px; display: flex; align-items: flex-end; padding: 2px;
+        }
+        .bat-icon::before { content: ''; position: absolute; top: -5px; left: 10px; width: 12px; height: 3px; background: var(--text-muted); }
+        .bat-fill { 
+            width: 100%; 
+            background: var(--accent); /* Warna Stabilo */
+            border-radius: 3px; transition: height 0.5s; 
+            box-shadow: 0 0 10px rgba(204, 255, 0, 0.5); 
+        }
+        .bat-bolt { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 20px; color: #000; /* Teks hitam agar kontras dengan stabilo */ text-shadow: none; z-index: 2; }
+        
+        .slot-box.active .bat-icon { border-color: var(--accent); }
+        .slot-box.active .bat-icon::before { background: var(--accent); }
+
+        /* REVISI LAYOUT TOMBOL SLOT (Vertikal) */
+        .btn-group { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 3px; 
+            margin-top: auto; 
+        }
+        .btn-act { 
+            width: 100%; 
+            padding: 6px; 
+            border-radius: 6px; 
+            border: none; 
+            font-weight: bold; 
+            font-family: 'Orbitron', sans-serif; 
+            font-size: 10px; 
+            cursor: pointer; 
+        }
+        .btn-start { background: var(--accent); color: #000; } /* Stabilo */
+        .btn-stop { background: rgba(255, 59, 48, 0.1); border: 1px solid var(--soft-red); color: var(--soft-red); }
+        .btn-edit-timer { background: rgba(0, 210, 255, 0.1); border: 1px solid var(--cyan); color: var(--cyan); }
+
+
+        /* POPUP MODAL */
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
+        .modal-box { 
+            background: var(--card-bg); border: 2px solid var(--accent); padding: 25px; /* Border Stabilo */
+            border-radius: 20px; width: 85%; max-width: 320px; text-align: center; 
+            box-shadow: 0 0 40px rgba(204, 255, 0, 0.2);
+            animation: pop 0.3s;
+        }
+        .modal-icon { font-size: 40px; margin-bottom: 10px; display: block; color: var(--accent); }
+        .modal-title { font-family: 'Orbitron', sans-serif; font-size: 18px; margin: 0 0 10px; color: var(--text); }
+        .modal-msg { color: var(--text-muted); font-size: 14px; margin-bottom: 20px; line-height: 1.4; }
+        
+        .modal-btns { display: flex; gap: 10px; }
+        .btn-modal { flex: 1; padding: 12px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; font-family: 'Orbitron', sans-serif; background: var(--input-bg); color: var(--text); }
+        .btn-modal.primary { background: var(--accent); color: #000; }
+        .btn-modal.danger { background: var(--soft-red); color: #fff; }
+        
+        /* ADMIN */
+        .admin-trigger { 
+            color: var(--text-muted); text-align: center; font-size: 10px; 
+            margin-top: 20px; cursor: pointer;
+            font-family: 'Orbitron', sans-serif;
+            letter-spacing: 1px;
+        }
+        .admin-panel { background: var(--card-bg); padding: 20px; border-radius: 15px; border: 1px solid var(--soft-red); margin-top: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
+        .adm-input { background: var(--input-bg); border: 1px solid var(--border); color: var(--text); padding: 10px; width: 100%; border-radius: 6px; }
+        .adm-btn { background: var(--input-bg); color: var(--text); font-family: 'Orbitron', sans-serif; margin-top: 5px;}
+        
+        .footer {
+            text-align: center; margin-top: 40px; font-family: 'Orbitron', sans-serif;
+            font-size: 12px; color: var(--accent); font-weight: 900; letter-spacing: 2px;
+            text-shadow: 0 0 10px rgba(204, 255, 0, 0.4);
+        }
+
+        @keyframes pop { from{transform:scale(0.8); opacity:0} to{transform:scale(1); opacity:1} }
+    </style>
+</head>
+<body>
+
+    <audio id="alarmSound" loop>
+        <source src="data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU..." type="audio/wav">
+    </audio>
+
+    <div id="masterModal" class="modal">
+        <div id="modalBox" class="modal-box">
+            <span id="mIcon" class="modal-icon">✅</span>
+            <h3 id="mTitle" class="modal-title">TITLE</h3>
+            <p id="mMsg" class="modal-msg">Message</p>
+            <input type="password" id="mInput" style="display:none; width:100%; padding:10px; text-align:center; margin-bottom:15px; border-radius:5px; border:1px solid var(--border); background:var(--input-bg); color:var(--text);" placeholder="PIN">
+            <input type="number" id="mInputDuration" style="display:none; width:100%; padding:10px; text-align:center; margin-bottom:15px; border-radius:5px; border:1px solid var(--border); background:var(--input-bg); color:var(--text);" placeholder="Durasi (menit)">
+            <div class="modal-btns">
+                <button id="mBtnCancel" class="btn-modal" style="display:none;">BATAL</button>
+                <button id="mBtnOk" class="btn-modal primary">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="header-row">
+            <h1>FC KELAPA GADING</h1>
+            </div>
+        <div class="subtitle">HOME OF MLU</div>
+
+        <div class="glass-card">
+            <label>PLAT NOMOR</label>
+            <input id="userPlat" class="field" placeholder="PLAT NOMOR" style="text-transform:uppercase;">
+            
+            <label>NO WA</label>
+            <input id="userWA" type="tel" class="field" placeholder="08xxxxxxxxxx">
+
+            <label>BATERAI (%)</label>
+            <input id="userBattery" type="number" class="field" placeholder="0 - 99">
+            <button id="btnDaftar" class="btn-cyan">DAFTAR ANTRIAN</button>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:15px;">
+            <div style="width:8px; height:8px; background:var(--accent); border-radius:50%; box-shadow:0 0 10px var(--accent);"></div>
+            <span style="font-family:'Orbitron'; font-size:12px; color:var(--text);">STATUS 3 SLOT</span>
+        </div>
+
+        <div class="slots-grid" id="slotsContainer">
+            <div style="grid-column:1/-1; text-align:center; padding:30px; color:var(--text-muted);">Loading System...</div>
+        </div>
+
+        <div class="glass-card" style="padding:15px; min-height:100px;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:15px; border-bottom:1px solid var(--border); padding-bottom:10px;">
+                <span style="font-family:'Orbitron'; font-size:12px; color:var(--text);">DAFTAR TUNGGU</span>
+                <span id="qCount" style="font-size:12px; color:var(--accent);">0</span>
+            </div>
+            <div id="queueList"></div>
+        </div>
+
+        <div class="admin-trigger" onclick="openAdminLogin()">🔒 ADMIN LOGIN AREA</div>
+        
+        <div id="adminPanel" class="admin-panel" style="background:var(--card-bg); border-color:var(--soft-red); display:none;">
+            <h4 style="color:var(--soft-red); margin:0 0 15px; font-family:'Orbitron'; text-align:center;">PANEL KONTROL</h4>
+            
+            <label>MANUAL ASSIGN (PLAT BARU)</label>
+            <div class="adm-row">
+                <select id="manSlot" class="adm-input" style="width:40%"><option value="0">Slot 1</option><option value="1">Slot 2</option><option value="2">Slot 3</option></select>
+                <input id="manPlat" placeholder="Plat" class="adm-input">
+            </div>
+            <button onclick="manualAssign()" class="adm-btn" style="background:var(--accent); color:#000;">ISI SLOT MANUAL</button>
+            <button onclick="clearSlotManual()" class="adm-btn" style="background:var(--input-bg); color:var(--text);">KOSONGKAN SLOT (PAKSA)</button>
+
+            <label style="margin-top:15px;">ASSIGN ANTRIAN KE SLOT</label>
+            <div class="adm-row">
+                <select id="assignQueueIndex" class="adm-input" style="width:40%"><option value="-1">-- Pilih Antrian --</option></select>
+                <select id="assignSlotTarget" class="adm-input" style="width:40%">
+                    <option value="0">Slot 1</option>
+                    <option value="1">Slot 2</option>
+                    <option value="2">Slot 3</option>
+                </select>
+            </div>
+            <button onclick="assignQueueToSlot()" class="adm-btn" style="background:var(--cyan); color:#fff;">PINDAH KE SLOT</button>
+
+            <label style="margin-top:15px;">BLOKIR</label>
+            <div class="adm-row">
+                <input id="blockPlatInput" placeholder="Plat Diblokir" class="adm-input">
+                <button onclick="blockUser()" class="adm-btn" style="width:auto; background:var(--soft-red); color:#fff;">BLOK</button>
+            </div>
+
+            <label style="margin-top:15px;">DANGER ZONE</label>
+            <button onclick="stopAll()" class="adm-btn" style="background:var(--soft-red); color:#fff;">STOP SEMUA SLOT</button>
+            <button onclick="resetAll()" class="adm-btn" style="border:1px solid var(--soft-red); background:none; color:var(--soft-red);">RESET DATABASE TOTAL</button>
+
+            <div onclick="document.getElementById('adminPanel').style.display='none'" style="text-align:center; margin-top:15px; font-size:10px; color:var(--text-muted); cursor:pointer;">Tutup Panel</div>
+        </div>
+
+        <div class="footer">Created by : MLU SQUAD</div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+        import { getFirestore, doc, onSnapshot, runTransaction, setDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
+        // --- FIREBASE CONFIG (TIDAK BERUBAH) ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyALIlkIDALIk83K8s1htalvW6rmNNw02Go",
+            authDomain: "sistem-antrian-b1c39.firebaseapp.com",
+            projectId: "sistem-antrian-b1c39",
+            storageBucket: "sistem-antrian-b1c39.firebasestorage.app",
+            messagingSenderId: "454124587608",
+            appId: "1:454124587608:web:34fbb0f5211067a67f982d"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const ref = doc(db, "antrian", "utama");
+
+        // --- GLOBAL CONSTANTS ---
+        const STATION_LOC = { lat: -6.171583, lng: 106.899844 }; 
+        const MAX_DIST_KM = 0.2; 
+        const FONTE_TOKEN = "YOUR_FONTE_TOKEN_HERE"; 
+
+        // --- GPS AND UTILITY FUNCTIONS (TIDAK BERUBAH) ---
+        
+        function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
+            const R = 6371;
+            const dLat = deg2rad(lat2 - lat1);
+            const dLon = deg2rad(lon2 - lon1);
+            const a = 
+                Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return R * c; 
+        }
+
+        function deg2rad(deg) {
+            return deg * (Math.PI / 180);
+        }
+
+        function calculateTargetLimit(queueLength) {
+            if (queueLength >= 6 && queueLength <= 10) return 90;
+            if (queueLength > 10) return 85;
+            if (queueLength >= 3 && queueLength <= 5) return 95;
+            return 100;
+        }
+
+        // --- LOGIKA DURASI CAS (TIDAK BERUBAH) ---
+        function getRemainingTime(batteryPercent) {
+            const data = [
+                {p: 100, t: 0}, 
+                {p: 97, t: 6}, {p: 91, t: 9}, {p: 90, t: 19}, {p: 89, t: 20}, {p: 87, t: 21}, {p: 85, t: 26},
+                {p: 82, t: 25}, {p: 81, t: 26.5}, {p: 79, t: 30}, {p: 77, t: 31}, {p: 73, t: 35},
+                {p: 72, t: 35}, {p: 68, t: 42}, {p: 67, t: 43}, {p: 61, t: 47}, {p: 59, t: 48},
+                {p: 58, t: 50}, {p: 51, t: 55}, {p: 50, t: 54}, {p: 49, t: 54.5}, {p: 47, t: 56},
+                {p: 46, t: 56}, {p: 21, t: 69}, {p: 18, t: 71}
+            ];
+            
+            if (batteryPercent >= 100) return 0;
+            if (batteryPercent <= data[data.length - 1].p) return data[data.length - 1].t;
+
+            let lower = data.slice().reverse().find(d => d.p <= batteryPercent);
+            let upper = data.find(d => d.p > batteryPercent); 
+            
+            if (!lower && upper && batteryPercent > 97) lower = {p: 97, t: 6};
+            if (!lower && !upper) return 75;
+
+            if (lower && lower.p === batteryPercent) return lower.t;
+            if (upper && upper.p === batteryPercent) return upper.t;
+
+            if (lower && upper) {
+                const interpolatedTime = lower.t + (upper.t - lower.t) * ((batteryPercent - lower.p) / (upper.p - lower.p));
+                return interpolatedTime;
+            }
+            
+            return lower ? lower.t : 75; 
+        }
+
+        function calculateDuration(startBattery, targetLimit) {
+            if (startBattery >= targetLimit) return 5; 
+
+            let targetTimeRemaining = getRemainingTime(targetLimit);
+            let startTimeRemaining = getRemainingTime(startBattery);
+            
+            let duration = startTimeRemaining - targetTimeRemaining;
+            
+            if (startBattery >= 97 && targetLimit === 100) {
+                duration = (targetLimit - startBattery) * 3;
+            }
+            if (duration < 0) duration = (targetLimit - startBattery) * 1.5; 
+
+            return Math.max(5, Math.ceil(duration)); 
+        }
+
+
+        // --- WHATSAPP NOTIFICATION (TIDAK BERUBAH) ---
+        const WA_MESSAGES = [
+            (plat, wa) => `Halo user ${plat}! Motor Anda sudah selesai diisi daya dan siap diambil. Mohon segera pindahkan kendaraan Anda.`,
+            (plat, wa) => `Peringatan! Pengisian daya motor ${plat} telah mencapai target. Slot telah terisi penuh. Silakan ambil kendaraan Anda.`,
+            (plat, wa) => `Notifikasi: Motor dengan plat nomor ${plat} telah selesai melakukan pengisian daya. Terima kasih atas kerja samanya.`,
+        ];
+
+        function sendWhatsAppNotification(plat, wa) {
+            if (wa.length < 9 || FONTE_TOKEN === "YOUR_FONTE_TOKEN_HERE") return console.log("WA number too short or FONTE_TOKEN not set. Skipping notification.");
+
+            const index = Math.floor(Math.random() * WA_MESSAGES.length);
+            const baseMessage = WA_MESSAGES[index](plat, wa);
+            const signature = "\n\n- Pesan ini dikirim otomatis oleh Smart Parking System MLU. Terima kasih sudah mampir di Rumah MLU.";
+            const message = encodeURIComponent(baseMessage + signature);
+
+            const url = `https://api.fonnte.com/send?target=${wa}&message=${message}`;
+
+            fetch(url, {
+                method: 'POST',
+                headers: { 'Authorization': FONTE_TOKEN }
+            })
+            .then(response => response.json())
+            .then(data => console.log('WA Sent:', data))
+            .catch(error => console.error('WA Error:', error));
+        }
+
+        // --- CORE SYSTEM & UI LOGIC (TIDAK BERUBAH) ---
+        l
