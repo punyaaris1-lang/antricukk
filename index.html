@@ -22,12 +22,12 @@
             --text-mute: #888;
         }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { margin: 0; padding: 0; background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+        /* CSS FIX: Menghapus display:flex dari body agar elemen utama mengalir normal */
+        body { margin: 0; padding: 0; background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; height: 100vh; overflow: hidden; } 
 
         /* LOADER (Welcome Screen) */
         .loader { position: fixed; inset:0; background: #000; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s ease-out; }
-        .loader-logo { width: 150px; margin-bottom: 20px; filter: drop-shadow(0 0 20px rgba(204, 255, 0, 0.3)); /*animation: floatLogo 3s infinite;*/ }
-        /* @keyframes floatLogo { 0%{transform:translateY(0)} 50%{transform:translateY(-10px)} 100%{transform:translateY(0)} } */
+        .loader-logo { width: 150px; margin-bottom: 20px; filter: drop-shadow(0 0 20px rgba(204, 255, 0, 0.3)); }
         #animText1 { font-size: 1rem; color: var(--accent); margin-bottom: 5px; font-weight: 600; }
         #animText2 { font-family: 'Syne'; font-size: 1.8rem; font-weight: 800; color: #fff; text-transform: uppercase; margin-bottom: 10px; text-align: center; }
         #animText3 { font-size: 0.9rem; color: var(--cyan); letter-spacing: 2px; font-weight: 700; text-transform: uppercase; margin-bottom: 40px; opacity: 1; transition: opacity 1s; text-align: center; }
@@ -52,13 +52,10 @@
         .t-btn { padding: 6px 12px; font-size: 0.65rem; font-weight: 800; color: #888; cursor: pointer; border-radius: 18px; transition: 0.2s; display: flex; align-items: center; gap: 5px; }
         .t-btn.active { background: var(--accent); color: #000; }
 
-        /* MENU BUTTONS (Dihapus) */
-        .menu-row { display: none; } 
-
         /* CONTAINER UTAMA */
-        body > div { flex: 1; }
-        #view-list { display: flex; flex-direction: column; flex: 1; overflow: hidden; width: 100%; }
-        #view-map { display: none; flex: 1; width: 100%; height: 100%; position: relative; }
+        /* Flexbox di sini untuk memastikan konten mengisi sisa ruang di bawah header */
+        #view-list { display: flex; flex-direction: column; height: calc(100vh - 120px); overflow: hidden; width: 100%; }
+        #view-map { display: none; height: calc(100vh - 120px); width: 100%; position: relative; }
         #map-container { width: 100%; height: 100%; }
 
         /* HERO SECTION (FC Terdekat - Gambar 2/3) */
@@ -316,7 +313,8 @@
         const MIN_CHARGE_PERCENT = 80; 
         
         // --- HELPER FUNCTIONS (Dilanjutkan di Bagian 2/3) ---
-                // Lanjutan dari Script Bagian 1/3
+                   // Lanjutan dari Script Bagian 2/3
+        // Lanjutan dari Script Bagian 1/3
 
         // --- CUSTOM ALERT FUNCTIONS (Untuk tampilan yang lebih keren) ---
         function customAlert(title, message, icon) {
@@ -456,7 +454,7 @@
             }
             if (!startLoc) {
                 closeCustomAlert();
-                customAlert('Geocoding Gagal', `Gagal menemukan koordinat untuk Lokasi Awal: ${startAddr}. Coba format yang lebih umum (misalnya: "Pondok Gede").`, '❌');
+                customAlert('Geocoding Gagal', `Gagal menemukan koordinat untuk Lokasi Awal: ${startAddr}. Coba format yang lebih umum.`, '❌');
                 return;
             }
             
@@ -483,23 +481,24 @@
             let finalStart = startLoc;
             let finalDest = destLoc;
             
+            // Mencari FC terdekat dari Tujuan (dibutuhkan di kedua skenario)
+            let nearestFCToDest = null;
+            let minDistToDest = Infinity;
+            chargers.forEach(c => {
+                const dist = parseFloat(getDist(destLoc.lat, destLoc.lng, c.lat, c.lng));
+                if (dist < minDistToDest) {
+                    minDistToDest = dist;
+                    nearestFCToDest = c;
+                }
+            });
+
             if (directDistKm <= initialRangeKm) {
                 // A. Rute Langsung (Baterai Cukup)
                 
-                let nearestFCToDest = null;
-                let minDistToDest = Infinity;
-                chargers.forEach(c => {
-                    const dist = parseFloat(getDist(destLoc.lat, destLoc.lng, c.lat, c.lng));
-                    if (dist < minDistToDest) {
-                        minDistToDest = dist;
-                        nearestFCToDest = c;
-                    }
-                });
-                
-                routeSummary = `✅ **RUTE LANGSUNG (Baterai Cukup)**\n`;
-                routeSummary += `Estimasi Perjalanan: **${directDistKm.toFixed(1)} km**\n`;
+                routeSummary = `✅ **RUTE LANGSUNG**\n`;
+                routeSummary += `Estimasi Total Jarak: **${directDistKm.toFixed(1)} km**\n`;
                 routeSummary += `Baterai Awal: **${soc}%** | Sisa Baterai di Tujuan: **${Math.round(finalSocDirect)}%**\n\n`;
-                routeSummary += `**Rute Anda:**\n`;
+                routeSummary += `**Rute Perjalanan:**\n`;
                 routeSummary += `[START] ${startLoc.address} \n`;
                 routeSummary += `→ [END] ${destLoc.address}\n\n`;
                 
@@ -507,7 +506,7 @@
                     const socNeededForDestFC = Math.ceil(minDistToDest) + MIN_RANGE_KM;
                     routeSummary += `**CATATAN PENTING (DI TUJUAN):**\n`;
                     routeSummary += `FC terdekat adalah **${nearestFCToDest.name}** (${minDistToDest} km).\n`;
-                    routeSummary += `Anda butuh min **${socNeededForDestFC}%** baterai untuk mencapai FC tsb.`;
+                    routeSummary += `Anda butuh min **${socNeededForDestFC}%** baterai untuk mencapainya.`;
                 }
 
                 finalRoute = [startLoc, destLoc];
@@ -558,14 +557,22 @@
                 
                 const finalSocViaFC = Math.max(0, socCharged - socNeededToDest);
                 
-                routeSummary = `⚠️ **RUTE VIA FC (Baterai Tidak Cukup)**\n`;
+                // --- NARASI FINAL (Revisi Anda) ---
+                routeSummary = `⚠️ **RUTE DISARANKAN**\n`;
                 routeSummary += `Estimasi Total Jarak: **${totalDist.toFixed(1)} km**\n`;
-                routeSummary += `Baterai Awal: **${soc}%** | Baterai dibutuhkan: **${Math.ceil(directDistKm) + MIN_RANGE_KM}%**\n\n`;
-                routeSummary += `**Rute Disarankan (Singgah Cas):**\n`;
+                routeSummary += `Baterai Awal: **${soc}%** | Baterai yang dibutuhkan: **${Math.ceil(directDistKm) + MIN_RANGE_KM}%**\n\n`;
+                routeSummary += `**Rute Perjalanan:**\n`;
                 routeSummary += `[START] ${startLoc.address} \n`;
-                routeSummary += `→ **[FC] ${nearestFC.name}**: ${startToFCDist.toFixed(1)} km. (Sisa **${Math.round(socArrivalFC)}%**)\n`;
-                routeSummary += `   Disarankan Cas minimal **${socCharged}%**.\n`;
-                routeSummary += `→ [END] ${destLoc.address}: ${fcToDestDist.toFixed(1)} km. Sisa Baterai tiba: **${Math.round(finalSocViaFC)}%** (dari SOC ${socCharged}%).`;
+                routeSummary += `→ **[FC] ${nearestFC.name}**: ${startToFCDist.toFixed(1)} km. (Sisa Tiba: **${Math.round(socArrivalFC)}%**)\n`;
+                routeSummary += `   Disarankan Cas: **${socCharged}%**.\n`;
+                routeSummary += `→ [END] ${destLoc.address}: ${fcToDestDist.toFixed(1)} km. Sisa Tiba: **${Math.round(finalSocViaFC)}%** (Cas **${socCharged}%**).\n\n`;
+                
+                if (nearestFCToDest) {
+                    const socNeededForDestFC = Math.ceil(minDistToDest) + MIN_RANGE_KM;
+                    routeSummary += `**CATATAN PENTING (DI TUJUAN):**\n`;
+                    routeSummary += `FC terdekat dari Tujuan adalah **${nearestFCToDest.name}** (${minDistToDest} km).\n`;
+                    routeSummary += `Anda butuh min **${socNeededForDestFC}%** baterai untuk mencapainya.`;
+                }
 
                 finalRoute = [startLoc, fcLoc, destLoc];
                 
@@ -577,8 +584,7 @@
         }
         
         // --- MAP FUNCTIONS (Dilanjutkan di Bagian 3/3) ---
-                // Lanjutan dari Script Bagian 2/3
-
+                        
         // --- MAP FUNCTIONS (PLANNER & SINGLE) ---
         
         let routingControl = null;
@@ -805,7 +811,6 @@
                 
                 document.getElementById('heroName').innerText = nearestFC.name;
                 document.getElementById('heroDist').innerText = nearestFC.distance + ' KM';
-                // Menampilkan info sesuai format Gambar 3 & 5
                 document.getElementById('heroInfo').innerHTML = `${nearestFC.city} • ${nearestFC.type} • ${nearestFC.nozzle} Nozzle • ${nearestFC.cost}`;
                 
                 currentMapTarget = nearestFC; 
