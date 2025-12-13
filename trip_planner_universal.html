@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <title>Trip Planner Universal PRO | MAKA E-Mobility</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Syne:wght@700&display=swap" rel="stylesheet">
+    <style>
+        /* ================= PREMIUM STYLING ================= */
+        :root {
+            --bg-base: #f0f4f8;
+            --accent: #0ea5a6; /* Teal */
+            --text: #0f1724;
+            --muted: #64748b;
+            --warn: #f59e0b;
+            --danger: #ef4444;
+            --safe: #22c55e;
+            --glass-bg: rgba(255, 255, 255, 0.85);
+            --radius-lg: 18px;
+            --max-width: 450px;
+        }
+        body {
+            margin: 0; padding: 0; font-family: 'Inter', sans-serif;
+            background-color: var(--bg-base); color: var(--text);
+            min-height: 100vh;
+        }
+        .app-container {
+            max-width: var(--max-width); margin: 0 auto; padding: 25px 20px;
+        }
+        .header h1 {
+            font-family: 'Syne', sans-serif; font-size: 1.6em; font-weight: 800;
+            margin: 0 0 5px 0; color: var(--text);
+        }
+        .header p {
+            font-size: 0.8em; color: var(--muted); margin: 0 0 25px 0;
+            font-weight: 600;
+        }
+        .card {
+            background: var(--glass-bg); padding: 20px; border-radius: var(--radius-lg);
+            margin-bottom: 20px; box-shadow: 0 8px 16px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(8px);
+        }
+        /* INPUT & CONTROL */
+        .input-group { margin-bottom: 15px; }
+        .input-group label {
+            display: block; font-size: 0.8em; font-weight: 600; color: var(--muted);
+            margin-bottom: 5px;
+        }
+        .input-group input, .input-group select {
+            width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ccc;
+            font-size: 1em; font-weight: 600;
+        }
+        .btn-calc {
+            background: var(--accent); color: white; border: none; padding: 12px 20px;
+            border-radius: 10px; font-weight: 700; cursor: pointer; width: 100%;
+            box-shadow: 0 4px 10px rgba(14, 165, 166, 0.3);
+        }
+
+        /* RESULT CARDS (Plan A / Plan B) */
+        .plan-header {
+            font-size: 1em; font-family: 'Syne', sans-serif; font-weight: 800;
+            margin-top: 0; display: flex; align-items: center; gap: 10px;
+        }
+        .plan-card {
+            margin-top: 15px; border-radius: 12px; padding: 15px;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            background: #fff;
+        }
+        .plan-status {
+            font-weight: 800; padding: 5px 10px; border-radius: 6px; font-size: 0.75em;
+            margin-bottom: 8px; width: fit-content;
+        }
+        .status-safe { background-color: rgba(34, 197, 94, 0.1); color: var(--safe); }
+        .status-danger { background-color: rgba(239, 68, 68, 0.1); color: var(--danger); }
+        .status-warn { background-color: rgba(245, 158, 11, 0.1); color: var(--warn); }
+        
+        .plan-info { font-size: 0.9em; line-height: 1.4; }
+        .plan-info strong { color: var(--accent); }
+        .plan-info a { color: var(--accent); font-weight: 700; text-decoration: none; }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <div class="header">
+        <h1>MAKA TRIP PLANNER (UNIVERSAL)</h1>
+        <p>Dashboard premium untuk merencanakan rute EV Anda berdasarkan jarak dan ketersediaan FC MTR.</p>
+    </div>
+
+    <div class="card">
+        <h2 style="font-size: 1.2em; margin-top: 0; font-weight: 800;">⚙️ INPUT PERJALANAN</h2>
+        
+        <div class="input-group">
+            <label for="socInput">% SISA BATERAI MOTOR ANDA</label>
+            <input type="number" id="socInput" value="35" min="0" max="100" placeholder="Cth: 35">
+        </div>
+        
+        <div class="input-group">
+            <label for="distTotalInput">JARAK TOTAL RUTE (KM)</label>
+            <input type="number" id="distTotalInput" value="40" min="1" placeholder="Cth: 40 km">
+        </div>
+
+        <div class="input-group">
+            <label for="fcSelect">PILIH STASIUN FC MTR TERDEKAT</label>
+            <select id="fcSelect" onchange="updateFCInfo()">
+                <option value="15|8" data-name="MAKA Kelapa Gading">MAKA Kelapa Gading (Jarak Est. 15 km)</option>
+                <option value="23.8|4.1" data-name="Otoxpress JakUt">Otoxpress JakUt (Jarak Est. 23.8 km)</option>
+                <option value="30|10" data-name="FC Lain">FC Lain (Cek Jarak Anda ke Tujuan)</option>
+            </select>
+            <p style="font-size:0.75em; color:var(--danger); margin:5px 0 0 0;">*Penting: Pilih FC terdekat dan pastikan jaraknya akurat.</p>
+        </div>
+
+        <button class="btn-calc" onclick="calculateTrip()">HITUNG RENCANA PERJALANAN</button>
+    </div>
+
+    <div id="outputSection" style="display: none;">
+        <h2 style="font-size: 1.2em; font-weight: 800; margin-bottom: 10px;">📊 HASIL ANALISIS</h2>
+
+        <div class="card">
+            <h3 class="plan-header"><span>1️⃣</span> PLAN A: CHARGE DULU (Awal $\to$ FC $\to$ Tujuan)</h3>
+            <div id="planAOutput" class="plan-card"></div>
+        </div>
+
+        <div class="card">
+            <h3 class="plan-header"><span>2️⃣</span> PLAN B: LANGSUNG KE TUJUAN (Awal $\to$ Tujuan)</h3>
+            <div id="planBOutput" class="plan-card"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- DATABASE & LOGIC CONSTANTS ---
+    const BAT_PER_KM = 1.0; // 1% = 1 km
+    const BAT_BUFFER = 5.0; // 5% Safety Margin
+
+    // Global variables to store distances
+    let DIST_TOTAL = 40; // Default total distance
+    let DIST_TO_FC = 23.8; // Default distance to selected FC
+    let DIST_FC_TO_DEST = 4.1; // Default distance from selected FC to destination
+    let FC_NAME = "Otoxpress JakUt";
+
+    // --- UTILITY FUNCTIONS ---
+    function updateFCInfo() {
+        const fcSelect = document.getElementById('fcSelect');
+        const selectedOption = fcSelect.options[fcSelect.selectedIndex];
+        
+        const distances = selectedOption.value.split('|');
+        DIST_TO_FC = parseFloat(distances[0]);
+        DIST_FC_TO_DEST = parseFloat(distances[1]);
+        FC_NAME = selectedOption.dataset.name;
+    }
+
+    // --- CORE CALCULATION FUNCTION ---
+    function calculateTrip() {
+        const soc = parseFloat(document.getElementById('socInput').value);
+        DIST_TOTAL = parseFloat(document.getElementById('distTotalInput').value);
+        
+        const outputSection = document.getElementById('outputSection');
+        outputSection.style.display = 'block';
+
+        if (isNaN(soc) || isNaN(DIST_TOTAL) || DIST_TOTAL <= 0 || soc < 0 || soc > 100) {
+            alert('Masukkan nilai Baterai dan Jarak Total yang valid.');
+            return;
+        }
+        
+        // Kebutuhan Baterai (Dinamis)
+        const batRequiredTotal = DIST_TOTAL * BAT_PER_KM + BAT_BUFFER;
+        const batRequiredToFC = DIST_TO_FC * BAT_PER_KM + BAT_BUFFER;
+        
+        // --- 1. PLAN A: CHARGE DULU (Awal -> FC -> Tujuan) ---
+        renderPlanA(soc, batRequiredToFC);
+
+        // --- 2. PLAN B: LANGSUNG KE TUJUAN (Awal -> Tujuan -> FC) ---
+        renderPlanB(soc, batRequiredTotal);
+    }
+
+    function renderPlanA(soc, batRequiredToFC) {
+        const output = document.getElementById('planAOutput');
+        const batRequiredSegmentA = DIST_TO_FC * BAT_PER_KM;
+        let html = '';
+        
+        html += `<p class="plan-info"><strong>FC Terpilih: ${FC_NAME}</strong>. Jarak ke FC: ${DIST_TO_FC} km.</p>`;
+
+        if (soc < batRequiredToFC) {
+            html += `<div class="plan-status status-danger">TIDAK AMAN!</div>`;
+            html += `<p class="plan-info">Sisa baterai **${soc}%** (< <strong>${batRequiredToFC.toFixed(1)}%</strong>) tidak cukup aman untuk mencapai **${FC_NAME}**. Rute ini sangat berisiko. Anda harus mencari FC/SPKLU yang lebih dekat dari lokasi awal!</p>`;
+        } else {
+            const batArrivalFC = soc - batRequiredSegmentA;
+            const batFinal = 100 - DIST_FC_TO_DEST * BAT_PER_KM; // Asumsi full charge
+            
+            html += `<div class="plan-status status-safe">AMAN & OPTIMAL</div>`;
+            html += `<p class="plan-info">Perjalanan segmen pertama aman. Anda tiba di ${FC_NAME} dengan sisa baterai $\mathbf{${batArrivalFC.toFixed(1)}\%}$. Setelah charge penuh, Anda tiba di Tujuan dengan sisa $\mathbf{${batFinal.toFixed(1)}\%}$.</p>`;
+            html += `<p class="plan-info"><a href="#" onclick="alert('Simulasi rute Awal -> ${FC_NAME} -> Tujuan')">LIHAT RUTE MULTI-TITIK ↗</a></p>`;
+        }
+        
+        output.innerHTML = html;
+    }
+
+    function renderPlanB(soc, batRequiredTotal) {
+        const output = document.getElementById('planBOutput');
+        const batFinal = soc - DIST_TOTAL * BAT_PER_KM;
+        let html = '';
+        
+        html += `<p class="plan-info"><strong>Total Jarak: ${DIST_TOTAL} km</strong>. FC Terdekat dari Tujuan: ${FC_NAME} (${DIST_FC_TO_DEST} km).</p>`;
+
+        if (soc < batRequiredTotal) {
+            html += `<div class="plan-status status-danger">TIDAK AMAN!</div>`;
+            html += `<p class="plan-info">Sisa baterai **${soc}%** (< <strong>${batRequiredTotal.toFixed(1)}%</strong>) tidak cukup untuk langsung ke Tujuan. **JANGAN AMBIL PLAN B!** Ambil Plan A jika aman, atau cari FC darurat.</p>`;
+        } else {
+            if (batFinal <= 10) {
+                 html += `<div class="plan-status status-warn">RISIKO TINGGI (LOW BATTERY)</div>`;
+                 html += `<p class="plan-info">Anda tiba di Tujuan dengan sisa baterai $\mathbf{${batFinal.toFixed(1)}\%}$. Setelah itu, segera ke **${FC_NAME}** (${DIST_FC_TO_DEST.toFixed(1)} km) untuk mengisi daya.</p>`;
+            } else {
+                html += `<div class="plan-status status-safe">AMAN!</div>`;
+                html += `<p class="plan-info">Anda dapat langsung ke Tujuan dan tiba dengan sisa baterai $\mathbf{${batFinal.toFixed(1)}\%}$ (Aman). FC terdekat dari Tujuan adalah **${FC_NAME}** (${DIST_FC_TO_DEST.toFixed(1)} km).</p>`;
+            }
+            html += `<p class="plan-info"><a href="#" onclick="alert('Simulasi rute Awal -> Tujuan Langsung')">LIHAT RUTE LANGSUNG ↗</a></p>`;
+        }
+        
+        output.innerHTML = html;
+    }
+
+    // Initialize the distance info on load
+    document.addEventListener('DOMContentLoaded', () => {
+        updateFCInfo();
+        calculateTrip(); // Run initial calculation with default values
+    });
+</script>
+
+</body>
+</html>
