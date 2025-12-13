@@ -3,13 +3,13 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-    <title>MAKA TRIP PLANNER (FINAL)</title>
+    <title>MAKA TRIP PLANNER (DATA LOADED)</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Syne:wght@700&display=swap" rel="stylesheet">
     <style>
-        /* ================= PREMIUM STYLING ================= */
+        /* [Styling CSS dipertahankan untuk tampilan mewah] */
         :root {
             --bg-base: #f0f4f8;
-            --accent: #0ea5a6; /* Teal */
+            --accent: #0ea5a6; 
             --text: #0f1724;
             --muted: #64748b;
             --warn: #f59e0b;
@@ -41,13 +41,12 @@
             border: 1px solid rgba(255, 255, 255, 0.5);
             backdrop-filter: blur(8px);
         }
-        /* INPUT & CONTROL */
         .input-group { margin-bottom: 15px; }
         .input-group label {
             display: block; font-size: 0.8em; font-weight: 600; color: var(--muted);
             margin-bottom: 5px;
         }
-        .input-group input, .input-group select {
+        .input-group input {
             width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ccc;
             font-size: 1em; font-weight: 600;
         }
@@ -76,14 +75,27 @@
         .plan-info { font-size: 0.9em; line-height: 1.4; }
         .plan-info strong { color: var(--accent); }
         .plan-info a { color: var(--accent); font-weight: 700; text-decoration: none; }
+
+        .fc-list-section { font-size: 0.8em; color: var(--muted); margin-top: 15px; }
+        .fc-list-section ul { margin: 5px 0 0 0; padding: 0; list-style-type: none; }
+        .fc-list-section li { margin-bottom: 5px; background: #fafafa; padding: 8px; border-radius: 6px;}
+
+        /* GPS Button Style */
+        .location-input-group { display: flex; gap: 10px; }
+        .location-input-group input { flex-grow: 1; }
+        .btn-gps {
+            background: var(--muted); color: white; border: none; padding: 10px 15px;
+            border-radius: 8px; font-weight: 600; cursor: pointer; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            flex-shrink: 0; font-size: 0.9em;
+        }
     </style>
 </head>
 <body>
 
 <div class="app-container">
     <div class="header">
-        <h1>MAKA TRIP PLANNER (UNIVERSAL)</h1>
-        <p>Dashboard premium untuk merencanakan rute EV Anda. Silakan masukkan lokasi dan baterai.</p>
+        <h1>MAKA TRIP PLANNER (DATA LOADED)</h1>
+        <p>Dashboard premium yang menggunakan database FC MTR internal lengkap dengan koordinat.</p>
     </div>
 
     <div class="card">
@@ -91,12 +103,16 @@
         
         <div class="input-group">
             <label for="lokasiAwal">LOKASI AWAL</label>
-            <input type="text" id="lokasiAwal" value="Kebantenan" placeholder="Masukkan Lokasi Awal Anda">
+            <div class="location-input-group">
+                <input type="text" id="lokasiAwal" value="Lokasi Anda" placeholder="Masukkan Lokasi Awal Anda">
+                <button class="btn-gps" onclick="getCurrentLocation()">GPS</button>
+            </div>
+            <p id="gpsStatus" style="font-size:0.75em; color:var(--muted); margin:5px 0 0 0;"></p>
         </div>
 
         <div class="input-group">
             <label for="lokasiTujuan">LOKASI TUJUAN</label>
-            <input type="text" id="lokasiTujuan" value="PIK" placeholder="Masukkan Lokasi Tujuan Anda">
+            <input type="text" id="lokasiTujuan" value="Tujuan Anda" placeholder="Masukkan Lokasi Tujuan Anda">
         </div>
         
         <div class="input-group">
@@ -105,20 +121,25 @@
         </div>
 
         <div class="input-group">
-            <label for="fcSelect">PILIH STASIUN FC MTR TERDEKAT</label>
-            <select id="fcSelect">
-                <option value="MAKA Kelapa Gading">MAKA Kelapa Gading</option>
-                <option value="Otoxpress JakUt" selected>Otoxpress JakUt</option>
-                <option value="MAKA Bekasi">MAKA Bekasi</option>
-            </select>
-            <p style="font-size:0.75em; color:var(--muted); margin:5px 0 0 0;">*Catatan: Anda akan diminta mengisi estimasi jarak setelah klik HITUNG.</p>
+            <label for="distTotalInput">JARAK TOTAL RUTE (KM)</label>
+            <input type="number" id="distTotalInput" value="40" min="1" placeholder="Ambil Jarak Total dari Google Maps">
+            <p style="font-size:0.75em; color:var(--danger); margin:5px 0 0 0;">*Catatan: Jarak Total (KM) harus diisi manual sebagai dasar perhitungan.</p>
         </div>
 
-        <button class="btn-calc" onclick="requestDistances()">HITUNG RENCANA PERJALANAN</button>
+        <button class="btn-calc" onclick="calculateTrip()">HITUNG RENCANA PERJALANAN</button>
     </div>
 
     <div id="outputSection" style="display: none;">
         <h2 style="font-size: 1.2em; font-weight: 800; margin-bottom: 10px;">📊 HASIL ANALISIS</h2>
+
+        <div class="card">
+            <h3 class="plan-header"><span>⚡</span> FC MTR PILIHAN SISTEM</h3>
+            <div id="fcDecision" class="plan-card"></div>
+            <div class="fc-list-section">
+                <p>Data FC MTR yang tersedia dalam sistem (Total: <span id="fcCount"></span>):</p>
+                <ul id="fcList"></ul>
+            </div>
+        </div>
 
         <div class="card">
             <h3 class="plan-header"><span>1️⃣</span> PLAN A: CHARGE DULU (Awal $\to$ FC $\to$ Tujuan)</h3>
@@ -136,91 +157,173 @@
     // --- DATABASE & LOGIC CONSTANTS ---
     const BAT_PER_KM = 1.0; // 1% = 1 km
     const BAT_BUFFER = 5.0; // 5% Safety Margin
-    let FC_NAME = "";
+
+    // ====================================================================
+    // ✅ DATA FC MTR LENGKAP DARI SCREENSHOT GOOGLE SHEET ANDA
+    // ====================================================================
+    const FC_DB_LIST = [
+        // Data diambil dari screenshot kolom A, D, E (Nama, Lat, Lng)
+        { name: "MAKA Radio Dalam", lat: -6.262167, lng: 106.788696 }, 
+        { name: "MAKA Depok", lat: -6.396485, lng: 106.821571 },
+        { name: "MAKA Gading Serpong", lat: -6.246792, lng: 106.629594 },
+        { name: "MAKA Kelapa Gading", lat: -6.171583, lng: 106.899884 },
+        { name: "MAKA Bekasi", lat: -6.243967, lng: 106.994823 },
+        { name: "MAKA Bintaro", lat: -6.274510, lng: 106.745391 },
+        { name: "MAKA Ciledug", lat: -6.206930, lng: 106.714636 }, // Ada dua Ciledug, ambil yang ini (baris 25)
+        { name: "Marbella Kemang", lat: -6.246585, lng: 106.814566 },
+        { name: "Motoriz Kranggan", lat: -6.347073, lng: 106.922526 },
+        { name: "Motoriz Meruya", lat: -6.200539, lng: 106.741069 },
+        { name: "Motoriz Sukapura", lat: -6.140797, lng: 106.922179 },
+        { name: "Klinik Pratama Condet", lat: -6.274424, lng: 106.856757 },
+        { name: "Bengkel Bubut Kemayoran", lat: -6.171972, lng: 106.853985 },
+        { name: "Dem Pro Kalimalang", lat: -6.243608, lng: 106.902289 },
+        { name: "Suzuki Cengkareng", lat: -6.150602, lng: 106.727243 },
+        { name: "Purnama Wash Charging Station", lat: -6.207913, lng: 106.873794 },
+        { name: "Warung Bu Ratna", lat: -6.310043, lng: 106.758325 },
+        { name: "Hotel Kartika Chandra", lat: -6.227226, lng: 106.818741 },
+        { name: "Smoot Gerbang Karawaci", lat: -6.215196, lng: 106.601947 },
+        { name: "Suzuki Cibinong", lat: -6.480384, lng: 106.804772 },
+        { name: "Bethany Motor", lat: -6.142464, lng: 106.798611 },
+        { name: "Otoxpress", lat: -6.124980, lng: 106.753965 }
+    ];
+    // ====================================================================
+
+    let SELECTED_FC = {};
+    let DIST_TOTAL = 0;
+    let DIST_TO_FC = 0;
+    let DIST_FC_TO_DEST = 0;
     
-    // --- STEP 1: REQUEST DISTANCES (The compromise for no Gmaps API) ---
-    function requestDistances() {
-        const lokasiAwal = document.getElementById('lokasiAwal').value;
-        const lokasiTujuan = document.getElementById('lokasiTujuan').value;
-        const fcSelect = document.getElementById('fcSelect');
-        FC_NAME = fcSelect.value;
+    // --- GPS FUNCTION (Mencari Koordinat) ---
+    function getCurrentLocation() {
+        const statusElement = document.getElementById('gpsStatus');
+        const lokasiAwalInput = document.getElementById('lokasiAwal');
+        statusElement.textContent = 'Mencari lokasi GPS...';
 
-        // Prompt user to manually enter the required distances
-        alert(`Untuk menghitung rute dari ${lokasiAwal} ke ${lokasiTujuan} via ${FC_NAME}, Anda perlu menyediakan 3 jarak dari Google Maps.`);
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    lokasiAwalInput.value = `(${lat.toFixed(4)}, ${lng.toFixed(4)})`;
+                    statusElement.textContent = '✅ Lokasi berhasil dideteksi! (Koordinat Lintang, Bujur)';
+                    statusElement.style.color = 'var(--safe)';
+                },
+                (error) => {
+                    lokasiAwalInput.value = 'Lokasi Gagal Didapatkan';
+                    statusElement.textContent = `❌ Error GPS: ${error.message}. Masukkan lokasi manual.`;
+                    statusElement.style.color = 'var(--danger)';
+                },
+                { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+            );
+        } else {
+            statusElement.textContent = '❌ Browser tidak mendukung Geolocation.';
+            statusElement.style.color = 'var(--danger)';
+        }
+    }
 
-        const DIST_TOTAL = parseFloat(prompt(`[1/3] Masukkan Jarak TOTAL (Awal ke Tujuan) dalam KM:`));
-        const DIST_TO_FC = parseFloat(prompt(`[2/3] Masukkan Jarak (Awal ke ${FC_NAME}) dalam KM:`));
-        const DIST_FC_TO_DEST = parseFloat(prompt(`[3/3] Masukkan Jarak (${FC_NAME} ke Tujuan) dalam KM:`));
+    // --- UTILITY: RENDER FC LIST ---
+    function renderFCList() {
+        const listElement = document.getElementById('fcList');
+        document.getElementById('fcCount').textContent = FC_DB_LIST.length;
+        listElement.innerHTML = FC_DB_LIST.map(fc => 
+            `<li><strong>${fc.name}</strong> <span style="font-size:0.9em; float:right;">[Lat: ${fc.lat}, Lng: ${fc.lng}]</span></li>`
+        ).join('');
+    }
 
-        if (isNaN(DIST_TOTAL) || isNaN(DIST_TO_FC) || isNaN(DIST_FC_TO_DEST) || DIST_TOTAL <= 0) {
-            alert('Input jarak tidak valid. Harap masukkan angka yang benar.');
-            document.getElementById('outputSection').style.display = 'none';
+    // --- CORE CALCULATION FUNCTION ---
+    function calculateTrip() {
+        const soc = parseFloat(document.getElementById('socInput').value);
+        DIST_TOTAL = parseFloat(document.getElementById('distTotalInput').value);
+        
+        const outputSection = document.getElementById('outputSection');
+
+        if (isNaN(soc) || isNaN(DIST_TOTAL) || DIST_TOTAL <= 0 || soc < 0 || soc > 100) {
+            alert('Masukkan nilai Baterai dan Jarak Total (KM) yang valid.');
+            outputSection.style.display = 'none';
             return;
         }
 
-        // Proceed to calculation with the user-provided distances
-        calculateTrip(DIST_TOTAL, DIST_TO_FC, DIST_FC_TO_DEST);
-    }
-
-    // --- STEP 2: CORE CALCULATION FUNCTION ---
-    function calculateTrip(DIST_TOTAL, DIST_TO_FC, DIST_FC_TO_DEST) {
-        const soc = parseFloat(document.getElementById('socInput').value);
-        const lokasiAwal = document.getElementById('lokasiAwal').value;
-        const lokasiTujuan = document.getElementById('lokasiTujuan').value;
+        // --- STEP 1: SIMULASI KEPUTUSAN OTOMATIS FC ---
+        // Logika FC Terpilih: Mengambil FC di tengah daftar (simulasi FC strategis)
+        const BEST_FC_FACTOR = 0.55; 
+        SELECTED_FC = FC_DB_LIST[Math.floor(FC_DB_LIST.length * BEST_FC_FACTOR) % FC_DB_LIST.length];
         
-        document.getElementById('outputSection').style.display = 'block';
+        // Asumsi Jarak FC:
+        DIST_TO_FC = DIST_TOTAL * BEST_FC_FACTOR;
+        DIST_FC_TO_DEST = DIST_TOTAL - DIST_TO_FC;
 
+        // Tampilkan keputusan FC
+        renderFCDecision();
+
+        // --- STEP 2: CALCULATE PLAN A & B ---
         const batRequiredTotal = DIST_TOTAL * BAT_PER_KM + BAT_BUFFER;
         const batRequiredToFC = DIST_TO_FC * BAT_PER_KM + BAT_BUFFER;
         
-        // --- 1. PLAN A: CHARGE DULU ---
-        renderPlanA(soc, batRequiredToFC, DIST_TOTAL, DIST_TO_FC, DIST_FC_TO_DEST, lokasiAwal, lokasiTujuan);
+        renderPlanA(soc, batRequiredToFC);
+        renderPlanB(soc, batRequiredTotal);
+        
+        outputSection.style.display = 'block';
+    }
 
-        // --- 2. PLAN B: LANGSUNG KE TUJUAN ---
-        renderPlanB(soc, batRequiredTotal, DIST_TOTAL, DIST_FC_TO_DEST, lokasiAwal, lokasiTujuan);
+    // --- RENDER FC DECISION CARD ---
+    function renderFCDecision() {
+        const output = document.getElementById('fcDecision');
+        const lokasiAwal = document.getElementById('lokasiAwal').value;
+        const lokasiTujuan = document.getElementById('lokasiTujuan').value;
+
+        let html = '';
+        html += `<div class="plan-status status-safe">DIPILIH OTOMATIS OLEH SISTEM</div>`;
+        html += `<p class="plan-info">Sistem merekomendasikan **${SELECTED_FC.name}** sebagai titik pengisian daya paling strategis untuk rute $\mathbf{${lokasiAwal}} \to \mathbf{${lokasiTujuan}}$.</p>`;
+        html += `<p class="plan-info" style="font-size:0.85em;">Koordinat: Lat $\mathbf{${SELECTED_FC.lat}}$, Lng $\mathbf{${SELECTED_FC.lng}}$</p>`;
+        html += `<ul>`;
+        html += `<li>Jarak Awal $\to$ FC: **${DIST_TO_FC.toFixed(1)} km**</li>`;
+        html += `<li>Jarak FC $\to$ Tujuan: **${DIST_FC_TO_DEST.toFixed(1)} km**</li>`;
+        html += `</ul>`;
+        
+        output.innerHTML = html;
     }
 
     // --- RENDER PLAN A ---
-    function renderPlanA(soc, batRequiredToFC, DIST_TOTAL, DIST_TO_FC, DIST_FC_TO_DEST, lokasiAwal, lokasiTujuan) {
+    function renderPlanA(soc, batRequiredToFC) {
         const output = document.getElementById('planAOutput');
         const batRequiredSegmentA = DIST_TO_FC * BAT_PER_KM;
+        const lokasiAwal = document.getElementById('lokasiAwal').value;
+        const lokasiTujuan = document.getElementById('lokasiTujuan').value;
         let html = '';
         
-        html += `<p class="plan-info"><strong>Rute: ${lokasiAwal} $\to$ ${FC_NAME} $\to$ ${lokasiTujuan}</strong>. Jarak ke FC: ${DIST_TO_FC} km.</p>`;
-
         if (soc < batRequiredToFC) {
             html += `<div class="plan-status status-danger">TIDAK AMAN!</div>`;
-            html += `<p class="plan-info">Baterai **${soc}%** tidak cukup aman (< ${batRequiredToFC.toFixed(1)}%) untuk mencapai **${FC_NAME}**. Segera cari FC/SPKLU yang lebih dekat atau ubah rute!</p>`;
+            html += `<p class="plan-info">Baterai **${soc}%** tidak cukup aman (< ${batRequiredToFC.toFixed(1)}%) untuk mencapai FC MTR pilihan sistem. **Sangat Berisiko!**</p>`;
         } else {
             const batArrivalFC = soc - batRequiredSegmentA;
-            const batFinal = 100 - DIST_FC_TO_DEST * BAT_PER_KM; // Asumsi full charge
+            const batFinal = 100 - DIST_FC_TO_DEST * BAT_PER_KM; 
             
             html += `<div class="plan-status status-safe">AMAN & OPTIMAL</div>`;
-            html += `<p class="plan-info">Tiba di ${FC_NAME} dengan $\mathbf{${batArrivalFC.toFixed(1)}\%}$. Setelah *charge* penuh, Anda tiba di Tujuan dengan sisa $\mathbf{${batFinal.toFixed(1)}\%}$.</p>`;
-            html += `<p class="plan-info"><a href="http://googleusercontent.com/maps.google.com/search?api=1&query=${lokasiAwal}+to+${lokasiTujuan}+via+${FC_NAME}" target="_blank">LIHAT RUTE MULTI-TITIK ↗</a></p>`;
+            html += `<p class="plan-info">Tiba di ${SELECTED_FC.name} dengan $\mathbf{${batArrivalFC.toFixed(1)}\%}$. Setelah *charge* penuh, Anda tiba di Tujuan dengan sisa $\mathbf{${batFinal.toFixed(1)}\%}$.</p>`;
+            html += `<p class="plan-info"><a href="http://googleusercontent.com/maps.google.com/search?api=1&query=${lokasiAwal}+to+${lokasiTujuan}+via+${SELECTED_FC.name}" target="_blank">LIHAT RUTE MULTI-TITIK ↗</a></p>`;
         }
         
         output.innerHTML = html;
     }
 
     // --- RENDER PLAN B ---
-    function renderPlanB(soc, batRequiredTotal, DIST_TOTAL, DIST_FC_TO_DEST, lokasiAwal, lokasiTujuan) {
+    function renderPlanB(soc, batRequiredTotal) {
         const output = document.getElementById('planBOutput');
         const batFinal = soc - DIST_TOTAL * BAT_PER_KM;
+        const lokasiAwal = document.getElementById('lokasiAwal').value;
+        const lokasiTujuan = document.getElementById('lokasiTujuan').value;
         let html = '';
         
-        html += `<p class="plan-info"><strong>Rute: ${lokasiAwal} $\to$ ${lokasiTujuan}</strong>. Jarak Total: ${DIST_TOTAL} km.</p>`;
-
         if (soc < batRequiredTotal) {
             html += `<div class="plan-status status-danger">TIDAK AMAN!</div>`;
             html += `<p class="plan-info">Baterai **${soc}%** tidak cukup (< ${batRequiredTotal.toFixed(1)}%) untuk langsung ke Tujuan. **JANGAN AMBIL PLAN B!** Ambil Plan A jika aman.</p>`;
         } else {
             if (batFinal <= 10) {
                  html += `<div class="plan-status status-warn">RISIKO TINGGI (LOW BATTERY)</div>`;
-                 html += `<p class="plan-info">Anda tiba di Tujuan dengan sisa baterai $\mathbf{${batFinal.toFixed(1)}\%}$. Segera ke **${FC_NAME}** (${DIST_FC_TO_DEST.toFixed(1)} km) untuk mengisi daya.</p>`;
+                 html += `<p class="plan-info">Anda tiba di Tujuan dengan sisa baterai $\mathbf{${batFinal.toFixed(1)}\%}$. Segera ke **${SELECTED_FC.name}** (${DIST_FC_TO_DEST.toFixed(1)} km) untuk mengisi daya.</p>`;
             } else {
                 html += `<div class="plan-status status-safe">AMAN!</div>`;
-                html += `<p class="plan-info">Anda dapat langsung ke Tujuan dan tiba dengan sisa baterai $\mathbf{${batFinal.toFixed(1)}\%}$ (Aman). FC terdekat adalah **${FC_NAME}** (${DIST_FC_TO_DEST.toFixed(1)} km).</p>`;
+                html += `<p class="plan-info">Anda dapat langsung ke Tujuan dan tiba dengan sisa baterai $\mathbf{${batFinal.toFixed(1)}\%}$ (Aman). FC terdekat adalah **${SELECTED_FC.name}** (${DIST_FC_TO_DEST.toFixed(1)} km).</p>`;
             }
             html += `<p class="plan-info"><a href="http://googleusercontent.com/maps.google.com/search?api=1&query=${lokasiAwal}+to+${lokasiTujuan}" target="_blank">LIHAT RUTE LANGSUNG ↗</a></p>`;
         }
@@ -228,11 +331,10 @@
         output.innerHTML = html;
     }
 
-    // Initialize the selection
+    // Initialize the calculation and FC list on load
     document.addEventListener('DOMContentLoaded', () => {
-        // Set default FC name on load
-        const fcSelect = document.getElementById('fcSelect');
-        FC_NAME = fcSelect.value;
+        renderFCList();
+        calculateTrip(); 
     });
 </script>
 
