@@ -26,10 +26,8 @@
 
         /* LOADER (Welcome Screen) */
         .loader { position: fixed; inset:0; background: #000; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s ease-out; }
-        .loader-logo { width: 150px; margin-bottom: 20px; filter: drop-shadow(0 0 20px rgba(204, 255, 0, 0.3)); animation: floatLogo 3s infinite; }
-        /* Placeholder logo for demo: */
-        /* .loader-logo-placeholder { font-family: 'Syne'; font-size: 2.5rem; color: var(--accent); letter-spacing: 2px; font-weight: 700; } */
-        @keyframes floatLogo { 0%{transform:translateY(0)} 50%{transform:translateY(-10px)} 100%{transform:translateY(0)} }
+        .loader-logo { width: 150px; margin-bottom: 20px; filter: drop-shadow(0 0 20px rgba(204, 255, 0, 0.3)); /*animation: floatLogo 3s infinite;*/ }
+        /* @keyframes floatLogo { 0%{transform:translateY(0)} 50%{transform:translateY(-10px)} 100%{transform:translateY(0)} } */
         #animText1 { font-size: 1rem; color: var(--accent); margin-bottom: 5px; font-weight: 600; }
         #animText2 { font-family: 'Syne'; font-size: 1.8rem; font-weight: 800; color: #fff; text-transform: uppercase; margin-bottom: 10px; text-align: center; }
         #animText3 { font-size: 0.9rem; color: var(--cyan); letter-spacing: 2px; font-weight: 700; text-transform: uppercase; margin-bottom: 40px; opacity: 1; transition: opacity 1s; text-align: center; }
@@ -58,11 +56,12 @@
         .menu-row { display: none; } 
 
         /* CONTAINER UTAMA */
+        body > div { flex: 1; }
         #view-list { display: flex; flex-direction: column; flex: 1; overflow: hidden; width: 100%; }
         #view-map { display: none; flex: 1; width: 100%; height: 100%; position: relative; }
-        #fullMap { width: 100%; height: 100%; }
+        #map-container { width: 100%; height: 100%; }
 
-        /* HERO SECTION (Diubah ke FC Terdekat - Gambar 2/3) */
+        /* HERO SECTION (FC Terdekat - Gambar 2/3) */
         .hero-section { padding: 10px 25px; margin-bottom: 20px; flex-shrink: 0; }
         .hero-card { 
             background: var(--card); border: 1px solid var(--card-border); border-radius: 24px; padding: 20px; position: relative; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.5); display: flex; flex-direction: column; 
@@ -178,6 +177,15 @@
         #btnBack { background: #333; color: #fff; }
         #btnGmaps { background: var(--accent); color: #000; }
 
+        /* CUSTOM ALERT MODAL (BARU) */
+        #customAlertModal { z-index: 10000; }
+        #customAlertContent { padding: 30px 25px; background: var(--card); border-radius: 20px; text-align: center; max-width: 320px; border: 2px solid var(--accent); }
+        #alertIcon { font-size: 3rem; margin-bottom: 15px; }
+        #alertTitle { font-size: 1.2rem; font-weight: 800; margin-bottom: 10px; color: var(--accent); }
+        #alertMessage { font-size: 0.9rem; color: #ccc; margin-bottom: 20px; }
+        #alertButton { background: var(--accent); color: #000; padding: 12px 30px; border: none; border-radius: 10px; font-weight: 800; cursor: pointer; }
+
+
         /* CUSTOM ICON CSS */
         .leaflet-marker-icon.custom-marker { border: 3px solid #000; border-radius: 50%; box-shadow: 0 0 5px rgba(0,0,0,0.5); }
         .leaflet-routing-container { display: none; }
@@ -194,7 +202,7 @@
         <div class="loader-actions" id="loaderBtns">
             <button class="btn-entry primary" onclick="enterApp('home')">LOKASI FC ⚡</button>
             <button class="btn-entry primary" style="background:var(--cyan); color:#000;" onclick="enterApp('planner')">PLAN RUTE 🗺️</button> 
-            <button class="btn-entry secondary" onclick="alert('Fitur Antrian FC Gading Segera Hadir!')">ANTRIAN FC GADING</button> 
+            <button class="btn-entry secondary" onclick="customAlert('Info', 'Fitur Antrian FC Gading Segera Hadir!', 'ℹ️')">ANTRIAN FC GADING</button> 
         </div>
     </div>
 
@@ -210,7 +218,7 @@
                 <div id="btnMap" class="t-btn" onclick="switchView('map')">🗺️ PETA</div>
                 <div id="btnPlanner" class="t-btn" onclick="switchView('planner')">⏱️ PLANNER</div>
             </div>
-            </div>
+        </div>
     </div>
 
     <div id="view-list">
@@ -279,6 +287,16 @@
         </div>
     </div>
     
+    <div id="customAlertModal" class="modal-overlay">
+        <div id="customAlertContent">
+            <div id="alertIcon" style="color:var(--accent);"></div>
+            <div id="alertTitle"></div>
+            <p id="alertMessage"></p>
+            <button id="alertButton" onclick="closeCustomAlert()">OK</button>
+        </div>
+    </div>
+
+
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
     <script>
@@ -298,7 +316,19 @@
         const MIN_CHARGE_PERCENT = 80; 
         
         // --- HELPER FUNCTIONS (Dilanjutkan di Bagian 2/3) ---
-            // Lanjutan dari Script Bagian 1/3
+                // Lanjutan dari Script Bagian 1/3
+
+        // --- CUSTOM ALERT FUNCTIONS (Untuk tampilan yang lebih keren) ---
+        function customAlert(title, message, icon) {
+            document.getElementById('alertIcon').innerHTML = icon;
+            document.getElementById('alertTitle').innerText = title;
+            document.getElementById('alertMessage').innerText = message;
+            document.getElementById('customAlertModal').classList.add('active');
+        }
+
+        function closeCustomAlert() {
+            document.getElementById('customAlertModal').classList.remove('active');
+        }
 
         // --- HELPER FUNCTIONS ---
 
@@ -316,7 +346,6 @@
         // Helper: Geocoding (Nominatim - GRATIS)
         async function geocodeAddress(address) {
             try {
-                // Perbaikan: Hanya ambil hasil pertama dan tampilkan alamat yang lebih sederhana
                 const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(address)}&format=json&limit=1`;
                 const response = await fetch(url, { headers: { 'User-Agent': 'MAKA-FastCharging-App/1.0' } });
                 const data = await response.json();
@@ -325,7 +354,7 @@
                     const result = data[0];
                     const lat = parseFloat(result.lat);
                     const lng = parseFloat(result.lon);
-                    // Ambil deskripsi yang lebih umum (misalnya, hanya nama tempat dan kota)
+                    // Perbaikan Geocoding: Ambil deskripsi yang lebih umum agar routing OSRM lebih stabil.
                     let simpleAddress = result.display_name.split(',').slice(0, 3).join(', ');
                     return { lat: lat, lng: lng, address: simpleAddress }; 
                 }
@@ -348,7 +377,6 @@
                     const distanceKm = data.routes[0].distance / 1000;
                     return distanceKm;
                 }
-                // Bug fix: Mengembalikan null jika gagal
                 return null; 
             } catch(error) {
                 console.error("OSRM Routing error:", error);
@@ -378,9 +406,8 @@
                         lat: latVal, 
                         lng: lngVal, 
                         distance: '--',
-                        // Tambahkan info lain dari data awal Anda (contoh)
-                        nozzle: c[6] || '-',
-                        cost: c[7] || '-'
+                        nozzle: c[7] || 'N/A',
+                        cost: c[8] || 'N/A'
                     };
                 }).filter(i=>i);
 
@@ -397,9 +424,9 @@
         function setUserLocationAsStart() {
             if (userLat && userLng) {
                 document.getElementById('startLoc').value = `${userLat.toFixed(6)}, ${userLng.toFixed(6)}`;
-                alert('Lokasi Anda berhasil diatur sebagai lokasi awal (Koordinat).');
+                customAlert('Lokasi Ditetapkan', 'Lokasi Anda berhasil diatur sebagai lokasi awal (Koordinat).', '✅');
             } else {
-                alert('GPS belum terdeteksi. Harap tunggu atau masukkan koordinat/alamat manual.');
+                customAlert('GPS Error', 'GPS belum terdeteksi. Harap tunggu atau masukkan koordinat/alamat manual.', '⚠️');
             }
         }
 
@@ -410,15 +437,16 @@
             const destAddr = document.getElementById('destLoc').value;
             
             if (!startAddr || !destAddr || isNaN(soc) || soc < 5 || soc > 100) {
-                alert('Harap isi Lokasi Awal, Sisa Baterai (5-100%), dan Lokasi Tujuan dengan benar.');
+                customAlert('Input Salah', 'Harap isi Lokasi Awal, Sisa Baterai (5-100%), dan Lokasi Tujuan dengan benar.', '❌');
                 return;
             }
+            
+            customAlert('Proses', 'Menghitung rute tercepat...', '⏳');
             
             const initialRangeKm = soc - MIN_RANGE_KM; 
             
             // 1. Geocode Lokasi Awal dan Tujuan
             let startLoc;
-            // Coba parse koordinat jika formatnya seperti koordinat
             if (startAddr.match(/^-?\d+(\.\d+)?,\s*-?\d+(\.\d+)?$/)) { 
                 const parts = startAddr.split(',').map(s => parseFloat(s.trim()));
                 startLoc = { lat: parts[0], lng: parts[1], address: `Lokasi Saya (${parts[0].toFixed(4)}, ${parts[1].toFixed(4)})` };
@@ -427,21 +455,23 @@
                 startLoc = await geocodeAddress(startAddr);
             }
             if (!startLoc) {
-                alert(`Gagal menemukan koordinat untuk Lokasi Awal: ${startAddr}`);
+                closeCustomAlert();
+                customAlert('Geocoding Gagal', `Gagal menemukan koordinat untuk Lokasi Awal: ${startAddr}. Coba format yang lebih umum (misalnya: "Pondok Gede").`, '❌');
                 return;
             }
             
             const destLoc = await geocodeAddress(destAddr);
             if (!destLoc) {
-                alert(`Gagal menemukan koordinat untuk Lokasi Tujuan: ${destAddr}`);
+                closeCustomAlert();
+                customAlert('Geocoding Gagal', `Gagal menemukan koordinat untuk Lokasi Tujuan: ${destAddr}. Coba format yang lebih umum.`, '❌');
                 return;
             }
             
             // 2. Hitung Jarak Rute Langsung
-            alert('Menghitung rute tercepat...'); // Beri feedback ke user
             const directDistKm = await getRouteDistance(startLoc, destLoc);
             if (directDistKm === null) {
-                alert('Gagal menghitung jarak rute langsung. Pastikan alamat valid dan coba lagi.');
+                closeCustomAlert();
+                customAlert('Routing Gagal', 'Gagal menghitung jarak rute. Cek koneksi Anda atau coba alamat lain.', '⚠️');
                 return;
             }
             
@@ -450,12 +480,12 @@
             // 3. Tentukan Rencana (A: Langsung atau B: Via FC)
             let finalRoute = [];
             let routeSummary = "";
-            let fcNearbyDest = null;
+            let finalStart = startLoc;
+            let finalDest = destLoc;
             
             if (directDistKm <= initialRangeKm) {
                 // A. Rute Langsung (Baterai Cukup)
                 
-                // Cari FC terdekat dari Tujuan untuk rekomendasi
                 let nearestFCToDest = null;
                 let minDistToDest = Infinity;
                 chargers.forEach(c => {
@@ -466,8 +496,6 @@
                     }
                 });
                 
-                fcNearbyDest = { dist: minDistToDest, fc: nearestFCToDest };
-                
                 routeSummary = `✅ **RUTE LANGSUNG (Baterai Cukup)**\n`;
                 routeSummary += `Estimasi Perjalanan: **${directDistKm.toFixed(1)} km**\n`;
                 routeSummary += `Baterai Awal: **${soc}%** | Sisa Baterai di Tujuan: **${Math.round(finalSocDirect)}%**\n\n`;
@@ -475,11 +503,11 @@
                 routeSummary += `[START] ${startLoc.address} \n`;
                 routeSummary += `→ [END] ${destLoc.address}\n\n`;
                 
-                if (fcNearbyDest.fc) {
-                    const socNeededForDestFC = Math.ceil(fcNearbyDest.dist) + MIN_RANGE_KM;
+                if (nearestFCToDest) {
+                    const socNeededForDestFC = Math.ceil(minDistToDest) + MIN_RANGE_KM;
                     routeSummary += `**CATATAN PENTING (DI TUJUAN):**\n`;
-                    routeSummary += `FC terdekat dari Tujuan adalah **${fcNearbyDest.fc.name}** (Jarak ${fcNearbyDest.dist} km).\n`;
-                    routeSummary += `Anda butuh minimal **${socNeededForDestFC}%** baterai untuk mencapai FC tersebut.`;
+                    routeSummary += `FC terdekat adalah **${nearestFCToDest.name}** (${minDistToDest} km).\n`;
+                    routeSummary += `Anda butuh min **${socNeededForDestFC}%** baterai untuk mencapai FC tsb.`;
                 }
 
                 finalRoute = [startLoc, destLoc];
@@ -487,7 +515,6 @@
             } else {
                 // B. Rute Via FC (Baterai Tidak Cukup)
                 
-                // Cari FC Terdekat dari Lokasi Awal
                 let nearestFC = null;
                 let minDist = Infinity;
                 chargers.forEach(c => {
@@ -499,52 +526,53 @@
                 });
                 
                 if (!nearestFC) {
-                    alert('Tidak ditemukan FC terdekat yang aman dijangkau. Perjalanan via FC dibatalkan.');
+                    closeCustomAlert();
+                    customAlert('FC Tidak Terjangkau', 'Tidak ditemukan FC terdekat yang aman dijangkau dengan baterai saat ini.', '❌');
                     return;
                 }
                 
                 const fcLoc = { lat: nearestFC.lat, lng: nearestFC.lng, address: nearestFC.name };
                 
-                // Hitung Jarak Rute Awal -> FC
                 const startToFCDist = await getRouteDistance(startLoc, fcLoc);
                 if (startToFCDist === null) {
-                    alert('Gagal menghitung jarak rute ke FC. Coba lagi.');
+                    closeCustomAlert();
+                    customAlert('Routing Gagal', 'Gagal menghitung jarak ke FC. Coba lagi.', '⚠️');
                     return;
                 }
                 
-                // Hitung baterai yang tersisa di FC
                 const socArrivalFC = soc - startToFCDist - MIN_RANGE_KM;
                 
                 if (socArrivalFC < 0) {
-                    alert(`❌ **Baterai Terlalu Rendah.** Jarak ke FC terdekat (${nearestFC.name}) adalah ${startToFCDist.toFixed(1)} km, melebihi daya jelajah (${initialRangeKm.toFixed(1)} km). Perjalanan tidak aman.`);
+                    closeCustomAlert();
+                    customAlert('Baterai Kritis', `Jarak ke FC terdekat (${nearestFC.name}) adalah ${startToFCDist.toFixed(1)} km, melebihi daya jelajah (${initialRangeKm.toFixed(1)} km). Perjalanan tidak aman.`, '🚨');
                     return;
                 }
                 
-                // Jarak Rute FC -> Tujuan
                 const fcToDestDist = await getRouteDistance(fcLoc, destLoc);
                 const totalDist = startToFCDist + fcToDestDist;
                 
                 const socNeededToDest = fcToDestDist + MIN_RANGE_KM;
                 
-                let socCharged = Math.max(MIN_CHARGE_PERCENT, Math.ceil(socNeededToDest + 10)); // Charge minimal 80% atau lebih dari yang dibutuhkan
+                let socCharged = Math.max(MIN_CHARGE_PERCENT, Math.ceil(socNeededToDest + 10)); 
                 if (socCharged > 100) socCharged = 100;
                 
                 const finalSocViaFC = Math.max(0, socCharged - socNeededToDest);
                 
                 routeSummary = `⚠️ **RUTE VIA FC (Baterai Tidak Cukup)**\n`;
                 routeSummary += `Estimasi Total Jarak: **${totalDist.toFixed(1)} km**\n`;
-                routeSummary += `Baterai Awal: **${soc}%** | Baterai dibutuhkan (${directDistKm.toFixed(1)} km): **${Math.ceil(directDistKm) + MIN_RANGE_KM}%**\n\n`;
+                routeSummary += `Baterai Awal: **${soc}%** | Baterai dibutuhkan: **${Math.ceil(directDistKm) + MIN_RANGE_KM}%**\n\n`;
                 routeSummary += `**Rute Disarankan (Singgah Cas):**\n`;
                 routeSummary += `[START] ${startLoc.address} \n`;
                 routeSummary += `→ **[FC] ${nearestFC.name}**: ${startToFCDist.toFixed(1)} km. (Sisa **${Math.round(socArrivalFC)}%**)\n`;
                 routeSummary += `   Disarankan Cas minimal **${socCharged}%**.\n`;
-                routeSummary += `→ **[END] ${destLoc.address}**: ${fcToDestDist.toFixed(1)} km. Sisa Baterai tiba: **${Math.round(finalSocViaFC)}%** (dari SOC ${socCharged}%).`;
+                routeSummary += `→ [END] ${destLoc.address}: ${fcToDestDist.toFixed(1)} km. Sisa Baterai tiba: **${Math.round(finalSocViaFC)}%** (dari SOC ${socCharged}%).`;
 
                 finalRoute = [startLoc, fcLoc, destLoc];
                 
             }
             
-            // 4. Tampilkan Rute di Map Modal
+            // Tutup alert proses dan buka Map Modal
+            closeCustomAlert();
             openPlanMapModal(finalRoute, routeSummary, finalStart, finalDest);
         }
         
@@ -560,7 +588,7 @@
             document.getElementById('mapOverlay').classList.add('active');
             document.getElementById('mapTitle').innerText = 'RUTE PERJALANAN TERENCANA';
             
-            // Menggunakan innerHTML karena summary sudah terformat dengan tag seperti **
+            // Menggunakan innerHTML karena summary sudah terformat
             document.getElementById('mapSub').innerHTML = summary.replace(/\n/g, '<br>');
             
             const gmapsUrl = `https://www.google.com/maps/dir/${finalStart.lat},${finalStart.lng}/{finalDest.lat},{finalDest.lng}/`;
@@ -580,15 +608,16 @@
                     routingControl = null;
                 }
                 
+                // Tambahkan Rute ke Peta
                 const leafletWaypoints = waypoints.map(w => L.latLng(w.lat, w.lng));
                 
                 routingControl = L.Routing.control({
                     waypoints: leafletWaypoints,
                     lineOptions: { styles: [{color: '#CCFF00', opacity: 0.9, weight: 6}] },
                     createMarker: function(i, waypoint, n) { 
-                        let iconColor = '#FF3B30'; 
-                        if (i === n - 1) iconColor = '#06c258'; 
-                        else if (n > 2 && i === 1) iconColor = '#00d2ff'; 
+                        let iconColor = '#FF3B30'; // Merah (Start)
+                        if (i === n - 1) iconColor = '#06c258'; // Hijau (End)
+                        else if (n > 2 && i === 1) iconColor = '#00d2ff'; // Biru Cyan (FC/Singgah)
 
                         const customIcon = L.divIcon({
                             html: `<div style="background:${iconColor}; width:15px; height:15px; border-radius:50%; border:3px solid #000; box-shadow:0 0 10px rgba(0,0,0,0.5);"></div>`,
@@ -608,6 +637,9 @@
                     map.fitBounds(routes[0].bounds);
                 });
 
+                // PENTING: Memastikan peta muncul
+                map.invalidateSize(); 
+
             }, 300);
         }
 
@@ -615,6 +647,7 @@
         function openMapModal(charger) {
             // Jika dipanggil tanpa argumen, ambil FC terdekat yang sudah dihitung
             if (!charger && currentMapTarget) charger = currentMapTarget;
+            if (!charger) return customAlert('Info', 'FC terdekat belum terdeteksi.', 'ℹ️');
 
             document.getElementById('mapOverlay').classList.add('active');
             document.getElementById('mapTitle').innerText = charger.name.toUpperCase();
@@ -664,7 +697,6 @@
                     L.marker([charger.lat, charger.lng]).addTo(map).bindPopup(charger.name).openPopup();
                 }
                 
-                // Penting: Memastikan peta muncul setelah DOM berubah
                 map.invalidateSize(); 
 
             }, 300);
@@ -710,7 +742,7 @@
                  .addTo(map)
                  .bindPopup("Lokasi Saya");
             }
-            // PENTING: Memastikan peta muncul (fix black screen bug)
+            // PENTING: Memperbaiki masalah black screen
             setTimeout(() => { map.invalidateSize(); }, 200); 
         }
 
@@ -737,7 +769,6 @@
                 });
                 
                 grouped[city].forEach(c => {
-                    const statusClass = c.status;
                     const styleClass = `style-${(colorIdx % 3) + 1}`;
                     colorIdx++;
                     
@@ -763,7 +794,7 @@
             restoreScrollState();
         }
 
-        // Update Hero Box (FC Terdekat)
+        // Update Hero Box (FC Terdekat - Gambar 3 & 5)
         function updateHeroBox(nearestFC) {
             const scanState = document.getElementById('scanState');
             const foundState = document.getElementById('foundState');
@@ -774,12 +805,13 @@
                 
                 document.getElementById('heroName').innerText = nearestFC.name;
                 document.getElementById('heroDist').innerText = nearestFC.distance + ' KM';
-                document.getElementById('heroInfo').innerHTML = `${nearestFC.city} • ${nearestFC.type}<br>${nearestFC.nozzle} Nozzle • ${nearestFC.cost}`;
+                // Menampilkan info sesuai format Gambar 3 & 5
+                document.getElementById('heroInfo').innerHTML = `${nearestFC.city} • ${nearestFC.type} • ${nearestFC.nozzle} Nozzle • ${nearestFC.cost}`;
                 
-                // Simpan target untuk navigasi Hero Nav
                 currentMapTarget = nearestFC; 
                 
             } else {
+                // Tampilan saat GPS/FC tidak terdeteksi
                 scanState.style.display = 'flex';
                 foundState.style.display = 'none';
                 document.getElementById('userLocText').innerText = 'FC tidak ditemukan di dekat Anda.';
@@ -796,20 +828,17 @@
                         userLng = position.coords.longitude;
                         document.getElementById('userLocText').innerText = `(${userLat.toFixed(4)}, ${userLng.toFixed(4)})`;
                         
-                        // Hitung ulang jarak dan urutkan
                         const updatedChargers = chargers.map(c => ({
                             ...c,
                             distance: getDist(userLat, userLng, c.lat, c.lng)
                         })).sort((a, b) => parseFloat(a.distance) - parseFloat(b.distance)); 
                         
-                        // Update Hero Box
                         const nearestFC = updatedChargers.length > 0 ? updatedChargers[0] : null;
                         updateHeroBox(nearestFC);
                         
                         renderChargers(updatedChargers);
                     },
                     (error) => {
-                        console.error("Geolocation error:", error);
                         document.getElementById('userLocText').innerText = "GPS Error/Tidak Aktif. Jarak default.";
                         updateHeroBox(null);
                         renderChargers(chargers); 
@@ -839,7 +868,6 @@
             
             document.querySelectorAll('.t-btn').forEach(btn => btn.classList.remove('active'));
             
-            // Default visibility
             listHero.style.display = 'block'; 
             plannerSection.style.display = 'none'; 
             mainListContainer.style.display = 'block'; 
@@ -856,7 +884,6 @@
                 plannerBtn.classList.add('active');
                 listView.style.display = 'flex'; mapView.style.display = 'none';
                 
-                // Mode Planner
                 listHero.style.display = 'none'; 
                 plannerSection.style.display = 'block';
                 mainListContainer.style.display = 'none'; 
@@ -880,7 +907,6 @@
         }
         
         function runIntro() {
-             // Langsung tampilkan loader dan muat data
              document.getElementById('loader').style.opacity = '1';
              loadDataBackground(); 
         }
