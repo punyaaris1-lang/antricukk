@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>Antrian MAKA FastCharging</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&family=Syne:wght@700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg: #050505;
+            --card: #111;
+            --card-border: #222;
+            --accent: #CCFF00; /* Kuning Stabilo */
+            --cyan: #00d2ff;
+            --danger: #FF3B30;
+            --text: #ffffff;
+            --text-mute: #888;
+        }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { 
+            margin: 0; padding: 0; background: var(--bg); color: var(--text); 
+            font-family: 'Inter', sans-serif; height: 100vh; display: flex; 
+            flex-direction: column; position: relative;
+        } 
+        /* Global Background Image */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: url('1763947427555.jpg'); 
+            background-size: cover;
+            background-position: center;
+            opacity: 0.05; 
+            z-index: -1;
+        }
+
+        .container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 25px 50px;
+        }
+        /* FIX: Header/Top Cut-off & Navigation */
+        .header {
+            padding: 20px 25px 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-shrink: 0;
+            position: sticky; 
+            top: 0;
+            z-index: 50;
+            background: linear-gradient(180deg, var(--bg) 90%, transparent);
+        }
+        .header-text { display: flex; flex-direction: column; }
+        .header h1 {
+            font-family: 'Inter', sans-serif; font-size: 8vw; margin: 0; line-height: 0.9;
+            font-weight: 900; color: #fff;
+        }
+        .header-subtitle { font-size: 0.75rem; color: var(--accent); letter-spacing: 1px; font-weight: 700; margin-top: 5px; }
+        .btn-home {
+            padding: 8px 15px; background: #222; border: 1px solid #444;
+            color: var(--text); font-weight: 700; border-radius: 10px;
+            text-decoration: none; font-size: 0.8rem;
+            display: flex; align-items: center; gap: 5px;
+        }
+
+        .queue-item {
+            background: var(--card); border: 1px solid var(--card-border);
+            border-radius: 16px; padding: 20px; margin-bottom: 15px;
+            display: flex; justify-content: space-between; align-items: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            position: relative; overflow: hidden;
+        }
+        .queue-item.charging { border-left: 5px solid var(--danger); }
+        .queue-item.waiting { border-left: 5px solid var(--cyan); }
+
+        .item-info { flex-grow: 1; }
+        .item-info h2 { font-size: 1.1rem; margin: 0 0 5px 0; font-weight: 800; }
+        .item-info p { font-size: 0.85rem; color: #ccc; margin: 0; }
+        .item-info .details { font-size: 0.75rem; color: var(--text-mute); margin-top: 5px; }
+
+        .item-status {
+            text-align: right; font-family: 'Syne', sans-serif; font-size: 1.1rem;
+            font-weight: 700; line-height: 1.2;
+        }
+        .item-status.charging-time { color: var(--danger); font-size: 1.4rem; }
+        .item-status.queue-num { color: var(--cyan); font-size: 1.8rem; }
+        .item-label { font-size: 0.7rem; color: #888; font-weight: 600; text-transform: uppercase; margin-top: 3px; }
+
+        .callout {
+            background: rgba(204, 255, 0, 0.1); border: 1px solid var(--accent);
+            padding: 15px; border-radius: 12px; margin-bottom: 25px;
+            font-size: 0.9rem; color: var(--text); line-height: 1.5;
+        }
+        .callout strong { color: var(--accent); }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-text">
+            <div class="header-subtitle">REALTIME STATUS</div>
+            <h1>MAKA FC REALTIME STATUS</h1>
+        </div>
+        <a href="index.html" class="btn-home">🏠 KEMBALI KE HOME</a>
+    </div>
+
+    <div class="container">
+        <div class="callout">
+            <strong>DEMO DISPLAY (TIMER PRESISI AKTIF).</strong> Timer dihitung menggunakan kurva charging aktual mesin Adli.
+        </div>
+        
+        <div id="queueList">
+            </div>
+
+        <div id="noQueue" style="text-align:center; padding:50px; color:#555; display:none;">
+            <p>Tidak ada antrian saat ini.</p>
+        </div>
+    </div>
+
+
+    <script>
+        // --- DATA TIMER PRESISI (Dari Mesin Asli) ---
+        const CHARGING_CURVE = [
+            [91, 9], [90, 19], [85, 23], [82, 25], [81, 26], [79, 30], [77, 32], 
+            [72, 35], [67, 42], [63, 47], [61, 47], [58, 50], [51, 55], [50, 54], 
+            [49, 54], [46, 56], [40, 60], [21, 69], [18, 71], [0, 75]
+        ];
+
+        function getChargingTimeEstimate(startSOC, endSOC = 100) {
+            startSOC = Math.max(0, Math.min(100, startSOC));
+            endSOC = Math.max(0, Math.min(100, endSOC));
+            if (startSOC >= endSOC) return 0;
+
+            function getTimeTo100(soc) {
+                if (soc >= 100) return 0;
+                if (soc <= CHARGING_CURVE[CHARGING_CURVE.length - 1][0]) return CHARGING_CURVE[CHARGING_CURVE.length - 1][1];
+
+                for (let i = 0; i < CHARGING_CURVE.length - 1; i++) {
+                    const [soc1, time1] = CHARGING_CURVE[i];
+                    const [soc2, time2] = CHARGING_CURVE[i + 1];
+
+                    if (soc <= soc1 && soc >= soc2) {
+                        const socRange = soc1 - soc2;
+                        const timeRange = time2 - time1;
+                        const ratio = (soc1 - soc) / socRange;
+                        return time1 + (ratio * timeRange);
+                    }
+                }
+                if (soc > 91) {
+                     const [soc1, time1] = CHARGING_CURVE[0]; 
+                     const rate = time1 / (100 - soc1); 
+                     return (100 - soc) * rate;
+                }
+                return CHARGING_CURVE[CHARGING_CURVE.length - 1][1];
+            }
+            
+            const timeTo100Start = getTimeTo100(startSOC);
+            const timeTo100End = getTimeTo100(endSOC);
+            return Math.round(timeTo100Start - timeTo100End);
+        }
+
+        function formatDuration(minutes) {
+            const min = Math.round(minutes);
+            if (min <= 0) return "Selesai";
+            if (min < 60) return `${min} mnt`;
+            const h = Math.floor(min / 60);
+            const m = min % 60;
+            return `${h} jam ${m} mnt`;
+        }
+
+        // --- SIMULASI DATA ANTRIAN (NETRAL) ---
+        // Contoh data placeholder yang menunjukkan timer bekerja
+        const queueData = [
+            { id: 1, car: "Slot 1 (Charging)", status: "charging", startSoc: 35, endSoc: 85, entryTime: 10 },
+            { id: 2, car: "Antrian 1", status: "waiting", startSoc: 20, endSoc: 80, entryTime: 12 },
+            { id: 3, car: "Antrian 2", status: "waiting", startSoc: 15, endSoc: 100, entryTime: 15 },
+        ];
+        
+        let intervalId = null;
+
+        // --- LOGIKA UTAMA ANTRIAN ---
+        
+        function calculateRemainingTime(item, currentTimeMinutes) {
+            const durationTarget = getChargingTimeEstimate(item.startSoc, item.endSoc);
+            const timeElapsed = currentTimeMinutes - item.entryTime; 
+            
+            if (item.status === 'charging') {
+                return Math.max(0, durationTarget - timeElapsed);
+            }
+            
+            if (item.status === 'waiting') {
+                let totalWait = 0;
+                
+                const chargingItem = queueData.find(q => q.status === 'charging');
+                if (chargingItem) {
+                    totalWait += calculateRemainingTime(chargingItem, currentTimeMinutes);
+                }
+
+                const waitingIndex = queueData.findIndex(q => q.id === item.id);
+                for (let i = 1; i < waitingIndex; i++) {
+                    const prevWaiting = queueData[i];
+                    if (prevWaiting.status === 'waiting') {
+                         totalWait += getChargingTimeEstimate(prevWaiting.startSoc, prevWaiting.endSoc);
+                    }
+                }
+                
+                return totalWait;
+            }
+            return 0;
+        }
+
+        function renderQueue() {
+            const list = document.getElementById('queueList');
+            list.innerHTML = '';
+            
+            const currentTimeMinutes = Math.floor(Date.now() / 60000); 
+
+            queueData.forEach((item, index) => {
+                const remainingMinutes = calculateRemainingTime(item, currentTimeMinutes);
+                const durationMinutes = getChargingTimeEstimate(item.startSoc, item.endSoc);
+                
+                const displayTime = formatDuration(remainingMinutes);
+                const statusClass = item.status === 'charging' ? 'charging' : 'waiting';
+                
+                let timeDisplay = '';
+                let statusLabel = '';
+                
+                if (item.status === 'charging') {
+                    statusLabel = 'SISA WAKTU';
+                    timeDisplay = `<div class="item-status charging-time">${remainingMinutes <= 0 ? 'Selesai' : displayTime}</div>`;
+                } else {
+                    statusLabel = (index === 1) ? 'ESTIMASI WAKTU TUNGGU' : `TOTAL WAKTU TUNGGU`;
+                    timeDisplay = `<div class="item-status charging-time" style="color:var(--cyan);">${displayTime}</div>`;
+                }
+
+                const itemDiv = document.createElement('div');
+                itemDiv.className = `queue-item ${statusClass}`;
+                
+                itemDiv.innerHTML = `
+                    <div class="item-info">
+                        <h2>${item.car}</h2>
+                        <p>${item.startSoc}% → ${item.endSoc}%</p>
+                        <div class="details">Estimasi Charging: ${formatDuration(durationMinutes)}</div>
+                    </div>
+                    <div style="text-align:right;">
+                        ${timeDisplay}
+                        <div class="item-label" style="color: ${item.status === 'charging' ? 'var(--danger)' : 'var(--cyan)'};">${statusLabel}</div>
+                    </div>
+                `;
+                
+                list.appendChild(itemDiv);
+            });
+            
+            if (queueData.length === 0) {
+                 document.getElementById('noQueue').style.display = 'block';
+            } else {
+                 document.getElementById('noQueue').style.display = 'none';
+            }
+        }
+        
+        function startQueueUpdate() {
+            renderQueue(); 
+            intervalId = setInterval(renderQueue, 60000); 
+        }
+
+        window.onload = startQueueUpdate;
+        window.onbeforeunload = () => {
+             if (intervalId) clearInterval(intervalId);
+        };
+
+    </script>
+</body>
+</html>
