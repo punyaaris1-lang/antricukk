@@ -10,7 +10,7 @@
     <style>
         /* TEMA DARK/HITAM-NEON */
         :root {
-            --accent: #CCFF00; /* Kuning Stabilo */
+            --accent: #CCFF00; 
             --bg: #050505; 
             --glass: rgba(17, 17, 17, 0.7); 
             --text: #ffffff;
@@ -42,7 +42,7 @@
             opacity: 0.05; 
             z-index: -1;
         }
-        
+
         .container { max-width: 480px; margin: 0 auto; padding: 20px 25px 120px; position: relative; z-index: 1; }
         
         /* HEADER (Fix Sticking) */
@@ -50,7 +50,7 @@
             position: sticky; top: 0; z-index: 50;
             background: linear-gradient(180deg, var(--bg) 90%, transparent);
             padding: 20px 25px 10px;
-            margin: 0 -25px; /* Kompensasi padding container */
+            margin: 0 -25px; 
         }
 
         .header-row { 
@@ -368,7 +368,6 @@
             
             let duration = startTimeRemaining - targetTimeRemaining;
             
-            // Logika fallback lama tetap dipertahankan untuk keamanan, meskipun kurva harusnya cukup
             if (startBattery >= 97 && targetLimit === 100) {
                 duration = (targetLimit - startBattery) * 3;
             }
@@ -377,7 +376,16 @@
             return Math.max(5, Math.ceil(duration)); 
         }
 
-        // --- UTILITY FUNCTIONS (SISANYA) ---
+        // --- ATURAN TARGET LIMIT ---
+        function calculateTargetLimit(queueLength) {
+            if (queueLength >= 6 && queueLength <= 10) return 90;
+            if (queueLength > 10) return 85;
+            if (queueLength >= 3 && queueLength <= 5) return 95;
+            return 100;
+        }
+
+        // --- END OF 1/3 SCRIPT ---
+            // --- UTILITY FUNCTIONS ---
 
         function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
             const R = 6371;
@@ -413,7 +421,6 @@
             .catch(error => console.error('WA Error:', error));
         }
 
-        // ... (Sisa fungsi helper seperti showPopup, initAudio, dll tetap sama) ...
         function showPopup(type, title, msg, onOk = null, additionalData = null) {
             const m = document.getElementById('masterModal');
             const box = document.getElementById('modalBox');
@@ -589,13 +596,6 @@
             }
         }
 
-        function calculateTargetLimit(queueLength) {
-            if (queueLength >= 6 && queueLength <= 10) return 90;
-            if (queueLength > 10) return 85;
-            if (queueLength >= 3 && queueLength <= 5) return 95;
-            return 100;
-        }
-
         async function registerUser(plat, wa, bat) {
             const btn = document.getElementById('btnDaftar');
             btn.innerText="PROSES...";
@@ -611,13 +611,15 @@
                     if((d.blockedList||[]).includes(plat)) throw "Plat ini DIBLOKIR!";
                     if(s.some(x=>x?.name===plat) || q.some(x=>x?.name===plat)) throw "Plat sudah terdaftar!";
 
-                    const target = calculateTargetLimit(q.length);
+                    // Hitung target berdasarkan QL saat motor ini mendaftar
+                    const target = calculateTargetLimit(q.length); 
                     const dur = calculateDuration(bat, target);
                     
                     const item = { name:plat, wa:wa, startBattery:bat, targetLimit:target, durationMinutes:dur, startTime:null };
                     
                     const empty = s.findIndex(x=>x===null);
-                    if(empty!==-1) s[empty] = {...item, startTime: new Date()}; 
+                    // FIX: Motor naik ke slot kosong, tapi tidak auto start (startTime: null)
+                    if(empty!==-1) s[empty] = item; 
                     else q.push(item);
 
                     t.set(ref, {chargingSlots:s, waitingQueue:q}, {merge:true});
@@ -633,12 +635,119 @@
             btn.innerText="DAFTAR ANTRIAN";
         }
 
+        // --- SLOT ACTIONS ---
+        window.act = (i, type, platName, wa) => {
+            initAudioAndNotif();
+            const myPlat = localStorage.getItem('myPlat');
+
+            if(type === 'stop' && !isAdminLoggedIn && myPlat !== platName) {
+                return showPopup('error', 'AKSES DITOLAK', 'Ini bukan kendaraan Anda!');
+            }
+
+            if(type==='stop') {
+                showPopup('confirm', 'KONFIRMASI', `Stop & Hapus Slot ${i+1}?`, () => {
+                    runTransaction(db, async(t)=>{
+                        const d = (await t.get(ref)).data();
+                        let s = d.chargingSlots; 
+                        let q = d.waitingQueue;
+                        
+                        sendWhatsAppNotification(s[i].name, s[i].wa);
+
+                        s[i]=null; 
+                        
+                        if(q.length){ 
+                            const nextItem = q.shift();
+                            
+                            const target = calculateTargetLimit(q.length); 
+                            const dur = calculateDuration(nextItem.startBattery, target);
+
+                            // FIX: Motor naik dari antrian ke slot, TIDAK AUTO START (startTime: null)
+                            s[i]={ 
+                                ...nextItem, 
+                                targetLimit: target,
+                                durationMinutes: dur,
+                                startTime: null // TIDAK AUTO START CAS
+                            }; 
+                        }
+
+                        t.update(ref, {chargingSlots:s, waitingQueue:q});
+                    });
+                    window.stopAlarm();
+                });
+            } else if (type === 'start') {
+                runTransaction(db, async(t)=>{
+                    const s = (await t.get(ref)).data().chargingSlots;
+                    // FIX: Saat start, hitung ulang durasi berdasarkan target limit baru (jika targetnya dilonggarkan saat ini)
+                    if(s[i]) {
+                        const currentQL = (await t.get(ref)).data().waitingQueue.length;
+                        const newTarget = calculateTargetLimit(currentQL);
+
+                        // HANYA UPDATE jika target baru lebih longgar (misal 95% jadi 100%)
+                        if (newTarget > s[i].targetLimit) {
+                            s[i].targetLimit = newTarget;
+                            s[i].durationMinutes = calculateDuration(s[i].startBattery, newTarget);
+                        }
+
+                        s[i].startTime = new Date();
+                    }
+                    t.update(ref, {chargingSlots:s});
+                });
+            }
+        };
+
+        // --- END OF 2/3 SCRIPT ---
+                // --- LOGIC BARU: MEMPERBAIKI TARGET LIMIT MOTOR YANG SEDANG CAS (DINAMIS) ---
+        async function checkAndUpdateTargetLimit(currentSlots, currentQueueLength) {
+            const newTarget = calculateTargetLimit(currentQueueLength);
+            
+            let mustUpdate = false;
+            let updatedSlots = [...currentSlots];
+
+            for (let i = 0; i < updatedSlots.length; i++) {
+                const motor = updatedSlots[i];
+                if (motor && motor.startTime) {
+                    
+                    const currentTarget = motor.targetLimit;
+                    
+                    // KONDISI PELONGGARAN TARGET: Jika target motor saat ini lebih ketat
+                    // daripada target baru (misal 95% vs 100%)
+                    if (currentTarget < newTarget) {
+                        
+                        // Perhitungan Waktu Pengisian (Duration) dari SOC Awal ke Target Baru
+                        const newDuration = calculateDuration(motor.startBattery, newTarget);
+                        
+                        updatedSlots[i] = {
+                            ...motor,
+                            targetLimit: newTarget,
+                            durationMinutes: newDuration 
+                        };
+                        mustUpdate = true;
+                    }
+                    // KONDISI PENGETATAN TARGET: Jika target motor saat ini 100% dan QL meningkat
+                    else if (currentTarget > newTarget) {
+                         // Kita bisa tambahkan logic di sini jika diperlukan,
+                         // Namun, untuk stabilitas, kita biarkan Target Limit yang berjalan tetap 100%
+                         // hingga motor selesai, lalu Target baru berlaku saat motor berikutnya naik.
+                         // Motor berikutnya yang naik sudah dapat Target baru dari QL saat itu.
+                    }
+                }
+            }
+
+            if (mustUpdate) {
+                 await runTransaction(db, async(t)=>{
+                    t.update(ref, {chargingSlots: updatedSlots});
+                    console.log("Updated slot targets dynamically due to queue length:", newTarget);
+                });
+            }
+        }
+
+
         // --- RENDER & TIMER ---
         function formatMinutesToTime(minutes) {
              const min = Math.round(minutes);
              if (min <= 0) return "0:00";
              const m = Math.floor(min);
-             const s = Math.round((minutes - m) * 60);
+             const s = Math.floor((minutes - m) * 60);
              return `${m}:${s < 10 ? '0' + s : s}`;
         }
 
@@ -667,11 +776,18 @@
         }, 1000);
 
 
-        // --- FIREBASE SNAPSHOT & RENDER (SLOT) ---
+        // --- FIREBASE SNAPSHOT & RENDER ---
         onSnapshot(ref, (snap) => {
             const d = snap.data() || {};
             const slots = d.chargingSlots || [null,null,null];
             const q = d.waitingQueue || [];
+
+            // --- Logika Dinamis Target Limit ---
+            // Jalankan logic ini jika antrian berkurang di batas penting (untuk melonggarkan target)
+            if (q.length <= 2) { 
+                 checkAndUpdateTargetLimit(slots, q.length);
+            }
+            // --- END Logika Dinamis ---
             
             // RENDER SLOTS
             document.getElementById('slotsContainer').innerHTML = slots.map((x,i)=>{
@@ -692,10 +808,11 @@
                         </div>
                     `;
                 } else {
-                    buttons = `<button class="btn-act btn-start" onclick="window.act(${i},'start', '${x.name}', '${x.wa}')">MULAI</button>`;
+                    // Motor di slot tapi belum start cas
+                    buttons = `<button class="btn-act btn-start" onclick="window.act(${i},'start', '${x.name}', '${x.wa}')">MULAI CAS</button>`;
                 }
                 
-                let time = `<div style="font-size:10px; color:var(--text-muted); margin-top:5px; font-family:'Inter', sans-serif;">Tap MULAI</div>`;
+                let time = `<div style="font-size:10px; color:var(--text-muted); margin-top:5px; font-family:'Inter', sans-serif;">${isRun ? 'Loading...' : 'SIAP CAS'}</div>`;
                 let h = x.startBattery;
                 let targetText = "";
                 let waInfo = x.wa ? `<a href="https://wa.me/${x.wa.replace(/\D/g, '')}" target="_blank" style="color:var(--cyan); font-size:9px; margin-bottom:5px; text-decoration:none; font-family:'Inter', sans-serif;">WA: ${x.wa}</a>` : '';
@@ -704,11 +821,16 @@
                 if(isRun) {
                     const start = x.startTime.seconds ? x.startTime.seconds*1000 : new Date(x.startTime).getTime();
                     const end = start + (x.durationMinutes*60000);
-                    // Timer font disamakan
+                    
                     time = `<div style="font-size:16px; font-weight:800; color:var(--accent); margin:5px 0; text-shadow: 0 0 5px rgba(204, 255, 0, 0.5); font-family:'Syne', sans-serif;" data-end="${end}" data-name="${x.name}" data-wa="${x.wa}">...</div>`;
                     h = 100;
                     targetText = `<div style="font-size:9px; color:var(--accent); font-family:'Inter', sans-serif;">Target: ${x.targetLimit}%</div>`;
+                } else {
+                    // Jika belum running, tampilkan target yang ditetapkan saat daftar/naik
+                    targetText = `<div style="font-size:9px; color:var(--text-muted); font-family:'Inter', sans-serif;">Target: ${x.targetLimit}%</div>`;
+                    h = x.startBattery;
                 }
+                
                 return `
                     <div class="slot-box active">
                         <div style="font-size:10px; color:var(--text-muted); font-family:'Inter', sans-serif; margin-bottom: 5px;">SLOT ${i+1}</div>
@@ -755,7 +877,6 @@
                         let s = d.chargingSlots; 
                         let q = d.waitingQueue;
                         
-                        // Send notification on stop
                         sendWhatsAppNotification(s[i].name, s[i].wa);
 
                         s[i]=null; 
@@ -763,15 +884,16 @@
                         if(q.length){ 
                             const nextItem = q.shift();
                             
+                            // Target Limit motor berikutnya dihitung berdasarkan QL yang tersisa
                             const target = calculateTargetLimit(q.length); 
-                            // Menggunakan logika timer presisi yang baru
                             const dur = calculateDuration(nextItem.startBattery, target);
 
+                            // FIX: Motor naik dari antrian ke slot, TIDAK AUTO START (startTime: null)
                             s[i]={ 
                                 ...nextItem, 
                                 targetLimit: target,
                                 durationMinutes: dur,
-                                startTime: new Date() 
+                                startTime: null // TIDAK AUTO START CAS
                             }; 
                         }
 
@@ -779,15 +901,27 @@
                     });
                     window.stopAlarm();
                 });
-            } else {
+            } else if (type === 'start') {
                 runTransaction(db, async(t)=>{
                     const s = (await t.get(ref)).data().chargingSlots;
-                    if(s[i]) s[i].startTime = new Date();
+                    if(s[i]) {
+                        const currentQL = (await t.get(ref)).data().waitingQueue.length;
+                        const newTarget = calculateTargetLimit(currentQL);
+
+                        // HANYA UPDATE jika target baru lebih longgar (misal 95% jadi 100%)
+                        if (newTarget > s[i].targetLimit) {
+                            s[i].targetLimit = newTarget;
+                            s[i].durationMinutes = calculateDuration(s[i].startBattery, newTarget);
+                        }
+
+                        s[i].startTime = new Date();
+                    }
                     t.update(ref, {chargingSlots:s});
                 });
             }
         };
 
+        // --- QUEUE & ADMIN FUNCTIONS ---
         window.delQ = (i, platName) => {
             const myPlat = localStorage.getItem('myPlat');
             if(!isAdminLoggedIn && myPlat !== platName) {
@@ -811,6 +945,7 @@
                     const s = (await t.get(ref)).data().chargingSlots;
                     if(!s[i]) throw `Slot ${i+1} kosong. Tidak bisa atur timer.`;
 
+                    // Pertahankan target limit yang sudah ada, hanya durasi yang diubah
                     s[i].durationMinutes = newDuration;
                     s[i].startTime = new Date(); 
                     
@@ -829,8 +964,8 @@
                 { currentDuration: currentDuration }
             );
         };
-
-        // --- ADMIN FUNCTIONS ---
+        
+        // ADMIN FUNCTIONS (ADMIN PANEL LOGIC)
         window.manualAssign = () => {
             const i = document.getElementById('manSlot').value;
             const p = document.getElementById('manPlat').value;
@@ -840,9 +975,9 @@
                 const s = (await t.get(ref)).data().chargingSlots || [null,null,null];
                 const q = (await t.get(ref)).data().waitingQueue || [];
                 
-                const target = 100; 
+                const target = calculateTargetLimit(q.length); 
                 const startBat = 50; 
-                const dur = calculateDuration(startBat, target); // Menggunakan logika timer presisi yang baru
+                const dur = calculateDuration(startBat, target); 
                 
                 s[i] = { 
                     name:p.toUpperCase(), 
@@ -850,7 +985,7 @@
                     startBattery:startBat, 
                     targetLimit:target, 
                     durationMinutes:dur, 
-                    startTime:new Date() 
+                    startTime:null // Manual Assign juga tidak auto-start
                 };
                 t.update(ref, {chargingSlots:s}, {merge:true});
             });
@@ -888,13 +1023,13 @@
                     q.splice(queueIndex, 1);
                     
                     const newTarget = calculateTargetLimit(q.length);
-                    const newDur = calculateDuration(itemToMove.startBattery, newTarget); // Menggunakan logika timer presisi yang baru
+                    const newDur = calculateDuration(itemToMove.startBattery, newTarget); 
                     
                     s[slotTarget] = {
                         ...itemToMove,
                         targetLimit: newTarget,
                         durationMinutes: newDur,
-                        startTime: new Date()
+                        startTime: null // Pindah ke slot tidak auto-start
                     };
 
                     t.update(ref, { chargingSlots: s, waitingQueue: q });
