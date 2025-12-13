@@ -1,912 +1,802 @@
 <!DOCTYPE html>
-<html lang="id" data-theme="light">
+<html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FC Kelapa Gading - Smart Charging</title>
-
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>MAKA FastCharging</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&family=Syne:wght@700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
 
     <style>
-        /* TEMA LIGHT/PUTIH */
         :root {
-            --bg: #f0f2f5; 
-            --glass: rgba(255, 255, 255, 0.7);
-            --text: #1a253a;
-            --text-muted: #556;
-            --cyan: #008c9e;
-            --cyan-dim: rgba(0, 140, 158, 0.1);
-            --soft-red: #d63031;
-            --border: #ccc;
-            --card-bg: #fff;
-            --input-bg: #f9f9f9;
+            --bg: #050505;
+            --card: #111;
+            --card-border: #222;
+            --accent: #CCFF00; /* Kuning Stabilo */
+            --cyan: #00d2ff;
+            --danger: #FF3B30;
+            --text: #ffffff;
+            --text-mute: #888;
         }
-        
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body {
-            margin: 0; font-family: 'Rajdhani', sans-serif; background-color: var(--bg); color: var(--text);
-            min-height: 100vh; padding: 20px; padding-bottom: 120px; transition: 0.3s;
-            position: relative;
-        }
-
-        /* Background Image */
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background-image: url('1763947427555.jpg'); 
-            background-size: cover;
-            background-position: center;
-            opacity: 0.2; 
-            z-index: -1;
-            transition: opacity 0.3s;
-        }
-
-        .container { max-width: 480px; margin: 0 auto; position: relative; z-index: 1; }
+        body { margin: 0; padding: 0; background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; height: 100vh; overflow: hidden; }
+        
+        /* LOADER */
+        .loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s ease; }
+        .loader-logo { font-family: 'Syne', sans-serif; font-size: 2.5rem; color: var(--accent); letter-spacing: 2px; font-weight: 700; }
+        .loader-logo span { color: var(--text); }
+        .loader-text { margin-top: 20px; text-align: center; }
+        #animText1, #animText2 { font-weight: 800; font-size: 1.5rem; }
+        .letter { display: inline-block; opacity: 0; transform: translateY(-20px); transition: opacity 0.2s, transform 0.2s; }
+        .letter.active { opacity: 1; transform: translateY(0); }
+        #animText3 { font-size: 0.8rem; color: var(--text-mute); opacity: 0; transition: opacity 0.5s; }
+        .loader-actions { position: absolute; bottom: 50px; opacity: 0; transition: opacity 0.5s; }
+        .loader-actions.show { opacity: 1; }
+        .loader-actions button { background: var(--accent); color: #000; border: none; padding: 12px 25px; border-radius: 10px; font-weight: 700; margin: 0 10px; cursor: pointer; }
 
         /* HEADER */
-        .header-row { 
-            display: flex; justify-content: space-between; align-items: center; 
-            margin-top: 20px; margin-bottom: 5px;
-        }
+        header { padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; background: var(--bg); border-bottom: 1px solid #1a1a1a; z-index: 10; position: relative; }
+        .logo { font-family: 'Syne', sans-serif; font-size: 1.2rem; color: var(--accent); font-weight: 700; letter-spacing: 1px; }
+        .toggle-mode { display: flex; background: #1a1a1a; border-radius: 10px; padding: 3px; }
+        .t-btn { padding: 8px 12px; font-size: 0.75rem; font-weight: 600; cursor: pointer; border-radius: 8px; color: var(--text-mute); transition: background 0.3s, color 0.3s; }
+        .t-btn.active { background: var(--accent); color: #000; }
+        .nav-icons span { font-size: 1.2rem; margin-left: 15px; cursor: pointer; color: var(--text-mute); }
         
-        h1 {
-            font-family: 'Orbitron', sans-serif; font-size: 24px; margin: 0;
-            background: linear-gradient(to right, var(--text), var(--cyan));
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            text-shadow: 0 0 10px rgba(0, 140, 158, 0.2); letter-spacing: 1px;
-        }
-
-        /* Tombol Tema Dihapus */
-
-        .subtitle { 
-            /* Font disamakan dengan label agar tidak terlalu tipis */
-            font-family: 'Orbitron', sans-serif; 
-            text-align: left; color: var(--text-muted); font-size: 10px; 
-            letter-spacing: 2px; margin-bottom: 25px; font-weight: bold;
-            text-transform: uppercase; border-bottom: 1px solid var(--border); padding-bottom: 15px;
-        }
-
-        /* CARD */
-        .glass-card {
-            background: var(--glass); 
-            backdrop-filter: blur(5px);
-            border: 1px solid var(--border); border-radius: 20px; padding: 25px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1); margin-bottom: 25px;
-        }
-
-        label { display: block; font-family: 'Orbitron'; font-size: 10px; color: var(--text-muted); margin-bottom: 8px; letter-spacing: 1px; }
-        input.field {
-            width: 100%; background: var(--input-bg); border: 1px solid var(--border); color: var(--text);
-            padding: 15px; border-radius: 10px; 
-            font-family: 'Orbitron', sans-serif; /* Font lebih tegas */
-            font-size: 20px;
-            font-weight: 700; outline: none; transition: 0.3s; margin-bottom: 15px; text-align: center;
-        }
-        input.field:focus { border-color: var(--cyan); box-shadow: 0 0 10px var(--cyan-dim); }
-
-        .btn-cyan {
-            width: 100%; background: linear-gradient(90deg, var(--cyan), #00bcd4);
-            border: none; padding: 16px; border-radius: 10px; color: #fff;
-            font-family: 'Orbitron', sans-serif; /* Font lebih tegas */
-            font-weight: 800; font-size: 16px;
-            cursor: pointer; box-shadow: 0 0 20px var(--cyan-dim); margin-top: 5px;
-        }
+        /* CONTENT LAYOUT */
+        .content-container { height: calc(100vh - 56px); overflow: hidden; display: flex; flex-direction: column; }
         
-        .slots-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 30px; }
-        .slot-box {
-            background: var(--card-bg); border: 1px solid var(--border); border-radius: 15px;
-            padding: 10px 5px; text-align: center; min-height: 160px; display: flex; flex-direction: column;
-            justify-content: center; position: relative;
-        }
-        .slot-box.active { border-color: var(--cyan); background: var(--cyan-dim); }
+        /* VIEW LIST (HOME) */
+        #view-list { flex-grow: 1; overflow-y: auto; padding: 0 20px; display: flex; flex-direction: column; }
+        .hero-section { padding-top: 20px; padding-bottom: 10px; }
+        .hero-section h1 { font-size: 1.8rem; font-weight: 900; margin: 0 0 5px 0; line-height: 1.2; }
+        .hero-section p { font-size: 0.85rem; color: var(--text-mute); margin: 0; }
 
-        .bat-icon {
-            width: 36px; height: 60px; border: 2px solid var(--text-muted); border-radius: 6px;
-            position: relative; margin: 0 auto 10px; display: flex; align-items: flex-end; padding: 2px;
+        /* TIME PLANNER CSS */
+        .planner-card { 
+            background: var(--card); border: 1px solid var(--card-border); 
+            border-radius: 24px; padding: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.5); 
         }
-        .bat-icon::before { content: ''; position: absolute; top: -5px; left: 10px; width: 12px; height: 3px; background: var(--text-muted); }
-        .bat-fill { width: 100%; background: var(--cyan); border-radius: 3px; transition: height 0.5s; box-shadow: 0 0 10px var(--cyan); }
-        .bat-bolt { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 20px; color: #fff; text-shadow: 0 0 5px #000; z-index: 2; }
+        .input-group { position: relative; margin-bottom: 12px; }
+        .input-group label { display: block; font-size: 0.75rem; color: var(--text-mute); margin-bottom: 5px; font-weight: 600; }
+        .input-group input { 
+            width: 100%; padding: 12px; padding-right: 120px; 
+            background: #1a1a1a; border: 1px solid #333; 
+            border-radius: 10px; color: var(--text); font-size: 0.9rem;
+            font-family: 'Inter', sans-serif;
+        }
+        .input-group input:focus { border-color: var(--cyan); outline: none; }
+        .btn-input-append { 
+            position: absolute; right: 8px; top: 29px; 
+            padding: 6px 10px; background: var(--cyan); 
+            color: #000; border: none; border-radius: 8px; 
+            font-size: 0.75rem; font-weight: 700; cursor: pointer;
+        }
+        .input-group .unit-append {
+            position: absolute; right: 15px; top: 38px;
+            font-size: 0.9rem; font-weight: 700; color: var(--accent);
+        }
+        .btn-plan {
+            width: 100%; padding: 14px; background: var(--accent); color: #000; 
+            border: none; border-radius: 12px; font-weight: 800; 
+            text-transform: uppercase; cursor: pointer; margin-top: 15px;
+        }
+
+
+        /* LIST GROUP */
+        .list-group { margin-bottom: 20px; }
+        .city-title { font-size: 1.2rem; font-weight: 800; margin-bottom: 15px; }
+        .h-scroll { display: flex; overflow-x: auto; padding-bottom: 10px; -webkit-overflow-scrolling: touch; scroll-snap-type: x mandatory; }
+        .h-scroll::-webkit-scrollbar { display: none; }
+        .charger-card { 
+            flex: 0 0 auto; width: 280px; background: var(--card); 
+            border: 1px solid var(--card-border); border-radius: 18px; 
+            padding: 15px; margin-right: 15px; scroll-snap-align: start; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .card-title { font-size: 1rem; font-weight: 700; }
+        .status-badge { padding: 4px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 700; }
+        .status-badge.available { background: var(--accent); color: #000; }
+        .status-badge.busy { background: var(--danger); color: #fff; }
+        .status-badge.offline { background: var(--text-mute); color: #fff; }
+        .card-info { font-size: 0.8rem; color: var(--text-mute); margin-bottom: 8px; }
+        .card-info span { color: var(--text); font-weight: 600; }
+        .card-actions { display: flex; justify-content: space-between; margin-top: 15px; }
+        .card-actions button { 
+            flex-grow: 1; padding: 10px; border-radius: 10px; border: none; 
+            font-weight: 700; cursor: pointer; margin-right: 5px; 
+        }
+        .btn-map { background: var(--cyan); color: #000; }
+        .btn-route { background: var(--accent); color: #000; margin-right: 0; }
+
+        /* VIEW MAP */
+        #view-map { flex-grow: 1; display: none; }
+        #map-container { height: 100%; width: 100%; }
+        .leaflet-marker-icon.custom-marker { border: 3px solid #000; border-radius: 50%; box-shadow: 0 0 5px rgba(0,0,0,0.5); }
+        .leaflet-routing-container { display: none; } /* Sembunyikan panel routing */
         
-        .slot-box.active .bat-icon { border-color: var(--cyan); }
-        .slot-box.active .bat-icon::before { background: var(--cyan); }
-
-        /* REVISI LAYOUT TOMBOL SLOT (Vertikal) */
-        .btn-group { 
-            display: flex; 
-            flex-direction: column; 
-            gap: 3px; 
-            margin-top: auto; 
+        /* MODAL */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); z-index: 999; display: none; justify-content: center; align-items: center; }
+        .modal-overlay.active { display: flex; }
+        .modal-content { background: var(--card); border-radius: 20px; width: 90%; max-width: 450px; padding: 25px; position: relative; }
+        .modal-close { position: absolute; top: 15px; right: 15px; font-size: 1.5rem; color: var(--text-mute); cursor: pointer; }
+        #mapModal #map { height: 300px; border-radius: 15px; margin-top: 20px; }
+        #mapTitle { font-size: 1.5rem; font-weight: 800; margin: 0 0 5px 0; }
+        #mapSub { font-size: 0.85rem; color: var(--text-mute); margin-bottom: 15px; white-space: pre-line;}
+        .modal-actions { display: flex; justify-content: space-between; margin-top: 20px; }
+        .modal-actions button, .modal-actions a {
+             flex-grow: 1; padding: 12px; border-radius: 10px; border: none; 
+             font-weight: 700; cursor: pointer; margin: 0 5px; text-align: center;
+             text-decoration: none; display: block;
         }
-        .btn-act { 
-            width: 100%; 
-            padding: 6px; 
-            border-radius: 6px; 
-            border: none; 
-            font-weight: bold; 
-            font-family: 'Orbitron', sans-serif; /* Font tegas */
-            font-size: 10px; 
-            cursor: pointer; 
+        #btnBack { background: var(--text-mute); color: #000; }
+        #btnGmaps { background: var(--accent); color: #000; }
+
+        .modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg); z-index: 100; display: none; padding: 20px;
+            overflow-y: auto;
         }
-        .btn-start { background: var(--cyan); color: #fff; }
-        .btn-stop { background: rgba(255, 107, 107, 0.1); border: 1px solid var(--soft-red); color: var(--soft-red); }
-        .btn-edit-timer { background: rgba(0, 140, 158, 0.1); border: 1px solid var(--cyan); color: var(--cyan); }
-
-
-        /* POPUP MODAL */
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
-        .modal-box { 
-            background: var(--card-bg); border: 2px solid var(--cyan); padding: 25px;
-            border-radius: 20px; width: 85%; max-width: 320px; text-align: center; 
-            animation: pop 0.3s;
-        }
-        .modal-icon { font-size: 40px; margin-bottom: 10px; display: block; }
-        .modal-title { font-family: 'Orbitron', sans-serif; font-size: 18px; margin: 0 0 10px; color: var(--text); }
-        .modal-msg { color: var(--text-muted); font-size: 14px; margin-bottom: 20px; line-height: 1.4; }
-        
-        .modal-btns { display: flex; gap: 10px; }
-        .btn-modal { flex: 1; padding: 12px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; font-family: 'Orbitron', sans-serif; background: #eee; color: #000; }
-        .btn-modal.primary { background: var(--cyan); color: #fff; }
-        .btn-modal.danger { background: var(--soft-red); color: #fff; }
-
-        /* ADMIN */
-        .admin-panel { background: #fff; padding: 20px; border-radius: 15px; border: 1px solid var(--soft-red); margin-top: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-        .adm-input { background: #fff; border: 1px solid #ccc; color: var(--text); padding: 10px; width: 100%; border-radius: 6px; }
-        .adm-btn { background: #ccc; color: var(--text); font-family: 'Orbitron', sans-serif; }
-        
-        .footer {
-            text-align: center; margin-top: 40px; font-family: 'Orbitron', sans-serif;
-            font-size: 12px; color: var(--cyan); font-weight: 900; letter-spacing: 2px;
-            text-shadow: 0 0 10px var(--cyan-dim);
-        }
-
-        @keyframes pop { from{transform:scale(0.8); opacity:0} to{transform:scale(1); opacity:1} }
+        .modal.show { display: block; }
+        .modal h2 { font-size: 2rem; font-weight: 900; color: var(--accent); margin-top: 40px; }
+        .modal p { font-size: 0.9rem; line-height: 1.5; color: var(--text-mute); }
+        .modal ul { list-style: none; padding: 0; }
+        .modal li { margin-bottom: 10px; padding-left: 20px; position: relative; }
+        .modal li::before { content: '•'; position: absolute; left: 0; color: var(--cyan); font-weight: 800; }
     </style>
 </head>
 <body>
 
-    <audio id="alarmSound" loop>
-        <source src="data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU..." type="audio/wav">
-    </audio>
-
-    <div id="masterModal" class="modal">
-        <div id="modalBox" class="modal-box">
-            <span id="mIcon" class="modal-icon">✅</span>
-            <h3 id="mTitle" class="modal-title">TITLE</h3>
-            <p id="mMsg" class="modal-msg">Message</p>
-            <input type="password" id="mInput" style="display:none; width:100%; padding:10px; text-align:center; margin-bottom:15px; border-radius:5px; border:1px solid #ccc; color:#000;" placeholder="PIN">
-            <input type="number" id="mInputDuration" style="display:none; width:100%; padding:10px; text-align:center; margin-bottom:15px; border-radius:5px; border:1px solid #ccc; color:#000;" placeholder="Durasi (menit)">
-            <div class="modal-btns">
-                <button id="mBtnCancel" class="btn-modal" style="display:none;">BATAL</button>
-                <button id="mBtnOk" class="btn-modal primary">OK</button>
-            </div>
+    <div class="loader">
+        <div class="loader-logo">MAKA<span>FC</span></div>
+        <div class="loader-text">
+            <p id="animText1"></p>
+            <p id="animText2"></p>
+            <p id="animText3">Connecting to MAKA Network...</p>
+        </div>
+        <div class="loader-actions">
+            <button onclick="document.querySelector('.loader').style.opacity = '0'; setTimeout(() => document.querySelector('.loader').style.display = 'none', 500);">Lanjutkan ke App</button>
         </div>
     </div>
 
-    <div class="container">
-        <div class="header-row">
-            <h1>FC KELAPA GADING</h1>
-            </div>
-        <div class="subtitle">HOME OF MLU</div>
-
-        <div class="glass-card">
-            <label>PLAT NOMOR</label>
-            <input id="userPlat" class="field" placeholder="PLAT NOMOR" style="text-transform:uppercase;">
-            
-            <label>NO WA</label>
-            <input id="userWA" type="tel" class="field" placeholder="08xxxxxxxxxx">
-
-            <label>BATERAI (%)</label>
-            <input id="userBattery" type="number" class="field" placeholder="0 - 99">
-            <button id="btnDaftar" class="btn-cyan">DAFTAR ANTRIAN</button>
+    <header>
+        <div class="logo">MAKA<span>FC</span></div>
+        <div class="toggle-mode">
+            <div id="btnList" class="t-btn active" onclick="switchView('list')">☰ LIST</div>
+            <div id="btnMap" class="t-btn" onclick="switchView('map')">🗺️ PETA</div>
+            <div id="btnPlanner" class="t-btn" onclick="switchView('planner')">⏱️ PLANNER</div>
         </div>
-
-        <div style="display:flex; align-items:center; gap:10px; margin-bottom:15px;">
-            <div style="width:8px; height:8px; background:var(--cyan); border-radius:50%; box-shadow:0 0 10px var(--cyan);"></div>
-            <span style="font-family:'Orbitron'; font-size:12px; color:var(--text);">STATUS 3 SLOT</span>
+        <div class="nav-icons">
+            <span onclick="nav('news')">📰</span>
+            <span onclick="nav('sos')">🚨</span>
         </div>
+    </header>
 
-        <div class="slots-grid" id="slotsContainer">
-            <div style="grid-column:1/-1; text-align:center; padding:30px; color:var(--text-muted);">Loading System...</div>
-        </div>
-
-        <div class="glass-card" style="padding:15px; min-height:100px;">
-            <div style="display:flex; justify-content:space-between; margin-bottom:15px; border-bottom:1px solid var(--border); padding-bottom:10px;">
-                <span style="font-family:'Orbitron'; font-size:12px; color:var(--text);">DAFTAR TUNGGU</span>
-                <span id="qCount" style="font-size:12px; color:var(--cyan);">0</span>
-            </div>
-            <div id="queueList"></div>
-        </div>
-
-        <div class="admin-trigger" onclick="openAdminLogin()">🔒 ADMIN LOGIN AREA</div>
+    <div class="content-container">
         
-        <div id="adminPanel" class="admin-panel">
-            <h4 style="color:var(--soft-red); margin:0 0 15px; font-family:'Orbitron'; text-align:center;">PANEL KONTROL</h4>
+        <div id="view-list">
             
-            <label>MANUAL ASSIGN (PLAT BARU)</label>
-            <div class="adm-row">
-                <select id="manSlot" class="adm-input" style="width:40%"><option value="0">Slot 1</option><option value="1">Slot 2</option><option value="2">Slot 3</option></select>
-                <input id="manPlat" placeholder="Plat" class="adm-input">
+            <div class="hero-section">
+                <h1>Halo Sahabat MLU!</h1>
+                <p id="userLocText">Mencari lokasi Anda...</p>
             </div>
-            <button onclick="manualAssign()" class="adm-btn" style="background:var(--cyan); color:#fff;">ISI SLOT MANUAL</button>
-            <button onclick="clearSlotManual()" class="adm-btn" style="background:#ccc; color:#000;">KOSONGKAN SLOT (PAKSA)</button>
+            
+            <div id="plannerSection" class="hero-section" style="padding-top:0; margin-bottom:10px; display:none;">
+                <div class="planner-card">
+                    <h2 style="font-size:1.1rem; color:var(--accent); margin:0 0 15px 0; font-weight:800; letter-spacing:0.5px;">PERENCANA WAKTU</h2>
 
-            <label style="margin-top:15px;">ASSIGN ANTRIAN KE SLOT</label>
-            <div class="adm-row">
-                <select id="assignQueueIndex" class="adm-input" style="width:40%"><option value="-1">-- Pilih Antrian --</option></select>
-                <select id="assignSlotTarget" class="adm-input" style="width:40%">
-                    <option value="0">Slot 1</option>
-                    <option value="1">Slot 2</option>
-                    <option value="2">Slot 3</option>
-                </select>
-            </div>
-            <button onclick="assignQueueToSlot()" class="adm-btn" style="background:#00bcd4; color:#fff;">PINDAH KE SLOT</button>
-
-            <label style="margin-top:15px;">BLOKIR</label>
-            <div class="adm-row">
-                <input id="blockPlatInput" placeholder="Plat Diblokir" class="adm-input">
-                <button onclick="blockUser()" class="adm-btn" style="width:auto; background:var(--soft-red); color:#fff;">BLOK</button>
-            </div>
-
-            <label style="margin-top:15px;">DANGER ZONE</label>
-            <button onclick="stopAll()" class="adm-btn" style="background:var(--soft-red); color:#fff;">STOP SEMUA SLOT</button>
-            <button onclick="resetAll()" class="adm-btn" style="border:1px solid var(--soft-red); background:none; color:var(--soft-red);">RESET DATABASE TOTAL</button>
-
-            <div onclick="document.getElementById('adminPanel').style.display='none'" style="text-align:center; margin-top:15px; font-size:10px; color:var(--text-muted); cursor:pointer;">Tutup Panel</div>
-        </div>
-
-        <div class="footer">Created by : MLU SQUAD</div>
-    </div>
-
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-        import { getFirestore, doc, onSnapshot, runTransaction, setDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyALIlkIDALIk83K8s1htalvW6rmNNw02Go1131",
-            authDomain: "sistem-antrian-b1c39.firebaseapp.com",
-            projectId: "sistem-antrian-b1c39",
-            storageBucket: "sistem-antrian-b1c39.firebasestorage.app",
-            messagingSenderId: "454124587608",
-            appId: "1:454124587608:web:34fbb0f5211067a67f982d"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const ref = doc(db, "antrian", "utama");
-
-        // --- GLOBAL CONSTANTS ---
-        const STATION_LOC = { lat: -6.171583, lng: 106.899844 }; 
-        const MAX_DIST_KM = 0.2; 
-        const FONTE_TOKEN = "MuR8CucXAsYd2YvWBxVo"; 
-
-        // --- GPS AND UTILITY FUNCTIONS ---
-        
-        function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
-            const R = 6371;
-            const dLat = deg2rad(lat2 - lat1);
-            const dLon = deg2rad(lon2 - lon1);
-            const a = 
-                Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
-            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-            return R * c; 
-        }
-
-        function deg2rad(deg) {
-            return deg * (Math.PI / 180);
-        }
-
-        function calculateTargetLimit(queueLength) {
-            if (queueLength >= 6 && queueLength <= 10) return 90;
-            if (queueLength > 10) return 85;
-            if (queueLength >= 3 && queueLength <= 5) return 95;
-            return 100;
-        }
-
-        // --- LOGIKA DURASI CAS (SESUAI KURVA MESIN ASLI DENGAN DATA GABUNGAN) ---
-        function getRemainingTime(batteryPercent) {
-            // Data point: {p: Persentase Baterai, t: Waktu Tersisa Menuju 100% (menit)}
-            // Data ini dirapikan dari semua foto yang dilampirkan, termasuk yang terbaru.
-            const data = [
-                {p: 100, t: 0}, 
-                {p: 97, t: 6.5}, 
-                {p: 95, t: 6},  // Data baru
-                {p: 92, t: 18}, // Data baru
-                {p: 91, t: 20}, // Data baru
-                {p: 90, t: 7},  // Data baru (Menggantikan 19m)
-                {p: 89, t: 20},
-                {p: 87, t: 21},
-                {p: 85, t: 24}, 
-                {p: 82, t: 25},
-                {p: 81, t: 26.5},
-                {p: 79, t: 30},
-                {p: 77, t: 31},
-                {p: 75, t: 34}, // Data baru
-                {p: 72, t: 35},
-                {p: 67, t: 42}, 
-                {p: 62, t: 45},
-                {p: 61, t: 47},
-                {p: 59, t: 48},
-                {p: 58, t: 50},
-                {p: 51, t: 55},
-                {p: 50, t: 54}, 
-                {p: 47, t: 56},
-                {p: 46, t: 56},
-                {p: 40, t: 60}, // Data baru
-                {p: 37, t: 61},
-                {p: 21, t: 69},
-                {p: 18, t: 71}
-            ].sort((a, b) => b.p - a.p); // Urutkan menurun berdasarkan persentase
-
-            // 1. Kasus Batas (Boundary Cases)
-            if (batteryPercent >= 100) return 0;
-            if (batteryPercent <= data[data.length - 1].p) return data[data.length - 1].t; // Jika di bawah 18%, anggap 71m
-
-            // 2. Interpolasi Linier
-            for (let i = 0; i < data.length - 1; i++) {
-                const lower = data[i + 1]; // Persentase lebih rendah
-                const upper = data[i];     // Persentase lebih tinggi
-                
-                if (batteryPercent <= upper.p && batteryPercent >= lower.p) {
-                    // Formula Interpolasi Linier
-                    const interpolatedTime = lower.t + (upper.t - lower.t) * ((batteryPercent - lower.p) / (upper.p - lower.p));
+                    <div class="input-group">
+                        <label for="startLoc">Lokasi Awal</label>
+                        <input type="text" id="startLoc" placeholder="Masukkan Alamat Awal">
+                        <button class="btn-input-append" onclick="setUserLocationAsStart()">Lokasi Saya</button>
+                    </div>
                     
-                    return Math.round(interpolatedTime); 
-                }
-            }
+                    <div class="input-group" style="margin-top:10px;">
+                        <label for="soc">Sisa Baterai (SOC)</label>
+                        <input type="number" id="soc" value="80" min="5" max="100">
+                        <span class="unit-append">%</span>
+                    </div>
+
+                    <div class="input-group" style="margin-top:10px;">
+                        <label for="destLoc">Lokasi Tujuan</label>
+                        <input type="text" id="destLoc" placeholder="Masukkan Alamat Tujuan">
+                    </div>
+
+                    <button class="btn-plan" onclick="planTrip()">RENCANAKAN RUTE 🗺️</button>
+                </div>
+            </div>
+            <div id="charger-lists">
+                </div>
             
-            return 75; // Nilai default jika terjadi kasus tidak terduga
-        }
+        </div>
 
-        // Logika calculateDuration (TETAP SAMA)
-        function calculateDuration(startBattery, targetLimit) {
-            if (startBattery >= targetLimit) return 5; 
+        <div id="view-map">
+            <div id="map-container">
+                </div>
+        </div>
 
-            let targetTimeRemaining = getRemainingTime(targetLimit);
-            let startTimeRemaining = getRemainingTime(startBattery);
-            
-            let duration = startTimeRemaining - targetTimeRemaining;
-            
-            if (startBattery >= 97 && targetLimit === 100) {
-                duration = (targetLimit - startBattery) * 3;
-            }
-            if (duration < 0) duration = (targetLimit - startBattery) * 1.5; 
+    </div>
 
-            return Math.max(5, Math.ceil(duration)); 
-        }
+    <div id="mapOverlay" class="modal-overlay">
+        <div class="modal-content">
+            <span class="modal-close" onclick="document.getElementById('mapOverlay').classList.remove('active');">✕</span>
+            <h2 id="mapTitle"></h2>
+            <p id="mapSub"></p>
+            <div id="map"></div>
+            <div class="modal-actions">
+                <button id="btnBack" onclick="document.getElementById('mapOverlay').classList.remove('active');">KEMBALI</button>
+                <a id="btnGmaps" target="_blank">LIHAT DI GOOGLE MAPS ↗</a>
+            </div>
+        </div>
+    </div>
+    
+    <div id="modal-news" class="modal">
+        <span class="modal-close" onclick="closeModal()">✕</span>
+        <h2>BERITA & INFO</h2>
+        <p>Informasi terbaru dari MAKA FastCharging:</p>
+        <ul>
+            <li>**2025/11/01:** Jaringan di Jawa Timur diperluas ke 5 kota baru.</li>
+            <li>**2025/10/15:** Skema harga baru untuk charging malam hari (Midnight Rate).</li>
+            <li>**2025/09/28:** Integrasi dengan sistem pembayaran QRIS telah aktif.</li>
+        </ul>
+        <p>Selalu cek notifikasi resmi kami untuk detail lebih lanjut.</p>
+    </div>
 
-
-        // --- WHATSAPP NOTIFICATION ---
-        const WA_MESSAGES = [
-            (plat, wa) => `Halo user ${plat}! Motor Anda sudah selesai diisi daya dan siap diambil. Mohon segera pindahkan kendaraan Anda.`,
-            (plat, wa) => `Peringatan! Pengisian daya motor ${plat} telah mencapai target. Slot telah terisi penuh. Silakan ambil kendaraan Anda.`,
-            (plat, wa) => `Notifikasi: Motor dengan plat nomor ${plat} telah selesai melakukan pengisian daya. Terima kasih atas kerja samanya.`,
-        ];
-
-        function sendWhatsAppNotification(plat, wa) {
-            if (wa.length < 9 || FONTE_TOKEN === "YOUR_FONTE_TOKEN_HERE") return console.log("WA number too short or FONTE_TOKEN not set. Skipping notification.");
-
-            const index = Math.floor(Math.random() * WA_MESSAGES.length);
-            const baseMessage = WA_MESSAGES[index](plat, wa);
-            const signature = "\n\n- Pesan ini dikirim otomatis oleh Smart Parking System MLU. Terima kasih sudah mampir di Rumah MLU.";
-            const message = encodeURIComponent(baseMessage + signature);
-
-            const url = `https://api.fonnte.com/send?target=${wa}&message=${message}`;
-
-            fetch(url, {
-                method: 'POST',
-                headers: { 'Authorization': FONTE_TOKEN }
-            })
-            .then(response => response.json())
-            .then(data => console.log('WA Sent:', data))
-            .catch(error => console.error('WA Error:', error));
-        }
-
-        // --- CORE SYSTEM & UI LOGIC ---
-        let audioCtx = null;
-        let triggeredAlarms = new Set();
-        let isAdminLoggedIn = false; 
-
-        function initAudioAndNotif() {
-            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            
-            const osc = audioCtx.createOscillator();
-            const g = audioCtx.createGain();
-            g.gain.value = 0.01;
-            osc.connect(g); g.connect(audioCtx.destination);
-            osc.start(); osc.stop(audioCtx.currentTime + 0.01);
-
-            if ("Notification" in window && Notification.permission !== "granted") {
-                Notification.requestPermission();
-            }
-        }
-
-        function playSiren() {
-            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            
-            osc.type = 'sawtooth';
-            osc.frequency.setValueAtTime(600, audioCtx.currentTime);
-            osc.frequency.linearRampToValueAtTime(1000, audioCtx.currentTime + 0.5); 
-            osc.frequency.linearRampToValueAtTime(600, audioCtx.currentTime + 1.0);  
-            
-            gain.gain.value = 0.5;
-            osc.connect(gain); gain.connect(audioCtx.destination);
-            osc.start(); osc.stop(audioCtx.currentTime + 2); 
-        }
-
-        document.body.addEventListener('click', initAudioAndNotif, { once: true });
-
-        window.toggleTheme = () => {
-             showPopup('info', 'TEMA TERKUNCI', 'Tema saat ini dikunci di mode Terang.');
-        };
+    <div id="modal-sos" class="modal">
+        <span class="modal-close" onclick="closeModal()">✕</span>
+        <h2>LAYANAN DARURAT (SOS)</h2>
+        <p>Jika Anda mengalami masalah saat charging atau darurat di jalan:</p>
+        <ul>
+            <li>**Hubungi Call Center:** +62 21 8000 7777 (24 Jam)</li>
+            <li>**Bantuan Teknis Charger:** Laporkan kode ID charger ke petugas.</li>
+            <li>**Roadside Assistance:** Tekan tombol ini untuk meminta bantuan derek terdekat.</li>
+        </ul>
+        <div style="margin-top: 20px;">
+             <button style="width: 100%; padding: 15px; background: var(--danger); color: #fff; border: none; border-radius: 12px; font-weight: 800; cursor: pointer;">PANGGIL BANTUAN SEKARANG</button>
+        </div>
+    </div>
 
 
-        function triggerAlarm(name, wa) {
-            const myPlat = localStorage.getItem('myPlat');
-            
-            // Logika Alarm Lokal (Bunyi & Getar)
-            if(myPlat && name === myPlat) {
-                showPopup('alarm', 'SELESAI!', `Motor <b>${name}</b> Selesai!`);
-                if(window.alarmInterval) clearInterval(window.alarmInterval);
-                playSiren();
-                window.alarmInterval = setInterval(playSiren, 2500);
-                if(navigator.vibrate) navigator.vibrate([1000, 500, 1000]);
-                if(Notification.permission === "granted") {
-                    new Notification("FC KELAPA GADING", { body: `Plat ${name} Selesai!`, icon: "https://via.placeholder.com/128?text=⚡" });
-                }
-            }
-
-            if (wa) sendWhatsAppNotification(name, wa);
-        }
-
-        window.stopAlarm = () => {
-            if(window.alarmInterval) { clearInterval(window.alarmInterval); window.alarmInterval = null; }
-        };
-
-        // --- POPUP SYSTEM (Kode tetap sama) ---
-        function showPopup(type, title, msg, onOk = null, additionalData = null) {
-            const m = document.getElementById('masterModal');
-            const box = document.getElementById('modalBox');
-            const icon = document.getElementById('mIcon');
-            const t = document.getElementById('mTitle');
-            const ms = document.getElementById('mMsg');
-            const btnOk = document.getElementById('mBtnOk');
-            const btnCancel = document.getElementById('mBtnCancel');
-            const inp = document.getElementById('mInput');
-            const inpDuration = document.getElementById('mInputDuration');
-
-            m.style.display = 'flex'; m.className = 'modal'; 
-            box.style.borderColor = 'var(--cyan)';
-            t.innerText = title; ms.innerHTML = msg; 
-            inp.style.display = 'none'; inpDuration.style.display = 'none';
-            btnCancel.style.display = 'none';
-            btnOk.className = 'btn-modal primary'; btnOk.innerText = 'OK';
-
-            btnOk.onclick = null; 
-
-            if(type === 'confirm') {
-                icon.innerText = '❓'; btnCancel.style.display = 'block'; btnOk.innerText = 'YA';
-                btnCancel.onclick = () => m.style.display = 'none';
-                btnOk.onclick = () => { m.style.display = 'none'; if(onOk) onOk(); };
-            }
-            else if(type === 'error') {
-                icon.innerText = '❌'; box.style.borderColor = 'var(--soft-red)';
-                btnOk.className = 'btn-modal danger'; btnOk.innerText = 'TUTUP';
-                btnOk.onclick = () => m.style.display = 'none';
-            }
-            else if(type === 'alarm') {
-                icon.innerText = '🔔'; box.style.borderColor = 'var(--soft-red)';
-                btnOk.className = 'btn-modal danger'; btnOk.innerText = 'MATIKAN ALARM';
-                btnOk.onclick = () => { window.stopAlarm(); m.style.display = 'none'; };
-            }
-            else if(type === 'admin') {
-                icon.innerText = '🔒'; inp.style.display = 'block'; inp.value=''; inp.focus();
-                btnOk.innerText = 'LOGIN'; btnCancel.style.display = 'block';
-                btnCancel.onclick = () => m.style.display = 'none';
-                btnOk.onclick = () => {
-                    if(inp.value === '1131') { 
-                        m.style.display = 'none'; 
-                        document.getElementById('adminPanel').style.display = 'block'; 
-                        isAdminLoggedIn = true;
-                    } 
-                    else showPopup('error','GAGAL','PIN Salah!');
-                };
-            }
-            else if(type === 'timer') {
-                icon.innerText = '⏱️';
-                inpDuration.style.display = 'block'; inpDuration.value = additionalData?.currentDuration || ''; inpDuration.focus();
-                btnOk.innerText = 'SET BARU'; btnCancel.style.display = 'block';
-                btnCancel.onclick = () => m.style.display = 'none';
-                btnOk.onclick = () => {
-                    const newDuration = parseInt(inpDuration.value);
-                    if(isNaN(newDuration) || newDuration <= 0) {
-                        return showPopup('error', 'Gagal', 'Durasi tidak valid.');
-                    }
-                    m.style.display = 'none';
-                    if(onOk) onOk(newDuration);
-                };
-            }
-            else { icon.innerText = '✅'; btnOk.onclick = () => m.style.display = 'none'; }
-        }
-
-        window.openAdminLogin = () => showPopup('admin', 'ADMIN LOGIN', 'Masukkan PIN');
-
-        // --- REGISTRATION LOGIC WITH GPS LOCK ---
-        document.getElementById('btnDaftar').onclick = () => {
-            initAudioAndNotif(); 
-            const plat = document.getElementById('userPlat').value.toUpperCase().trim();
-            const wa = document.getElementById('userWA').value.trim();
-            const bat = parseInt(document.getElementById('userBattery').value);
-
-            if(!plat || isNaN(bat)) { return showPopup('error','DATA KURANG','Mohon isi plat & baterai.'); }
-            if(!wa || wa.length < 9) { return showPopup('error','DATA KURANG','Mohon isi Nomor WA yang valid.'); } 
-            
-            document.getElementById('btnDaftar').disabled=true;
-            document.getElementById('btnDaftar').innerText="MENGAMBIL LOKASI...";
-            
-            getLocationAndRegister(plat, wa, bat);
-        };
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
+    <script>
         
-        function getLocationAndRegister(plat, wa, bat) {
+        // --- KONFIGURASI API & DATA ---
+        // Ganti dengan API Key JAWG Anda untuk Map Tiles
+        const JAWG_API = "l1PdBwk1arfZcY7wECff2jE2Ts7qpJyMqGGqHK8cjCxcLb6m0FPHm1sExB5NvLyA"; 
+        
+        // URL Data Lokasi FC Anda dari Google Sheet (REAL DATA)
+        const URL_LOKASI = "https://docs.google.com/spreadsheets/d/1EJOTMMfGpBMFPqR0LzbMbh7tZUcTCZld4x387OO9aJM/export?format=csv"; 
+        
+        let map = null;
+        let userLat = null;
+        let userLng = null;
+        const scrollState = {};
+        let chargers = []; // Data FC akan dimuat di sini
+
+        const MIN_RANGE_KM = 5; // Jarak buffer 5km untuk planner
+        
+        // --- HELPER FUNCTIONS ---
+
+        // Menghitung jarak garis lurus (Haversine)
+        function getDist(lat1, lon1, lat2, lon2) {
+            const R = 6371; // Radius bumi dalam km
+            const dLat = (lat2 - lat1) * (Math.PI / 180);
+            const dLon = (lon2 - lon1) * (Math.PI / 180);
+            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                      Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return (R * c).toFixed(1);
+        }
+        
+        // Helper: Geocoding (Alamat ke Koordinat) menggunakan Nominatim (GRATIS)
+        async function geocodeAddress(address) {
+            try {
+                // Menggunakan Nominatim (OpenStreetMap) Geocoding API
+                const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(address)}&format=json&limit=1`;
+                const response = await fetch(url, {
+                    headers: {
+                        'User-Agent': 'MAKA-FastCharging-App/1.0'
+                    }
+                });
+                const data = await response.json();
+                
+                if (data.length > 0) {
+                    const result = data[0];
+                    const lat = parseFloat(result.lat);
+                    const lng = parseFloat(result.lon);
+                    
+                    return { lat: lat, lng: lng, address: result.display_name }; 
+                }
+                
+                return null;
+
+            } catch(error) {
+                console.error("Geocoding (Nominatim) error:", error);
+                return null;
+            }
+        }
+        
+        // Helper: Hitung Jarak Rute (bukan jarak garis lurus)
+        async function getRouteDistance(start, end) {
+            // Menggunakan OSRM (Open Source Routing Machine) untuk jarak rute (GRATIS)
+            const OSRM_URL = `https://router.project-osrm.org/route/v1/driving/${start.lng},${start.lat};${end.lng},${end.lat}?overview=false`;
+            
+            try {
+                const response = await fetch(OSRM_URL);
+                const data = await response.json();
+                
+                if (data.code === 'Ok' && data.routes.length > 0) {
+                    const distanceKm = data.routes[0].distance / 1000;
+                    return distanceKm;
+                }
+                return null; 
+            } catch(error) {
+                console.error("OSRM Routing error:", error);
+                return null;
+            }
+        }
+        
+        // --- DATA LOAD ---
+        
+        async function loadDataBackground() {
+            try {
+                const txtLoc = await fetch(URL_LOKASI).then(r=>r.text());
+
+                // Parsing CSV data dari Google Sheet (Menggunakan format asli Anda: Name, City, Type, Status, Lat, Lng)
+                chargers = txtLoc.split('\n').slice(1).map((r, i) => {
+                    const c = r.split(',');
+                    let latVal = parseFloat(c[4]);
+                    let lngVal = parseFloat(c[5]);
+                    
+                    // Validasi data
+                    if(c.length < 5 || isNaN(latVal) || isNaN(lngVal)) return null; 
+
+                    return { 
+                        id: `FC-${i}`,
+                        name: c[0], 
+                        city: c[1], 
+                        type: c[2],
+                        // Status harus huruf kecil untuk class CSS
+                        status: c[3] ? c[3].toLowerCase() : 'available', 
+                        lat: latVal, 
+                        lng: lngVal, 
+                        distance: '--' 
+                    };
+                }).filter(i=>i);
+
+                getUserLocation(); // Setelah data dimuat, dapatkan lokasi user dan render list
+
+            } catch(e) {
+                console.error("Gagal memuat data lokasi:", e);
+                chargers = []; 
+                getUserLocation(); 
+            }
+        }
+
+            // Lanjutan dari Script Bagian 1/3 (Tarik data dari Google Sheet)
+
+        // --- PLANNER ACTIONS ---
+
+        // Action: Set Lokasi Pengguna sebagai Awal
+        function setUserLocationAsStart() {
+            if (userLat && userLng) {
+                document.getElementById('startLoc').value = `${userLat.toFixed(6)}, ${userLng.toFixed(6)}`;
+                alert('Lokasi Anda berhasil diatur sebagai lokasi awal.');
+            } else {
+                alert('GPS belum terdeteksi. Harap tunggu atau masukkan koordinat/alamat manual.');
+            }
+        }
+
+        // Action: Rencanakan Perjalanan (Logika Inti)
+        async function planTrip() {
+            const startAddr = document.getElementById('startLoc').value;
+            const soc = parseFloat(document.getElementById('soc').value);
+            const destAddr = document.getElementById('destLoc').value;
+            
+            if (!startAddr || !destAddr || isNaN(soc) || soc < 5 || soc > 100) {
+                alert('Harap isi Lokasi Awal, Sisa Baterai (5-100%), dan Lokasi Tujuan dengan benar.');
+                return;
+            }
+            
+            // 1. Geocode Lokasi Awal
+            let startLoc;
+            if (startAddr.includes(',')) { 
+                const parts = startAddr.split(',').map(s => parseFloat(s.trim()));
+                if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+                     startLoc = { lat: parts[0], lng: parts[1], address: startAddr };
+                }
+            }
+            if(!startLoc) { 
+                startLoc = await geocodeAddress(startAddr);
+            }
+            if (!startLoc) {
+                alert(`Gagal menemukan koordinat untuk Lokasi Awal: ${startAddr}`);
+                return;
+            }
+            
+            // 2. Geocode Lokasi Tujuan
+            const destLoc = await geocodeAddress(destAddr);
+            if (!destLoc) {
+                alert(`Gagal menemukan koordinat untuk Lokasi Tujuan: ${destAddr}`);
+                return;
+            }
+            
+            // 3. Hitung Jarak Daya Jelajah
+            const rangeKm = soc - MIN_RANGE_KM; 
+            if (rangeKm < 0) {
+                 alert(`Sisa Baterai terlalu rendah (${soc}%). Perjalanan dibatalkan.`);
+                 return;
+            }
+
+            // 4. Hitung Jarak Rute Langsung
+            const directDistKm = await getRouteDistance(startLoc, destLoc);
+            if (directDistKm === null) {
+                alert('Gagal menghitung jarak rute langsung. Coba lagi.');
+                return;
+            }
+            
+            // 5. Tentukan Rencana (A atau B)
+            let finalRoute = [];
+            let routeSummary = "";
+            let finalStart = startLoc;
+            let finalDest = destLoc;
+            
+            const isRangeSufficient = directDistKm <= rangeKm;
+            
+            if (isRangeSufficient) {
+                // A. Rute Langsung (Baterai Cukup)
+                routeSummary = `✅ **Rute Langsung (Baterai Cukup).**\nTotal Jarak: **${directDistKm.toFixed(1)} km**\n\n**Rute:**\n${startLoc.address} \n$\rightarrow$ ${destLoc.address}`;
+                finalRoute = [startLoc, destLoc];
+
+            } else {
+                // B. Rute Via FC (Baterai Tidak Cukup)
+                
+                // Cari FC Terdekat dari Lokasi Awal
+                let nearestFC = null;
+                let minDist = Infinity;
+                chargers.forEach(c => {
+                    const dist = parseFloat(getDist(startLoc.lat, startLoc.lng, c.lat, c.lng));
+                    if (dist < minDist) {
+                        minDist = dist;
+                        nearestFC = c;
+                    }
+                });
+                
+                if (!nearestFC) {
+                    alert('Tidak ditemukan FC terdekat dari lokasi Anda. Perjalanan via FC dibatalkan.');
+                    return;
+                }
+                
+                const fcLoc = { lat: nearestFC.lat, lng: nearestFC.lng, address: nearestFC.name };
+                
+                // Hitung Jarak Rute Awal -> FC
+                const startToFCDist = await getRouteDistance(startLoc, fcLoc);
+                if (startToFCDist === null) {
+                    alert('Gagal menghitung jarak rute ke FC. Coba lagi.');
+                    return;
+                }
+                
+                // Cek apakah jarak ke FC cukup dengan baterai saat ini
+                if (startToFCDist > rangeKm) {
+                    alert(`❌ **Baterai Tidak Cukup.** Jarak ke FC terdekat (${nearestFC.name}) adalah ${startToFCDist.toFixed(1)} km, melebihi daya jelajah Anda (${rangeKm.toFixed(1)} km). Perjalanan tidak aman.`);
+                    return;
+                }
+                
+                // Rute Awal -> FC -> Tujuan
+                const fcToDestDist = await getRouteDistance(fcLoc, destLoc);
+                if (fcToDestDist === null) {
+                    alert('Gagal menghitung jarak rute FC ke Tujuan. Coba lagi.');
+                    return;
+                }
+                
+                const totalDist = startToFCDist + fcToDestDist;
+                
+                routeSummary = `⚠️ **Rute Via FC (Baterai Tidak Cukup).**\nTotal Jarak: **${totalDist.toFixed(1)} km**\n\n**Rute:**\n${startLoc.address} \n$\rightarrow$ **${nearestFC.name} (FC)** \n$\rightarrow$ ${destLoc.address}`;
+                finalRoute = [startLoc, fcLoc, destLoc];
+                
+            }
+            
+            // 6. Tampilkan Rute di Map Modal
+            openPlanMapModal(finalRoute, routeSummary, finalStart, finalDest);
+        }
+        
+        // --- MAP FUNCTIONS (PLANNER & SINGLE) ---
+        
+        let routingControl = null;
+        
+        // Fungsi untuk menampilkan Rute Terencana (3 titik atau lebih)
+        function openPlanMapModal(waypoints, summary, finalStart, finalDest) {
+            document.getElementById('mapOverlay').classList.add('active');
+            document.getElementById('mapTitle').innerText = 'Rute Perjalanan Terencana';
+            document.getElementById('mapSub').innerHTML = summary.replace(/\n/g, '<br>');
+            
+            const gmapsUrl = `https://www.google.com/maps/dir/${finalStart.lat},${finalStart.lng}/${finalDest.lat},${finalDest.lng}`;
+            document.getElementById('btnGmaps').href = gmapsUrl;
+            document.getElementById('btnGmaps').innerText = 'MULAI JALAN (GOOGLE MAPS) ↗';
+            
+            setTimeout(() => {
+                if(map) { map.remove(); map = null; }
+                
+                map = L.map('map', {zoomControl: false}).setView([waypoints[0].lat, waypoints[0].lng], 10);
+                L.tileLayer(`https://tile.jawg.io/jawg-matrix/{z}/{x}/{y}{r}.png?access-token=${JAWG_API}`, {}).addTo(map);
+
+                if (routingControl) {
+                    map.removeControl(routingControl);
+                    routingControl = null;
+                }
+                
+                const leafletWaypoints = waypoints.map(w => L.latLng(w.lat, w.lng));
+                
+                routingControl = L.Routing.control({
+                    waypoints: leafletWaypoints,
+                    lineOptions: { styles: [{color: '#CCFF00', opacity: 0.9, weight: 6}] },
+                    createMarker: function(i, waypoint, n) { 
+                        let iconColor = '#FF3B30'; // Merah (Start)
+                        if (i === n - 1) iconColor = '#06c258'; // Hijau (End)
+                        else if (n > 2 && i === 1) iconColor = '#00d2ff'; // Biru Cyan (FC)
+
+                        const customIcon = L.divIcon({
+                            html: `<div style="background:${iconColor}; width:15px; height:15px; border-radius:50%; border:3px solid #000; box-shadow:0 0 10px rgba(0,0,0,0.5);"></div>`,
+                            className: 'custom-marker',
+                            iconSize: [15, 15],
+                            iconAnchor: [7.5, 7.5]
+                        });
+                        
+                        return L.marker(waypoint.latLng, {icon: customIcon})
+                                .bindPopup(waypoints[i].address);
+                    },
+                    addWaypoints: false, draggableWaypoints: false, fitSelectedRoutes: true, show: false
+                }).addTo(map);
+                
+                routingControl.on('routesfound', function(e) {
+                    var routes = e.routes;
+                    map.fitBounds(routes[0].bounds);
+                });
+
+            }, 300);
+        }
+                // Lanjutan dari Script Bagian 2/3
+
+        // Buka modal map untuk rute ke satu charger
+        function openMapModal(charger) {
+            document.getElementById('mapOverlay').classList.add('active');
+            document.getElementById('mapTitle').innerText = charger.name;
+            document.getElementById('mapSub').innerText = `Jarak: ${charger.distance} km | Status: ${charger.status.toUpperCase()}`;
+            
+            if (userLat && userLng) {
+                 const gmapsUrl = `https://www.google.com/maps/dir/${userLat},${userLng}/${charger.lat},${charger.lng}`;
+                 document.getElementById('btnGmaps').href = gmapsUrl;
+                 document.getElementById('btnGmaps').innerText = 'NAVIGASI (GOOGLE MAPS) ↗';
+            } else {
+                 document.getElementById('btnGmaps').href = `https://www.google.com/maps/@${charger.lat},${charger.lng},15z`;
+                 document.getElementById('btnGmaps').innerText = 'LIHAT DI GOOGLE MAPS ↗';
+            }
+
+            setTimeout(() => {
+                if(map) { map.remove(); map = null; }
+                
+                map = L.map('map', {zoomControl: false}).setView([charger.lat, charger.lng], 13);
+                L.tileLayer(`https://tile.jawg.io/jawg-matrix/{z}/{x}/{y}{r}.png?access-token=${JAWG_API}`, {}).addTo(map);
+
+                if (routingControl) {
+                    map.removeControl(routingControl);
+                    routingControl = null;
+                }
+
+                if (userLat && userLng) {
+                     routingControl = L.Routing.control({
+                        waypoints: [
+                            L.latLng(userLat, userLng),
+                            L.latLng(charger.lat, charger.lng)
+                        ],
+                        routeWhileDragging: false,
+                        lineOptions: { styles: [{color: '#CCFF00', opacity: 0.8, weight: 6}] },
+                        createMarker: function(i, waypoint, n) { return null; },
+                        fitSelectedRoutes: true,
+                        show: false
+                    }).addTo(map);
+                    
+                    routingControl.on('routesfound', function(e) {
+                        var routes = e.routes;
+                        map.fitBounds(routes[0].bounds);
+                    });
+                    
+                } else {
+                    L.marker([charger.lat, charger.lng]).addTo(map).bindPopup(charger.name).openPopup();
+                }
+
+            }, 300);
+        }
+        
+        // Inisialisasi peta utama
+        function initFullMap() {
+            if (map) { map.remove(); map = null; }
+            if (chargers.length === 0) return;
+            
+            const centerLat = userLat || chargers[0].lat;
+            const centerLng = userLng || chargers[0].lng;
+            
+            map = L.map('map-container', {zoomControl: false}).setView([centerLat, centerLng], 12);
+            L.tileLayer(`https://tile.jawg.io/jawg-matrix/{z}/{x}/{y}{r}.png?access-token=${JAWG_API}`, {}).addTo(map);
+            
+            chargers.forEach(c => {
+                 const statusClass = c.status;
+                 let iconColor = statusClass === 'available' ? '#CCFF00' : statusClass === 'busy' ? '#FF3B30' : '#888';
+                 
+                 const customIcon = L.divIcon({
+                    html: `<div style="background:${iconColor}; width:15px; height:15px; border-radius:50%; border:3px solid #000; box-shadow:0 0 10px rgba(0,0,0,0.5);"></div>`,
+                    className: 'custom-marker',
+                    iconSize: [15, 15],
+                    iconAnchor: [7.5, 7.5]
+                });
+
+                L.marker([c.lat, c.lng], {icon: customIcon})
+                 .addTo(map)
+                 .bindPopup(`<b>${c.name}</b><br>${c.city}<br>Status: ${statusClass}`);
+            });
+
+            if (userLat && userLng) {
+                const userIcon = L.divIcon({
+                    html: `<div style="background:#00d2ff; width:20px; height:20px; border-radius:50%; border:3px solid #000; box-shadow:0 0 10px rgba(0,0,0,0.8);"></div>`,
+                    className: 'custom-marker',
+                    iconSize: [20, 20],
+                    iconAnchor: [10, 10]
+                });
+                L.marker([userLat, userLng], {icon: userIcon})
+                 .addTo(map)
+                 .bindPopup("Lokasi Saya");
+            }
+        }
+
+
+        // Render List Charger
+        function renderChargers(data) {
+            const container = document.getElementById('charger-lists');
+            container.innerHTML = ''; 
+
+            const grouped = data.reduce((acc, charger) => {
+                (acc[charger.city] = acc[charger.city] || []).push(charger);
+                return acc;
+            }, {});
+
+            for (const city in grouped) {
+                const groupDiv = document.createElement('div');
+                groupDiv.className = 'list-group';
+                groupDiv.innerHTML = `<div class="city-title">${city}</div><div class="h-scroll" data-city="${city}"></div>`;
+                
+                const scrollContainer = groupDiv.querySelector('.h-scroll');
+                scrollContainer.addEventListener('scroll', function() {
+                    scrollState[city] = this.scrollLeft;
+                });
+                
+                grouped[city].forEach(c => {
+                    const statusClass = c.status;
+                    const card = document.createElement('div');
+                    card.className = 'charger-card';
+                    card.innerHTML = `
+                        <div class="card-header">
+                            <div class="card-title">${c.name}</div>
+                            <div class="status-badge ${statusClass}">${statusClass.toUpperCase()}</div>
+                        </div>
+                        <div class="card-info">ID: <span>${c.id}</span></div>
+                        <div class="card-info">Tipe: <span>${c.type}</span></div>
+                        <div class="card-info">Jarak: <span>${c.distance} km</span></div>
+                        <div class="card-actions">
+                            <button class="btn-map" onclick='openMapModal(${JSON.stringify(c)})'>PETA</button>
+                            <button class="btn-route" onclick='openMapModal(${JSON.stringify(c)})'>RUTE</button>
+                        </div>
+                    `;
+                    scrollContainer.appendChild(card);
+                });
+                container.appendChild(groupDiv);
+            }
+            restoreScrollState();
+        }
+
+        // Switch View (List/Map/Planner)
+        function switchView(mode) {
+            const listBtn = document.getElementById('btnList');
+            const mapBtn = document.getElementById('btnMap');
+            const plannerBtn = document.getElementById('btnPlanner'); 
+            
+            const plannerSection = document.getElementById('plannerSection'); 
+            const heroSection = document.querySelector('.hero-section'); 
+            
+            const listView = document.getElementById('view-list');
+            const mapView = document.getElementById('view-map');
+            const chargerLists = document.getElementById('charger-lists');
+            
+            document.querySelectorAll('.t-btn').forEach(btn => btn.classList.remove('active'));
+            
+            heroSection.style.display = 'block'; 
+            plannerSection.style.display = 'none'; 
+            chargerLists.style.display = 'block'; 
+            
+            if(mode === 'list') {
+                listBtn.classList.add('active');
+                listView.style.display = 'flex'; mapView.style.display = 'none';
+                
+            } else if(mode === 'map') {
+                mapBtn.classList.add('active'); 
+                listView.style.display = 'none'; mapView.style.display = 'block';
+                initFullMap();
+            } else if(mode === 'planner') { 
+                plannerBtn.classList.add('active');
+                listView.style.display = 'flex'; mapView.style.display = 'none';
+                heroSection.style.display = 'none'; 
+                plannerSection.style.display = 'block';
+                chargerLists.style.display = 'none'; 
+            }
+        }
+
+        // Dapatkan Lokasi Pengguna (GPS)
+        function getUserLocation() {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(
                     (position) => {
-                        const dist = getDistanceFromLatLonInKm(
-                            position.coords.latitude, 
-                            position.coords.longitude, 
-                            STATION_LOC.lat, 
-                            STATION_LOC.lng
-                        );
-
-                        if (dist > MAX_DIST_KM) {
-                             document.getElementById('btnDaftar').disabled=false;
-                             document.getElementById('btnDaftar').innerText="DAFTAR ANTRIAN";
-                             return showPopup('error','GPS GAGAL','Anda terlalu jauh dari stasiun. Jarak: ' + dist.toFixed(3) + ' km.');
-                        }
+                        userLat = position.coords.latitude;
+                        userLng = position.coords.longitude;
+                        document.getElementById('userLocText').innerText = `Lokasi Anda: ${userLat.toFixed(4)}, ${userLng.toFixed(4)}`;
                         
-                        registerUser(plat, wa, bat);
+                        const updatedChargers = chargers.map(c => ({
+                            ...c,
+                            distance: getDist(userLat, userLng, c.lat, c.lng)
+                        })).sort((a, b) => parseFloat(a.distance) - parseFloat(b.distance)); 
+                        
+                        renderChargers(updatedChargers);
                     },
                     (error) => {
-                        document.getElementById('btnDaftar').disabled=false;
-                        document.getElementById('btnDaftar').innerText="DAFTAR ANTRIAN";
-                        if (error.code === error.PERMISSION_DENIED) {
-                            return showPopup('error','GPS DIBLOKIR','Akses lokasi ditolak. Silakan izinkan akses lokasi di pengaturan browser Anda.');
-                        }
-                        return showPopup('error','GPS GAGAL', 'Gagal mengambil lokasi: ' + error.message);
+                        console.error("Geolocation error:", error);
+                        document.getElementById('userLocText').innerText = "Lokasi tidak terdeteksi. Jarak menggunakan data default.";
+                        renderChargers(chargers); 
                     },
-                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+                    { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
                 );
             } else {
-                document.getElementById('btnDaftar').disabled=false;
-                document.getElementById('btnDaftar').innerText="DAFTAR ANTRIAN";
-                showPopup('error','GPS TIDAK DIDUKUNG','Browser Anda tidak mendukung Geolocation.');
+                document.getElementById('userLocText').innerText = "Geolocation tidak didukung browser ini. Jarak menggunakan data default.";
+                renderChargers(chargers); 
             }
         }
-
-        async function registerUser(plat, wa, bat) {
-            const btn = document.getElementById('btnDaftar');
-            btn.innerText="PROSES...";
-
-            localStorage.setItem('myPlat', plat);
-
-            try {
-                await runTransaction(db, async(t)=>{
-                    const d = (await t.get(ref)).data() || {};
-                    let s = d.chargingSlots || [null,null,null];
-                    let q = d.waitingQueue || [];
-
-                    if((d.blockedList||[]).includes(plat)) throw "Plat ini DIBLOKIR!";
-                    if(s.some(x=>x?.name===plat) || q.some(x=>x?.name===plat)) throw "Plat sudah terdaftar!";
-
-                    const target = calculateTargetLimit(q.length);
-                    const dur = calculateDuration(bat, target);
-                    
-                    const item = { name:plat, wa:wa, startBattery:bat, targetLimit:target, durationMinutes:dur, startTime:null };
-                    
-                    const empty = s.findIndex(x=>x===null);
-                    if(empty!==-1) s[empty] = {...item, startTime: new Date()}; 
-                    else q.push(item);
-
-                    t.set(ref, {chargingSlots:s, waitingQueue:q}, {merge:true});
-                });
-
-                showPopup('success','BERHASIL','Masuk antrian/slot.');
-                document.getElementById('userPlat').value=''; 
-                document.getElementById('userBattery').value='';
-                document.getElementById('userWA').value='';
-            } catch(e) { showPopup('error','GAGAL', e); }
-            
-            btn.disabled=false; 
-            btn.innerText="DAFTAR ANTRIAN";
-        }
-
-
-        // --- RENDER & TIMER ---
-        setInterval(() => {
-            document.querySelectorAll('[data-end]').forEach(el => {
-                const end = parseInt(el.dataset.end);
-                const name = el.dataset.name;
-                const wa = el.dataset.wa;
-                const key = name+end;
-
-                const diff = end - Date.now();
-                if(diff > 0) {
-                    const m = Math.floor(diff/60000);
-                    const s = Math.floor((diff%60000)/1000);
-                    el.innerText = `${m}:${s<10?'0'+s:s}`;
-                } else {
-                    el.innerText = "SELESAI"; 
-                    el.style.color = "var(--soft-red)";
-                    
-                    if(!triggeredAlarms.has(key)) { 
-                        triggeredAlarms.add(key); 
-                        triggerAlarm(name, wa);
-                    }
-                }
-            });
-        }, 1000);
-
-
-        // --- FIREBASE SNAPSHOT & RENDER ---
-        onSnapshot(ref, (snap) => {
-            const d = snap.data() || {};
-            const slots = d.chargingSlots || [null,null,null];
-            const q = d.waitingQueue || [];
-            
-            // RENDER SLOTS
-            document.getElementById('slotsContainer').innerHTML = slots.map((x,i)=>{
-                if(!x) return `
-                    <div class="slot-box" style="opacity:0.5; border-style:dashed;">
-                        <div class="bat-icon" style="border-color:var(--text-muted)"><div class="bat-bolt" style="color:var(--text-muted)">⚡</div></div>
-                        <div style="font-size:12px; color:var(--text-muted)">KOSONG</div>
-                    </div>`;
-
-                const isRun = !!x.startTime;
-                
-                let buttons;
-                if(isRun) {
-                    buttons = `
-                        <div class="btn-group">
-                            <button class="btn-act btn-edit-timer" onclick="window.setTimerManualPrompt(${i}, ${x.durationMinutes})">EDIT TIMER</button>
-                            <button class="btn-act btn-stop" onclick="window.act(${i},'stop', '${x.name}', '${x.wa}')">STOP</button>
-                        </div>
-                    `;
-                } else {
-                    buttons = `<button class="btn-act btn-start" onclick="window.act(${i},'start', '${x.name}', '${x.wa}')">MULAI</button>`;
-                }
-                
-                let time = `<div style="font-size:10px; color:var(--text-muted); margin-top:5px;">Tap MULAI</div>`;
-                let h = x.startBattery;
-                let targetText = "";
-                let waInfo = x.wa ? `<a href="https://wa.me/${x.wa.replace(/\D/g, '')}" target="_blank" style="color:var(--text-muted); font-size:9px; margin-bottom:5px; text-decoration:none;">WA: ${x.wa}</a>` : '';
-
-
-                if(isRun) {
-                    const start = x.startTime.seconds ? x.startTime.seconds*1000 : new Date(x.startTime).getTime();
-                    const end = start + (x.durationMinutes*60000);
-                    time = `<div style="font-size:16px; font-weight:bold; color:var(--cyan); margin:5px 0;" data-end="${end}" data-name="${x.name}" data-wa="${x.wa}">...</div>`;
-                    h = 100;
-                    targetText = `<div style="font-size:9px; color:var(--cyan);">Target: ${x.targetLimit}%</div>`;
-                }
-                return `
-                    <div class="slot-box active">
-                        <div class="bat-icon">
-                            <div class="bat-fill" style="height:${h}%"></div>
-                            <div class="bat-bolt">⚡</div>
-                        </div>
-                        <div style="font-weight:bold; color:var(--text);">${x.name}</div>
-                        ${waInfo}
-                        ${targetText}
-                        ${time}
-                        ${buttons}
-                    </div>`;
-            }).join('');
-
-            // RENDER QUEUE
-            document.getElementById('qCount').innerText = q.length;
-            document.getElementById('queueList').innerHTML = q.length ? q.map((x,i)=>`
-                <div style="display:flex; justify-content:space-between; background:var(--card-bg); padding:10px; margin-bottom:5px; border-radius:8px;">
-                    <div><b style="color:var(--text);">${x.name}</b> <span style="font-size:12px; color:var(--cyan)">(${x.startBattery}% > ${x.targetLimit}%)</span> ${x.wa ? `<span style="font-size:10px; color:var(--text-muted)">(${x.wa})</span>` : ''}</div>
-                    <button onclick="window.delQ(${i}, '${x.name}')" style="background:none; border:none; color:var(--soft-red); cursor:pointer;">✕</button>
-                </div>
-            `).join('') : '<div style="text-align:center; color:var(--text-muted); font-size:12px;">Antrian Kosong</div>';
-            
-            // RENDER ADMIN QUEUE OPTIONS
-            const assignQueueSelect = document.getElementById('assignQueueIndex');
-            assignQueueSelect.innerHTML = q.length ? q.map((x,i)=>`<option value="${i}">Antrian ${i+1}: ${x.name} (${x.startBattery}%)</option>`) : '<option value="-1">-- Antrian Kosong --</option>';
-
-        });
-
-        // --- SLOT ACTIONS (START/STOP) ---
-        window.act = (i, type, platName, wa) => {
-            initAudioAndNotif();
-            const myPlat = localStorage.getItem('myPlat');
-
-            if(type === 'stop' && !isAdminLoggedIn && myPlat !== platName) {
-                return showPopup('error', 'AKSES DITOLAK', 'Ini bukan kendaraan Anda!');
-            }
-
-            if(type==='stop') {
-                showPopup('confirm', 'KONFIRMASI', `Stop & Hapus Slot ${i+1}?`, () => {
-                    runTransaction(db, async(t)=>{
-                        const d = (await t.get(ref)).data();
-                        let s = d.chargingSlots; 
-                        let q = d.waitingQueue;
-                        
-                        s[i]=null; 
-                        
-                        if(q.length){ 
-                            const nextItem = q.shift();
-                            
-                            const target = calculateTargetLimit(q.length); 
-                            const dur = calculateDuration(nextItem.startBattery, target);
-
-                            s[i]={ 
-                                ...nextItem, 
-                                targetLimit: target,
-                                durationMinutes: dur,
-                                startTime: new Date() 
-                            }; 
-                        }
-
-                        t.update(ref, {chargingSlots:s, waitingQueue:q});
-                    });
-                    window.stopAlarm();
-                });
-            } else {
-                runTransaction(db, async(t)=>{
-                    const s = (await t.get(ref)).data().chargingSlots;
-                    if(s[i]) s[i].startTime = new Date();
-                    t.update(ref, {chargingSlots:s});
-                });
-            }
-        };
-
-        window.delQ = (i, platName) => {
-            const myPlat = localStorage.getItem('myPlat');
-            if(!isAdminLoggedIn && myPlat !== platName) {
-                return showPopup('error', 'AKSES DITOLAK', 'Ini bukan antrian Anda!');
-            }
-
-            showPopup('confirm','HAPUS', 'Hapus antrian ini?', () => {
-                runTransaction(db, async(t)=>{
-                    const q = (await t.get(ref)).data().waitingQueue;
-                    q.splice(i,1); t.update(ref, {waitingQueue:q});
-                });
-            });
-        };
-
-        window.setTimerManualPrompt = (i, currentDuration) => {
-            if(!isAdminLoggedIn) {
-                 return showPopup('error', 'AKSES DITOLAK', 'Hanya Admin yang dapat mengedit timer.');
-            }
-            const setTimerAction = (newDuration) => {
-                runTransaction(db, async(t)=>{
-                    const s = (await t.get(ref)).data().chargingSlots;
-                    if(!s[i]) throw `Slot ${i+1} kosong. Tidak bisa atur timer.`;
-
-                    s[i].durationMinutes = newDuration;
-                    s[i].startTime = new Date(); 
-                    
-                    t.update(ref, {chargingSlots:s});
-                }).then(() => {
-                    showPopup('success','TIMER DIATUR',`Timer Slot ${i+1} diatur ke ${newDuration} menit.`);
-                }).catch(e => {
-                    showPopup('error','GAGAL', e);
-                });
-            };
-
-            showPopup('timer', 
-                `ATUR ULANG TIMER SLOT ${i+1}`, 
-                `Masukkan durasi baru (menit) untuk motor ini.`, 
-                setTimerAction, 
-                { currentDuration: currentDuration }
-            );
-        };
-
-
-        // ADMIN FUNCTIONS
-        window.manualAssign = () => {
-            const i = document.getElementById('manSlot').value;
-            const p = document.getElementById('manPlat').value;
-            if(!p) return showPopup('error','ERROR','Plat kosong');
-            
-            runTransaction(db, async(t)=>{
-                const s = (await t.get(ref)).data().chargingSlots || [null,null,null];
-                const q = (await t.get(ref)).data().waitingQueue || [];
-                
-                // Manual assign menggunakan nilai default, karena Admin tidak mengisi Baterai & WA
-                const target = 100; // Target penuh
-                const startBat = 50; // Asumsi baterai di tengah
-                const dur = calculateDuration(startBat, target);
-                
-                s[i] = { 
-                    name:p.toUpperCase(), 
-                    wa:'', 
-                    startBattery:startBat, 
-                    targetLimit:target, 
-                    durationMinutes:dur, 
-                    startTime:new Date() 
-                };
-                t.update(ref, {chargingSlots:s}, {merge:true});
-            });
-            showPopup('success','SUKSES',`Slot ${parseInt(i)+1} terisi (Default 50%).`);
-        };
-
-        window.clearSlotManual = () => {
-            const i = document.getElementById('manSlot').value;
-            showPopup('confirm', 'HAPUS SLOT', `Paksa hapus Slot ${parseInt(i)+1}?`, () => {
-                runTransaction(db, async(t)=>{
-                    const s = (await t.get(ref)).data().chargingSlots;
-                    s[i] = null;
-                    t.update(ref, {chargingSlots:s});
-                });
-            });
-        };
         
-        window.assignQueueToSlot = () => {
-            const queueIndex = parseInt(document.getElementById('assignQueueIndex').value);
-            const slotTarget = parseInt(document.getElementById('assignSlotTarget').value);
+        // --- MODAL & NAVIGASI ---
 
-            if (queueIndex < 0) return showPopup('error', 'Gagal', 'Pilih antrian yang valid.');
+        function nav(p) {
+            document.querySelectorAll('.modal').forEach(m=>m.classList.remove('show'));
+            if(p==='news') document.getElementById('modal-news').classList.add('show');
+            if(p==='sos') document.getElementById('modal-sos').classList.add('show');
+        }
+        function closeModal() { document.querySelectorAll('.modal').forEach(m=>m.classList.remove('show')); }
 
-            showPopup('confirm', 'PINDAH ANTRIAN', `Pindah Antrian ke Slot ${slotTarget + 1}?`, () => {
-                runTransaction(db, async(t) => {
-                    const d = (await t.get(ref)).data();
-                    let s = d.chargingSlots;
-                    let q = d.waitingQueue;
-
-                    if (!q[queueIndex]) throw "Antrian tidak ditemukan.";
-                    if (s[slotTarget]) throw `Slot ${slotTarget + 1} sudah terisi. Kosongkan dulu.`;
-
-                    const itemToMove = q[queueIndex];
-
-                    q.splice(queueIndex, 1);
-                    
-                    // Recalculate duration and target based on item's start battery, but use the new queue length for target limit calculation
-                    const newTarget = calculateTargetLimit(q.length);
-                    const newDur = calculateDuration(itemToMove.startBattery, newTarget);
-                    
-                    s[slotTarget] = {
-                        ...itemToMove,
-                        targetLimit: newTarget,
-                        durationMinutes: newDur,
-                        startTime: new Date()
-                    };
-
-                    t.update(ref, { chargingSlots: s, waitingQueue: q });
-                }).then(() => {
-                    showPopup('success', 'SUKSES', `Antrian berhasil dipindah ke Slot ${slotTarget + 1}.`);
-                }).catch(e => {
-                    showPopup('error', 'GAGAL', e);
-                });
+        // --- ANIMASI & INIT ---
+        
+        function restoreScrollState() {
+            document.querySelectorAll('.list-group').forEach(group => {
+                const title = group.querySelector('.city-title').innerText;
+                if(scrollState[title]) group.querySelector('.h-scroll').scrollLeft = scrollState[title];
             });
-        };
+        }
 
-        window.blockUser = async () => {
-            const p = document.getElementById('blockPlatInput').value.toUpperCase().trim();
-            if(!p) return;
-            await runTransaction(db, async (t) => {
-                const d = (await t.get(ref)).data(); const l = d.blockedList || [];
-                if (!l.includes(p)) l.push(p); t.update(ref, {blockedList: l});
-            });
-            showPopup('success', 'BLOKIR', `Plat ${p} diblokir.`);
-        };
-        window.stopAll = () => {
-            showPopup('confirm', 'BAHAYA', 'Stop SEMUA slot?', () => {
-                runTransaction(db, async(t)=>{ t.update(ref, {chargingSlots:[null,null,null]}); });
-            });
-        };
-        window.resetAll = () => {
-            showPopup('confirm', 'RESET DATABASE', 'Hapus antrian & slot?', () => {
-                setDoc(ref, {chargingSlots:[null,null,null], waitingQueue:[], blockedList:[]});
-            });
-        };
+        function animateText(id, txt, delay) {
+            const el = document.getElementById(id);
+            el.innerHTML = txt.split('').map(l => `<span class="letter">${l===' '?' ':l}</span>`).join('');
+            const letters = el.querySelectorAll('.letter');
+            let i=0; return new Promise(r=>{ const t=setInterval(()=>{ if(i<letters.length){letters[i].classList.add('active');i++}else{clearInterval(t);r()} }, delay) });
+        }
+        
+        async function runIntro() {
+            await animateText('animText1', "SELAMAT DATANG", 40);
+            await animateText('animText2', "SAHABAT MLU", 30);
+            document.getElementById('animText3').style.opacity = '1'; 
+            setTimeout(() => { document.querySelector('.loader-actions').classList.add('show'); }, 500);
+            loadDataBackground(); // Memuat data lokasi FC dari Google Sheet
+        }
+        
+        runIntro(); 
+        
     </script>
 </body>
 </html>
