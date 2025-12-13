@@ -22,12 +22,10 @@
             --text-mute: #888;
         }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        /* FINAL CSS FIX: Membuat body full height dan mengizinkan flex vertical */
         body { margin: 0; padding: 0; background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; height: 100vh; overflow: hidden; display: flex; flex-direction: column; } 
 
         /* LOADER (Welcome Screen) */
         .loader { position: fixed; inset:0; background: #000; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s ease-out; }
-        /* LOGO FIX */
         .loader-logo { width: 150px; margin-bottom: 20px; filter: drop-shadow(0 0 20px rgba(204, 255, 0, 0.3)); }
         #animText1 { font-size: 1rem; color: var(--accent); margin-bottom: 5px; font-weight: 600; }
         #animText2 { font-family: 'Syne'; font-size: 1.8rem; font-weight: 800; color: #fff; text-transform: uppercase; margin-bottom: 10px; text-align: center; }
@@ -54,7 +52,6 @@
         .t-btn.active { background: var(--accent); color: #000; }
 
         /* CONTAINER UTAMA */
-        /* Flex grow agar mengisi sisa ruang di bawah header */
         #view-list { display: flex; flex-direction: column; flex: 1; overflow: hidden; width: 100%; }
         #view-map { display: none; flex: 1; width: 100%; height: 100%; position: relative; }
         #map-container { width: 100%; height: 100%; }
@@ -157,8 +154,9 @@
         }
         .modal-close { position: absolute; top: 15px; right: 15px; font-size: 1.5rem; color: var(--text-mute); cursor: pointer; }
         
-        /* Mini Map di dalam Modal */
-        #mapModal #map { height: 250px; border-radius: 15px; margin-top: 20px; background: #000; border: 1px solid #333; }
+        /* Mini Map di dalam Modal (DIHAPUS DARI TAMPILAN) */
+        #mapModal { display: none; } /* Menyembunyikan container map */
+
         #mapTitle { font-size: 1.5rem; font-weight: 800; margin: 0 0 5px 0; color: var(--accent); }
         /* Teks Deskripsi Rute yang Diperbaiki */
         #mapSub { 
@@ -188,7 +186,7 @@
         #alertButton { background: var(--accent); color: #000; padding: 12px 30px; border: none; border-radius: 10px; font-weight: 800; cursor: pointer; }
 
 
-        /* CUSTOM ICON CSS */
+        /* MAP ASSETS */
         .leaflet-marker-icon.custom-marker { border: 3px solid #000; border-radius: 50%; box-shadow: 0 0 5px rgba(0,0,0,0.5); }
         .leaflet-routing-container { display: none; }
         
@@ -205,7 +203,6 @@
             <button class="btn-entry primary" onclick="enterApp('home')">LOKASI FC ⚡</button>
             <button class="btn-entry primary" style="background:var(--cyan); color:#000;" onclick="enterApp('planner')">PLAN RUTE 🗺️</button> 
             <a href="antrian.html" class="btn-entry secondary" style="text-decoration:none; display:flex; justify-content:center; align-items:center;">ANTRIAN FC GADING</a>
-            
         </div>
     </div>
 
@@ -281,12 +278,13 @@
             <span class="modal-close" onclick="document.getElementById('mapOverlay').classList.remove('active');">✕</span>
             <h2 id="mapTitle"></h2>
             <p id="mapSub"></p>
-            <div id="mapModal" class="map-container">
-                 <div id="map"></div> </div>
+            
             <div class="modal-actions">
                 <button id="btnBack" onclick="document.getElementById('mapOverlay').classList.remove('active');">KEMBALI</button>
                 <a id="btnGmaps" target="_blank">MULAI JALAN (GOOGLE MAPS) ↗</a>
             </div>
+
+            <div id="disclaimer" style="margin-top:20px; font-size:0.75rem; color:var(--text-mute); text-align:center; line-height:1.4;"></div>
         </div>
     </div>
     
@@ -321,7 +319,7 @@
         // --- HELPER FUNCTIONS (Dilanjutkan di Bagian 2/3) ---
                 // Lanjutan dari Script Bagian 1/3
 
-        // --- CUSTOM ALERT FUNCTIONS (Untuk tampilan yang lebih keren) ---
+        // --- CUSTOM ALERT FUNCTIONS ---
         function customAlert(title, message, icon) {
             document.getElementById('alertIcon').innerHTML = icon;
             document.getElementById('alertTitle').innerText = title;
@@ -334,6 +332,9 @@
         }
 
         // --- HELPER FUNCTIONS ---
+
+        // Fungsi untuk membuat teks penting dengan styling kuning stabilo
+        const imp = (text) => `<span class="important-text">${text}</span>`;
 
         // Menghitung jarak garis lurus (Haversine)
         function getDist(lat1, lon1, lat2, lon2) {
@@ -357,7 +358,6 @@
                     const result = data[0];
                     const lat = parseFloat(result.lat);
                     const lng = parseFloat(result.lon);
-                    // Perbaikan Geocoding: Ambil deskripsi yang lebih umum agar routing OSRM lebih stabil.
                     let simpleAddress = result.display_name.split(',').slice(0, 3).join(', ');
                     return { lat: lat, lng: lng, address: simpleAddress }; 
                 }
@@ -497,24 +497,20 @@
                 }
             });
 
-            // Fungsi untuk membuat teks penting dengan styling kuning stabilo
-            const imp = (text) => `<span class="important-text">${text}</span>`;
-
-
             if (directDistKm <= initialRangeKm) {
                 // A. Rute Langsung (Baterai Cukup)
                 
                 routeSummary = `✅ ${imp('RUTE LANGSUNG')}\n`;
                 routeSummary += `Estimasi Total Jarak: ${imp(directDistKm.toFixed(1) + ' km')}\n`;
                 routeSummary += `Baterai Awal: ${imp(soc + '%')} | Sisa Baterai di Tujuan: ${imp(Math.round(finalSocDirect) + '%')}\n\n`;
-                routeSummary += `**Rute Perjalanan:**\n`;
+                routeSummary += `Rute Perjalanan:\n`;
                 routeSummary += `[START] ${startLoc.address} \n`;
                 routeSummary += `→ [END] ${destLoc.address}\n\n`;
                 
                 if (nearestFCToDest) {
                     const socNeededForDestFC = Math.ceil(minDistToDest) + MIN_RANGE_KM;
-                    routeSummary += `**CATATAN PENTING (DI TUJUAN):**\n`;
-                    routeSummary += `FC terdekat adalah ${imp(nearestFCToDest.name)} (${imp(minDistToDest + ' km')}).\n`;
+                    routeSummary += `CATATAN PENTING (DI TUJUAN):\n`;
+                    routeSummary += `FC terdekat dari ${destLoc.address} adalah ${imp(nearestFCToDest.name)} (${imp(minDistToDest + ' km')}).\n`;
                     routeSummary += `Anda butuh min ${imp(socNeededForDestFC + '%')} baterai untuk mencapainya.`;
                 }
 
@@ -566,11 +562,11 @@
                 
                 const finalSocViaFC = Math.max(0, socCharged - socNeededToDest);
                 
-                // --- NARASI FINAL (Revisi Anda) ---
-                routeSummary = `⚠️ ${imp('RUTE DISARANKAN')}\n`; // Header sesuai permintaan
+                // --- NARASI FINAL ---
+                routeSummary = `⚠️ ${imp('RUTE DISARANKAN')}\n`;
                 routeSummary += `Estimasi Total Jarak: ${imp(totalDist.toFixed(1) + ' km')}\n`;
                 routeSummary += `Baterai Awal: ${imp(soc + '%')} | Baterai yang dibutuhkan: ${imp(Math.ceil(directDistKm) + MIN_RANGE_KM + '%')}\n\n`;
-                routeSummary += `**Rute Perjalanan:**\n`;
+                routeSummary += `Rute Perjalanan:\n`;
                 routeSummary += `[START] ${startLoc.address} \n`;
                 routeSummary += `→ [FC] ${imp(nearestFC.name)}: ${startToFCDist.toFixed(1)} km. (Sisa Tiba: ${imp(Math.round(socArrivalFC) + '%')})\n`;
                 routeSummary += `   Disarankan Cas: ${imp(socCharged + '%')}.\n`;
@@ -578,8 +574,8 @@
                 
                 if (nearestFCToDest) {
                     const socNeededForDestFC = Math.ceil(minDistToDest) + MIN_RANGE_KM;
-                    routeSummary += `**CATATAN PENTING (DI TUJUAN):**\n`;
-                    routeSummary += `FC terdekat dari Tujuan adalah ${imp(nearestFCToDest.name)} (${imp(minDistToDest + ' km')}).\n`;
+                    routeSummary += `CATATAN PENTING (DI TUJUAN):\n`;
+                    routeSummary += `FC terdekat dari ${destLoc.address} adalah ${imp(nearestFCToDest.name)} (${imp(minDistToDest + ' km')}).\n`;
                     routeSummary += `Anda butuh min ${imp(socNeededForDestFC + '%')} baterai untuk mencapainya.`;
                 }
 
@@ -593,7 +589,19 @@
         }
         
         // --- MAP FUNCTIONS (Dilanjutkan di Bagian 3/3) ---
-           // Lanjutan dari Script Bagian 2/3
+                // Lanjutan dari Script Bagian 2/3
+
+        // --- CUSTOM ALERT FUNCTIONS (Diulang untuk kelengkapan) ---
+        function customAlert(title, message, icon) {
+            document.getElementById('alertIcon').innerHTML = icon;
+            document.getElementById('alertTitle').innerText = title;
+            document.getElementById('alertMessage').innerText = message;
+            document.getElementById('customAlertModal').classList.add('active');
+        }
+
+        function closeCustomAlert() {
+            document.getElementById('customAlertModal').classList.remove('active');
+        }
 
         // --- MAP FUNCTIONS (PLANNER & SINGLE) ---
         
@@ -607,56 +615,19 @@
             // Menggunakan innerHTML karena summary sudah terformat
             document.getElementById('mapSub').innerHTML = summary.replace(/\n/g, '<br>');
             
-            const gmapsUrl = `https://www.google.com/maps/dir/${finalStart.lat},${finalStart.lng}/{finalDest.lat},{finalDest.lng}/`;
+            // 1. DISCLAMER FINAL
+            document.getElementById('disclaimer').innerHTML = 
+                'Perhitungan di atas adalah simulasi perjalanan dengan asumsi penggunaan baterai 1% per 1 km. Konsumsi atau Sisa baterai dapat berbeda bergantung pada situasi di jalan.';
+
+            // 2. LOGIKA GMAPS
+            const gmapsUrl = `https://www.google.com/maps/dir/${finalStart.lat},${finalStart.lng}/${finalDest.lat},${finalDest.lng}`;
             document.getElementById('btnGmaps').href = gmapsUrl;
             document.getElementById('btnGmaps').innerText = 'MULAI JALAN (GOOGLE MAPS) ↗';
             
-            setTimeout(() => {
-                // Hapus dan Buat Ulang Peta di Modal
-                const mapElement = document.getElementById('map');
-                if(map) { map.remove(); map = null; }
-                
-                map = L.map(mapElement, {zoomControl: false}).setView([waypoints[0].lat, waypoints[0].lng], 10);
-                L.tileLayer(`https://tile.jawg.io/jawg-matrix/{z}/{x}/{y}{r}.png?access-token=${JAWG_API}`, {}).addTo(map);
-
-                if (routingControl) {
-                    map.removeControl(routingControl);
-                    routingControl = null;
-                }
-                
-                // Tambahkan Rute ke Peta
-                const leafletWaypoints = waypoints.map(w => L.latLng(w.lat, w.lng));
-                
-                routingControl = L.Routing.control({
-                    waypoints: leafletWaypoints,
-                    lineOptions: { styles: [{color: '#CCFF00', opacity: 0.9, weight: 6}] },
-                    createMarker: function(i, waypoint, n) { 
-                        let iconColor = '#FF3B30'; // Merah (Start)
-                        if (i === n - 1) iconColor = '#06c258'; // Hijau (End)
-                        else if (n > 2 && i === 1) iconColor = '#00d2ff'; // Biru Cyan (FC/Singgah)
-
-                        const customIcon = L.divIcon({
-                            html: `<div style="background:${iconColor}; width:15px; height:15px; border-radius:50%; border:3px solid #000; box-shadow:0 0 10px rgba(0,0,0,0.5);"></div>`,
-                            className: 'custom-marker',
-                            iconSize: [15, 15],
-                            iconAnchor: [7.5, 7.5]
-                        });
-                        
-                        return L.marker(waypoint.latLng, {icon: customIcon})
-                                .bindPopup(waypoints[i].address);
-                    },
-                    addWaypoints: false, draggableWaypoints: false, fitSelectedRoutes: true, show: false
-                }).addTo(map);
-                
-                routingControl.on('routesfound', function(e) {
-                    var routes = e.routes;
-                    map.fitBounds(routes[0].bounds);
-                });
-
-                // PENTING: Memastikan peta muncul
-                map.invalidateSize(); 
-
-            }, 300);
+            // 3. PETA DIHAPUS, JADI FUNGSI INI HANYA MEMPERBARUI MODAL, BUKAN MERENDER PETA.
+            
+            // Karena map dihapus, kita tidak perlu memanggil Leaflet di sini.
+            // Namun, untuk navigasi tunggal FC (Hero Nav), kita tetap membutuhkan map, jadi fungsi Leaflet di bawah dipertahankan.
         }
 
         // Buka modal map untuk rute ke satu charger (digunakan juga untuk Hero Nav)
@@ -669,53 +640,24 @@
             document.getElementById('mapTitle').innerText = charger.name.toUpperCase();
             document.getElementById('mapSub').innerHTML = `Jarak dari Anda: <span class="important-text">${charger.distance} km</span> | Status: <span class="important-text">${charger.status.toUpperCase()}</span> | Tipe: <span class="important-text">${charger.type}</span>`;
             
+            // DISCLAIMER DITAMBAH DI BAWAH BUTTONS
+            document.getElementById('disclaimer').innerHTML = 
+                'Perhitungan di atas adalah simulasi perjalanan dengan asumsi penggunaan baterai 1% per 1 km. Konsumsi atau Sisa baterai dapat berbeda bergantung pada situasi di jalan.';
+
             if (userLat && userLng) {
-                 const gmapsUrl = `https://www.google.com/maps/dir/${userLat},${userLng}/${charger.lat},${charger.lng}/`;
+                 // Navigasi dari user ke FC
+                 const gmapsUrl = `https://www.google.com/maps/dir/${userLat},${userLng}/${charger.lat},${charger.lng}`;
                  document.getElementById('btnGmaps').href = gmapsUrl;
                  document.getElementById('btnGmaps').innerText = 'NAVIGASI (GOOGLE MAPS) ↗';
             } else {
+                 // Navigasi langsung ke FC (tanpa posisi user)
                  const gmapsUrl = `https://www.google.com/maps/search/?api=1&query=${charger.lat},${charger.lng}`;
                  document.getElementById('btnGmaps').href = gmapsUrl;
                  document.getElementById('btnGmaps').innerText = 'LIHAT DI GOOGLE MAPS ↗';
             }
 
-            setTimeout(() => {
-                const mapElement = document.getElementById('map');
-                if(map) { map.remove(); map = null; }
-                
-                map = L.map(mapElement, {zoomControl: false}).setView([charger.lat, charger.lng], 13);
-                L.tileLayer(`https://tile.jawg.io/jawg-matrix/{z}/{x}/{y}{r}.png?access-token=${JAWG_API}`, {}).addTo(map);
+            // Catatan: Karena Mini Map dihapus, map rendering di Modal juga dihapus.
 
-                if (routingControl) {
-                    map.removeControl(routingControl);
-                    routingControl = null;
-                }
-
-                if (userLat && userLng) {
-                     routingControl = L.Routing.control({
-                        waypoints: [
-                            L.latLng(userLat, userLng),
-                            L.latLng(charger.lat, charger.lng)
-                        ],
-                        routeWhileDragging: false,
-                        lineOptions: { styles: [{color: '#CCFF00', opacity: 0.8, weight: 6}] },
-                        createMarker: function(i, waypoint, n) { return null; },
-                        fitSelectedRoutes: true,
-                        show: false
-                    }).addTo(map);
-                    
-                    routingControl.on('routesfound', function(e) {
-                        var routes = e.routes;
-                        map.fitBounds(routes[0].bounds);
-                    });
-                    
-                } else {
-                    L.marker([charger.lat, charger.lng]).addTo(map).bindPopup(charger.name).openPopup();
-                }
-                
-                map.invalidateSize(); 
-
-            }, 300);
         }
 
         // Inisialisasi peta utama (VIEW MAP)
