@@ -19,7 +19,7 @@ body{
 margin:0;font-family:'Inter',sans-serif;
 background:var(--bg);color:var(--text);
 min-height:100vh;
-overflow-y:auto;
+overflow:hidden;
 }
 
 /* BG */
@@ -55,7 +55,7 @@ background:radial-gradient(circle at top,#151515ee,#080808ee);
 border:2px solid var(--cyan);
 border-radius:22px;
 padding:22px;
-max-height:calc(100vh - 140px);
+height:calc(100vh - 140px);
 display:flex;flex-direction:column;
 box-shadow:0 0 60px rgba(0,210,255,.35)
 }
@@ -137,7 +137,7 @@ font-weight:900;text-decoration:none
 <div class="tutorial-step active">
 <span class="icon-large">📱</span>
 <h3>SCAN & AKTIVASI</h3>
-<p>Scan QR Code dan izinkan akses lokasi.</p>
+<p>Scan BARCODE dan izinkan akses lokasi.</p>
 <div class="system-msg">Lokasi diverifikasi</div>
 </div>
 
@@ -158,7 +158,7 @@ font-weight:900;text-decoration:none
 <div class="tutorial-step">
 <span class="icon-large">🚦</span>
 <h3>ALOKASI SLOT</h3>
-<p>Target pengisian dihitung otomatis.Jangan kunci jok motor lu ya, biar ada yang naikin kl lu ga ada pas giliran. </p>
+<p>Kall udah daftar duduk manis. Jangan kunci jok motor lu ya, biar ada yang naikin kl lu ga ada pas giliran lu naik.</p>
 <div class="system-msg">Slot ditentukan</div>
 </div>
 
@@ -179,8 +179,7 @@ font-weight:900;text-decoration:none
 <div class="tutorial-step">
 <span class="icon-large">😎</span>
 <h3>TENTANG APLIKASI</h3>
-<p>Ini adalah aplikasi Smart Charging buatan anak MLU.  
-Bukan aplikasi resmi dari Maka.</p>
+<p>Ini adalah aplikasi Smart Charging buatan anak MLU. Bukan aplikasi resmi dari Maka.</p>
 <div class="system-msg">Keren kan anak MLU?</div>
 </div>
 
@@ -199,7 +198,7 @@ Bukan aplikasi resmi dari Maka.</p>
 <script>
 let step=0;
 let voiceEnabled=false;
-let autoTimer=null;
+let utterance=null;
 
 const steps=document.querySelectorAll('.tutorial-step');
 const dots=document.querySelectorAll('.step-dot');
@@ -213,12 +212,29 @@ steps[i].querySelectorAll("h3,p,.system-msg")
 return t.replace(/😎/g,"");
 }
 
-function speak(text){
-if(!voiceEnabled)return;
+function speakAndAdvance(text){
+if(!voiceEnabled)return autoAdvanceFallback(text);
+
 speechSynthesis.cancel();
-const u=new SpeechSynthesisUtterance(text);
-u.lang="id-ID";u.rate=.9;u.pitch=.85;
-speechSynthesis.speak(u);
+utterance=new SpeechSynthesisUtterance(text);
+utterance.lang="id-ID";
+utterance.rate=0.9;
+utterance.pitch=0.9;
+
+utterance.onend=()=>advanceStep();
+speechSynthesis.speak(utterance);
+}
+
+function autoAdvanceFallback(text){
+const duration=Math.max(4000,text.length*60);
+setTimeout(()=>advanceStep(),duration);
+}
+
+function advanceStep(){
+if(step<steps.length-1){
+step++;
+render();
+}
 }
 
 function render(){
@@ -230,33 +246,31 @@ d.classList.toggle("done",i<step);
 prev.disabled=step===0;
 next.innerText=step===steps.length-1?"SELESAI":"LANJUT →";
 document.getElementById("content").scrollTop=0;
-speak(getText(step));
-
-clearTimeout(autoTimer);
-autoTimer=setTimeout(()=>{
-if(step<steps.length-1){step++;render();}
-},5000);
+speakAndAdvance(getText(step));
 }
 
-function userAction(){
+function userInteract(){
 if(!voiceEnabled){
 voiceEnabled=true;
-speak(getText(step));
+speakAndAdvance(getText(step));
 }
 }
 
 next.onclick=()=>{
-userAction();
-clearTimeout(autoTimer);
-step<steps.length-1?step++:location.href="antrian.html";
+userInteract();
+speechSynthesis.cancel();
+if(step<steps.length-1){
+step++;
 render();
+}else{
+location.href="antrian.html";
+}
 };
 
 prev.onclick=()=>{
-userAction();
-clearTimeout(autoTimer);
-if(step>0)step--;
-render();
+userInteract();
+speechSynthesis.cancel();
+if(step>0){step--;render();}
 };
 
 render();
