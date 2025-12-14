@@ -39,7 +39,7 @@
             background-image: url('1763947427555.jpg'); 
             background-size: cover;
             background-position: center;
-            opacity: 0.35; /* Opacity for BG Image */
+            opacity: 0.05; /* Opacity for BG Image */
             z-index: -1;
         }
 
@@ -255,16 +255,6 @@
             padding: 0 20px; 
             margin: 5px 0; 
         }
-        /* Style untuk teks loading di atas spinner */
-        .neon-text.top-text {
-            margin-bottom: 10px; 
-        }
-        /* Style untuk teks loading di bawah spinner */
-        .neon-text.bottom-text {
-            margin-top: 10px; 
-        }
-
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         
         /* Style untuk Antrian List */
         .queue-item-display {
@@ -280,30 +270,6 @@
             background: rgba(0, 210, 255, 0.05);
         }
 
-
-        /* SUMMARY ANTRIAN (Gaya Lama disembunyikan) */
-        .queue-summary { display: none; } 
-        
-        /* GPS BYPASS TOGGLE STYLE */
-        .adm-toggle {
-            display: flex; justify-content: space-between; align-items: center;
-            margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--border);
-        }
-        .adm-toggle span { font-size: 12px; color: var(--text); font-weight: 600; }
-        .switch {
-          position: relative; display: inline-block; width: 40px; height: 24px;
-        }
-        .switch input {opacity: 0; width: 0; height: 0;}
-        .slider {
-          position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
-          background-color: var(--soft-red); transition: .4s; border-radius: 34px;
-        }
-        .slider:before {
-          position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px;
-          background-color: white; transition: .4s; border-radius: 50%;
-        }
-        input:checked + .slider { background-color: var(--accent); }
-        input:checked + .slider:before { transform: translateX(16px); }
 
         /* --- GAYA UNTUK RINGKASAN DAFTAR TUNGGU (DI DEPAN) --- */
         #quickStatusSummary {
@@ -342,6 +308,26 @@
         }
         .front-queue-item b { color: var(--accent); }
         
+        /* --- STYLE UNTUK MODAL PILIHAN AWAL --- */
+        #choiceModal {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 9999;
+            display: none; align-items: center; justify-content: center; backdrop-filter: blur(5px);
+        }
+        .choice-box {
+            background: var(--card-bg); border: 2px solid var(--accent); padding: 30px; 
+            border-radius: 20px; width: 85%; max-width: 350px; text-align: center; 
+            box-shadow: 0 0 40px rgba(204, 255, 0, 0.2);
+            animation: pop 0.3s;
+        }
+        .choice-box h3 { font-family: 'Syne', sans-serif; font-size: 20px; color: var(--accent); margin: 0 0 15px; }
+        .choice-btns { display: flex; flex-direction: column; gap: 15px; margin-top: 20px; }
+        .choice-btns .btn { 
+            padding: 15px; border-radius: 10px; font-weight: 800; cursor: pointer;
+            text-decoration: none; font-size: 16px;
+        }
+        #btnTutorial { background: var(--cyan); color: #000; }
+        #btnDaftarLangsung { background: var(--input-bg); color: var(--text); border: 1px solid var(--border); }
+        
     </style>
 </head>
 <body>
@@ -353,7 +339,8 @@
 
 
     <audio id="alarmSound" loop>
-        <source src="data:audio/wav;base64,U..." type="audio/wav"> </audio>
+        <source src="data:audio/wav;base64,U..." type="audio/wav"> 
+    </audio>
 
     <div id="masterModal" class="modal">
         <div id="modalBox" class="modal-box">
@@ -365,6 +352,18 @@
             <div class="modal-btns">
                 <button id="mBtnCancel" class="btn-modal" style="display:none;">BATAL</button>
                 <button id="mBtnOk" class="btn-modal primary">OK</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="choiceModal">
+        <div class="choice-box">
+            <span class="modal-icon" style="color:var(--cyan);">👋</span>
+            <h3>SELAMAT DATANG!</h3>
+            <p style="color:var(--text-muted); font-size:14px;">Mau lihat panduan 6 langkah atau langsung mendaftar?</p>
+            <div class="choice-btns">
+                <a href="tutorial.html" id="btnTutorial" class="btn">PANDUAN TUTORIAL</a>
+                <button id="btnDaftarLangsung" class="btn" onclick="closeChoiceModal()">LANGSUNG DAFTAR</button>
             </div>
         </div>
     </div>
@@ -384,6 +383,9 @@
                 <label>PLAT NOMOR</label>
                 <input id="userPlat" class="field" oninput="this.value = this.value.toUpperCase().replace(/\s/g, '')" placeholder="PLAT NOMOR" style="text-transform:uppercase;">
                 
+                <label>NAMA PENGGUNA</label>
+                <input id="userName" class="field" placeholder="Nama Anda" style="text-transform:capitalize;">
+                
                 <label>NO WA</label>
                 <input id="userWA" type="tel" class="field" placeholder="08xxxxxxxxxx">
 
@@ -392,6 +394,10 @@
                 <button id="btnDaftar" class="btn-cyan">DAFTAR ANTRIAN</button>
             </div>
         </div>
+        
+        <a href="tutorial.html" class="btn-cyan" style="display: none; text-align: center; margin: 0 auto 25px; padding: 12px; background: var(--cyan); color: #000; text-decoration: none; font-weight: 800; border-radius: 10px;">
+            LIHAT PANDUAN PENGGUNA (6 Langkah)
+        </a>
         
         <div id="quickStatusSummary"> 
             <div id="qsQueueCount">
@@ -407,7 +413,7 @@
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
                 <div style="display:flex; align-items:center; gap:10px;">
                     <div style="width:8px; height:8px; background:var(--accent); border-radius:50%; box-shadow:0 0 10px var(--accent);"></div>
-                    <span style="font-family:'Inter'; font-size:12px; color:var(--text); font-weight: 600;">STATUS DETAIL 3 SLOT</span>
+                    <span style="font-family:'Inter'; font-serif; font-size:12px; color:var(--text); font-weight: 600;">STATUS DETAIL 3 SLOT</span>
                 </div>
             </div>
 
@@ -420,7 +426,7 @@
 
             <div class="glass-card" style="padding:15px; min-height:100px;">
                 <div style="display:flex; justify-content:space-between; margin-bottom:15px; border-bottom:1px solid var(--border); padding-bottom:10px;">
-                    <span style="font-family:'Inter'; font-size:12px; color:var(--text); font-weight: 600;">DAFTAR TUNGGU (DETAIL)</span>
+                    <span style="font-family:'Inter'; font-serif; font-size:12px; color:var(--text); font-weight: 600;">DAFTAR TUNGGU (DETAIL)</span>
                     <span id="qCount" style="font-size:12px; color:var(--accent);">0</span>
                 </div>
                 <div id="queueList"></div>
@@ -537,11 +543,10 @@
 
 
         // --- LOGIKA TIMER PRESISI (KURVA ADLI) ---
-        // REVISI DATA KURVA UNTUK AKURASI DI ZONA TAPER (89%-91%)
         const CHARGING_CURVE = [
             [91, 9],    
-            [90, 15],   // Dikoreksi dari 19 menjadi 15 (Lebih stabil daripada 7m)
-            [89, 20],   // Titik baru untuk mengunci perlambatan (Data Mesin)
+            [90, 15],   
+            [89, 20],   
             [85, 23], 
             [82, 25], 
             [81, 26], 
@@ -552,7 +557,7 @@
             [63, 47], 
             [61, 47], 
             [58, 50], 
-            [51, 51],   // Dikoreksi dari 55 menjadi 51
+            [51, 51],   
             [50, 54], 
             [49, 54], 
             [46, 56], 
@@ -565,7 +570,6 @@
         function getRemainingTime(batteryPercent) {
             const soc = Math.max(0, Math.min(100, batteryPercent));
             if (soc >= 100) return 0;
-            // Perlu menyesuaikan index karena penambahan titik 89%
             if (soc <= CHARGING_CURVE[CHARGING_CURVE.length - 1][0]) return CHARGING_CURVE[CHARGING_CURVE.length - 1][1];
 
             for (let i = 0; i < CHARGING_CURVE.length - 1; i++) {
@@ -857,6 +861,13 @@
             // PASTIKAN LAYAR LOADING HILANG
             document.getElementById('loadingScreen').style.display = 'none';
 
+            // Menampilkan Modal Pilihan HANYA jika pengguna belum terdaftar dan bukan admin
+            if (!myPlat && !isAdminLoggedIn) {
+                document.getElementById('choiceModal').style.display = 'flex';
+            } else {
+                document.getElementById('choiceModal').style.display = 'none';
+            }
+
             // Area Status (detail slot dan antrian) HANYA terlihat jika pengguna terdaftar/Admin
             if (myPlat || isAdminLoggedIn) {
                 statusArea.style.display = 'block';
@@ -866,14 +877,16 @@
             
             // Registration Area:
             if (myPlat) {
-                // Jika sudah terdaftar: Sembunyikan form, tampilkan tombol logout.
                 regArea.style.display = 'none';
                 if (logoutBtnContainer) logoutBtnContainer.style.display = 'block';
             } else {
-                // Jika belum terdaftar: Tampilkan form, sembunyikan tombol logout.
                 regArea.style.display = 'block';
                 if (logoutBtnContainer) logoutBtnContainer.style.display = 'none';
             }
+        }
+        
+        window.closeChoiceModal = () => {
+            document.getElementById('choiceModal').style.display = 'none';
         }
         
         window.logoutUser = () => {
@@ -889,33 +902,34 @@
         document.getElementById('btnDaftar').onclick = () => {
             initAudioAndNotif(); 
             const plat = document.getElementById('userPlat').value.toUpperCase().replace(/\s/g, '').trim();
+            const name = document.getElementById('userName').value.trim(); // <-- AMBIL DATA NAMA
             const wa = document.getElementById('userWA').value.trim();
             const bat = parseInt(document.getElementById('userBattery').value);
 
             // Perubahan Notifikasi: Cek data lengkap dan range baterai
-            if(!plat || isNaN(bat)) { 
-                return showPopup('error','DATA KURANG','Ini harus diisi yg lengkap biar bisa daftar cukk'); 
+            if(!plat || !name || isNaN(bat)) { // <-- VALIDASI NAMA
+                return showPopup('error','DATA KURANG','Plat, Nama, dan Baterai harus diisi lengkap.'); 
             }
             if (bat < 0 || bat > 99) {
                  return showPopup('error','DATA INVALID','Persentase baterai harus antara 0 dan 99.');
             }
             // Perubahan Notifikasi: Cek WA
             if(!wa || wa.length < 9) { 
-                return showPopup('error','DATA KURANG','Isi nomer WA yg bener cukk'); 
+                return showPopup('error','DATA KURANG','Isi nomer WA yang benar.'); 
             } 
             
             document.getElementById('btnDaftar').disabled=true;
             document.getElementById('btnDaftar').innerText="MENGAMBIL LOKASI...";
             
-            getLocationAndRegister(plat, wa, bat);
+            getLocationAndRegister(plat, name, wa, bat); // <-- KIRIM NAMA
         };
         
-        function getLocationAndRegister(plat, wa, bat) {
+        function getLocationAndRegister(plat, name, wa, bat) { // <-- TERIMA NAMA
              
              // NEW: Cek GPS Bypass
              if (isGpsBypassEnabled) {
                  console.log("GPS Lock Bypassed by Admin.");
-                 registerUser(plat, wa, bat, null); 
+                 registerUser(plat, name, wa, bat, null); // <-- KIRIM NAMA
                  return;
              }
 
@@ -936,7 +950,7 @@
                              return showPopup('error','GPS GAGAL',`Lu masih jauh cukk, masih ${dist.toFixed(3)} km dari FC Kelapa Gading. Dateng dulu kesini baru daftar bangsat`);
                         }
                         
-                        registerUser(plat, wa, bat, dist);
+                        registerUser(plat, name, wa, bat, dist); // <-- KIRIM NAMA
                     },
                     (error) => {
                         document.getElementById('btnDaftar').disabled=false;
@@ -955,7 +969,7 @@
             }
         }
 
-        async function registerUser(plat, wa, bat, dist) {
+        async function registerUser(plat, name, wa, bat, dist) { // <-- TERIMA NAMA
             const btn = document.getElementById('btnDaftar');
             btn.innerText="PROSES...";
             let assignedSlot = -1;
@@ -966,13 +980,16 @@
                     let s = d.chargingSlots || [null,null,null];
                     let q = d.waitingQueue || [];
 
+                    // CATATAN: 'name' di sini adalah Plat Nomor. Kita perlu menambahkan properti 'userName' untuk nama.
                     if((d.blockedList||[]).includes(plat)) throw "Plat ini DIBLOKIR!";
-                    if(s.some(x=>x?.name===plat) || q.some(x=>x?.name===plat)) throw "Plat sudah terdaftar dalam antrian/slot!";
-
+                    if(s.some(x=>x?.plat===plat) || q.some(x=>x?.plat===plat)) throw "Plat sudah terdaftar dalam antrian/slot!";
+                    
+                    // Cek berdasarkan Plat, tapi nama tetap disimpan.
+                    
                     const target = calculateTargetLimit(q.length); 
                     const dur = calculateDuration(bat, target);
                     
-                    const item = { name:plat, wa:wa, startBattery:bat, targetLimit:target, durationMinutes:dur, startTime:null };
+                    const item = { plat:plat, userName:name, wa:wa, startBattery:bat, targetLimit:target, durationMinutes:dur, startTime:null }; // <-- SIMPAN NAMA BARU
                     
                     const empty = s.findIndex(x=>x===null);
                     if(empty!==-1) {
@@ -998,6 +1015,7 @@
                 checkDisplayMode(); 
                 
                 document.getElementById('userPlat').value=''; 
+                document.getElementById('userName').value=''; // <-- CLEAR NAMA
                 document.getElementById('userBattery').value='';
                 document.getElementById('userWA').value='';
             } catch(e) { showPopup('error','GAGAL', e); }
@@ -1008,7 +1026,7 @@
 
 
         // --- LOGIC CLEAR SLOT & PROMOSI ANTRIAN ---
-        async function clearSlotAndPromote(i, name, wa) {
+        async function clearSlotAndPromote(i, plat, wa) { // <-- Ganti 'name' jadi 'plat'
             window.stopAlarm();
             try {
                 await runTransaction(db, async(t) => {
@@ -1016,7 +1034,7 @@
                     let s = d.chargingSlots; 
                     let q = d.waitingQueue;
                     
-                    if (s[i]) sendWhatsAppNotification(s[i].name, s[i].wa);
+                    if (s[i]) sendWhatsAppNotification(s[i].plat, s[i].wa); // <-- Ganti 'name' jadi 'plat'
 
                     s[i] = null; 
                     
@@ -1043,7 +1061,7 @@
 
 
         // --- SLOT ACTIONS ---
-        window.act = (i, type, platName, wa) => {
+        window.act = (i, type, platName, wa) => { // <-- Tetap gunakan platName sebagai identitas unik
             initAudioAndNotif();
             const myPlat = localStorage.getItem('myPlat');
 
@@ -1086,9 +1104,9 @@
             document.querySelectorAll('[data-end]').forEach(el => {
                 const end = parseInt(el.dataset.end);
                 const i = parseInt(el.dataset.slotindex);
-                const name = el.dataset.name;
+                const plat = el.dataset.plat; // <-- Ambil data plat
                 const wa = el.dataset.wa;
-                const key = name+end;
+                const key = plat+end; // <-- Key menggunakan Plat
 
                 const diff = end - Date.now();
                 if(diff > 0) {
@@ -1101,12 +1119,12 @@
                     
                     if(!triggeredAlarms.has(key)) { 
                         triggeredAlarms.add(key); 
-                        triggerAlarm(name, wa);
+                        triggerAlarm(plat, wa); // <-- Trigger alarm dengan Plat
                     }
                     
                     if(el.dataset.stopped !== 'true') {
                          el.dataset.stopped = 'true'; 
-                         clearSlotAndPromote(i, name, wa); 
+                         clearSlotAndPromote(i, plat, wa); // <-- Clear slot dengan Plat
                     }
                 }
             });
@@ -1146,7 +1164,7 @@
                 
                 // Tampilkan 3 antrian teratas di depan
                 frontQueueList.innerHTML = q.slice(0, 3).map((x, i) => `
-                    <div class="front-queue-item">#${i+1}: <b>${x.name}</b> (${x.startBattery}% > ${x.targetLimit}%)</div>
+                    <div class="front-queue-item">#${i+1}: <b>${x.plat}</b> (${x.startBattery}% > ${x.targetLimit}%) ${x.userName ? `(${x.userName})` : ''}</div>
                 `).join('');
 
             } else {
@@ -1167,7 +1185,7 @@
                 
                 let buttons;
                 let timeDisplay;
-                let h;
+                let h = isRun ? 100 : x.startBattery; // Jika running, batrai icon full
                 
                 // Keterangan Baterai Awal/Target
                 let batInfo = `<div style="font-size:9px; color:var(--text); margin-top:5px; font-family:'Inter', sans-serif;">Awal: ${x.startBattery}% → Target: ${x.targetLimit}%</div>`;
@@ -1175,43 +1193,42 @@
                 // NEW: Tambahkan class pulsing jika sedang running
                 const pulsingClass = isRun ? 'pulsating' : '';
                 // NEW: Tambahkan class highlight jika ini motor pengguna saat ini
-                const highlightClass = (myPlat && myPlat === x.name) ? 'is-mine' : '';
+                const highlightClass = (myPlat && myPlat === x.plat) ? 'is-mine' : '';
 
 
                 if(isRun) {
                     const start = x.startTime.seconds ? x.startTime.seconds*1000 : new Date(x.startTime).getTime();
                     const end = start + (x.durationMinutes*60000);
                     
-                    h = 100; 
-                    
                     buttons = `
                         <div class="btn-group">
                             <button class="btn-act btn-edit-timer" onclick="window.setTimerManualPrompt(${i}, ${x.durationMinutes})">EDIT TIMER</button>
-                            <button class="btn-act btn-stop" onclick="window.act(${i},'stop', '${x.name}', '${x.wa}')">STOP</button>
+                            <button class="btn-act btn-stop" onclick="window.act(${i},'stop', '${x.plat}', '${x.wa}')">STOP</button>
                         </div>
                     `;
-                    timeDisplay = `<div style="font-size:16px; font-weight:800; color:var(--accent); margin:5px 0; text-shadow: 0 0 5px rgba(204, 255, 0, 0.5); font-family:'Syne', sans-serif;" data-end="${end}" data-name="${x.name}" data-wa="${x.wa}" data-slotindex="${i}">...</div>`;
+                    timeDisplay = `<div style="font-size:16px; font-weight:800; color:var(--accent); margin:5px 0; text-shadow: 0 0 5px rgba(204, 255, 0, 0.5); font-family:'Syne', sans-serif;" data-end="${end}" data-plat="${x.plat}" data-wa="${x.wa}" data-slotindex="${i}">...</div>`; // <-- Ganti data-name jadi data-plat
 
                 } else {
                     // Slot READY (belum start)
                     
-                    buttons = `<button class="btn-act btn-stop" onclick="window.act(${i},'stop', '${x.name}', '${x.wa}')">STOP/HAPUS</button>`;
-                    timeDisplay = `<button class="btn-act btn-start" onclick="window.act(${i},'start', '${x.name}', '${x.wa}')" style="margin-bottom:5px;">MULAI CAS</button>`;
-                    h = x.startBattery;
+                    buttons = `<button class="btn-act btn-stop" onclick="window.act(${i},'stop', '${x.plat}', '${x.wa}')">STOP/HAPUS</button>`;
+                    timeDisplay = `<button class="btn-act btn-start" onclick="window.act(${i},'start', '${x.plat}', '${x.wa}')" style="margin-bottom:5px;">MULAI CAS</button>`;
 
                 }
                 
                 let waInfo = x.wa ? `<a href="https://wa.me/${x.wa.replace(/\D/g, '')}" target="_blank" style="color:var(--cyan); font-size:9px; margin-bottom:5px; text-decoration:none; font-family:'Inter', sans-serif;">WA: ${x.wa}</a>` : '';
+                let nameDisplay = x.userName ? `<div style="font-size:10px; color:var(--text-muted); font-family:'Inter', sans-serif;">(${x.userName})</div>` : '';
 
                 
                 return `
                     <div class="slot-box active ${pulsingClass} ${highlightClass}">
-                        <div style="font-size:10px; color:var(--text-muted); font-family:'Inter', sans-serif; margin-bottom: 5px;">SLOT ${i+1}</div>
+                        <div style="font-size:10px; color:var(--text-muted); font-family:'Inter', sans-serif;">SLOT ${i+1}</div>
                         <div class="bat-icon">
                             <div class="bat-fill" style="height:${h}%"></div>
                             <div class="bat-bolt" style="color:${isRun ? '#000' : 'var(--text)'};">⚡</div>
                         </div>
-                        <div style="font-weight:700; color:var(--text); font-family:'Inter', sans-serif;">${x.name}</div>
+                        <div style="font-weight:700; color:var(--text); font-family:'Inter', sans-serif;">${x.plat}</div>
+                        ${nameDisplay}
                         ${waInfo}
                         ${batInfo}
                         ${timeDisplay}
@@ -1222,23 +1239,23 @@
             // RENDER QUEUE (Detail)
             document.getElementById('qCount').innerText = q.length;
             document.getElementById('queueList').innerHTML = q.length ? q.map((x,i)=>{
-                const highlightClass = (myPlat && myPlat === x.name) ? 'is-mine' : '';
+                const highlightClass = (myPlat && myPlat === x.plat) ? 'is-mine' : '';
                 return `
                     <div class="queue-item-display ${highlightClass}">
-                        <div><b style="color:var(--accent); font-family:'Inter', sans-serif;">${x.name}</b> <span style="font-size:12px; color:var(--cyan); font-family:'Inter', sans-serif;">(${x.startBattery}% > ${x.targetLimit}%)</span> ${x.wa ? `<span style="font-size:10px; color:var(--text-muted); font-family:'Inter', sans-serif;">(${x.wa})</span>` : ''}</div>
-                        <button onclick="window.delQ(${i}, '${x.name}')" style="background:none; border:none; color:var(--soft-red); cursor:pointer;">✕</button>
+                        <div><b style="color:var(--accent); font-family:'Inter', sans-serif;">${x.plat}</b> <span style="font-size:12px; color:var(--cyan); font-family:'Inter', sans-serif;">(${x.startBattery}% > ${x.targetLimit}%)</span> ${x.userName ? `<span style="font-size:10px; color:var(--text-muted); font-family:'Inter', sans-serif;">(${x.userName})</span>` : ''}</div>
+                        <button onclick="window.delQ(${i}, '${x.plat}')" style="background:none; border:none; color:var(--soft-red); cursor:pointer;">✕</button>
                     </div>
                 `;
             }).join('') : '<div style="text-align:center; color:var(--text-muted); font-size:12px; font-family:\'Inter\', sans-serif;">Antrian Kosong</div>';
             
             // RENDER ADMIN QUEUE OPTIONS
             const assignQueueSelect = document.getElementById('assignQueueIndex');
-            assignQueueSelect.innerHTML = q.length ? q.map((x,i)=>`<option value="${i}">${i+1}: ${x.name} (${x.startBattery}%)</option>`) : '<option value="-1">-- Antrian Kosong --</option>';
+            assignQueueSelect.innerHTML = q.length ? q.map((x,i)=>`<option value="${i}">${i+1}: ${x.plat} (${x.startBattery}%)</option>`) : '<option value="-1">-- Antrian Kosong --</option>';
 
         });
 
         // --- QUEUE & ADMIN FUNCTIONS LANJUTAN ---
-        window.delQ = (i, platName) => {
+        window.delQ = (i, platName) => { // <-- Fungsi delete menggunakan Plat
             const myPlat = localStorage.getItem('myPlat');
             if(!isAdminLoggedIn && myPlat !== platName) {
                 return showPopup('error', 'AKSES DITOLAK', 'Ini bukan motor lu bangsat');
@@ -1313,7 +1330,8 @@
                 const dur = calculateDuration(startBat, target); // Menggunakan startBat input
                 
                 s[i] = { 
-                    name:p, 
+                    plat:p, 
+                    userName:'ADMIN', // Nama default untuk manual assign
                     wa:'', 
                     startBattery:startBat, // Nilai yang diinput
                     targetLimit:target, 
@@ -1432,7 +1450,7 @@
             });
         };
         
-        // JALANKAN LOGIC DUAL VIEW SETELAH LOADING SCREEN SELESAI
+        // JALANKAN LOGIC DUAL VIEW SETELAH LOADING SCREEN SELESAI (Perbaikan bug loading)
         window.addEventListener('load', () => {
             const bypassCheckbox = document.getElementById('gpsBypassToggle');
             if (bypassCheckbox) {
