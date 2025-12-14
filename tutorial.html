@@ -18,26 +18,24 @@
 body{
 margin:0;font-family:'Inter',sans-serif;
 background:var(--bg);color:var(--text);
-min-height:100vh;
-overflow:hidden;
+min-height:100vh;overflow:hidden;
 }
 
 /* BG */
 .bg-image{
-position:fixed;top:0;left:0;width:100%;height:100%;
+position:fixed;inset:0;
 background:url('1763947427555.jpg') center/cover no-repeat;
 opacity:.35;z-index:0;
 }
 .bg-overlay{
-position:fixed;top:0;left:0;width:100%;height:100%;
+position:fixed;inset:0;
 background:radial-gradient(circle at top,#000000cc,#000000ee);
 z-index:1;
 }
 
 .container{
 position:relative;z-index:2;
-max-width:450px;margin:auto;
-padding:20px;
+max-width:450px;margin:auto;padding:20px;
 }
 
 /* HEADER */
@@ -66,15 +64,51 @@ box-shadow:0 0 60px rgba(0,210,255,.35)
 width:12px;height:12px;border-radius:50%;
 background:#222;border:1px solid var(--border)
 }
-.step-dot.active{background:var(--accent)}
+.step-dot.active{
+background:var(--accent);
+box-shadow:0 0 12px var(--accent);
+animation:pulse 1.2s infinite;
+}
 .step-dot.done{background:var(--cyan)}
+
+@keyframes pulse{
+0%{transform:scale(1)}
+50%{transform:scale(1.25)}
+100%{transform:scale(1)}
+}
 
 /* CONTENT */
 .tutorial-content{flex:1;overflow-y:auto;text-align:center}
-.tutorial-step{display:none}
-.tutorial-step.active{display:block}
+.tutorial-step{
+display:none;
+opacity:0;
+transform:translateY(20px) scale(.96);
+}
+.tutorial-step.active{
+display:block;
+animation:stepIn .4s ease forwards;
+}
 
-.icon-large{font-size:60px;margin:16px auto}
+@keyframes stepIn{
+to{opacity:1;transform:translateY(0) scale(1)}
+}
+
+.icon-large{
+font-size:60px;margin:16px auto;
+animation:float 2.5s ease-in-out infinite;
+}
+@keyframes float{
+0%,100%{transform:translateY(0)}
+50%{transform:translateY(-6px)}
+}
+
+.tutorial-step:last-child .icon-large{
+animation:bounce 1.6s infinite;
+}
+@keyframes bounce{
+0%,100%{transform:translateY(0)}
+50%{transform:translateY(-10px)}
+}
 
 h3{
 font-size:18px;color:var(--cyan);
@@ -137,7 +171,8 @@ font-weight:900;text-decoration:none
 <div class="tutorial-step active">
 <span class="icon-large">📱</span>
 <h3>SCAN & AKTIVASI</h3>
-<p>Scan BARCODE dan izinkan akses lokasi.</p>
+<p>Scan BARCODE dan WAJIB Izinkan akses lokasi.</p>
+<p>Tutup balon aplikasi seperti Gojek, Grab, Shopi</p>
 <div class="system-msg">Lokasi diverifikasi</div>
 </div>
 
@@ -158,7 +193,7 @@ font-weight:900;text-decoration:none
 <div class="tutorial-step">
 <span class="icon-large">🚦</span>
 <h3>ALOKASI SLOT</h3>
-<p>Kalo udah daftar duduk manis. Jangan kunci jok motor lu ya, biar ada yang naikin kl lu ga ada pas giliran lu naik.</p>
+<p>Target pengisian dihitung otomatis. Jangan kunci jok motor lu ya, biar ada yang naikin kl lu ga ada pas giliran.</p>
 <div class="system-msg">Slot ditentukan</div>
 </div>
 
@@ -190,20 +225,42 @@ font-weight:900;text-decoration:none
 <button id="next">LANJUT →</button>
 </div>
 
-<a href="antrian.html" class="exit">END SESSION</a>
+<a href="index.html" class="exit">END SESSION</a>
 
 </div>
 </div>
 
 <script>
 let step=0;
-let voiceEnabled=false;
+let audioUnlocked=false;
+let voicesReady=false;
 let utterance=null;
 
 const steps=document.querySelectorAll('.tutorial-step');
 const dots=document.querySelectorAll('.step-dot');
 const next=document.getElementById('next');
 const prev=document.getElementById('prev');
+
+function warmUpVoices(){
+speechSynthesis.getVoices();
+setTimeout(()=>{
+const u=new SpeechSynthesisUtterance(" ");
+u.lang="id-ID";
+speechSynthesis.speak(u);
+speechSynthesis.cancel();
+voicesReady=true;
+},200);
+}
+
+warmUpVoices();
+
+function unlockAudio(){
+if(audioUnlocked)return;
+audioUnlocked=true;
+const u=new SpeechSynthesisUtterance("Panduan suara diaktifkan");
+u.lang="id-ID";
+speechSynthesis.speak(u);
+}
 
 function getText(i){
 let t="";
@@ -212,28 +269,24 @@ steps[i].querySelectorAll("h3,p,.system-msg")
 return t.replace(/😎/g,"");
 }
 
-function speakAndAdvance(text){
-if(!voiceEnabled)return autoAdvanceFallback(text);
-
+function speak(text){
+if(!audioUnlocked)return fallbackAdvance(text);
 speechSynthesis.cancel();
 utterance=new SpeechSynthesisUtterance(text);
 utterance.lang="id-ID";
 utterance.rate=0.9;
 utterance.pitch=0.9;
-
-utterance.onend=()=>advanceStep();
+utterance.onend=()=>advance();
 speechSynthesis.speak(utterance);
 }
 
-function autoAdvanceFallback(text){
-const duration=Math.max(4000,text.length*60);
-setTimeout(()=>advanceStep(),duration);
+function fallbackAdvance(text){
+setTimeout(()=>advance(),Math.max(4000,text.length*55));
 }
 
-function advanceStep(){
+function advance(){
 if(step<steps.length-1){
-step++;
-render();
+step++;render();
 }
 }
 
@@ -246,29 +299,21 @@ d.classList.toggle("done",i<step);
 prev.disabled=step===0;
 next.innerText=step===steps.length-1?"SELESAI":"LANJUT →";
 document.getElementById("content").scrollTop=0;
-speakAndAdvance(getText(step));
-}
-
-function userInteract(){
-if(!voiceEnabled){
-voiceEnabled=true;
-speakAndAdvance(getText(step));
-}
+speak(getText(step));
 }
 
 next.onclick=()=>{
-userInteract();
+unlockAudio();
 speechSynthesis.cancel();
 if(step<steps.length-1){
-step++;
-render();
+step++;render();
 }else{
 location.href="antrian.html";
 }
 };
 
 prev.onclick=()=>{
-userInteract();
+unlockAudio();
 speechSynthesis.cancel();
 if(step>0){step--;render();}
 };
