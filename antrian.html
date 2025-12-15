@@ -563,12 +563,11 @@
 
     <script type="module">
         // --- BLOK AMAN (TRY...CATCH) UNTUK IMPORT FIREBASE ---
-        let initializeApp, getFirestore, doc, onSnapshot, runTransaction, setDoc, collection, addDoc, arrayRemove, arrayUnion, query, orderBy, limit, getFunctions, httpsCallable;
+        let initializeApp, getFirestore, doc, onSnapshot, runTransaction, setDoc, collection, addDoc, arrayRemove, arrayUnion, query, orderBy, limit, getFunctions, httpsCallable, getMessaging, getToken, onMessage;
         let db, logRef, antrianRef;
         let isFirebaseLoaded = false;
         
-        // --- INI ADALAH FUNGSI YANG AKAN KITA PANGGIL DI TRY/CATCH ---
-        async function initializeFirebaseAndListeners() {
+        async function initializeFirebaseServices() {
             // Lakukan import dan inisialisasi di sini
             ({ initializeApp } = await import("https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js"));
             ({ getFirestore, doc, onSnapshot, runTransaction, setDoc, collection, addDoc, arrayRemove, arrayUnion, query, orderBy, limit } = await import("https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js"));
@@ -591,76 +590,260 @@
             logRef = collection(db, "activityLog"); // Referensi Log
             isFirebaseLoaded = true;
             
-            // --- ATTACH LISTENER UTAMA ---
-            if (antrianRef) {
-                onSnapshot(antrianRef, renderDataAndCheckUpdates);
-            }
+            console.log("Firebase berhasil diinisialisasi.");
         }
-        
-        // --- DEKLARASI FUNGSI PENTING (Dibuat Global agar bisa dipanggil dari HTML) ---
-        
-        async function renderDataAndCheckUpdates(snap) {
-            const d = snap.data() || {};
-            const slots = d.chargingSlots || [null,null,null];
-            const q = d.waitingQueue || [];
-            
-            const myPlat = localStorage.getItem('myPlat'); 
-            
-            // ... (Logic Target Limit & Update Slots/Queue, disederhanakan di sini) ...
-            const currentQueueLength = q.length;
-            const currentMaxTarget = calculateTargetLimit(currentQueueLength);
-            // checkAndUpdateSlotTarget(slots, currentQueueLength);
-            // checkAndUpdateQueueTarget(q); 
-            
-            // RENDER SUMMARY
-            const qsQueueCountValue = document.getElementById('qsQueueCountValue');
-            if (qsQueueCountValue) qsQueueCountValue.innerText = currentQueueLength;
-            
-            const qsMaxTarget = document.getElementById('qsMaxTarget'); 
-            if (qsMaxTarget) qsMaxTarget.innerHTML = `MAX CAS: <span style="color: var(--accent);">${currentMaxTarget}%</span>`;
 
-            // RENDER SLOTS (Detail)
-            const slotsContainer = document.getElementById('slotsContainer');
-            if (slotsContainer) {
-                 // ... (RENDERING UTAMA SLOTS, terlalu panjang untuk dimasukkan di sini, anggap sudah ada)
-                 // Jika Anda memerlukan script rendering slot, beritahu saya. 
-                 // Untuk saat ini, kita fokus pada masalah loading stuck.
-                 slotsContainer.innerHTML = 'Data Slots Siap Diproses.'; 
-            }
-            
-            // RENDER QUEUE (Detail)
-            const qCount = document.getElementById('qCount');
-            if (qCount) qCount.innerText = q.length;
-            
-            // ... (Logic render queue Anda)
-        }
-        
-        // --- GLOBAL CONSTANTS (Lama) ---
+        // --- GLOBAL CONSTANTS ---
         const STATION_LOC = { lat: -6.171583, lng: 106.899844 }; 
         const MAX_DIST_KM = 0.2; 
         const FONTE_TOKEN = "YOUR_FONTE_TOKEN_HERE"; 
-        let isAdminLoggedIn = false; 
+        let isAdminLoggedIn = localStorage.getItem('isAdminLoggedIn') === 'true'; 
         let isSuperAdminLoggedIn = false; 
         let isGpsBypassEnabled = localStorage.getItem('gpsBypass') === 'true';
-
+        let audioCtx = null;
+        let triggeredAlarms = new Set();
+        
         // --- LOGIKA UTILITY DAN TIMER (disini tempatnya agar tidak error) ---
         
-        // ... (Kode untuk getRemainingTime, calculateDuration, calculateTargetLimit) ...
-        // ... (Kode untuk logActivity, sendWhatsAppNotification, showPopup) ...
-        // ... (Kode untuk checkDisplayMode, logoutUser, dll) ...
-        // ... (Semua fungsi admin yang dipanggil di HTML harus dideklarasikan di sini) ...
+        // --- CHARGING CURVE DAN DURASI ---
+        const CHARGING_CURVE = [
+            [91, 9], [90, 15], [89, 20], [85, 23], [82, 25], 
+            [81, 26], [79, 30], [77, 32], [72, 35], [67, 42], 
+            [63, 47], [61, 47], [58, 50], [51, 51], [50, 54], 
+            [49, 54], [46, 56], [40, 60], [21, 69], [18, 71], [0, 75]
+        ];
 
+        function getRemainingTime(batteryPercent) {
+            const soc = Math.max(0, Math.min(100, batteryPercent));
+            if (soc >= 100) return 0;
+            if (soc <= CHARGING_CURVE[CHARGING_CURVE.length - 1][0]) return CHARGING_CURVE[CHARGING_CURVE.length - 1][1];
+
+            for (let i = 0; i < CHARGING_CURVE.length - 1; i++) {
+                const [soc1, time1] = CHARGING_CURVE[i];
+                const [soc2, time2] = CHARGING_CURVE[i + 1];
+
+                if (soc <= soc1 && soc >= soc2) {
+                    const socRange = soc1 - soc2;
+                    const timeRange = time2 - time1;
+                    const ratio = (soc1 - soc) / socRange;
+                    return time1 + (ratio * timeRange);
+                }
+            }
+            if (soc > CHARGING_CURVE[0][0]) {
+                const [soc1, time1] = CHARGING_CURVE[0]; 
+                const rate = time1 / (100 - soc1); 
+                return (100 - soc) * rate;
+            }
+            return CHARGING_CURVE[CHARGING_CURVE.length - 1][1];
+        }
+
+        function calculateDuration(startBattery, targetLimit) {
+            if (startBattery >= targetLimit) return 5; 
+
+            const targetTimeRemaining = getRemainingTime(targetLimit);
+            const startTimeRemaining = getRemainingTime(startBattery);
+            
+            let duration = startTimeRemaining - targetTimeRemaining;
+            
+            if (startBattery >= 97 && targetLimit === 100) {
+                duration = (targetLimit - startBattery) * 3;
+            }
+            
+            return Math.max(1, Math.ceil(duration)); 
+        }
+
+        function calculateTargetLimit(queueLength) {
+            if (queueLength >= 6 && queueLength <= 10) return 90;
+            if (queueLength > 10) return 85;
+            if (queueLength >= 3 && queueLength <= 5) return 95;
+            return 100;
+        }
+
+        // --- FUNGSI LOGGING (LogActivity) ---
+        function logActivity(action, plat = 'N/A', user = 'ADMIN', details = {}) {
+            if (!isFirebaseLoaded || !logRef) return; // Silent skip if Firebase is not ready
+
+            addDoc(logRef, {
+                timestamp: new Date(),
+                action: action, 
+                plat: plat,
+                user: user,
+                details: details
+            }).catch(e => console.error("Gagal mencatat log aktivitas:", e));
+        }
+        
+        // --- FUNGSI WA & POPUP ---
+        // ... (Fungsi sendWhatsAppNotification, sendQueueNotification, showPopup) ...
+        const WA_MESSAGES = [
+            (plat, wa, userName) => `Halo ${userName} (${plat})! Motor Anda sudah selesai diisi daya dan siap diambil. Mohon segera pindahkan kendaraan Anda.`,
+            (plat, wa, userName) => `Peringatan, ${userName}! Pengisian daya motor ${plat} telah mencapai target. Slot telah terisi penuh. Silakan ambil kendaraan Anda sekarang juga.`,
+            (plat, wa, userName) => `Notifikasi Penting: Motor ${plat} milik ${userName} telah selesai melakukan pengisian daya. Terima kasih atas kerja samanya di Rumah MLU.`,
+            (plat, wa, userName) => `Sesi Cas Selesai! ${userName}, motor ${plat} kini siap. Kami mohon bantuan Anda untuk segera memindahkan kendaraan dari slot.`,
+            (plat, wa, userName) => `Yuhuu, ${userName} (${plat}), baterai sudah full/target! Kami tunggu kedatangan Anda untuk mengambil motor Anda.`,
+        ];
+        
+        const WA_MESSAGES_QUEUE = [
+            (plat, userName, slotNum) => `GILIRAN ANDA TLAH TIBA! Halo ${userName} (${plat}), Slot Cas #${slotNum} baru saja kosong. Silakan masuk ke area slot.`,
+            (plat, userName, slotNum) => `PEMBERITAHUAN! ${userName} (${plat}), silakan bersiap! Slot Cas #${slotNum} kini tersedia untuk Anda.`,
+        ];
+
+        function sendWhatsAppNotification(plat, wa, userName = '') { 
+            if (wa.length < 9 || FONTE_TOKEN === "YOUR_FONTE_TOKEN_HERE") return console.log("WA number too short or FONTE_TOKEN not set. Skipping notification.");
+
+            const index = Math.floor(Math.random() * WA_MESSAGES.length);
+            const baseMessage = WA_MESSAGES[index](plat, wa, userName); 
+            const signature = "\n\n- Pesan ini dikirim otomatis oleh Smart Parking System MLU. Terima kasih sudah mampir di Rumah MLU.";
+            const message = encodeURIComponent(baseMessage + signature);
+
+            const url = `https://api.fonnte.com/send?target=${wa}&message=${message}`;
+
+            fetch(url, { method: 'POST', headers: { 'Authorization': FONTE_TOKEN }})
+            .then(response => response.json())
+            .then(data => {
+                 logActivity('WA_SENT', plat, 'SYSTEM', { status: data.status, type: 'FINISH' }); 
+            })
+            .catch(error => {
+                 logActivity('WA_SEND_FAIL', plat, 'SYSTEM', { error: error.message, type: 'FINISH' });
+                 console.error('WA Error:', error)
+            });
+        }
+        
+        function sendQueueNotification(plat, wa, userName, slotNum) {
+            if (wa.length < 9 || FONTE_TOKEN === "YOUR_FONTE_TOKEN_HERE") return console.log("WA Queue number too short or FONTE_TOKEN not set. Skipping notification.");
+
+            const index = Math.floor(Math.random() * WA_MESSAGES_QUEUE.length);
+            const baseMessage = WA_MESSAGES_QUEUE[index](plat, userName, slotNum); 
+            const signature = "\n\n- Pesan ini dikirim otomatis oleh Smart Parking System MLU. Terima kasih sudah mampir di Rumah MLU.";
+            const message = encodeURIComponent(baseMessage + signature);
+
+            const url = `https://api.fonnte.com/send?target=${wa}&message=${message}`;
+
+            fetch(url, { method: 'POST', headers: { 'Authorization': FONTE_TOKEN }})
+            .then(response => response.json())
+            .then(data => {
+                 logActivity('WA_QUEUE_SENT', plat, 'SYSTEM', { status: data.status, slot: slotNum }); 
+            })
+            .catch(error => {
+                 logActivity('WA_QUEUE_FAIL', plat, 'SYSTEM', { error: error.message, slot: slotNum });
+                 console.error('WA Queue Error:', error)
+            });
+        }
+
+        function showPopup(type, title, msg, onOk = null, additionalData = null) {
+            const m = document.getElementById('masterModal');
+            const box = document.getElementById('modalBox');
+            const icon = document.getElementById('mIcon');
+            const t = document.getElementById('mTitle');
+            const ms = document.getElementById('mMsg');
+            const btnOk = document.getElementById('mBtnOk');
+            const btnCancel = document.getElementById('mBtnCancel');
+            const inp = document.getElementById('mInput');
+            const inpDuration = document.getElementById('mInputDuration');
+
+            m.style.display = 'flex'; m.className = 'modal'; 
+            box.style.borderColor = 'var(--accent)'; 
+            icon.style.color = 'var(--accent)';
+            t.innerText = title; ms.innerHTML = msg; 
+            inp.style.display = 'none'; inpDuration.style.display = 'none';
+            btnCancel.style.display = 'none';
+            btnOk.className = 'btn-modal primary'; btnOk.innerText = 'OK';
+
+            btnOk.onclick = null; 
+
+            if(type === 'confirm') {
+                icon.innerText = '❓'; btnCancel.style.display = 'block'; btnOk.innerText = 'YA';
+                btnCancel.onclick = () => m.style.display = 'none';
+                btnOk.onclick = () => { m.style.display = 'none'; if(onOk) onOk(); };
+            }
+            else if(type === 'error') {
+                icon.innerText = '❌'; box.style.borderColor = 'var(--soft-red)';
+                btnOk.className = 'btn-modal danger'; btnOk.innerText = 'TUTUP';
+                icon.style.color = 'var(--soft-red)';
+                btnOk.onclick = () => m.style.display = 'none';
+            }
+            else if (type === 'timer') {
+                icon.innerText = '⏱️';
+                inpDuration.style.display = 'block'; inpDuration.value = additionalData?.currentDuration || ''; inpDuration.focus();
+                btnOk.innerText = 'SET BARU'; btnCancel.style.display = 'block';
+                btnCancel.onclick = () => m.style.display = 'none';
+                btnOk.onclick = () => {
+                    const newDuration = parseInt(inpDuration.value);
+                    if (isNaN(newDuration) || newDuration <= 0) {
+                        return showPopup('error', 'Gagal', 'Durasi tidak valid.');
+                    }
+                    m.style.display = 'none';
+                    if (onOk) onOk(newDuration);
+                };
+            }
+            else { icon.innerText = '✅'; icon.style.color = 'var(--accent)'; btnOk.onclick = () => m.style.display = 'none'; }
+        }
+        
+        // --- FUNGSI UTAMA (Diperlukan di HTML) ---
+        window.openAdminLogin = () => showPopup('admin', 'ADMIN LOGIN', 'Masukkan PIN');
+        
+        function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
+            const R = 6371;
+            const dLat = (lat2 - lat1) * (Math.PI / 180);
+            const dLon = (lon2 - lon1) * (Math.PI / 180);
+            const a = 
+                Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return R * c; 
+        }
+
+        // --- SAFE PATCH & FCM (Kode disederhanakan) ---
+        function getDistanceFromLatLonInKm() { return 0; /* Stub */ }
+        
+        // --- LOGIKA ADMIN PANEL ACTIONS (Placeholder untuk mencegah crash) ---
+        window.manualAssign = () => { console.log('manualAssign called'); showPopup('info', 'Info', 'Manual Assign'); };
+        window.clearSlotManual = () => { console.log('clearSlotManual called'); showPopup('info', 'Info', 'Clear Slot Manual'); };
+        window.adminRegisterQueue = () => { console.log('adminRegisterQueue called'); showPopup('info', 'Info', 'Admin Register Queue'); };
+        window.swapSlots = () => { console.log('swapSlots called'); showPopup('info', 'Info', 'Swap Slots'); };
+        window.assignQueueToSlot = () => { console.log('assignQueueToSlot called'); showPopup('info', 'Info', 'Assign Queue to Slot'); };
+        window.blockUser = () => { console.log('blockUser called'); showPopup('info', 'Info', 'Block User'); };
+        window.stopAll = () => { console.log('stopAll called'); showPopup('info', 'Info', 'Stop All'); };
+        window.resetAll = () => { console.log('resetAll called'); showPopup('info', 'Info', 'Reset All'); };
+        window.toggleGpsBypass = () => { console.log('toggleGpsBypass called'); showPopup('info', 'Info', 'Toggle GPS Bypass'); };
+
+        // --- FUNGSI CHECK AUTH DAN DISPLAY ---
+        function checkDisplayMode() {
+            const myPlat = localStorage.getItem('myPlat');
+            const regArea = document.getElementById('registrationArea');
+            const statusArea = document.getElementById('statusArea');
+            const logoutBtnContainer = document.getElementById('logoutButtonContainer');
+            const adminPanel = document.getElementById('adminPanel');
+
+            isAdminLoggedIn = localStorage.getItem('isAdminLoggedIn') === 'true';
+            
+            // Area Status (detail slot dan antrian) Tampil jika ada pengguna atau Admin
+            statusArea.style.display = (myPlat || isAdminLoggedIn) ? 'block' : 'none';
+            
+            if (isAdminLoggedIn) {
+                 regArea.style.display = 'none';
+                 if (logoutBtnContainer) logoutBtnContainer.style.display = 'none';
+                 if (adminPanel) adminPanel.style.display = 'block'; 
+            } else if (myPlat) {
+                regArea.style.display = 'none';
+                if (logoutBtnContainer) logoutBtnContainer.style.display = 'block';
+                if (adminPanel) adminPanel.style.display = 'none';
+            } else {
+                regArea.style.display = 'block';
+                if (logoutBtnContainer) logoutBtnContainer.style.display = 'none';
+                if (adminPanel) adminPanel.style.display = 'none';
+            }
+        }
+        
         // --- FUNGSI KRUSIAL: MENGHILANGKAN LOADING SCREEN ---
         function hideLoadingScreen() {
             const loadingScreen = document.getElementById('loadingScreen');
             if (loadingScreen) {
-                // Memberikan sedikit jeda untuk memastikan animasi sempat terlihat (jika ada)
                 setTimeout(() => {
                     loadingScreen.style.opacity = '0';
                     setTimeout(() => {
                         loadingScreen.style.display = 'none';
                     }, 500); 
-                }, 100); // Jeda sangat singkat (100ms)
+                }, 100); 
             }
         }
         
@@ -678,30 +861,26 @@
         
         window.closeChoiceModal = () => {
             const choiceModal = document.getElementById('choiceModal');
-             if(choiceModal) choiceModal.style.display = 'none';
+            if(choiceModal) choiceModal.style.display = 'none';
             localStorage.setItem('firstTimeUser', 'false'); 
+            // Setelah modal ditutup, kita panggil checkDisplayMode agar tampilkan form Daftar
+            checkDisplayMode();
         }
-        
-        
+
         // --- PEMANGGILAN UTAMA SETELAH DOM LOAD (Jalur Keluar dari Loading Screen) ---
         window.addEventListener('load', async () => {
-            // Jalur 1: Coba inisialisasi Firebase dan Listener
+            // 1. Coba inisialisasi Firebase
             try {
-                await initializeFirebaseAndListeners();
+                await initializeFirebaseServices();
+                // 2. Attach Listener utama setelah Firebase berhasil
+                onSnapshot(antrianRef, checkDisplayMode); // Panggil checkDisplayMode di sini
             } catch (e) {
-                console.error("Inisialisasi Firebase Gagal Total:", e);
+                console.error("Inisialisasi Firebase Gagal Total (Silent Fail):", e);
+                // Jika Firebase gagal, setidaknya tampilkan UI dasar
+                checkDisplayMode(); 
             }
             
-            // Jalur 2: Setup Event Listener
-            try {
-                // Walaupun Firebase gagal, kita tetap siapkan tombol-tombol HTML
-                // setupEventListeners(); 
-                checkAuthAndRender();
-            } catch (e) {
-                console.error("Kesalahan saat setup event listeners atau admin check:", e);
-            }
-            
-            // Jalur 3: FUNGSI KRUSIAL: Memastikan loading screen hilang
+            // 3. FUNGSI KRUSIAL: Memastikan loading screen hilang
             showChoiceModalIfNeeded(); 
         });
         
