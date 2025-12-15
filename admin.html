@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FC Smart Charging - Admin Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Syne:wght@700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #141414;
+            --surface: #1e1e1e;
+            --border: #333;
+            --text: #f0f0f0;
+            --text-muted: #999;
+            --accent: #ccff00; 
+            --soft-red: #ff5555;
+            --cyan: #00ffff;
+            --soft-blue: #5555ff;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+        }
+        .header {
+            background-color: var(--surface);
+            padding: 15px 20px;
+            border-bottom: 2px solid var(--accent);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 900;
+            color: var(--accent);
+        }
+        .container {
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        @media (min-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 2fr 1fr; 
+            }
+        }
+        .card {
+            background-color: var(--surface);
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+        .card h2 {
+            font-size: 16px;
+            color: var(--text);
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 8px;
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+        .input-group {
+            margin-bottom: 10px;
+        }
+        .input-group label {
+            display: block;
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 3px;
+        }
+        input[type="text"], input[type="number"], select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background-color: var(--bg);
+            color: var(--text);
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+        .btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 13px;
+            transition: background-color 0.2s;
+            margin-top: 5px;
+            width: 100%;
+        }
+        .btn.primary {
+            background-color: var(--accent);
+            color: var(--bg);
+        }
+        .btn.primary:hover {
+            background-color: #dfff4d;
+        }
+        .btn.danger {
+            background-color: var(--soft-red);
+            color: var(--text);
+        }
+        .btn.danger:hover {
+            background-color: #ff7777;
+        }
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .btn-group .btn {
+            width: auto;
+            flex-grow: 1;
+        }
+        .log-list {
+            height: 500px; 
+            overflow-y: scroll;
+            padding-right: 10px;
+        }
+        .log-item {
+            display: flex;
+            font-size: 11px;
+            padding: 5px 0;
+            border-bottom: 1px dashed var(--border);
+            align-items: center;
+        }
+        .log-item:last-child {
+            border-bottom: none;
+        }
+        .log-time {
+            color: var(--text-muted);
+            min-width: 60px;
+            margin-right: 10px;
+        }
+        .log-action {
+            font-weight: 700;
+            min-width: 150px;
+        }
+        .log-plat {
+            color: var(--cyan);
+            flex-grow: 1;
+        }
+        .log-user {
+            color: var(--text-muted);
+            font-size: 10px;
+            min-width: 80px;
+            text-align: right;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 700;
+            margin-right: 5px;
+        }
+        .badge-running { background-color: var(--accent); color: var(--bg); }
+        .badge-queue { background-color: var(--soft-blue); color: var(--text); }
+        .badge-empty { background-color: var(--border); color: var(--text-muted); }
+
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>ADMIN DASHBOARD - FC CHARGING</h1>
+        <button id="btnLogout" class="btn danger" style="width: 100px; margin-top: 0;">Logout</button>
+    </div>
+
+    <div class="container">
+        <div id="loginArea" style="display: none; text-align: center; padding: 50px;">
+            <h2 style="color: var(--accent);">Login Admin</h2>
+            <input type="password" id="adminPin" placeholder="Masukkan PIN Admin" style="width: 200px; margin-bottom: 10px;">
+            <button id="btnLogin" class="btn primary" style="width: 200px;">LOGIN</button>
+            <div style="margin-top: 15px;"><a href="./antrian.html" style="color: var(--cyan);">← Kembali ke Antrian</a></div>
+        </div>
+
+        <div id="dashboardArea" style="display: none;">
+            
+            <div class="card" style="margin-bottom: 20px;">
+                <h2>STATUS INSTAN</h2>
+                <div id="quickStatus" style="display: flex; justify-content: space-around; text-align: center;">
+                    </div>
+            </div>
+
+            <div class="dashboard-grid">
+                
+                <div class="card">
+                    <h2>LOG AKTIVITAS (Real-time Toll Log)</h2>
+                    <div id="logListContainer" class="log-list">
+                        <p style="text-align: center; color: var(--text-muted);">Memuat log...</p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2>TOOLS MANAJEMEN SLOT & ANTRIAN</h2>
+                    <div id="adminTools">
+                        
+                        <div class="input-group">
+                            <label>Slot Target:</label>
+                            <select id="manSlot">
+                                <option value="0">Slot 1</option>
+                                <option value="1">Slot 2</option>
+                                <option value="2">Slot 3</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label>Plat Motor:</label>
+                            <input type="text" id="manPlat" placeholder="B 1234 XY">
+                        </div>
+                        <div class="input-group">
+                            <label>Baterai Awal (%):</label>
+                            <input type="number" id="manBattery" placeholder="30" min="0" max="99">
+                        </div>
+                        <button id="btnManualAssign" class="btn primary">MANUAL ASSIGN</button>
+                        <button id="btnClearSlotManual" class="btn danger" style="margin-top: 5px;">PAKSA KOSONGKAN SLOT</button>
+                        
+                        <hr style="border: none; border-top: 1px solid var(--border); margin: 15px 0;">
+
+                        <div class="input-group">
+                            <label>Pilih Antrian:</label>
+                            <select id="assignQueueIndex"></select>
+                        </div>
+                        <div class="input-group">
+                            <label>Pilih Slot Kosong:</label>
+                            <select id="assignSlotTarget">
+                                <option value="0">Slot 1</option>
+                                <option value="1">Slot 2</option>
+                                <option value="2">Slot 3</option>
+                            </select>
+                        </div>
+                        <button id="btnAssignQueueToSlot" class="btn primary">PINDAH ANTRIAN KE SLOT</button>
+                        
+                        <hr style="border: none; border-top: 1px solid var(--border); margin: 15px 0;">
+
+                        <div class="btn-group">
+                            <select id="slotSource" style="width: 100%;">
+                                <option value="-1">Slot Sumber</option>
+                                <option value="0">Slot 1</option>
+                                <option value="1">Slot 2</option>
+                                <option value="2">Slot 3</option>
+                            </select>
+                            <select id="slotTarget" style="width: 100%;">
+                                <option value="-1">Slot Target</option>
+                                <option value="0">Slot 1</option>
+                                <option value="1">Slot 2</option>
+                                <option value="2">Slot 3</option>
+                            </select>
+                        </div>
+                        <button id="btnSwapSlots" class="btn primary">TUKAR POSISI SLOT</button>
+
+                        <hr style="border: none; border-top: 1px solid var(--border); margin: 15px 0;">
+
+                        <div class="input-group">
+                            <label>Plat Blokir/Unblokir:</label>
+                            <input type="text" id="blockPlatInput" placeholder="B 1234 XY">
+                        </div>
+                        <div class="btn-group">
+                            <button id="btnBlockUser" class="btn danger">BLOCK USER</button>
+                            <button id="btnUnblockUser" class="btn primary" style="background-color: var(--soft-blue); color: var(--text);">UNBLOCK USER</button>
+                        </div>
+                        <div id="blockedListDisplay" style="margin-top: 10px; font-size: 11px; color: var(--soft-red);"></div>
+                        
+                        <hr style="border: none; border-top: 1px solid var(--soft-red); margin: 15px 0;">
+
+                        <div class="btn-group">
+                            <button id="btnStopAll" class="btn danger">STOP SEMUA CAS</button>
+                            <button id="btnResetAll" class="btn danger">RESET DATABASE</button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div id="masterModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:1000; justify-content:center; align-items:center;">
+        <div id="modalBox" style="background:var(--surface); padding:20px; border-radius:10px; border:2px solid var(--accent); max-width:90%; min-width:300px; text-align:center;">
+            <div id="mIcon" style="font-size:36px; margin-bottom:10px; color:var(--accent);"></div>
+            <h3 id="mTitle" style="margin:0 0 10px 0; font-family:'Syne', sans-serif;"></h3>
+            <p id="mMsg" style="margin:0 0 15px 0; font-size:14px; color:var(--text);"></p>
+            <input type="password" id="mInput" placeholder="PIN" style="display:none; margin-bottom:10px; width:80%;">
+            <input type="number" id="mInputDuration" placeholder="Durasi Baru (menit)" style="display:none; margin-bottom:10px; width:80%;">
+            <div class="btn-group" style="justify-content:center;">
+                <button id="mBtnCancel" class="btn danger" style="width: 100px; display: none; background:var(--border); color:var(--text);"></button>
+                <button id="mBtnOk" class="btn primary" style="width: 100px;"></button>
+            </div>
+        </div>
+    </div>
+    <script type="module">
+    // --- FIREBASE IMPORTS (DENGAN TAMBAHAN UNTUK LOGGING) ---
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+    import { getFirestore, doc, onSnapshot, runTransaction, setDoc, collection, addDoc, query, orderBy, limit, updateDoc, arrayRemove, arrayUnion } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+    
+    // --- FIREBASE CONFIG (Gunakan config Anda) ---
+    const firebaseConfig = {
+        apiKey: "AIzaSyALIlkIDALIk83K8s1htalvW6rmNNw02Go",
+        authDomain: "sistem-antrian-b1c39.firebaseapp.com",
+        projectId: "sistem-antrian-b1c39",
+        storageBucket: "sistem-antrian-b1c39.firebasestorage.app",
+        messagingSenderId: "454124587608",
+        appId: "1:454124587608:web:34fbb0f5211067a67f982d"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // --- REFERENSI DATA ---
+    const antrianRef = doc(db, "antrian", "utama");
+    const logRef = collection(db, "activityLog"); // Referensi Log
+
+    // --- GLOBAL CONSTANTS ---
+    const ADMIN_PIN = '8080'; // PIN BARU UNTUK SUPER ADMIN
+    const FONTE_TOKEN = "YOUR_FONTE_TOKEN_HERE"; 
+    
+    let isAdminLoggedIn = false; 
+
+    // --- FUNGSI LOGGING AKTIVITAS (TOLL LOG) ---
+    function logActivity(action, plat = 'N/A', user = 'ADMIN', details = {}) {
+        addDoc(logRef, {
+            timestamp: new Date(),
+            action: action, 
+            plat: plat,
+            user: user,
+            details: details
+        }).catch(e => console.error("Gagal mencatat log aktivitas:", e));
+    }
+    
+    // --- UTILITY: POPUP MODAL ---
+    function showPopup(type, title, msg, onOk = null, additionalData = null) {
+        const m = document.getElementById('masterModal');
+        const box = document.getElementById('modalBox');
+        const icon = document.getElementById('mIcon');
+        const t = document.getElementById('mTitle');
+        const ms = document.getElementById('mMsg');
+        const btnOk = document.getElementById('mBtnOk');
+        const btnCancel = document.getElementById('mBtnCancel');
+        const inp = document.getElementById('mInput');
+        const inpDuration = document.getElementById('mInputDuration');
+
+        m.style.display = 'flex'; m.className = 'modal'; 
+        box.style.borderColor = 'var(--accent)'; 
+        icon.style.color = 'var(--accent)';
+        t.innerText = title; ms.innerHTML = msg; 
+        inp.style.display = 'none'; inpDuration.style.display = 'none';
+        btnCancel.style.display = 'none';
+        btnOk.className = 'btn-modal primary'; btnOk.innerText = 'OK';
+
+        btnOk.onclick = null; 
+
+        if(type === 'confirm') {
+            icon.innerText = '❓'; btnCancel.style.display = 'block'; btnOk.innerText = 'YA';
+            btnCancel.onclick = () => m.style.display = 'none';
+            btnOk.onclick = () => { m.style.display = 'none'; if(onOk) onOk(); };
+        }
+        else if(type === 'error') {
+            icon.innerText = '❌'; box.style.borderColor = 'var(--soft-red)';
+            btnOk.className = 'btn-modal danger'; btnOk.innerText = 'TUTUP';
+            icon.style.color = 'var(--soft-red)';
+            btnOk.onclick = () => m.style.display = 'none';
+        }
+        else if (type === 'timer') {
+            icon.innerText = '⏱️';
+            inpDuration.style.display = 'block'; inpDuration.value = additionalData?.currentDuration || ''; inpDuration.focus();
+            btnOk.innerText = 'SET BARU'; btnCancel.style.display = 'block';
+            btnCancel.onclick = () => m.style.display = 'none';
+            btnOk.onclick = () => {
+                const newDuration = parseInt(inpDuration.value);
+                if (isNaN(newDuration) || newDuration <= 0) {
+                    return showPopup('error', 'Gagal', 'Durasi tidak valid.');
+                }
+                m.style.display = 'none';
+                if (onOk) onOk(newDuration);
+            };
+        }
+        else { icon.innerText = '✅'; icon.style.color = 'var(--accent)'; btnOk.onclick = () => m.style.display = 'none'; }
+    }
+    
+    // --- LOGIKA LOGIN/LOGOUT ---
+    document.getElementById('btnLogin').onclick = () => {
+        const pin = document.getElementById('adminPin').value;
+        if (pin === ADMIN_PIN) {
+            localStorage.setItem('adminAuth', 'true');
+            logActivity('ADMIN_LOGIN', 'N/A', 'ADMIN', { type: 'success' });
+            checkAuthAndRender();
+        } else {
+            logActivity('ADMIN_LOGIN_FAIL', 'N/A', 'ADMIN', { type: 'failed' });
+            showPopup('error', 'LOGIN GAGAL', 'PIN Admin salah.');
+        }
+    };
+
+    document.getElementById('btnLogout').onclick = () => {
+        localStorage.removeItem('adminAuth');
+        logActivity('ADMIN_LOGOUT', 'N/A', 'ADMIN');
+        checkAuthAndRender();
+    };
+
+    function checkAuthAndRender() {
+        isAdminLoggedIn = localStorage.getItem('adminAuth') === 'true';
+        document.getElementById('loginArea').style.display = isAdminLoggedIn ? 'none' : 'block';
+        document.getElementById('dashboardArea').style.display = isAdminLoggedIn ? 'block' : 'none';
+        document.getElementById('btnLogout').style.display = isAdminLoggedIn ? 'block' : 'none';
+    }
+
+    window.addEventListener('load', checkAuthAndRender);
+    
+    // --- LOGIKA TIMER PRESISI (KURVA ADLI) ---
+    const CHARGING_CURVE = [
+        [91, 9], [90, 15], [89, 20], [85, 23], [82, 25], 
+        [81, 26], [79, 30], [77, 32], [72, 35], [67, 42], 
+        [63, 47], [61, 47], [58, 50], [51, 51], [50, 54], 
+        [49, 54], [46, 56], [40, 60], [21, 69], [18, 71], [0, 75]
+    ];
+
+    function getRemainingTime(batteryPercent) {
+        const soc = Math.max(0, Math.min(100, batteryPercent));
+        if (soc >= 100) return 0;
+        if (soc <= CHARGING_CURVE[CHARGING_CURVE.length - 1][0]) return CHARGING_CURVE[CHARGING_CURVE.length - 1][1];
+
+        for (let i = 0; i < CHARGING_CURVE.length - 1; i++) {
+            const [soc1, time1] = CHARGING_CURVE[i];
+            const [soc2, time2] = CHARGING_CURVE[i + 1];
+
+            if (soc <= soc1 && soc >= soc2) {
+                const socRange = soc1 - soc2;
+                const timeRange = time2 - time1;
+                const ratio = (soc1 - soc) / socRange;
+                return time1 + (ratio * timeRange);
+            }
+        }
+        if (soc > CHARGING_CURVE[0][0]) {
+            const [soc1, time1] = CHARGING_CURVE[0]; 
+            const rate = time1 / (100 - soc1); 
+            return (100 - soc) * rate;
+        }
+        return CHARGING_CURVE[CHARGING_CURVE.length - 1][1];
+    }
+
+    function calculateDuration(startBattery, targetLimit) {
+        if (startBattery >= targetLimit) return 5; 
+
+        const targetTimeRemaining = getRemainingTime(targetLimit);
+        const startTimeRemaining = getRemainingTime(startBattery);
+        
+        let duration = startTimeRemaining - targetTimeRemaining;
+        
+        if (startBattery >= 97 && targetLimit === 100) {
+            duration = (targetLimit - startBattery) * 3;
+        }
+        
+        return Math.max(1, Math.ceil(duration)); 
+    }
+
+    // --- ATURAN TARGET LIMIT ---
+    function calculateTargetLimit(queueLength) {
+        if (queueLength >= 6 && queueLength <= 10) return 90;
+        if (queueLength > 10) return 85;
+        if (queueLength >= 3 && queueLength <= 5) return 95;
+        return 100;
+    }
+
+    // --- WHATSAPP NOTIF ---
+    const WA_MESSAGES = [
+        (plat, wa) => `Halo user ${plat}! Motor Anda sudah selesai diisi daya dan siap diambil. Mohon segera pindahkan kendaraan Anda.`,
+        (plat, wa) => `Peringatan! Pengisian daya motor ${plat} telah mencapai target. Slot telah terisi penuh. Silakan ambil kendaraan Anda.`,
+        (plat, wa) => `Notifikasi: Motor dengan plat nomor ${plat} telah selesai melakukan pengisian daya. Terima kasih atas kerja samanya.`,
+    ];
+
+    function sendWhatsAppNotification(plat, wa) {
+        if (wa?.length < 9 || FONTE_TOKEN === "YOUR_FONTE_TOKEN_HERE") {
+             logActivity('WA_SEND_FAIL', plat, 'SYSTEM', { reason: 'Token/WA invalid' });
+             return; 
+        }
+
+        const index = Math.floor(Math.random() * WA_MESSAGES.length);
+        const baseMessage = WA_MESSAGES[index](plat, wa);
+        const signature = "\n\n- Pesan ini dikirim otomatis oleh Smart Parking System MLU. Terima kasih sudah mampir di Rumah MLU.";
+        const message = encodeURIComponent(baseMessage + signature);
+
+        const url = `https://api.fonnte.com/send?target=${wa}&message=${message}`;
+
+        fetch(url, { method: 'POST', headers: { 'Authorization': FONTE_TOKEN }})
+        .then(response => response.json())
+        .then(data => {
+            logActivity('WA_SENT', plat, 'SYSTEM', { status: data.status, detail: data.detail });
+        })
+        .catch(error => {
+            logActivity('WA_SEND_FAIL', plat, 'SYSTEM', { reason: error.message });
+            console.error('WA Error:', error)
+        });
+    }
+
+    // --- START: BAGIAN 3 AKAN ADA DI SINI ---
+    // --- LANJUTAN DARI BAGIAN 2 ---
+
+    // --- LOGIKA REAL-TIME ADMIN (ON SNAPSHOT) ---
+    
+    // 1. LISTENER UTAMA (SLOT & ANTRIAN)
+    onSnapshot(antrianRef, (snap) => {
+        const d = snap.data() || {};
+        const slots = d.chargingSlots || [null, null, null];
+        const q = d.waitingQueue || [];
+        const blockedList = d.blockedList || [];
+
+        // RENDER QUICK STATUS
+        const qsContainer = document.getElementById('quickStatus');
+        const runningCount = slots.filter(s => s && s.startTime).length;
+        const emptyCount = slots.filter(s => s === null).length;
+        const currentQueueLength = q.length;
+        const currentMaxTarget = calculateTargetLimit(currentQueueLength);
+
+        qsContainer.innerHTML = `
+            <div>Slot Terisi: <span style="font-size:18px; font-weight:900; color:var(--accent);">${runningCount}</span>/3</div>
+            <div>Slot Kosong: <span style="font-size:18px; font-weight:900; color:var(--cyan);">${emptyCount}</span>/3</div>
+            <div>Antrian Tunggu: <span style="font-size:18px; font-weight:900; color:var(--soft-blue);">${currentQueueLength}</span></div>
+            <div>Target Max: <span style="font-size:18px; font-weight:900; color:var(--accent);">${currentMaxTarget}%</span></div>
+            <div>Blokir List: <span style="font-size:18px; font-weight:900; color:var(--soft-red);">${blockedList.length}</span></div>
+        `;
+
+        // UPDATE SELECT OPTIONS (Antrian dan Swap)
+        const assignQueueSelect = document.getElementById('assignQueueIndex');
+        assignQueueSelect.innerHTML = q.length ? q.map((x, i) => `<option value="${i}">${i + 1}: ${x.plat} (${x.startBattery}%)</option>`).join('') : '<option value="-1">-- Antrian Kosong --</option>';
+        
+        // DISPLAY BLOCKED LIST
+        document.getElementById('blockedListDisplay').innerHTML = blockedList.length ? 
+            'Diblokir: ' + blockedList.join(', ') : 'Tidak ada plat diblokir.';
+    });
+
+    // 2. LISTENER LOG AKTIVITAS (TOLL LOG)
+    const LOG_LIMIT = 25;
+    const logQuery = query(logRef, orderBy("timestamp", "desc"), limit(LOG_LIMIT));
+
+    onSnapshot(logQuery, (snapshot) => {
+        const container = document.getElementById('logListContainer');
+        let logHtml = '';
+
+        if (snapshot.empty) {
+            container.innerHTML = '<p style="text-align: center; color: var(--text-muted);">Tidak ada log aktivitas.</p>';
+            return;
+        }
+
+        snapshot.forEach(doc => {
+            const log = doc.data();
+            // Cek jika timestamp adalah objek Date, jika tidak, konversi
+            const ts = log.timestamp instanceof Date ? log.timestamp : log.timestamp.toDate(); 
+            const time = ts.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            
+            let color = '#aaa'; 
+            if (log.action.includes('CLEAR') || log.action.includes('STOP') || log.action.includes('FAIL')) color = 'var(--soft-red)';
+            else if (log.action.includes('REGISTER')) color = 'var(--cyan)';
+            else if (log.action.includes('START') || log.action.includes('ASSIGN')) color = 'var(--accent)';
+            else if (log.action.includes('WA_SENT')) color = 'var(--soft-blue)';
+            else if (log.action.includes('LOGIN')) color = 'var(--accent)';
+
+            const userDisplay = log.user === 'ADMIN' ? `<span style="color:var(--accent);">[A]</span>` : (log.user === 'SYSTEM' ? `<span style="color:var(--soft-blue);">[S]</span>` : `<span style="color:var(--cyan);">[U]</span>`);
+
+            logHtml += `
+                <div class="log-item">
+                    <span class="log-time">${time}</span>
+                    <span class="log-action" style="color:${color};">${log.action}</span>
+                    <span class="log-plat">${log.plat}</span>
+                    <span class="log-user">${userDisplay}</span>
+                </div>
+            `;
+        });
+        
+        container.innerHTML = logHtml;
+    });
+
+    // --- FUNGSI EKSEKUSI ADMIN (BUTTON CLICKS) ---
+
+    // 1. MANUAL ASSIGN & START (Membuat slot dari awal)
+    document.getElementById('btnManualAssign').onclick = () => {
+        const i = document.getElementById('manSlot').value;
+        const p = document.getElementById('manPlat').value.toUpperCase().replace(/\s/g, '').trim();
+        const startBat = parseInt(document.getElementById('manBattery').value); 
+
+        if(!p || isNaN(startBat) || startBat < 0 || startBat > 99) {
+            return showPopup('error','ERROR','Plat/Baterai Awal tidak valid.');
+        }
+
+        showPopup('confirm', 'KONFIRMASI', `Assign Plat ${p} ke Slot ${parseInt(i)+1}?`, () => {
+            runTransaction(db, async(t)=>{
+                const d = (await t.get(antrianRef)).data();
+                const s = d.chargingSlots || [null,null,null];
+                const q = d.waitingQueue || [];
+
+                if(s[i] !== null) throw `Slot ${parseInt(i)+1} sudah terisi.`;
+                
+                const target = calculateTargetLimit(q.length); 
+                const dur = calculateDuration(startBat, target); 
+                
+                s[i] = { 
+                    plat:p, 
+                    userName:'ADMIN', 
+                    wa:'', 
+                    startBattery:startBat, 
+                    targetLimit:target, 
+                    durationMinutes:dur, 
+                    startTime: new Date() // Langsung start cas
+                };
+                t.update(antrianRef, {chargingSlots:s}, {merge:true});
+            }).then(() => {
+                logActivity('ADMIN_ASSIGN_START', p, 'ADMIN', { slot: parseInt(i) + 1, bat: startBat, dur: dur });
+                showPopup('success','SUKSES',`Slot ${parseInt(i)+1} terisi dan cas dimulai.`);
+                document.getElementById('manPlat').value = ''; 
+                document.getElementById('manBattery').value = ''; 
+            }).catch(e => {
+                 logActivity('ADMIN_ASSIGN_FAIL', p, 'ADMIN', { slot: parseInt(i) + 1, error: e.toString() });
+                 showPopup('error','GAGAL', e);
+            });
+        });
+    };
+    
+    // 2. PAKSA KOSONGKAN SLOT (Clear Slot)
+    document.getElementById('btnClearSlotManual').onclick = () => {
+        const i = parseInt(document.getElementById('manSlot').value);
+        
+        showPopup('confirm', 'HAPUS SLOT PAKSA', `Paksa hapus Slot ${i+1}? Antrian akan ditarik.`, () => {
+             runTransaction(db, async(t) => {
+                const d = (await t.get(antrianRef)).data();
+                let s = d.chargingSlots; 
+                let q = d.waitingQueue;
+                
+                const platClearing = s[i]?.plat || 'N/A';
+                
+                if (s[i]) sendWhatsAppNotification(s[i].plat, s[i].wa); 
+
+                s[i] = null; 
+                
+                if(q.length){ 
+                    const nextItem = q.shift();
+                    const target = calculateTargetLimit(q.length); 
+                    const dur = calculateDuration(nextItem.startBattery, target);
+
+                    s[i] = { 
+                        ...nextItem, 
+                        targetLimit: target,
+                        durationMinutes: dur,
+                        startTime: null 
+                    }; 
+                    logActivity('ADMIN_SLOT_CLEARED', platClearing, 'ADMIN', { slot: i + 1, promoted: nextItem.plat });
+                } else {
+                     logActivity('ADMIN_SLOT_CLEARED', platClearing, 'ADMIN', { slot: i + 1, promoted: 'NONE' });
+                }
+                t.update(antrianRef, {chargingSlots:s, waitingQueue:q});
+            }).then(() => {
+                showPopup('success', 'SUKSES', `Slot ${i+1} dikosongkan. Antrian naik (jika ada).`);
+            }).catch(e => {
+                logActivity('ADMIN_SLOT_CLEAR_FAIL', platClearing, 'ADMIN', { slot: i + 1, error: e.toString() });
+                showPopup('error', 'GAGAL', e);
+            });
+        });
+    };
+
+    // 3. PINDAH ANTRIAN KE SLOT
+    document.getElementById('btnAssignQueueToSlot').onclick = () => {
+        const queueIndex = parseInt(document.getElementById('assignQueueIndex').value);
+        const slotTarget = parseInt(document.getElementById('assignSlotTarget').value);
+
+        if (queueIndex < 0) return showPopup('error', 'Gagal', 'Pilih antrian yang valid.');
+
+        showPopup('confirm', 'PINDAH ANTRIAN', `Pindah Antrian ke Slot ${slotTarget + 1}?`, () => {
+            runTransaction(db, async(t) => {
+                const d = (await t.get(antrianRef)).data();
+                let s = d.chargingSlots;
+                let q = d.waitingQueue;
+
+                if (!q[queueIndex]) throw "Antrian tidak ditemukan.";
+                if (s[slotTarget]) throw `Slot ${slotTarget + 1} sudah terisi. Kosongkan dulu.`;
+
+                const itemToMove = q[queueIndex];
+
+                q.splice(queueIndex, 1);
+                
+                const newTarget = calculateTargetLimit(q.length);
+                const newDur = calculateDuration(itemToMove.startBattery, newTarget); 
+                
+                s[slotTarget] = {
+                    ...itemToMove,
+                    targetLimit: newTarget,
+                    durationMinutes: newDur,
+                    startTime: null 
+                };
+
+                t.update(antrianRef, { chargingSlots: s, waitingQueue: q });
+            }).then(() => {
+                logActivity('ADMIN_QUEUE_ASSIGNED', itemToMove.plat, 'ADMIN', { fromQueue: queueIndex + 1, toSlot: slotTarget + 1 });
+                showPopup('success', 'SUKSES', `Antrian berhasil dipindah ke Slot ${slotTarget + 1}.`);
+            }).catch(e => {
+                logActivity('ADMIN_QUEUE_ASSIGN_FAIL', itemToMove?.plat || 'N/A', 'ADMIN', { error: e.toString() });
+                showPopup('error', 'GAGAL', e);
+            });
+        });
+    };
+    
+    // 4. TUKAR SLOT
+    document.getElementById('btnSwapSlots').onclick = () => {
+        const sourceIndex = parseInt(document.getElementById('slotSource').value);
+        const targetIndex = parseInt(document.getElementById('slotTarget').value);
+
+        if (sourceIndex === -1 || targetIndex === -1 || sourceIndex === targetIndex) {
+            return showPopup('error', 'Gagal', 'Pilih slot sumber dan target yang valid dan berbeda.');
+        }
+
+        showPopup('confirm', 'KONFIRMASI PINDAH', `Pindahkan Slot ${sourceIndex + 1} ke Slot ${targetIndex + 1}?`, () => {
+            runTransaction(db, async(t) => {
+                const d = (await t.get(antrianRef)).data();
+                let s = d.chargingSlots;
+
+                const sourceMotor = s[sourceIndex];
+                const targetMotor = s[targetIndex];
+                
+                s[targetIndex] = sourceMotor;
+                s[sourceIndex] = targetMotor;
+
+                t.update(antrianRef, { chargingSlots: s });
+            }).then(() => {
+                logActivity('ADMIN_SLOT_SWAP', 'N/A', 'ADMIN', { source: sourceIndex + 1, target: targetIndex + 1 });
+                showPopup('success', 'SUKSES', `Slot ${sourceIndex + 1} dan Slot ${targetIndex + 1} berhasil ditukar/dipindah.`);
+            }).catch(e => {
+                logActivity('ADMIN_SLOT_SWAP_FAIL', 'N/A', 'ADMIN', { error: e.toString() });
+                showPopup('error', 'GAGAL', e);
+            });
+        });
+    };
+    
+    // 5. BLOCK/UNBLOCK
+    document.getElementById('btnBlockUser').onclick = async () => {
+        const p = document.getElementById('blockPlatInput').value.toUpperCase().trim();
+        if(!p) return;
+        await runTransaction(db, async (t) => {
+            const d = (await t.get(antrianRef)).data(); 
+            const l = d.blockedList || [];
+            // Menggunakan ArrayUnion untuk menambahkan secara aman
+            t.update(antrianRef, {blockedList: arrayUnion(p)});
+        });
+        logActivity('ADMIN_BLOCK_USER', p, 'ADMIN');
+        showPopup('success', 'BLOKIR', `Plat ${p} diblokir.`);
+    };
+
+    document.getElementById('btnUnblockUser').onclick = async () => {
+        const p = document.getElementById('blockPlatInput').value.toUpperCase().trim();
+        if(!p) return;
+        await runTransaction(db, async (t) => {
+            const d = (await t.get(antrianRef)).data(); 
+            // Menggunakan ArrayRemove untuk menghapus secara aman
+            t.update(antrianRef, {blockedList: arrayRemove(p)});
+        });
+        logActivity('ADMIN_UNBLOCK_USER', p, 'ADMIN');
+        showPopup('success', 'UNBLOCK', `Plat ${p} dibuka blokirnya.`);
+    };
+    
+    // 6. DANGER ZONE
+    document.getElementById('btnStopAll').onclick = () => {
+        showPopup('confirm', 'BAHAYA: STOP SEMUA', 'Yakin? Semua slot cas akan dihentikan!', () => {
+            runTransaction(db, async(t)=>{ 
+                t.update(antrianRef, {chargingSlots:[null,null,null]}); 
+            });
+            logActivity('ADMIN_STOP_ALL_SLOTS', 'ALL', 'ADMIN');
+            showPopup('success', 'ACTION', 'Semua slot dihentikan.');
+        });
+    };
+    document.getElementById('btnResetAll').onclick = () => {
+        showPopup('confirm', 'BAHAYA: RESET TOTAL', 'Yakin? Semua antrian, slot, dan blokir akan DIHAPUS!', () => {
+            setDoc(antrianRef, {chargingSlots:[null,null,null], waitingQueue:[], blockedList:[]});
+            logActivity('ADMIN_DB_RESET', 'ALL', 'ADMIN');
+            showPopup('success', 'ACTION', 'Database direset total.');
+        });
+    };
+    
+</script>
+
