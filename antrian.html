@@ -129,11 +129,18 @@
             box-shadow: 0 0 10px rgba(204, 255, 0, 0.3);
         }
         
-        /* PULSATING GLOW DARI ISI BATERAI (Fill) */
+        .bat-icon {
+            width: 36px; height: 60px; border: 2px solid var(--text-muted); border-radius: 6px;
+            position: relative; margin: 0 auto 10px; display: flex; align-items: flex-end; padding: 2px;
+        }
+        .bat-icon::before { content: ''; position: absolute; top: -5px; left: 10px; width: 12px; height: 3px; background: var(--text-muted); }
+        
+        /* ISI BATERAI & PULSATING FILL */
         .bat-fill { 
             width: 100%; 
             background: var(--accent); 
-            border-radius: 3px; transition: height 0.5s; 
+            border-radius: 3px; 
+            transition: height 0.5s; /* Animasi naik mulus */
             box-shadow: 0 0 10px rgba(204, 255, 0, 0.5); 
         }
         
@@ -152,12 +159,7 @@
         }
         /* END PULSATING FILL */
 
-        .bat-icon {
-            width: 36px; height: 60px; border: 2px solid var(--text-muted); border-radius: 6px;
-            position: relative; margin: 0 auto 10px; display: flex; align-items: flex-end; padding: 2px;
-        }
-        .bat-icon::before { content: ''; position: absolute; top: -5px; left: 10px; width: 12px; height: 3px; background: var(--text-muted); }
-        
+
         .bat-bolt { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 20px; color: #000; text-shadow: none; z-index: 2; }
         
         .slot-box.active .bat-icon { border-color: var(--accent); }
@@ -173,7 +175,6 @@
         .btn-act { 
             width: 100%; 
             padding: 6px; 
-            border-radius: 6px; 
             border: none; 
             font-weight: 700; 
             font-family: 'Inter', sans-serif; 
@@ -183,6 +184,26 @@
         .btn-start { background: var(--accent); color: #000; } 
         .btn-stop { background: rgba(255, 59, 48, 0.1); border: 1px solid var(--soft-red); color: var(--soft-red); }
         .btn-edit-timer { background: rgba(0, 210, 255, 0.1); border: 1px solid var(--cyan); color: var(--cyan); }
+
+        /* KETERANGAN BATERAI LEBIH RAPIH */
+        .bat-info-container {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            font-size: 9px; 
+            color: var(--text); 
+            margin-top: 5px; 
+            font-family:'Inter', sans-serif;
+            text-align: left; /* Rata kiri di dalam slot box */
+            padding: 0 5px;
+        }
+        .bat-info-row {
+            display: flex;
+            justify-content: space-between;
+            line-height: 1.2;
+        }
+        .info-label { color: var(--text-muted); }
+        .info-value { font-weight: 700; }
 
 
         /* POPUP MODAL */
@@ -420,7 +441,7 @@
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
                 <div style="display:flex; align-items:center; gap:10px;">
                     <div style="width:8px; height:8px; background:var(--accent); border-radius:50%; box-shadow:0 0 10px var(--accent);"></div>
-                    <span style="font-family:'Inter'; font-serif; font-size:12px; color:var(--text); font-weight: 600;">STATUS DETAIL 3 SLOT</span>
+                    <span style="font-family:'Inter'; font-serif; font-size:12px; color:var(--text); font-weight: 600;">STATUS DETAIL SLOTS</span>
                 </div>
             </div>
 
@@ -475,6 +496,16 @@
             <button onclick="manualAssign()" class="btn-cyan adm-btn" style="background:var(--accent); color:#000; margin-bottom: 10px;">ISI SLOT MANUAL</button>
             <button onclick="clearSlotManual()" class="adm-btn btn-stop" style="background:var(--input-bg); color:var(--text); border: 1px solid var(--soft-red); margin-bottom: 15px;">KOSONGKAN SLOT (PAKSA)</button>
 
+            <hr style="border: none; border-top: 1px solid var(--cyan); margin: 15px 0;">
+            <h3 style="font-size: 14px; color: var(--cyan); margin-top: 5px; margin-bottom: 15px;">📝 MASUKKAN MOTOR KE ANTRIAN</h3>
+            <label>PLAT/NAMA/WA/BATERAI (Admin Test)</label>
+            <div class="adm-row" style="display: flex; gap: 5px; flex-wrap: wrap;">
+                 <input id="queuePlat" placeholder="Plat" class="adm-input" style="width: 48%;">
+                 <input id="queueName" placeholder="Nama" class="adm-input" style="width: 48%;">
+                 <input id="queueWA" placeholder="WA (08xx)" type="tel" class="adm-input" style="width: 48%;">
+                 <input id="queueBattery" placeholder="Baterai %" type="number" class="adm-input" style="width: 48%;">
+            </div>
+            <button onclick="adminRegisterQueue()" class="btn-cyan adm-btn" style="background:var(--cyan); color:#000; margin-top: 10px;">DAFTAR KE ANTRIAN</button>
             <hr style="border: none; border-top: 1px solid var(--border); margin: 15px 0;">
             
             <label>PINDAH SLOT CHARGING (Tukar Posisi)</label>
@@ -521,7 +552,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-        import { getFirestore, doc, onSnapshot, runTransaction, setDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+        import { getFirestore, doc, onSnapshot, runTransaction, setDoc, collection, addDoc, arrayRemove, arrayUnion } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
         import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-functions.js";
         import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-messaging.js";
 
@@ -645,6 +676,7 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const ref = doc(db, "antrian", "utama");
+        const logRef = collection(db, "activityLog"); // REFERENSI LOG BARU
         const messaging = getMessaging(app);
         const functions = getFunctions(app);
         let fcmToken = null;
@@ -664,6 +696,17 @@
         let triggeredAlarms = new Set();
         
         let isGpsBypassEnabled = localStorage.getItem('gpsBypass') === 'true';
+        
+        // --- FUNGSI LOGGING AKTIVITAS (TOLL LOG) ---
+        function logActivity(action, plat = 'N/A', user = 'ADMIN', details = {}) {
+            addDoc(logRef, {
+                timestamp: new Date(),
+                action: action, 
+                plat: plat,
+                user: user,
+                details: details
+            }).catch(e => console.error("Gagal mencatat log aktivitas:", e));
+        }
 
         // ... (Logika Timer Presisi, calculateDuration, calculateTargetLimit, WA_MESSAGES, dll. akan dimasukkan di Bagian 2) ...
         // --- LOGIKA TIMER PRESISI (KURVA ADLI) ---
@@ -791,18 +834,27 @@
             const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
             return R * c; 
         }
-
+        
+        // --- TEMPLATE WA SELESAI CAS (5 VARIASI DENGAN NAMA) ---
         const WA_MESSAGES = [
-            (plat, wa) => `Halo user ${plat}! Motor Anda sudah selesai diisi daya dan siap diambil. Mohon segera pindahkan kendaraan Anda.`,
-            (plat, wa) => `Peringatan! Pengisian daya motor ${plat} telah mencapai target. Slot telah terisi penuh. Silakan ambil kendaraan Anda.`,
-            (plat, wa) => `Notifikasi: Motor dengan plat nomor ${plat} telah selesai melakukan pengisian daya. Terima kasih atas kerja samanya.`,
+            (plat, wa, userName) => `Halo ${userName} (${plat})! Motor Anda sudah selesai diisi daya dan siap diambil. Mohon segera pindahkan kendaraan Anda.`,
+            (plat, wa, userName) => `Peringatan, ${userName}! Pengisian daya motor ${plat} telah mencapai target. Slot telah terisi penuh. Silakan ambil kendaraan Anda sekarang juga.`,
+            (plat, wa, userName) => `Notifikasi Penting: Motor ${plat} milik ${userName} telah selesai melakukan pengisian daya. Terima kasih atas kerja samanya di Rumah MLU.`,
+            (plat, wa, userName) => `Sesi Cas Selesai! ${userName}, motor ${plat} kini siap. Kami mohon bantuan Anda untuk segera memindahkan kendaraan dari slot.`,
+            (plat, wa, userName) => `Yuhuu, ${userName} (${plat}), baterai sudah full/target! Kami tunggu kedatangan Anda untuk mengambil motor Anda.`,
+        ];
+        
+        // --- TEMPLATE WA KHUSUS ANTRIAN (2 VARIASI DENGAN SLOT NO) ---
+        const WA_MESSAGES_QUEUE = [
+            (plat, userName, slotNum) => `GILIRAN ANDA TLAH TIBA! Halo ${userName} (${plat}), Slot Cas #${slotNum} baru saja kosong. Silakan masuk ke area slot.`,
+            (plat, userName, slotNum) => `PEMBERITAHUAN! ${userName} (${plat}), silakan bersiap! Slot Cas #${slotNum} kini tersedia untuk Anda.`,
         ];
 
-        function sendWhatsAppNotification(plat, wa) {
+        function sendWhatsAppNotification(plat, wa, userName = '') { 
             if (wa.length < 9 || FONTE_TOKEN === "YOUR_FONTE_TOKEN_HERE") return console.log("WA number too short or FONTE_TOKEN not set. Skipping notification.");
 
             const index = Math.floor(Math.random() * WA_MESSAGES.length);
-            const baseMessage = WA_MESSAGES[index](plat, wa);
+            const baseMessage = WA_MESSAGES[index](plat, wa, userName); 
             const signature = "\n\n- Pesan ini dikirim otomatis oleh Smart Parking System MLU. Terima kasih sudah mampir di Rumah MLU.";
             const message = encodeURIComponent(baseMessage + signature);
 
@@ -810,9 +862,36 @@
 
             fetch(url, { method: 'POST', headers: { 'Authorization': FONTE_TOKEN }})
             .then(response => response.json())
-            .then(data => console.log('WA Sent:', data))
-            .catch(error => console.error('WA Error:', error));
+            .then(data => {
+                 logActivity('WA_SENT', plat, 'SYSTEM', { status: data.status, type: 'FINISH' }); // LOGGING WA
+            })
+            .catch(error => {
+                 logActivity('WA_SEND_FAIL', plat, 'SYSTEM', { error: error.message, type: 'FINISH' });
+                 console.error('WA Error:', error)
+            });
         }
+        
+        function sendQueueNotification(plat, wa, userName, slotNum) {
+            if (wa.length < 9 || FONTE_TOKEN === "YOUR_FONTE_TOKEN_HERE") return console.log("WA Queue number too short or FONTE_TOKEN not set. Skipping notification.");
+
+            const index = Math.floor(Math.random() * WA_MESSAGES_QUEUE.length);
+            const baseMessage = WA_MESSAGES_QUEUE[index](plat, userName, slotNum); 
+            const signature = "\n\n- Pesan ini dikirim otomatis oleh Smart Parking System MLU. Terima kasih sudah mampir di Rumah MLU.";
+            const message = encodeURIComponent(baseMessage + signature);
+
+            const url = `https://api.fonnte.com/send?target=${wa}&message=${message}`;
+
+            fetch(url, { method: 'POST', headers: { 'Authorization': FONTE_TOKEN }})
+            .then(response => response.json())
+            .then(data => {
+                 logActivity('WA_QUEUE_SENT', plat, 'SYSTEM', { status: data.status, slot: slotNum }); // LOGGING WA QUEUE
+            })
+            .catch(error => {
+                 logActivity('WA_QUEUE_FAIL', plat, 'SYSTEM', { error: error.message, slot: slotNum });
+                 console.error('WA Queue Error:', error)
+            });
+        }
+
 
         function showPopup(type, title, msg, onOk = null, additionalData = null) {
             const m = document.getElementById('masterModal');
@@ -867,6 +946,7 @@
                         m.style.display = 'none';
                         // Redirect ke halaman Super Admin
                         window.location.href = 'admin.html';
+                        logActivity('SUPER_ADMIN_LOGIN', 'N/A', 'SA', { type: 'redirect' });
                     } 
                     else if(pin === '1131') { 
                         // Admin Mini Dashboard Login
@@ -879,18 +959,20 @@
 
                         isSuperAdminLoggedIn = false;
                         document.getElementById('adminPanel').style.display = 'block'; 
-                        // Set tampilan untuk Admin (langsung ke status area)
+                        
                         checkDisplayMode(); 
-                        // Update GPS toggle status when admin logs in
                         const bypassCheckbox = document.getElementById('gpsBypassToggle');
                         if (bypassCheckbox) {
                              bypassCheckbox.checked = isGpsBypassEnabled;
                              updateGpsBypassStatus();
                         }
+                        logActivity('ADMIN_LOGIN', 'N/A', 'ADMIN', { type: 'success' });
                         showPopup('success', 'LOGIN SUKSES', 'Anda login sebagai Admin. Status login akan tersimpan sampai Anda Logout.');
-
                     }
-                    else showPopup('error','GAGAL','PIN Salah!');
+                    else {
+                        logActivity('ADMIN_LOGIN_FAIL', 'N/A', 'ADMIN', { type: 'failed' });
+                        showPopup('error','GAGAL','PIN Salah!');
+                    }
                 };
                 // --- END LOGIC LOGIN BERTINGKAT ---
             }
@@ -991,9 +1073,9 @@
                 if(Notification.permission === "granted") {
                     new Notification("FC KELAPA GADING", { body: `Plat ${plat} Selesai!`, icon: "https://via.placeholder.com/128?text=⚡" });
                 }
+                logActivity('ALARM_CLIENT_TRIGGERED', plat, 'SYSTEM', { status: 'Success' });
             }
-
-            if (wa) sendWhatsAppNotification(plat, wa);
+            // WA PANGGILAN DIHAPUS DARI SINI (TRIGGERED HANYA OLEH clearSlotAndPromote)
         }
 
         window.stopAlarm = () => {
@@ -1012,6 +1094,7 @@
             isGpsBypassEnabled = document.getElementById('gpsBypassToggle').checked;
             localStorage.setItem('gpsBypass', isGpsBypassEnabled);
             updateGpsBypassStatus();
+            logActivity('ADMIN_TOGGLE_GPS_BYPASS', 'N/A', 'ADMIN', { status: isGpsBypassEnabled ? 'ON' : 'OFF' });
             showPopup('success', 'GPS BYPASS', `Mode bypass GPS ${isGpsBypassEnabled ? 'diaktifkan' : 'dinonaktifkan'}.`);
         };
 
@@ -1024,14 +1107,11 @@
             const logoutBtnContainer = document.getElementById('logoutButtonContainer');
             const adminPanel = document.getElementById('adminPanel');
 
-            // Cek status admin saat memuat halaman (dari localStorage)
             isAdminLoggedIn = localStorage.getItem('isAdminLoggedIn') === 'true';
             
-            // Logika untuk menyembunyikan loading screen dengan delay 1.5 detik
             setTimeout(() => {
                 document.getElementById('loadingScreen').style.display = 'none';
                 
-                // Jika bukan admin dan belum terdaftar, tampilkan modal pilihan
                 if (!myPlat && !isAdminLoggedIn && !isSuperAdminLoggedIn) {
                     document.getElementById('choiceModal').style.display = 'flex';
                 } else {
@@ -1039,24 +1119,22 @@
                 }
             }, 1500); 
 
-            // Area Status (detail slot dan antrian) HANYA terlihat jika pengguna terdaftar ATAU Admin
             if (myPlat || isAdminLoggedIn) {
                 statusArea.style.display = 'block';
             } else {
                 statusArea.style.display = 'none';
             }
             
-            // Registration Area
             if (myPlat) {
                 // User biasa yang terdaftar
                 regArea.style.display = 'none';
                 if (logoutBtnContainer) logoutBtnContainer.style.display = 'block';
                 if (adminPanel) adminPanel.style.display = 'none';
             } else if (isAdminLoggedIn) {
-                 // Admin (Persisten)
+                 // Admin (Persisten): HIDE registration, SHOW status, SHOW admin panel
                 regArea.style.display = 'none';
                 if (logoutBtnContainer) logoutBtnContainer.style.display = 'none';
-                if (adminPanel) adminPanel.style.display = 'block'; // Tampilkan panel admin
+                if (adminPanel) adminPanel.style.display = 'block'; 
             }
             else {
                 // Belum login/daftar
@@ -1075,16 +1153,14 @@
                 localStorage.removeItem('myPlat');
                 localStorage.removeItem('userWA'); 
                 
-                // --- ADMIN LOGOUT BARU ---
                 localStorage.removeItem('isAdminLoggedIn'); 
                 isAdminLoggedIn = false; 
-                // --- END ADMIN LOGOUT BARU ---
                 
                 isSuperAdminLoggedIn = false;
-                // Sembunyikan panel admin jika ada
                 const adminPanel = document.getElementById('adminPanel');
                 if (adminPanel) adminPanel.style.display = 'none';
                 
+                logActivity('USER_LOGOUT', localStorage.getItem('myPlat') || 'N/A', 'USER');
                 checkDisplayMode(); 
                 showPopup('success', 'SUKSES', 'Data lokal berhasil dihapus.');
             });
@@ -1139,6 +1215,7 @@
                         if (dist > MAX_DIST_KM) {
                              document.getElementById('btnDaftar').disabled=false;
                              document.getElementById('btnDaftar').innerText="DAFTAR ANTRIAN";
+                             logActivity('REGISTER_FAIL', plat, name, { reason: 'Jarak terlalu jauh', dist: dist });
                              return showPopup('error','GPS GAGAL',`Lu masih jauh cukk, masih ${dist.toFixed(3)} km dari FC Kelapa Gading. Dateng dulu kesini baru daftar bangsat`);
                         }
                         
@@ -1147,6 +1224,7 @@
                     (error) => {
                         document.getElementById('btnDaftar').disabled=false;
                         document.getElementById('btnDaftar').innerText="DAFTAR ANTRIAN";
+                        logActivity('REGISTER_FAIL', plat, name, { reason: error.message || 'GPS Error' });
                         if (error.code === error.PERMISSION_DENIED) {
                             return showPopup('error','GPS DIBLOKIR','Akses lokasi ditolak. Silakan izinkan akses lokasi di pengaturan browser Anda.');
                         }
@@ -1167,6 +1245,7 @@
             btn.innerText="PROSES...";
             let assignedSlot = -1;
             let finalDuration = 0; 
+            const logUserType = 'USER';
 
             try {
                 await runTransaction(db, async(t)=>{
@@ -1198,6 +1277,16 @@
                 localStorage.setItem('myPlat', plat); 
                 localStorage.setItem('userWA', wa); 
 
+                // --- PENCATATAN LOG BARU UNTUK USER BIASA ---
+                const logAction = assignedSlot !== -1 ? 'REGISTER_SLOT' : 'REGISTER_QUEUE';
+                logActivity(logAction, plat, name, {
+                    startBat: bat, 
+                    target: calculateTargetLimit(q.length), 
+                    slot: assignedSlot,
+                    dist: dist
+                });
+                // ---------------------------------------------
+
                 // --- JADWALKAN NOTIFIKASI SERVER (FCM) ---
                 if (fcmToken && (assignedSlot !== -1 || finalDuration > 0)) { 
                     try {
@@ -1214,7 +1303,6 @@
                         
                     } catch (error) {
                         console.error("Gagal menjadwalkan notifikasi FCM:", error);
-                        // showPopup('warning', 'PERINGATAN', 'Pendaftaran berhasil, tetapi notifikasi latar belakang mungkin tidak berfungsi. Cek koneksi Anda.');
                     }
                 }
                 // --- END JADWALKAN NOTIFIKASI SERVER ---
@@ -1231,28 +1319,41 @@
                 document.getElementById('userName').value=''; 
                 document.getElementById('userBattery').value='';
                 document.getElementById('userWA').value='';
-            } catch(e) { showPopup('error','GAGAL', e); }
+            } catch(e) { 
+                logActivity('REGISTER_FAIL', plat, name, { error: e.toString() }); // Catat kegagalan
+                showPopup('error','GAGAL', e); 
+            }
             
             btn.disabled=false; 
             btn.innerText="DAFTAR ANTRIAN";
         }
 
 
-        // --- LOGIC CLEAR SLOT & PROMOSI ANTRIAN (Dibuat terpisah agar bisa dipanggil oleh timer) ---
-        async function clearSlotAndPromote(i, plat, wa) { 
+        // --- LOGIC CLEAR SLOT & PROMOSI ANTRIAN (Dibuat terpisah agar bisa dipanggil oleh timer/manual/admin) ---
+        // MENERIMA PARAMETER triggerType UNTUK LOGGING
+        async function clearSlotAndPromote(i, plat, wa, triggerType = 'ADMIN_MANUAL', userName = 'N/A') { 
             window.stopAlarm();
+            let promotedPlat = 'NONE';
+            
             try {
                 await runTransaction(db, async(t) => {
                     const d = (await t.get(ref)).data();
                     let s = d.chargingSlots; 
                     let q = d.waitingQueue;
                     
-                    if (s[i]) sendWhatsAppNotification(s[i].plat, s[i].wa); 
+                    const currentMotor = s[i];
+                    
+                    // 1. Notifikasi Motor yang Selesai/Dihentikan (WA #1)
+                    if (currentMotor) {
+                         sendWhatsAppNotification(currentMotor.plat, currentMotor.wa, currentMotor.userName); 
+                    }
 
                     s[i] = null; 
                     
+                    // 2. Promosi Antrian
                     if(q.length){ 
                         const nextItem = q.shift();
+                        promotedPlat = nextItem.plat; // Catat plat yang dipromosikan
                         
                         const target = calculateTargetLimit(q.length); 
                         const dur = calculateDuration(nextItem.startBattery, target);
@@ -1263,11 +1364,19 @@
                             durationMinutes: dur,
                             startTime: null 
                         }; 
+                        
+                        // 3. Notifikasi Antrian Berikutnya (WA #2)
+                        sendQueueNotification(nextItem.plat, nextItem.wa, nextItem.userName, i + 1); 
                     }
 
                     t.update(ref, {chargingSlots:s, waitingQueue:q});
+                    
+                    // Catat aksi Promosi/Clear yang berhasil
+                    logActivity(`SYSTEM_CLEAR_${triggerType}`, plat, 'SYSTEM', { slot: i + 1, cleared_plat: currentMotor?.plat || plat, promoted: promotedPlat });
+
                 });
             } catch (e) {
+                logActivity(`CLEAR_FAIL_${triggerType}`, plat, 'SYSTEM', { slot: i + 1, error: e.toString() });
                 console.error("Gagal menjalankan clearSlotAndPromote:", e);
             }
         }
@@ -1277,6 +1386,7 @@
         window.act = (i, type, platName, wa) => { 
             initAudioAndNotif();
             const myPlat = localStorage.getItem('myPlat');
+            const logUser = isAdminLoggedIn ? 'ADMIN' : myPlat;
 
             if(type === 'stop' && !isAdminLoggedIn && myPlat !== platName) {
                 return showPopup('error', 'AKSES DITOLAK', 'Ini bukan motor lu bangsat');
@@ -1284,8 +1394,11 @@
 
             if(type==='stop') {
                 showPopup('confirm', 'KONFIRMASI', `Stop & Hapus Slot ${i+1}?`, () => {
-                    clearSlotAndPromote(i, platName, wa)
-                    .then(() => showPopup('success', 'SUKSES', `Slot ${i+1} dikosongkan. Antrian naik (jika ada).`));
+                    clearSlotAndPromote(i, platName, wa, 'USER_MANUAL', logUser)
+                    .then(() => {
+                         logActivity('USER_STOP_SLOT', platName, logUser, { slot: i + 1 });
+                         showPopup('success', 'SUKSES', `Slot ${i+1} dikosongkan. Antrian naik (jika ada).`);
+                    });
                 });
 
             } else if (type === 'start') {
@@ -1299,10 +1412,11 @@
                         
                         s[i].targetLimit = newTarget;
                         s[i].durationMinutes = calculateDuration(s[i].startBattery, newTarget);
-                        
                         s[i].startTime = new Date();
                     }
                     t.update(ref, {chargingSlots:s});
+                }).then(() => {
+                     logActivity('ADMIN_START_SLOT', platName, logUser, { slot: i + 1 });
                 });
             }
         };
@@ -1310,6 +1424,8 @@
         // --- HAPUS ANTRIAN ---
         window.delQ = (i, platName) => { 
             const myPlat = localStorage.getItem('myPlat');
+            const logUser = isAdminLoggedIn ? 'ADMIN' : myPlat;
+            
             if(!isAdminLoggedIn && myPlat !== platName) {
                 return showPopup('error', 'AKSES DITOLAK', 'Ini bukan motor lu bangsat');
             }
@@ -1318,6 +1434,9 @@
                 runTransaction(db, async(t)=>{
                     const q = (await t.get(ref)).data().waitingQueue;
                     q.splice(i,1); t.update(ref, {waitingQueue:q});
+                }).then(() => {
+                    logActivity('USER_DELETE_QUEUE', platName, logUser, { index: i + 1 });
+                    showPopup('success', 'SUKSES', `Antrian ${platName} berhasil dihapus.`);
                 });
             });
         };
@@ -1331,6 +1450,7 @@
                 const i = parseInt(el.dataset.slotindex);
                 const plat = el.dataset.plat; 
                 const wa = el.dataset.wa;
+                const userName = el.dataset.username; // Ambil username
                 const key = plat+end; 
 
                 const diff = end - Date.now();
@@ -1345,13 +1465,15 @@
                     // Pemicu Alarm/WA (Sekali saja per event selesai)
                     if(!triggeredAlarms.has(key)) { 
                         triggeredAlarms.add(key); 
-                        triggerAlarm(plat, wa); 
+                        triggerAlarm(plat, wa); // WA sudah dihapus dari sini
                     }
                     
                     // Auto-Clear Slot jika Timer Habis (Klien mencoba memicu promosi)
                     if(el.dataset.stopped !== 'true') {
                          el.dataset.stopped = 'true'; 
-                         clearSlotAndPromote(i, plat, wa); 
+                         // --- LOG BARU: AUTO CLEAR DARI TIMER ---
+                         clearSlotAndPromote(i, plat, wa, 'AUTO_TIMER', userName); 
+                         // ----------------------------------------
                     }
                 }
             });
@@ -1393,7 +1515,6 @@
             }
             
             // RENDER SLOTS (Detail)
-            // Container default hanya 3 slot, kita asumsikan 3 slot fix (sesuai permintaan terakhir)
             const slotOptions = ['0', '1', '2']; 
             
             // Update dropdown slot di Admin Panel agar dinamis (jika ada)
@@ -1428,30 +1549,23 @@
                 let buttons;
                 let timeDisplay;
                 
-                // --- LOGIKA ANIMASI BATERAI (BARU) ---
-                let h = x.startBattery; // Default adalah baterai awal
+                // --- LOGIKA ANIMASI BATERAI ---
+                let h = x.startBattery; 
                 
                 if (isRun) {
                     const start = x.startTime.seconds ? x.startTime.seconds * 1000 : new Date(x.startTime).getTime();
                     const durationMs = x.durationMinutes * 60000;
                     
                     const timeElapsed = Date.now() - start;
-                    
                     const startBat = x.startBattery;
                     const targetBat = x.targetLimit;
                     const batRange = targetBat - startBat;
                     
                     if (timeElapsed < durationMs) {
-                        // Persentase Kenaikan (0 hingga 1)
                         const progressRatio = timeElapsed / durationMs;
-                        
-                        // Estimasi baterai saat ini
                         const currentBat = startBat + (batRange * progressRatio);
-                        
-                        // Gunakan estimasi baterai saat ini, dibatasi maksimal target
                         h = Math.min(100, Math.ceil(currentBat)); 
                     } else {
-                        // Jika waktu habis (sudah selesai cas)
                         h = targetBat; 
                     }
                 }
@@ -1460,8 +1574,6 @@
                 const pulsingClass = isRun ? 'pulsating' : ''; // Di box (border)
                 const fillPulsatingClass = isRun ? 'pulsating-fill' : ''; // Di isi batre
                 const highlightClass = (myPlat && myPlat === x.plat) ? 'is-mine' : '';
-
-                let batInfo = `<div style="font-size:9px; color:var(--text); margin-top:5px; font-family:'Inter', sans-serif;">Awal: ${x.startBattery}% → Target: ${x.targetLimit}% (Saat ini: ${h}%)</div>`;
 
 
                 if(isRun) {
@@ -1474,7 +1586,7 @@
                             <button class="btn-act btn-stop" onclick="window.act(${i},'stop', '${x.plat}', '${x.wa}')">STOP</button>
                         </div>
                     `;
-                    timeDisplay = `<div style="font-size:16px; font-weight:800; color:var(--accent); margin:5px 0; text-shadow: 0 0 5px rgba(204, 255, 0, 0.5); font-family:'Syne', sans-serif;" data-end="${end}" data-plat="${x.plat}" data-wa="${x.wa}" data-slotindex="${i}">...</div>`; 
+                    timeDisplay = `<div style="font-size:16px; font-weight:800; color:var(--accent); margin:5px 0; text-shadow: 0 0 5px rgba(204, 255, 0, 0.5); font-family:'Syne', sans-serif;" data-end="${end}" data-plat="${x.plat}" data-wa="${x.wa}" data-slotindex="${i}" data-username="${x.userName || ''}">...</div>`; 
 
                 } else {
                     buttons = `<button class="btn-act btn-stop" onclick="window.act(${i},'stop', '${x.plat}', '${x.wa}')">STOP/HAPUS</button>`;
@@ -1484,6 +1596,25 @@
                 
                 let waInfo = x.wa ? `<a href="https://wa.me/${x.wa.replace(/\D/g, '')}" target="_blank" style="color:var(--cyan); font-size:9px; margin-bottom:5px; text-decoration:none; font-family:'Inter', sans-serif;">WA: ${x.wa}</a>` : '';
                 let nameDisplay = x.userName ? `<div style="font-size:10px; color:var(--cyan); font-weight: 700; font-family:'Inter', sans-serif;">(${x.userName})</div>` : '';
+
+                
+                // --- PERBAIKAN TAMPILAN KETERANGAN BATERAI ---
+                let batInfo = `
+                    <div class="bat-info-container">
+                        <div class="bat-info-row">
+                            <span class="info-label">Awal:</span>
+                            <span class="info-value">${x.startBattery}%</span>
+                        </div>
+                        <div class="bat-info-row">
+                            <span class="info-label">Target:</span>
+                            <span class="info-value">${x.targetLimit}%</span>
+                        </div>
+                        <div class="bat-info-row">
+                            <span class="info-label">Saat ini:</span>
+                            <span class="info-value" style="color:var(--cyan);">${h}%</span>
+                        </div>
+                    </div>`;
+                // --- END PERBAIKAN ---
 
                 
                 return `
@@ -1521,6 +1652,46 @@
         });
 
         // --- ADMIN FUNCTIONS LANJUTAN ---
+        
+        // ADMIN REGISTER KE ANTRIAN (FITUR BARU)
+        window.adminRegisterQueue = () => {
+            if (!isAdminLoggedIn) return showPopup('error', 'AKSES DITOLAK', 'Hanya Admin.');
+            
+            const plat = document.getElementById('queuePlat').value.toUpperCase().replace(/\s/g, '').trim();
+            const name = document.getElementById('queueName').value.trim() || 'ADMIN_ENTRY';
+            const wa = document.getElementById('queueWA').value.trim();
+            const bat = parseInt(document.getElementById('queueBattery').value);
+
+            if (!plat || !wa || isNaN(bat) || bat < 0 || bat > 99) {
+                return showPopup('error', 'DATA KURANG', 'Plat, WA, dan Baterai harus diisi.');
+            }
+
+            runTransaction(db, async(t) => {
+                const d = (await t.get(ref)).data() || {};
+                let s = d.chargingSlots || [null,null,null];
+                let q = d.waitingQueue || [];
+
+                if(s.some(x=>x?.plat===plat) || q.some(x=>x?.plat===plat)) throw "Plat sudah terdaftar dalam antrian/slot!";
+                
+                const target = calculateTargetLimit(q.length); 
+                const dur = calculateDuration(bat, target);
+                
+                const item = { plat:plat, userName:name, wa:wa, startBattery:bat, targetLimit:target, durationMinutes:dur, startTime:null }; 
+                q.push(item);
+                
+                t.update(ref, {waitingQueue: q});
+            }).then(() => {
+                logActivity('ADMIN_REGISTER_QUEUE', plat, 'ADMIN', { startBat: bat, target: calculateTargetLimit(q.length), index: q.length });
+                showPopup('success', 'SUKSES', `Motor ${plat} berhasil ditambahkan ke Antrian.`);
+                document.getElementById('queuePlat').value = '';
+                document.getElementById('queueName').value = '';
+                document.getElementById('queueWA').value = '';
+                document.getElementById('queueBattery').value = '';
+            }).catch(e => {
+                logActivity('ADMIN_REGISTER_QUEUE_FAIL', plat, 'ADMIN', { error: e.toString() });
+                showPopup('error', 'GAGAL', e);
+            });
+        };
 
         window.setTimerManualPrompt = (i, currentDuration) => {
             if(!isAdminLoggedIn) {
@@ -1536,8 +1707,10 @@
                     
                     t.update(ref, {chargingSlots:s});
                 }).then(() => {
+                    logActivity('ADMIN_SET_TIMER', s[i].plat, 'ADMIN', { slot: i + 1, duration: newDuration });
                     showPopup('success','TIMER DIATUR',`Timer Slot ${i+1} diatur ke ${newDuration} menit.`);
                 }).catch(e => {
+                    logActivity('ADMIN_SET_TIMER_FAIL', s[i]?.plat || 'N/A', 'ADMIN', { error: e.toString() });
                     showPopup('error','GAGAL', e);
                 });
             };
@@ -1577,14 +1750,16 @@
                     startBattery:startBat, 
                     targetLimit:target, 
                     durationMinutes:dur, 
-                    startTime:null 
+                    startTime: new Date() // Start Cas saat Manual Assign
                 };
                 t.update(ref, {chargingSlots:s}, {merge:true});
             }).then(() => {
+                 logActivity('ADMIN_MANUAL_ASSIGN', p, 'ADMIN', { slot: parseInt(i) + 1, startBat: startBat });
                  showPopup('success','SUKSES',`Slot ${parseInt(i)+1} terisi dengan Baterai Awal ${startBat}%.`);
                  document.getElementById('manPlat').value = ''; 
                  document.getElementById('manBattery').value = ''; 
             }).catch(e => {
+                 logActivity('ADMIN_MANUAL_ASSIGN_FAIL', p, 'ADMIN', { error: e.toString() });
                  showPopup('error','GAGAL', e);
             });
         };
@@ -1593,8 +1768,10 @@
             if (!isAdminLoggedIn) return showPopup('error', 'AKSES DITOLAK', 'Hanya Admin.');
 
             const i = parseInt(document.getElementById('manSlot').value);
+            const platName = document.getElementById('manPlat').value.toUpperCase().trim() || 'N/A';
+
             showPopup('confirm', 'HAPUS SLOT PAKSA', `Paksa hapus Slot ${i+1}? Antrian akan naik jika tersedia.`, () => {
-                clearSlotAndPromote(i, 'ADMIN_MANUAL', '')
+                clearSlotAndPromote(i, platName, '', 'ADMIN_MANUAL', 'ADMIN')
                 .then(() => {
                     showPopup('success', 'SUKSES', `Slot ${i+1} dikosongkan dan antrian ditarik (jika ada).`);
                 }).catch(e => {
@@ -1634,8 +1811,10 @@
 
                     t.update(ref, { chargingSlots: s, waitingQueue: q });
                 }).then(() => {
+                    logActivity('ADMIN_MOVE_QUEUE', itemToMove.plat, 'ADMIN', { fromQueueIndex: queueIndex + 1, toSlot: slotTarget + 1 });
                     showPopup('success', 'SUKSES', `Antrian berhasil dipindah ke Slot ${slotTarget + 1}.`);
                 }).catch(e => {
+                    logActivity('ADMIN_MOVE_QUEUE_FAIL', itemToMove?.plat || 'N/A', 'ADMIN', { error: e.toString() });
                     showPopup('error', 'GAGAL', e);
                 });
             });
@@ -1664,8 +1843,10 @@
 
                     t.update(ref, { chargingSlots: s });
                 }).then(() => {
+                    logActivity('ADMIN_SLOT_SWAP', 'N/A', 'ADMIN', { source: sourceIndex + 1, target: targetIndex + 1 });
                     showPopup('success', 'SUKSES', `Slot ${sourceIndex + 1} dan Slot ${targetIndex + 1} berhasil ditukar/dipindah.`);
                 }).catch(e => {
+                    logActivity('ADMIN_SLOT_SWAP_FAIL', 'N/A', 'ADMIN', { error: e.toString() });
                     showPopup('error', 'GAGAL', e);
                 });
             });
@@ -1676,19 +1857,24 @@
             if(!p) return;
             await runTransaction(db, async (t) => {
                 const d = (await t.get(ref)).data(); const l = d.blockedList || [];
-                if (!l.includes(p)) l.push(p); t.update(ref, {blockedList: l});
+                // Menggunakan arrayUnion untuk logging
+                if (!l.includes(p)) l.push(p); t.update(ref, {blockedList: arrayUnion(p)});
+            }).then(() => {
+                logActivity('ADMIN_BLOCK_USER', p, 'ADMIN');
+                showPopup('success', 'BLOKIR', `Plat ${p} diblokir.`);
             });
-            showPopup('success', 'BLOKIR', `Plat ${p} diblokir.`);
         };
         window.stopAll = () => {
             showPopup('confirm', 'BAHAYA', 'Stop SEMUA slot?', () => {
                 runTransaction(db, async(t)=>{ t.update(ref, {chargingSlots:[null,null,null]}); });
-            });
+                logActivity('ADMIN_STOP_ALL_SLOTS', 'ALL', 'ADMIN');
+            }).then(() => showPopup('success', 'ACTION', 'Semua slot dihentikan.'));
         };
         window.resetAll = () => {
             showPopup('confirm', 'RESET DATABASE', 'Hapus antrian & slot?', () => {
                 setDoc(ref, {chargingSlots:[null,null,null], waitingQueue:[], blockedList:[]});
-            });
+                logActivity('ADMIN_DB_RESET', 'ALL', 'ADMIN');
+            }).then(() => showPopup('success', 'ACTION', 'Database direset total.'));
         };
         
         // JALANKAN LOGIC DUAL VIEW SETELAH DOM SIAP
