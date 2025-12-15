@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FC Smart Charging - Admin Dashboard</title>
+    <title>FC Smart Charging - Super Admin Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Syne:wght@700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -174,14 +174,14 @@
 <body>
 
     <div class="header">
-        <h1>ADMIN DASHBOARD - FC CHARGING</h1>
+        <h1>SUPER ADMIN DASHBOARD - FC CHARGING</h1>
         <button id="btnLogout" class="btn danger" style="width: 100px; margin-top: 0;">Logout</button>
     </div>
 
     <div class="container">
         <div id="loginArea" style="display: none; text-align: center; padding: 50px;">
-            <h2 style="color: var(--accent);">Login Admin</h2>
-            <input type="password" id="adminPin" placeholder="Masukkan PIN Admin" style="width: 200px; margin-bottom: 10px;">
+            <h2 style="color: var(--accent);">Login Super Admin</h2>
+            <input type="password" id="adminPin" placeholder="Masukkan PIN Super Admin (8080)" style="width: 200px; margin-bottom: 10px;">
             <button id="btnLogin" class="btn primary" style="width: 200px;">LOGIN</button>
             <div style="margin-top: 15px;"><a href="./antrian.html" style="color: var(--cyan);">← Kembali ke Antrian</a></div>
         </div>
@@ -207,6 +207,26 @@
                     <h2>TOOLS MANAJEMEN SLOT & ANTRIAN</h2>
                     <div id="adminTools">
                         
+                        <h3 style="color: var(--soft-red); border-bottom: 1px dashed var(--border); padding-bottom: 5px;">🔥 FUNGSI TEST (SUPER ADMIN)</h3>
+                        <div class="input-group">
+                            <label>Plat Dummy (Gunakan angka unik):</label>
+                            <input type="text" id="dummyPlatPrefix" placeholder="TEST" value="TEST">
+                        </div>
+                        <div class="input-group">
+                            <label>Baterai Awal Slot 1, 2, 3 (%):</label>
+                            <div class="btn-group" style="margin-top:0;">
+                                <input type="number" id="dummyBat1" placeholder="S1: 30" value="30" style="flex: 1;">
+                                <input type="number" id="dummyBat2" placeholder="S2: 40" value="40" style="flex: 1;">
+                                <input type="number" id="dummyBat3" placeholder="S3: 50" value="50" style="flex: 1;">
+                            </div>
+                        </div>
+                        <button id="btnFillAllSlots" class="btn danger" onclick="fillAllSlotsManual()">ISI SEMUA 3 SLOT (TEST)</button>
+                        
+                        <hr style="border: none; border-top: 2px solid var(--soft-red); margin: 20px 0;">
+
+
+                        <h3 style="color: var(--accent); border-bottom: 1px dashed var(--border); padding-bottom: 5px;">🛠️ ADMIN TOOLS STANDAR</h3>
+
                         <div class="input-group">
                             <label>Slot Target:</label>
                             <select id="manSlot">
@@ -391,23 +411,24 @@
     document.getElementById('btnLogin').onclick = () => {
         const pin = document.getElementById('adminPin').value;
         if (pin === ADMIN_PIN) {
-            localStorage.setItem('adminAuth', 'true');
-            logActivity('ADMIN_LOGIN', 'N/A', 'ADMIN', { type: 'success' });
+            localStorage.setItem('superAdminAuth', 'true'); // Gunakan kunci berbeda untuk Super Admin
+            logActivity('SUPER_ADMIN_LOGIN', 'N/A', 'SUPER_ADMIN', { type: 'success' });
             checkAuthAndRender();
         } else {
-            logActivity('ADMIN_LOGIN_FAIL', 'N/A', 'ADMIN', { type: 'failed' });
+            logActivity('SUPER_ADMIN_LOGIN_FAIL', 'N/A', 'SUPER_ADMIN', { type: 'failed' });
             showPopup('error', 'LOGIN GAGAL', 'PIN Admin salah.');
         }
     };
 
     document.getElementById('btnLogout').onclick = () => {
-        localStorage.removeItem('adminAuth');
-        logActivity('ADMIN_LOGOUT', 'N/A', 'ADMIN');
-        checkAuthAndRender();
+        localStorage.removeItem('superAdminAuth');
+        logActivity('SUPER_ADMIN_LOGOUT', 'N/A', 'SUPER_ADMIN');
+        window.location.href = './antrian.html'; // Redirect kembali ke mini dashboard
     };
 
     function checkAuthAndRender() {
-        isAdminLoggedIn = localStorage.getItem('adminAuth') === 'true';
+        // Super Admin otentikasi hanya di halaman ini
+        isAdminLoggedIn = localStorage.getItem('superAdminAuth') === 'true'; 
         document.getElementById('loginArea').style.display = isAdminLoggedIn ? 'none' : 'block';
         document.getElementById('dashboardArea').style.display = isAdminLoggedIn ? 'block' : 'none';
         document.getElementById('btnLogout').style.display = isAdminLoggedIn ? 'block' : 'none';
@@ -501,9 +522,6 @@
         });
     }
 
-    // --- START: BAGIAN 3 AKAN ADA DI SINI ---
-    // --- LANJUTAN DARI BAGIAN 2 ---
-
     // --- LOGIKA REAL-TIME ADMIN (ON SNAPSHOT) ---
     
     // 1. LISTENER UTAMA (SLOT & ANTRIAN)
@@ -521,8 +539,8 @@
         const currentMaxTarget = calculateTargetLimit(currentQueueLength);
 
         qsContainer.innerHTML = `
-            <div>Slot Terisi: <span style="font-size:18px; font-weight:900; color:var(--accent);">${runningCount}</span>/3</div>
-            <div>Slot Kosong: <span style="font-size:18px; font-weight:900; color:var(--cyan);">${emptyCount}</span>/3</div>
+            <div>Slot Terisi: <span style="font-size:18px; font-weight:900; color:var(--accent);">${runningCount}</span>/${slots.length}</div>
+            <div>Slot Kosong: <span style="font-size:18px; font-weight:900; color:var(--cyan);">${emptyCount}</span>/${slots.length}</div>
             <div>Antrian Tunggu: <span style="font-size:18px; font-weight:900; color:var(--soft-blue);">${currentQueueLength}</span></div>
             <div>Target Max: <span style="font-size:18px; font-weight:900; color:var(--accent);">${currentMaxTarget}%</span></div>
             <div>Blokir List: <span style="font-size:18px; font-weight:900; color:var(--soft-red);">${blockedList.length}</span></div>
@@ -535,6 +553,25 @@
         // DISPLAY BLOCKED LIST
         document.getElementById('blockedListDisplay').innerHTML = blockedList.length ? 
             'Diblokir: ' + blockedList.join(', ') : 'Tidak ada plat diblokir.';
+            
+        // UPDATE SLOT OPTIONS (Slot 1, 2, 3)
+        const slotOptions = slots.map((_, i) => `<option value="${i}">Slot ${i + 1}</option>`).join('');
+        const updateSelects = (ids) => {
+            ids.forEach(id => {
+                const select = document.getElementById(id);
+                if (select) select.innerHTML = slotOptions;
+            });
+        };
+
+        updateSelects(['manSlot', 'slotSource', 'slotTarget', 'assignSlotTarget']);
+        
+        // Perbaiki opsi slot sumber dan target agar memiliki opsi default
+        const slotSource = document.getElementById('slotSource');
+        if(slotSource) slotSource.innerHTML = '<option value="-1">Dari</option>' + slotOptions;
+        const slotTarget = document.getElementById('slotTarget');
+        if(slotTarget) slotTarget.innerHTML = '<option value="-1">Ke</option>' + slotOptions;
+
+
     });
 
     // 2. LISTENER LOG AKTIVITAS (TOLL LOG)
@@ -563,7 +600,7 @@
             else if (log.action.includes('WA_SENT')) color = 'var(--soft-blue)';
             else if (log.action.includes('LOGIN')) color = 'var(--accent)';
 
-            const userDisplay = log.user === 'ADMIN' ? `<span style="color:var(--accent);">[A]</span>` : (log.user === 'SYSTEM' ? `<span style="color:var(--soft-blue);">[S]</span>` : `<span style="color:var(--cyan);">[U]</span>`);
+            const userDisplay = log.user === 'SUPER_ADMIN' ? `<span style="color:var(--soft-red);">[SA]</span>` : (log.user === 'ADMIN' ? `<span style="color:var(--accent);">[A]</span>` : (log.user === 'SYSTEM' ? `<span style="color:var(--soft-blue);">[S]</span>` : `<span style="color:var(--cyan);">[U]</span>`));
 
             logHtml += `
                 <div class="log-item">
@@ -576,10 +613,61 @@
         });
         
         container.innerHTML = logHtml;
+        container.scrollTop = container.scrollHeight; // Scroll ke bawah
     });
 
-    // --- FUNGSI EKSEKUSI ADMIN (BUTTON CLICKS) ---
+    // --- SUPER ADMIN TEST FUNCTIONS ---
+    window.fillAllSlotsManual = () => {
+        const prefix = document.getElementById('dummyPlatPrefix').value.toUpperCase().trim();
+        const bat1 = parseInt(document.getElementById('dummyBat1').value);
+        const bat2 = parseInt(document.getElementById('dummyBat2').value);
+        const bat3 = parseInt(document.getElementById('dummyBat3').value);
 
+        if (!prefix || [bat1, bat2, bat3].some(b => isNaN(b) || b < 0 || b > 99)) {
+            return showPopup('error', 'INPUT INVALID', 'Plat prefix dan persentase baterai (0-99) harus diisi.');
+        }
+
+        showPopup('confirm', 'KONFIRMASI TEST', 'Yakin ingin mengisi semua 3 slot dengan data dummy?', () => {
+            runTransaction(db, async(t) => {
+                const d = (await t.get(antrianRef)).data();
+                let s = d.chargingSlots || [null, null, null];
+                let q = d.waitingQueue || [];
+
+                const items = [
+                    { plat: prefix + '1', startBattery: bat1 },
+                    { plat: prefix + '2', startBattery: bat2 },
+                    { plat: prefix + '3', startBattery: bat3 }
+                ];
+                
+                const currentQueueLength = q.length;
+                const target = calculateTargetLimit(currentQueueLength);
+
+                items.forEach((item, i) => {
+                    const dur = calculateDuration(item.startBattery, target);
+                    s[i] = {
+                        plat: item.plat,
+                        userName: 'TEST_SA', 
+                        wa: '',
+                        startBattery: item.startBattery,
+                        targetLimit: target,
+                        durationMinutes: dur,
+                        startTime: new Date()
+                    };
+                });
+
+                t.update(antrianRef, { chargingSlots: s });
+            }).then(() => {
+                logActivity('SA_FILL_ALL_SLOTS', prefix, 'SUPER_ADMIN', { bat: [bat1, bat2, bat3] });
+                showPopup('success', 'SUKSES', 'Semua slot berhasil diisi untuk tujuan testing.');
+            }).catch(e => {
+                logActivity('SA_FILL_FAIL', prefix, 'SUPER_ADMIN', { error: e.toString() });
+                showPopup('error', 'GAGAL', e);
+            });
+        });
+    };
+    
+    // --- FUNGSI EKSEKUSI ADMIN (BUTTON CLICKS) ---
+    // (Kode untuk Manual Assign, Clear Slot, Assign Queue, Swap Slots, Block, Stop All, Reset All di admin.html tetap sama seperti sebelumnya)
     // 1. MANUAL ASSIGN & START (Membuat slot dari awal)
     document.getElementById('btnManualAssign').onclick = () => {
         const i = document.getElementById('manSlot').value;
@@ -612,12 +700,12 @@
                 };
                 t.update(antrianRef, {chargingSlots:s}, {merge:true});
             }).then(() => {
-                logActivity('ADMIN_ASSIGN_START', p, 'ADMIN', { slot: parseInt(i) + 1, bat: startBat, dur: dur });
+                logActivity('ADMIN_ASSIGN_START', p, 'SUPER_ADMIN', { slot: parseInt(i) + 1, bat: startBat, dur: dur });
                 showPopup('success','SUKSES',`Slot ${parseInt(i)+1} terisi dan cas dimulai.`);
                 document.getElementById('manPlat').value = ''; 
                 document.getElementById('manBattery').value = ''; 
             }).catch(e => {
-                 logActivity('ADMIN_ASSIGN_FAIL', p, 'ADMIN', { slot: parseInt(i) + 1, error: e.toString() });
+                 logActivity('ADMIN_ASSIGN_FAIL', p, 'SUPER_ADMIN', { slot: parseInt(i) + 1, error: e.toString() });
                  showPopup('error','GAGAL', e);
             });
         });
@@ -650,15 +738,15 @@
                         durationMinutes: dur,
                         startTime: null 
                     }; 
-                    logActivity('ADMIN_SLOT_CLEARED', platClearing, 'ADMIN', { slot: i + 1, promoted: nextItem.plat });
+                    logActivity('ADMIN_SLOT_CLEARED', platClearing, 'SUPER_ADMIN', { slot: i + 1, promoted: nextItem.plat });
                 } else {
-                     logActivity('ADMIN_SLOT_CLEARED', platClearing, 'ADMIN', { slot: i + 1, promoted: 'NONE' });
+                     logActivity('ADMIN_SLOT_CLEARED', platClearing, 'SUPER_ADMIN', { slot: i + 1, promoted: 'NONE' });
                 }
                 t.update(antrianRef, {chargingSlots:s, waitingQueue:q});
             }).then(() => {
                 showPopup('success', 'SUKSES', `Slot ${i+1} dikosongkan. Antrian naik (jika ada).`);
             }).catch(e => {
-                logActivity('ADMIN_SLOT_CLEAR_FAIL', platClearing, 'ADMIN', { slot: i + 1, error: e.toString() });
+                logActivity('ADMIN_SLOT_CLEAR_FAIL', platClearing, 'SUPER_ADMIN', { slot: i + 1, error: e.toString() });
                 showPopup('error', 'GAGAL', e);
             });
         });
@@ -696,10 +784,10 @@
 
                 t.update(antrianRef, { chargingSlots: s, waitingQueue: q });
             }).then(() => {
-                logActivity('ADMIN_QUEUE_ASSIGNED', itemToMove.plat, 'ADMIN', { fromQueue: queueIndex + 1, toSlot: slotTarget + 1 });
+                logActivity('ADMIN_QUEUE_ASSIGNED', itemToMove.plat, 'SUPER_ADMIN', { fromQueue: queueIndex + 1, toSlot: slotTarget + 1 });
                 showPopup('success', 'SUKSES', `Antrian berhasil dipindah ke Slot ${slotTarget + 1}.`);
             }).catch(e => {
-                logActivity('ADMIN_QUEUE_ASSIGN_FAIL', itemToMove?.plat || 'N/A', 'ADMIN', { error: e.toString() });
+                logActivity('ADMIN_QUEUE_ASSIGN_FAIL', itemToMove?.plat || 'N/A', 'SUPER_ADMIN', { error: e.toString() });
                 showPopup('error', 'GAGAL', e);
             });
         });
@@ -727,10 +815,10 @@
 
                 t.update(antrianRef, { chargingSlots: s });
             }).then(() => {
-                logActivity('ADMIN_SLOT_SWAP', 'N/A', 'ADMIN', { source: sourceIndex + 1, target: targetIndex + 1 });
+                logActivity('ADMIN_SLOT_SWAP', 'N/A', 'SUPER_ADMIN', { source: sourceIndex + 1, target: targetIndex + 1 });
                 showPopup('success', 'SUKSES', `Slot ${sourceIndex + 1} dan Slot ${targetIndex + 1} berhasil ditukar/dipindah.`);
             }).catch(e => {
-                logActivity('ADMIN_SLOT_SWAP_FAIL', 'N/A', 'ADMIN', { error: e.toString() });
+                logActivity('ADMIN_SLOT_SWAP_FAIL', 'N/A', 'SUPER_ADMIN', { error: e.toString() });
                 showPopup('error', 'GAGAL', e);
             });
         });
@@ -742,11 +830,10 @@
         if(!p) return;
         await runTransaction(db, async (t) => {
             const d = (await t.get(antrianRef)).data(); 
-            const l = d.blockedList || [];
             // Menggunakan ArrayUnion untuk menambahkan secara aman
             t.update(antrianRef, {blockedList: arrayUnion(p)});
         });
-        logActivity('ADMIN_BLOCK_USER', p, 'ADMIN');
+        logActivity('ADMIN_BLOCK_USER', p, 'SUPER_ADMIN');
         showPopup('success', 'BLOKIR', `Plat ${p} diblokir.`);
     };
 
@@ -758,7 +845,7 @@
             // Menggunakan ArrayRemove untuk menghapus secara aman
             t.update(antrianRef, {blockedList: arrayRemove(p)});
         });
-        logActivity('ADMIN_UNBLOCK_USER', p, 'ADMIN');
+        logActivity('ADMIN_UNBLOCK_USER', p, 'SUPER_ADMIN');
         showPopup('success', 'UNBLOCK', `Plat ${p} dibuka blokirnya.`);
     };
     
@@ -766,19 +853,23 @@
     document.getElementById('btnStopAll').onclick = () => {
         showPopup('confirm', 'BAHAYA: STOP SEMUA', 'Yakin? Semua slot cas akan dihentikan!', () => {
             runTransaction(db, async(t)=>{ 
+                // Asumsi 3 slot fix
                 t.update(antrianRef, {chargingSlots:[null,null,null]}); 
             });
-            logActivity('ADMIN_STOP_ALL_SLOTS', 'ALL', 'ADMIN');
+            logActivity('ADMIN_STOP_ALL_SLOTS', 'ALL', 'SUPER_ADMIN');
             showPopup('success', 'ACTION', 'Semua slot dihentikan.');
         });
     };
     document.getElementById('btnResetAll').onclick = () => {
         showPopup('confirm', 'BAHAYA: RESET TOTAL', 'Yakin? Semua antrian, slot, dan blokir akan DIHAPUS!', () => {
             setDoc(antrianRef, {chargingSlots:[null,null,null], waitingQueue:[], blockedList:[]});
-            logActivity('ADMIN_DB_RESET', 'ALL', 'ADMIN');
+            logActivity('ADMIN_DB_RESET', 'ALL', 'SUPER_ADMIN');
             showPopup('success', 'ACTION', 'Database direset total.');
         });
     };
     
 </script>
 
+
+</body>
+</html>

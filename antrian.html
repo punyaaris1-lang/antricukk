@@ -122,34 +122,42 @@
             transform: scale(0.98);
         }
         
-        /* Slot Active: Pulsating Glow & Border */
+        /* Slot Active: Border Glow (dikurangi intensitasnya) */
         .slot-box.active { 
             border-color: var(--accent); 
             background: rgba(204, 255, 0, 0.05); 
-            box-shadow: 0 0 15px rgba(204, 255, 0, 0.5); /* Base glow */
+            box-shadow: 0 0 10px rgba(204, 255, 0, 0.3);
         }
         
-        /* PULSATING GLOW (NEW) */
-        .slot-box.pulsating {
-            animation: pulse-glow 2s infinite alternate ease-in-out;
-        }
-        @keyframes pulse-glow {
-            0% { box-shadow: 0 0 10px var(--accent), 0 0 5px var(--accent) inset; }
-            100% { box-shadow: 0 0 20px var(--accent), 0 0 10px var(--accent) inset; }
-        }
-
-
-        .bat-icon {
-            width: 36px; height: 60px; border: 2px solid var(--text-muted); border-radius: 6px;
-            position: relative; margin: 0 auto 10px; display: flex; align-items: flex-end; padding: 2px;
-        }
-        .bat-icon::before { content: ''; position: absolute; top: -5px; left: 10px; width: 12px; height: 3px; background: var(--text-muted); }
+        /* PULSATING GLOW DARI ISI BATERAI (Fill) */
         .bat-fill { 
             width: 100%; 
             background: var(--accent); 
             border-radius: 3px; transition: height 0.5s; 
             box-shadow: 0 0 10px rgba(204, 255, 0, 0.5); 
         }
+        
+        .bat-fill.pulsating-fill {
+            animation: fill-pulse 1.5s infinite alternate ease-in-out;
+        }
+        @keyframes fill-pulse {
+            0% { 
+                box-shadow: 0 0 5px var(--accent), 0 0 5px var(--accent) inset;
+                filter: brightness(1.2); 
+            }
+            100% { 
+                box-shadow: 0 0 15px var(--accent), 0 0 10px var(--accent) inset;
+                filter: brightness(1.0); 
+            }
+        }
+        /* END PULSATING FILL */
+
+        .bat-icon {
+            width: 36px; height: 60px; border: 2px solid var(--text-muted); border-radius: 6px;
+            position: relative; margin: 0 auto 10px; display: flex; align-items: flex-end; padding: 2px;
+        }
+        .bat-icon::before { content: ''; position: absolute; top: -5px; left: 10px; width: 12px; height: 3px; background: var(--text-muted); }
+        
         .bat-bolt { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 20px; color: #000; text-shadow: none; z-index: 2; }
         
         .slot-box.active .bat-icon { border-color: var(--accent); }
@@ -647,8 +655,11 @@
         const MAX_DIST_KM = 0.2; 
         const FONTE_TOKEN = "YOUR_FONTE_TOKEN_HERE"; 
         
-        let isAdminLoggedIn = false; 
-        let isSuperAdminLoggedIn = false; // New state for Super Admin
+        // --- PERSISTENSI ADMIN BARU ---
+        let isAdminLoggedIn = localStorage.getItem('isAdminLoggedIn') === 'true'; 
+        // --- END PERSISTENSI ADMIN BARU ---
+        
+        let isSuperAdminLoggedIn = false; 
         let audioCtx = null;
         let triggeredAlarms = new Set();
         
@@ -842,7 +853,7 @@
                 btnOk.onclick = () => { window.stopAlarm(); m.style.display = 'none'; };
             }
             else if(type === 'admin') {
-                // --- LOGIC LOGIN BERTINGKAT ---
+                // --- LOGIC LOGIN BERTINGKAT (DENGAN PERSISTENSI ADMIN) ---
                 icon.innerText = '🔒'; inp.style.display = 'block'; inp.value=''; inp.focus();
                 btnOk.innerText = 'LOGIN'; btnCancel.style.display = 'block';
                 btnCancel.onclick = () => m.style.display = 'none';
@@ -860,14 +871,24 @@
                     else if(pin === '1131') { 
                         // Admin Mini Dashboard Login
                         m.style.display = 'none'; 
-                        document.getElementById('adminPanel').style.display = 'block'; 
+                        
+                        // --- PERSISTENSI ADMIN BARU ---
+                        localStorage.setItem('isAdminLoggedIn', 'true');
                         isAdminLoggedIn = true;
+                        // --- END PERSISTENSI ADMIN BARU ---
+
                         isSuperAdminLoggedIn = false;
+                        document.getElementById('adminPanel').style.display = 'block'; 
                         // Set tampilan untuk Admin (langsung ke status area)
                         checkDisplayMode(); 
                         // Update GPS toggle status when admin logs in
-                        document.getElementById('gpsBypassToggle').checked = isGpsBypassEnabled;
-                        updateGpsBypassStatus();
+                        const bypassCheckbox = document.getElementById('gpsBypassToggle');
+                        if (bypassCheckbox) {
+                             bypassCheckbox.checked = isGpsBypassEnabled;
+                             updateGpsBypassStatus();
+                        }
+                        showPopup('success', 'LOGIN SUKSES', 'Anda login sebagai Admin. Status login akan tersimpan sampai Anda Logout.');
+
                     }
                     else showPopup('error','GAGAL','PIN Salah!');
                 };
@@ -995,12 +1016,16 @@
         };
 
 
-        // --- DUAL VIEW LOGIC (UPDATED FOR ADMIN) ---
+        // --- DUAL VIEW LOGIC (UPDATED FOR ADMIN PERSISTENCE) ---
         function checkDisplayMode() {
             const myPlat = localStorage.getItem('myPlat');
             const regArea = document.getElementById('registrationArea');
             const statusArea = document.getElementById('statusArea');
             const logoutBtnContainer = document.getElementById('logoutButtonContainer');
+            const adminPanel = document.getElementById('adminPanel');
+
+            // Cek status admin saat memuat halaman (dari localStorage)
+            isAdminLoggedIn = localStorage.getItem('isAdminLoggedIn') === 'true';
             
             // Logika untuk menyembunyikan loading screen dengan delay 1.5 detik
             setTimeout(() => {
@@ -1012,7 +1037,7 @@
                 } else {
                     document.getElementById('choiceModal').style.display = 'none';
                 }
-            }, 1500); // Delay 1500ms atau 1.5 detik
+            }, 1500); 
 
             // Area Status (detail slot dan antrian) HANYA terlihat jika pengguna terdaftar ATAU Admin
             if (myPlat || isAdminLoggedIn) {
@@ -1021,20 +1046,23 @@
                 statusArea.style.display = 'none';
             }
             
-            // Registration Area: Admin (1131) tidak perlu melihat area pendaftaran
-            if (myPlat && !isAdminLoggedIn) {
-                // User biasa: Hide registration, show logout
+            // Registration Area
+            if (myPlat) {
+                // User biasa yang terdaftar
                 regArea.style.display = 'none';
                 if (logoutBtnContainer) logoutBtnContainer.style.display = 'block';
+                if (adminPanel) adminPanel.style.display = 'none';
             } else if (isAdminLoggedIn) {
-                 // Admin: Hide registration, Show Status Area
+                 // Admin (Persisten)
                 regArea.style.display = 'none';
                 if (logoutBtnContainer) logoutBtnContainer.style.display = 'none';
+                if (adminPanel) adminPanel.style.display = 'block'; // Tampilkan panel admin
             }
             else {
-                // Belum login/daftar: Show registration, Hide logout
+                // Belum login/daftar
                 regArea.style.display = 'block';
                 if (logoutBtnContainer) logoutBtnContainer.style.display = 'none';
+                if (adminPanel) adminPanel.style.display = 'none';
             }
         }
         
@@ -1046,16 +1074,23 @@
             showPopup('confirm', 'KONFIRMASI', 'Apakah Anda yakin ingin menghapus data antrian lokal Anda?', () => {
                 localStorage.removeItem('myPlat');
                 localStorage.removeItem('userWA'); 
+                
+                // --- ADMIN LOGOUT BARU ---
+                localStorage.removeItem('isAdminLoggedIn'); 
                 isAdminLoggedIn = false; 
+                // --- END ADMIN LOGOUT BARU ---
+                
                 isSuperAdminLoggedIn = false;
                 // Sembunyikan panel admin jika ada
-                document.getElementById('adminPanel').style.display = 'none'; 
+                const adminPanel = document.getElementById('adminPanel');
+                if (adminPanel) adminPanel.style.display = 'none';
+                
                 checkDisplayMode(); 
                 showPopup('success', 'SUKSES', 'Data lokal berhasil dihapus.');
             });
         };
 
-        // ... (Logika Registrasi, Slot Actions, Rendering akan dilanjutkan di Bagian 3) 
+        // ... (Logika Registrasi, Slot Actions, Rendering akan dilanjutkan di Bagian 3) ...
         // --- REGISTRATION LOGIC ---
         document.getElementById('btnDaftar').onclick = () => {
             initAudioAndNotif(); 
@@ -1262,8 +1297,6 @@
                     if(s[i]) {
                         const newTarget = calculateTargetLimit(q.length); 
                         
-                        // NOTE: Karena SAFE PATCH aktif, targetLimit dan durationMinutes di slot aktif akan diabaikan.
-                        // Namun kita tetap set di sini untuk data yang disimpan ke DB.
                         s[i].targetLimit = newTarget;
                         s[i].durationMinutes = calculateDuration(s[i].startBattery, newTarget);
                         
@@ -1360,6 +1393,29 @@
             }
             
             // RENDER SLOTS (Detail)
+            // Container default hanya 3 slot, kita asumsikan 3 slot fix (sesuai permintaan terakhir)
+            const slotOptions = ['0', '1', '2']; 
+            
+            // Update dropdown slot di Admin Panel agar dinamis (jika ada)
+            const updateSlotDropdowns = (slotsLength) => {
+                 const selectIDs = ['manSlot', 'slotSource', 'slotTarget', 'assignSlotTarget'];
+                 const options = Array.from({length: slotsLength}, (_, i) => `<option value="${i}">Slot ${i + 1}</option>`).join('');
+                 
+                 selectIDs.forEach(id => {
+                     const select = document.getElementById(id);
+                     if (select) {
+                        if (id === 'slotSource' || id === 'slotTarget') {
+                             select.innerHTML = '<option value="-1">Dari/Ke</option>' + options;
+                        } else {
+                             select.innerHTML = options;
+                        }
+                     }
+                 });
+            };
+            updateSlotDropdowns(slots.length);
+
+
+            // RENDERING UTAMA SLOTS
             document.getElementById('slotsContainer').innerHTML = slots.map((x,i)=>{
                 if(!x) return `
                     <div class="slot-box" style="opacity:0.5; border-style:dashed; border-color:var(--border);">
@@ -1371,11 +1427,41 @@
                 
                 let buttons;
                 let timeDisplay;
-                let h = isRun ? 100 : x.startBattery; 
-                let batInfo = `<div style="font-size:9px; color:var(--text); margin-top:5px; font-family:'Inter', sans-serif;">Awal: ${x.startBattery}% → Target: ${x.targetLimit}%</div>`;
                 
-                const pulsingClass = isRun ? 'pulsating' : '';
+                // --- LOGIKA ANIMASI BATERAI (BARU) ---
+                let h = x.startBattery; // Default adalah baterai awal
+                
+                if (isRun) {
+                    const start = x.startTime.seconds ? x.startTime.seconds * 1000 : new Date(x.startTime).getTime();
+                    const durationMs = x.durationMinutes * 60000;
+                    
+                    const timeElapsed = Date.now() - start;
+                    
+                    const startBat = x.startBattery;
+                    const targetBat = x.targetLimit;
+                    const batRange = targetBat - startBat;
+                    
+                    if (timeElapsed < durationMs) {
+                        // Persentase Kenaikan (0 hingga 1)
+                        const progressRatio = timeElapsed / durationMs;
+                        
+                        // Estimasi baterai saat ini
+                        const currentBat = startBat + (batRange * progressRatio);
+                        
+                        // Gunakan estimasi baterai saat ini, dibatasi maksimal target
+                        h = Math.min(100, Math.ceil(currentBat)); 
+                    } else {
+                        // Jika waktu habis (sudah selesai cas)
+                        h = targetBat; 
+                    }
+                }
+                // --- END LOGIKA ANIMASI BATERAI ---
+
+                const pulsingClass = isRun ? 'pulsating' : ''; // Di box (border)
+                const fillPulsatingClass = isRun ? 'pulsating-fill' : ''; // Di isi batre
                 const highlightClass = (myPlat && myPlat === x.plat) ? 'is-mine' : '';
+
+                let batInfo = `<div style="font-size:9px; color:var(--text); margin-top:5px; font-family:'Inter', sans-serif;">Awal: ${x.startBattery}% → Target: ${x.targetLimit}% (Saat ini: ${h}%)</div>`;
 
 
                 if(isRun) {
@@ -1404,7 +1490,7 @@
                     <div class="slot-box active ${pulsingClass} ${highlightClass}">
                         <div style="font-size:10px; color:var(--text-muted); font-family:'Inter', sans-serif;">SLOT ${i+1}</div>
                         <div class="bat-icon">
-                            <div class="bat-fill" style="height:${h}%"></div>
+                            <div class="bat-fill ${fillPulsatingClass}" style="height:${h}%"></div>
                             <div class="bat-bolt" style="color:${isRun ? '#000' : 'var(--text)'};">⚡</div>
                         </div>
                         <div style="font-weight:700; color:var(--text); font-family:'Inter', sans-serif;">${x.plat}</div>
@@ -1608,13 +1694,13 @@
         // JALANKAN LOGIC DUAL VIEW SETELAH DOM SIAP
         window.addEventListener('load', () => {
             // PENTING: Inisialisasi event listener btnDaftar
-            // Ini sudah didefinisikan di atas, tetapi memastikan GPS Bypass UI siap
             const bypassCheckbox = document.getElementById('gpsBypassToggle');
             if (bypassCheckbox) {
                 bypassCheckbox.checked = isGpsBypassEnabled;
                 updateGpsBypassStatus();
             }
             
+            // Perbarui tampilan berdasarkan status admin yang tersimpan
             checkDisplayMode(); 
         });
 
