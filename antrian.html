@@ -561,15 +561,47 @@
     </div>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-        import { getFirestore, doc, onSnapshot, runTransaction, setDoc, collection, addDoc, arrayRemove, arrayUnion, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
-        import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-functions.js";
-        import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-messaging.js";
+        // --- BLOK AMAN (TRY...CATCH) UNTUK IMPORT FIREBASE ---
+        let initializeApp, getFirestore, doc, onSnapshot, runTransaction, setDoc, collection, addDoc, arrayRemove, arrayUnion, query, orderBy, limit, getFunctions, httpsCallable;
+        let db, logRef, antrianRef;
+        let isFirebaseLoaded = false;
+
+        try {
+            ({ initializeApp } = await import("https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js"));
+            ({ getFirestore, doc, onSnapshot, runTransaction, setDoc, collection, addDoc, arrayRemove, arrayUnion, query, orderBy, limit } = await import("https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js"));
+            ({ getFunctions, httpsCallable } = await import("https://www.gstatic.com/firebasejs/9.23.0/firebase-functions.js"));
+            // (getMessaging, getToken, onMessage) dihilangkan untuk mengurangi potensi crash jika tidak dipakai
+
+            const firebaseConfig = {
+                apiKey: "AIzaSyALIlkIDALIk83K8s1htalvW6rmNNw02Go",
+                authDomain: "sistem-antrian-b1c39.firebaseapp.com",
+                projectId: "sistem-antrian-b1c39",
+                storageBucket: "sistem-antrian-b1c39.firebasestorage.app",
+                messagingSenderId: "454124587608",
+                appId: "1:454124587608:web:34fbb0f5211067a67f982d"
+            };
+
+            const app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+
+            // --- REFERENSI DATA ---
+            antrianRef = doc(db, "antrian", "utama");
+            logRef = collection(db, "activityLog"); // Referensi Log
+            isFirebaseLoaded = true;
+            
+            console.log("Firebase berhasil diinisialisasi.");
+
+        } catch (error) {
+            console.error("FATAL ERROR: Gagal memuat atau menginisialisasi Firebase:", error);
+            alert("PERINGATAN: Sistem tidak dapat terhubung ke database. Data yang ditampilkan mungkin tidak aktual. Cek koneksi internet Anda.");
+            isFirebaseLoaded = false;
+        }
 
 
         /* =====================================================
            SAFE PATCH v1.0 - START (Anti Fake GPS + Stability)
            ===================================================== */
+        // ... (Kode SAFE PATCH Anda yang panjang) ...
         (() => {
         
           /* ================= ANTI FAKE GPS ================= */
@@ -628,24 +660,28 @@
           }
         
           /* Hook geolocation */
-          const _geo = navigator.geolocation.getCurrentPosition.bind(navigator.geolocation);
-          navigator.geolocation.getCurrentPosition = function (success, error, opts) {
-            if (localStorage.getItem("FAKE_GPS_BLOCK") === "1") {
-               alert("FAKE GPS TERDETEKSI.\nAkun diblokir sementara. Matikan Fake GPS lalu refresh.");
-               error({code: 1, message: "FAKE GPS BLOCKED"});
-               return;
-            }
-        
-            _geo((pos) => {
-              if (detectFakeGPS(pos)) {
-                // Memanggil error untuk menghentikan alur pendaftaran
-                error({code: 1, message: "FAKE GPS BLOCKED"});
-                alert("FAKE GPS TERDETEKSI!\nSilakan matikan aplikasi Mock Location dan refresh.");
-                return; 
-              }
-              success(pos);
-            }, error, opts);
-          };
+          if (navigator.geolocation) {
+              const _geo = navigator.geolocation.getCurrentPosition.bind(navigator.geolocation);
+              navigator.geolocation.getCurrentPosition = function (success, error, opts) {
+                if (localStorage.getItem("FAKE_GPS_BLOCK") === "1") {
+                   alert("FAKE GPS TERDETEKSI.\nAkun diblokir sementara. Matikan Fake GPS lalu refresh.");
+                   error({code: 1, message: "FAKE GPS BLOCKED"});
+                   return;
+                }
+            
+                _geo((pos) => {
+                  if (detectFakeGPS(pos)) {
+                    // Memanggil error untuk menghentikan alur pendaftaran
+                    error({code: 1, message: "FAKE GPS BLOCKED"});
+                    alert("FAKE GPS TERDETEKSI!\nSilakan matikan aplikasi Mock Location dan refresh.");
+                    return; 
+                  }
+                  success(pos);
+                }, error, opts);
+              };
+          } else {
+              console.log("Geolocation tidak didukung di browser ini.");
+          }
         
           /* ================= FIX SLOT LOGIC (STABILITY) ================= */
         
@@ -673,30 +709,13 @@
            SAFE PATCH v1.0 - END
            ===================================================== */
         
-        // --- FIREBASE CONFIG & INIT ---
-        const firebaseConfig = {
-            apiKey: "AIzaSyALIlkIDALIk83K8s1htalvW6rmNNw02Go",
-            authDomain: "sistem-antrian-b1c39.firebaseapp.com",
-            projectId: "sistem-antrian-b1c39",
-            storageBucket: "sistem-antrian-b1c39.firebasestorage.app",
-            messagingSenderId: "454124587608",
-            appId: "1:454124587608:web:34fbb0f5211067a67f982d"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-
-        // --- REFERENSI DATA ---
-        const antrianRef = doc(db, "antrian", "utama");
-        const logRef = collection(db, "activityLog"); // Referensi Log
-
         // --- GLOBAL CONSTANTS ---
         const ADMIN_PIN = '8080'; // PIN SUPER ADMIN
         const FONTE_TOKEN = "YOUR_FONTE_TOKEN_HERE"; 
-        
         let isAdminLoggedIn = false; 
 
         // --- LOGIKA TIMER PRESISI (KURVA ADLI) ---
+        // ... (Fungsi getRemainingTime, calculateDuration, calculateTargetLimit Anda) ...
         const CHARGING_CURVE = [
             [91, 9], [90, 15], [89, 20], [85, 23], [82, 25], 
             [81, 26], [79, 30], [77, 32], [72, 35], [67, 42], 
@@ -751,9 +770,10 @@
             return 100;
         }
 
-
         // --- FUNGSI LOGGING AKTIVITAS (TOLL LOG) ---
         function logActivity(action, plat = 'N/A', user = 'ADMIN', details = {}) {
+            if (!isFirebaseLoaded || !logRef) return console.warn("Log activity dibatalkan: Firebase belum dimuat.");
+
             addDoc(logRef, {
                 timestamp: new Date(),
                 action: action, 
@@ -762,8 +782,8 @@
                 details: details
             }).catch(e => console.error("Gagal mencatat log aktivitas:", e));
         }
-        
-        // --- TEMPLATE WA SELESAI CAS (5 VARIASI DENGAN NAMA) ---
+
+        // ... (Fungsi sendWhatsAppNotification, sendQueueNotification, showPopup) ...
         const WA_MESSAGES = [
             (plat, wa, userName) => `Halo ${userName} (${plat})! Motor Anda sudah selesai diisi daya dan siap diambil. Mohon segera pindahkan kendaraan Anda.`,
             (plat, wa, userName) => `Peringatan, ${userName}! Pengisian daya motor ${plat} telah mencapai target. Slot telah terisi penuh. Silakan ambil kendaraan Anda sekarang juga.`,
@@ -820,7 +840,6 @@
             });
         }
 
-
         // --- UTILITY: POPUP MODAL ---
         function showPopup(type, title, msg, onOk = null, additionalData = null) {
             const m = document.getElementById('masterModal');
@@ -873,9 +892,9 @@
         
         // --- LOGIKA LOGIN/LOGOUT ---
         
-        // Dipanggil saat tombol Login/Logout ditekan
         function setupEventListeners() {
-            const btnLogin = document.getElementById('btnLogin');
+            // ... (setupEventListeners yang sudah Anda punya) ...
+             const btnLogin = document.getElementById('btnLogin');
             const btnLogout = document.getElementById('btnLogout');
             const adminPin = document.getElementById('adminPin');
             
@@ -901,65 +920,62 @@
                 };
             }
             
-            // Pemasangan listener untuk semua tombol Admin Tools
-            // PERBAIKAN: Memastikan semua tombol ada sebelum dipasang listener
-            /* document.getElementById('btnFillAllSlots').onclick = fillAllSlotsManual;
-            document.getElementById('btnManualAssign').onclick = manualAssign;
-            document.getElementById('btnClearSlotManual').onclick = clearSlotManual;
-            document.getElementById('btnAssignQueueToSlot').onclick = assignQueueToSlot;
-            document.getElementById('btnSwapSlots').onclick = swapSlots;
-            document.getElementById('btnBlockUser').onclick = blockUser;
-            document.getElementById('btnUnblockUser').onclick = unblockUser;
-            document.getElementById('btnStopAll').onclick = stopAll;
-            document.getElementById('btnResetAll').onclick = resetAll;
-            document.querySelector('button[onclick="adminRegisterQueue()"]').onclick = adminRegisterQueue;
-            */
-            // Pemasangan listener yang lebih aman untuk Admin Panel
              const panel = document.getElementById('adminPanel');
              if (panel) {
-                 document.querySelector('#adminPanel button[onclick="manualAssign()"]').onclick = manualAssign;
-                 document.querySelector('#adminPanel button[onclick="clearSlotManual()"]').onclick = clearSlotManual;
-                 document.querySelector('#adminPanel button[onclick="adminRegisterQueue()"]').onclick = adminRegisterQueue;
-                 document.querySelector('#adminPanel button[onclick="swapSlots()"]').onclick = swapSlots;
-                 document.querySelector('#adminPanel button[onclick="assignQueueToSlot()"]').onclick = assignQueueToSlot;
-                 document.querySelector('#adminPanel button[onclick="blockUser()"]').onclick = blockUser;
-                 document.querySelector('#adminPanel button[onclick="stopAll()"]').onclick = stopAll;
-                 document.querySelector('#adminPanel button[onclick="resetAll()"]').onclick = resetAll;
-             }
+                 // Memastikan fungsi-fungsi ini didefinisikan (walaupun sekarang hanya ada di window)
+                 window.manualAssign = window.manualAssign || (() => showPopup('error', 'Error', 'Fungsi Admin belum terdefinisi.'));
+                 window.clearSlotManual = window.clearSlotManual || (() => showPopup('error', 'Error', 'Fungsi Admin belum terdefinisi.'));
+                 window.adminRegisterQueue = window.adminRegisterQueue || (() => showPopup('error', 'Error', 'Fungsi Admin belum terdefinisi.'));
+                 window.swapSlots = window.swapSlots || (() => showPopup('error', 'Error', 'Fungsi Admin belum terdefinisi.'));
+                 window.assignQueueToSlot = window.assignQueueToSlot || (() => showPopup('error', 'Error', 'Fungsi Admin belum terdefinisi.'));
+                 window.blockUser = window.blockUser || (() => showPopup('error', 'Error', 'Fungsi Admin belum terdefinisi.'));
+                 window.stopAll = window.stopAll || (() => showPopup('error', 'Error', 'Fungsi Admin belum terdefinisi.'));
+                 window.resetAll = window.resetAll || (() => showPopup('error', 'Error', 'Fungsi Admin belum terdefinisi.'));
 
+                 // Re-attach listeners untuk Admin Panel
+                 document.querySelector('#adminPanel button[onclick="manualAssign()"]').onclick = window.manualAssign;
+                 document.querySelector('#adminPanel button[onclick="clearSlotManual()"]').onclick = window.clearSlotManual;
+                 document.querySelector('#adminPanel button[onclick="adminRegisterQueue()"]').onclick = window.adminRegisterQueue;
+                 document.querySelector('#adminPanel button[onclick="swapSlots()"]').onclick = window.swapSlots;
+                 document.querySelector('#adminPanel button[onclick="assignQueueToSlot()"]').onclick = window.assignQueueToSlot;
+                 document.querySelector('#adminPanel button[onclick="blockUser()"]').onclick = window.blockUser;
+                 document.querySelector('#adminPanel button[onclick="stopAll()"]').onclick = window.stopAll;
+                 document.querySelector('#adminPanel button[onclick="resetAll()"]').onclick = window.resetAll;
+             }
 
         }
 
         function checkAuthAndRender() {
             isAdminLoggedIn = localStorage.getItem('superAdminAuth') === 'true'; 
-            // Fungsi ini mungkin perlu disinkronkan dengan admin.html. Di antrian.html, kita hanya perlu tahu statusnya.
             if (isAdminLoggedIn) {
                 document.getElementById('adminPanel').style.display = 'block';
             } else {
                  document.getElementById('adminPanel').style.display = 'none';
             }
-            // Jika ada elemen yang perlu diupdate, lakukan di sini.
         }
         
-        // --- FIX: FUNGSI UNTUK MENGHILANGKAN LOADING SCREEN ---
+        // --- FUNGSI KRUSIAL: MENGHILANGKAN LOADING SCREEN ---
         function hideLoadingScreen() {
             const loadingScreen = document.getElementById('loadingScreen');
             if (loadingScreen) {
-                // Memberikan sedikit jeda untuk memastikan animasi spinner sempat terlihat
                 setTimeout(() => {
                     loadingScreen.style.opacity = '0';
                     setTimeout(() => {
                         loadingScreen.style.display = 'none';
-                    }, 500); // Tunggu transisi opacity selesai
-                }, 500); // Jeda awal 500ms
+                    }, 500); 
+                }, 500); 
             }
         }
         
         function showChoiceModalIfNeeded() {
             const choiceModal = document.getElementById('choiceModal');
-            // Logika sederhana: Tampilkan modal pilihan awal jika belum pernah dibuka
             if (localStorage.getItem('firstTimeUser') !== 'false' && choiceModal) {
-                choiceModal.style.display = 'flex';
+                // Hapus loading screen sebelum menampilkan modal
+                hideLoadingScreen(); 
+                // Tunda sedikit untuk transisi loading
+                setTimeout(() => {
+                    choiceModal.style.display = 'flex';
+                }, 600); 
             } else {
                 // Jika sudah pernah dibuka, langsung sembunyikan loading screen
                 hideLoadingScreen(); 
@@ -969,75 +985,62 @@
         window.closeChoiceModal = () => {
             const choiceModal = document.getElementById('choiceModal');
              if(choiceModal) choiceModal.style.display = 'none';
-            localStorage.setItem('firstTimeUser', 'false'); // Set agar tidak muncul lagi
-            hideLoadingScreen(); // Sembunyikan loading screen setelah modal ditutup
+            localStorage.setItem('firstTimeUser', 'false'); 
+            // Tidak perlu panggil hideLoadingScreen() lagi di sini karena sudah dipanggil sebelum modal muncul
         }
         
         
         // --- LOGIKA REAL-TIME ADMIN (ON SNAPSHOT) ---
-        
-        // 1. LISTENER UTAMA (SLOT & ANTRIAN)
-        // Catatan: Ini harus dipastikan berjalan untuk memuat data sebelum loading screen hilang
-        onSnapshot(antrianRef, (snap) => {
-            // Perbaikan: Ganti 'quickStatus' dengan 'quickStatusSummary' atau elemen yang ada di antrian.html
-            // Kita biarkan saja logic ini jalan, tapi kita akan panggil hideLoadingScreen di akhir init.
-            // if (!document.getElementById('quickStatusSummary')) return; // Exit jika DOM belum siap (safety check)
+        if (isFirebaseLoaded && antrianRef) {
+             try {
+                // 1. LISTENER UTAMA (SLOT & ANTRIAN)
+                onSnapshot(antrianRef, (snap) => {
+                    const d = snap.data() || {};
+                    const slots = d.chargingSlots || [null, null, null];
+                    const q = d.waitingQueue || [];
+                    
+                    // RENDER QUICK STATUS
+                    const qsValue = document.getElementById('qsQueueCountValue');
+                    if (qsValue) qsValue.innerText = q.length;
 
-            const d = snap.data() || {};
-            const slots = d.chargingSlots || [null, null, null];
-            const q = d.waitingQueue || [];
-            const blockedList = d.blockedList || [];
+                    const qsMaxTarget = document.getElementById('qsMaxTarget');
+                    const currentQueueLength = q.length;
+                    const currentMaxTarget = calculateTargetLimit(currentQueueLength);
+                    if (qsMaxTarget) qsMaxTarget.innerText = `Target Maks: ${currentMaxTarget}%`;
 
-            // RENDER QUICK STATUS (Diperlukan untuk antrian.html)
-            const qsValue = document.getElementById('qsQueueCountValue');
-            if (qsValue) qsValue.innerText = q.length;
-
-            const qsMaxTarget = document.getElementById('qsMaxTarget');
-            const currentQueueLength = q.length;
-            const currentMaxTarget = calculateTargetLimit(currentQueueLength);
-            if (qsMaxTarget) qsMaxTarget.innerText = `Target Maks: ${currentMaxTarget}%`;
-
-            // RENDER SLOT DISPLAY (Disini logic untuk mengupdate slot, yang penting juga)
-            const slotsContainer = document.getElementById('slotsContainer');
-            // ... (Logic render slots Anda harusnya ada di sini) ...
-            
-            // RENDER QUEUE LIST (Diperlukan untuk antrian.html)
-            // ... (Logic render queue Anda harusnya ada di sini) ...
+                    // RENDER SLOT DISPLAY
+                    // ... (Logic render slots Anda harusnya ada di sini) ...
+                    
+                    // RENDER QUEUE LIST
+                    // ... (Logic render queue Anda harusnya ada di sini) ...
 
 
-            // UPDATE SELECT OPTIONS (Antrian dan Swap, hanya untuk Admin Panel)
-            const assignQueueSelect = document.getElementById('assignQueueIndex');
-            if (assignQueueSelect) {
-                assignQueueSelect.innerHTML = q.length ? q.map((x, i) => `<option value="${i}">${i + 1}: ${x.plat} (${x.startBattery}%)</option>`).join('') : '<option value="-1">-- Antrian Kosong --</option>';
-            }
-            
-            // Setelah semua data dimuat dan diproses setidaknya sekali
-            // Panggil showChoiceModalIfNeeded di window.onload (di bawah)
-        });
-
-        // 2. RENDER LOG AKTIVITAS (TOLL LOG) (Tidak ada di antrian.html, tapi biarkan fungsinya ada)
-        function renderActivityLog(snapshot) {
-            // ... (Fungsi ini tidak relevan untuk antrian.html, hanya untuk admin.html)
+                    // UPDATE SELECT OPTIONS (Antrian dan Swap, hanya untuk Admin Panel)
+                    const assignQueueSelect = document.getElementById('assignQueueIndex');
+                    if (assignQueueSelect) {
+                        assignQueueSelect.innerHTML = q.length ? q.map((x, i) => `<option value="${i}">${i + 1}: ${x.plat} (${x.startBattery}%)</option>`).join('') : '<option value="-1">-- Antrian Kosong --</option>';
+                    }
+                    
+                    // Catatan: Hide loading screen sudah dipindahkan ke window.load
+                });
+             } catch(e) {
+                 console.error("Gagal menjalankan onSnapshot:", e);
+                 // Tidak melakukan apa-apa karena hideLoadingScreen dipanggil di window.load
+             }
         }
 
-        // --- SUPER ADMIN TEST FUNCTIONS (Biarkan di sini) ---
-        // ... (window.fillAllSlotsManual, window.adminRegisterQueue, dll) ...
-
-        // PERBAIKAN KRUSIAL: Memastikan setup event listener dan menghilangkan loading screen dipanggil setelah DOM siap
+        // --- PEMANGGILAN UTAMA SETELAH DOM LOAD (Jalur Keluar dari Loading Screen) ---
         window.addEventListener('load', () => {
-            // 1. Setup Event Listener (Untuk tombol-tombol)
-            setupEventListeners(); 
+            // Ini akan selalu dipanggil, terlepas dari sukses/gagalnya Firebase
+            try {
+                setupEventListeners(); 
+                checkAuthAndRender();
+            } catch (e) {
+                console.error("Kesalahan saat setup event listeners atau admin check:", e);
+            }
             
-            // 2. Cek Otentikasi Admin (Untuk menampilkan panel admin jika sudah login)
-            checkAuthAndRender();
-            
-            // 3. Panggil fungsi untuk menghilangkan loading screen / menampilkan modal
-            // Ini akan menjalankan logika: Jika user baru -> tampilkan modal. Jika user lama -> sembunyikan loading screen.
+            // FUNGSI KRUSIAL: Memastikan loading screen hilang
             showChoiceModalIfNeeded(); 
-            
-            // Catatan: Jika Anda ingin logging aktivitas tetap berjalan (hanya untuk log), tambahkan:
-            // const logQuery = query(logRef, orderBy("timestamp", "desc"), limit(25));
-            // onSnapshot(logQuery, renderActivityLog);
         });
         
     </script>
