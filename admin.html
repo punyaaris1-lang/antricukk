@@ -483,9 +483,208 @@
     }
 
 
-    // --- FUNGSI EKSEKUSI ADMIN (BUTTON CLICKS) ---
+    // --- UTILITY: POPUP MODAL ---
+    function showPopup(type, title, msg, onOk = null, additionalData = null) {
+        const m = document.getElementById('masterModal');
+        const box = document.getElementById('modalBox');
+        const icon = document.getElementById('mIcon');
+        const t = document.getElementById('mTitle');
+        const ms = document.getElementById('mMsg');
+        const btnOk = document.getElementById('mBtnOk');
+        const btnCancel = document.getElementById('mBtnCancel');
+        const inp = document.getElementById('mInput');
+        const inpDuration = document.getElementById('mInputDuration');
 
-    // SUPER ADMIN TEST FUNCTIONS
+        m.style.display = 'flex'; m.className = 'modal'; 
+        box.style.borderColor = 'var(--accent)'; 
+        icon.style.color = 'var(--accent)';
+        t.innerText = title; ms.innerHTML = msg; 
+        inp.style.display = 'none'; inpDuration.style.display = 'none';
+        btnCancel.style.display = 'none';
+        btnOk.className = 'btn-modal primary'; btnOk.innerText = 'OK';
+
+        btnOk.onclick = null; 
+
+        if(type === 'confirm') {
+            icon.innerText = '❓'; btnCancel.style.display = 'block'; btnOk.innerText = 'YA';
+            btnCancel.onclick = () => m.style.display = 'none';
+            btnOk.onclick = () => { m.style.display = 'none'; if(onOk) onOk(); };
+        }
+        else if(type === 'error') {
+            icon.innerText = '❌'; box.style.borderColor = 'var(--soft-red)';
+            btnOk.className = 'btn-modal danger'; btnOk.innerText = 'TUTUP';
+            icon.style.color = 'var(--soft-red)';
+            btnOk.onclick = () => m.style.display = 'none';
+        }
+        else if (type === 'timer') {
+            icon.innerText = '⏱️';
+            inpDuration.style.display = 'block'; inpDuration.value = additionalData?.currentDuration || ''; inpDuration.focus();
+            btnOk.innerText = 'SET BARU'; btnCancel.style.display = 'block';
+            btnCancel.onclick = () => m.style.display = 'none';
+            btnOk.onclick = () => {
+                const newDuration = parseInt(inpDuration.value);
+                if (isNaN(newDuration) || newDuration <= 0) {
+                    return showPopup('error', 'Gagal', 'Durasi tidak valid.');
+                }
+                m.style.display = 'none';
+                if (onOk) onOk(newDuration);
+            };
+        }
+        else { icon.innerText = '✅'; icon.style.color = 'var(--accent)'; btnOk.onclick = () => m.style.display = 'none'; }
+    }
+    
+    // --- LOGIKA LOGIN/LOGOUT ---
+    
+    // Dipanggil saat tombol Login/Logout ditekan
+    function setupEventListeners() {
+        const btnLogin = document.getElementById('btnLogin');
+        const btnLogout = document.getElementById('btnLogout');
+        const adminPin = document.getElementById('adminPin');
+        
+        if (btnLogin) {
+             btnLogin.onclick = () => {
+                const pin = adminPin.value;
+                if (pin === ADMIN_PIN) {
+                    localStorage.setItem('superAdminAuth', 'true'); 
+                    logActivity('SUPER_ADMIN_LOGIN', 'N/A', 'SUPER_ADMIN', { type: 'success' });
+                    checkAuthAndRender();
+                } else {
+                    logActivity('SUPER_ADMIN_LOGIN_FAIL', 'N/A', 'SUPER_ADMIN', { type: 'failed' });
+                    showPopup('error', 'LOGIN GAGAL', 'PIN Admin salah.');
+                }
+             };
+        }
+
+        if (btnLogout) {
+            btnLogout.onclick = () => {
+                localStorage.removeItem('superAdminAuth');
+                logActivity('SUPER_ADMIN_LOGOUT', 'N/A', 'SUPER_ADMIN');
+                window.location.href = './antrian.html'; 
+            };
+        }
+        
+        // Pemasangan listener untuk semua tombol Admin Tools
+        document.getElementById('btnFillAllSlots').onclick = fillAllSlotsManual;
+        document.getElementById('btnManualAssign').onclick = manualAssign;
+        document.getElementById('btnClearSlotManual').onclick = clearSlotManual;
+        document.getElementById('btnAssignQueueToSlot').onclick = assignQueueToSlot;
+        document.getElementById('btnSwapSlots').onclick = swapSlots;
+        document.getElementById('btnBlockUser').onclick = blockUser;
+        document.getElementById('btnUnblockUser').onclick = unblockUser;
+        document.getElementById('btnStopAll').onclick = stopAll;
+        document.getElementById('btnResetAll').onclick = resetAll;
+        // Listener untuk Fitur Baru: Admin Register Queue
+        document.querySelector('button[onclick="adminRegisterQueue()"]').onclick = adminRegisterQueue;
+
+    }
+
+    function checkAuthAndRender() {
+        isAdminLoggedIn = localStorage.getItem('superAdminAuth') === 'true'; 
+        document.getElementById('loginArea').style.display = isAdminLoggedIn ? 'none' : 'block';
+        document.getElementById('dashboardArea').style.display = isAdminLoggedIn ? 'block' : 'none';
+        document.getElementById('btnLogout').style.display = isAdminLoggedIn ? 'block' : 'none';
+    }
+
+    // PERBAIKAN: Memastikan setup event listener dipanggil setelah DOM siap
+    window.addEventListener('load', () => {
+        setupEventListeners();
+        checkAuthAndRender();
+        // Memastikan listener log aktivitas berjalan
+        const logQuery = query(logRef, orderBy("timestamp", "desc"), limit(25));
+        onSnapshot(logQuery, renderActivityLog);
+    });
+    
+    // --- LOGIKA REAL-TIME ADMIN (ON SNAPSHOT) ---
+    
+    // 1. LISTENER UTAMA (SLOT & ANTRIAN)
+    onSnapshot(antrianRef, (snap) => {
+        const d = snap.data() || {};
+        const slots = d.chargingSlots || [null, null, null];
+        const q = d.waitingQueue || [];
+        const blockedList = d.blockedList || [];
+
+        // RENDER QUICK STATUS
+        const qsContainer = document.getElementById('quickStatus');
+        const runningCount = slots.filter(s => s && s.startTime).length;
+        const emptyCount = slots.filter(s => s === null).length;
+        const currentQueueLength = q.length;
+        const currentMaxTarget = calculateTargetLimit(currentQueueLength);
+
+        qsContainer.innerHTML = `
+            <div>Slot Terisi: <span style="font-size:18px; font-weight:900; color:var(--accent);">${runningCount}</span>/${slots.length}</div>
+            <div>Slot Kosong: <span style="font-size:18px; font-weight:900; color:var(--cyan);">${emptyCount}</span>/${slots.length}</div>
+            <div>Antrian Tunggu: <span style="font-size:18px; font-weight:900; color:var(--soft-blue);">${currentQueueLength}</span></div>
+            <div>Target Max: <span style="font-size:18px; font-weight:900; color:var(--accent);">${currentMaxTarget}%</span></div>
+            <div>Blokir List: <span style="font-size:18px; font-weight:900; color:var(--soft-red);">${blockedList.length}</span></div>
+        `;
+
+        // UPDATE SELECT OPTIONS (Antrian dan Swap)
+        const assignQueueSelect = document.getElementById('assignQueueIndex');
+        assignQueueSelect.innerHTML = q.length ? q.map((x, i) => `<option value="${i}">${i + 1}: ${x.plat} (${x.startBattery}%)</option>`).join('') : '<option value="-1">-- Antrian Kosong --</option>';
+        
+        // DISPLAY BLOCKED LIST
+        document.getElementById('blockedListDisplay').innerHTML = blockedList.length ? 
+            'Diblokir: ' + blockedList.join(', ') : 'Tidak ada plat diblokir.';
+            
+        // UPDATE SLOT OPTIONS (Slot 1, 2, 3)
+        const slotOptions = slots.map((_, i) => `<option value="${i}">Slot ${i + 1}</option>`).join('');
+        const updateSelects = (ids) => {
+            ids.forEach(id => {
+                const select = document.getElementById(id);
+                if (select) select.innerHTML = slotOptions;
+            });
+        };
+
+        updateSelects(['manSlot', 'slotSource', 'slotTarget', 'assignSlotTarget']);
+        
+        // Perbaiki opsi slot sumber dan target agar memiliki opsi default
+        const slotSource = document.getElementById('slotSource');
+        if(slotSource) slotSource.innerHTML = '<option value="-1">Dari</option>' + slotOptions;
+        const slotTarget = document.getElementById('slotTarget');
+        if(slotTarget) slotTarget.innerHTML = '<option value="-1">Ke</option>' + slotOptions;
+
+
+    });
+
+    // 2. RENDER LOG AKTIVITAS (TOLL LOG)
+    function renderActivityLog(snapshot) {
+        const container = document.getElementById('logListContainer');
+        let logHtml = '';
+
+        if (snapshot.empty) {
+            container.innerHTML = '<p style="text-align: center; color: var(--text-muted);">Tidak ada log aktivitas.</p>';
+            return;
+        }
+
+        snapshot.forEach(doc => {
+            const log = doc.data();
+            const ts = log.timestamp instanceof Date ? log.timestamp : log.timestamp.toDate(); 
+            const time = ts.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            
+            let color = '#aaa'; 
+            if (log.action.includes('CLEAR') || log.action.includes('STOP') || log.action.includes('FAIL')) color = 'var(--soft-red)';
+            else if (log.action.includes('REGISTER') || log.action.includes('MOVE')) color = 'var(--cyan)';
+            else if (log.action.includes('START') || log.action.includes('ASSIGN') || log.action.includes('SWAP')) color = 'var(--accent)';
+            else if (log.action.includes('WA_SENT') || log.action.includes('QUEUE')) color = 'var(--soft-blue)';
+            else if (log.action.includes('LOGIN')) color = 'var(--accent)';
+
+            const userDisplay = log.user === 'SUPER_ADMIN' ? `<span style="color:var(--soft-red);">[SA]</span>` : (log.user === 'ADMIN' ? `<span style="color:var(--accent);">[A]</span>` : (log.user === 'SYSTEM' ? `<span style="color:var(--soft-blue);">[S]</span>` : `<span style="color:var(--cyan);">[U]</span>`));
+
+            logHtml += `
+                <div class="log-item">
+                    <span class="log-time">${time}</span>
+                    <span class="log-action" style="color:${color};">${log.action}</span>
+                    <span class="log-plat">${log.plat}</span>
+                    <span class="log-user">${userDisplay}</span>
+                </div>
+            `;
+        });
+        
+        container.innerHTML = logHtml;
+        container.scrollTop = container.scrollHeight; 
+    }
+
+    // --- SUPER ADMIN TEST FUNCTIONS ---
     window.fillAllSlotsManual = () => {
         const prefix = document.getElementById('dummyPlatPrefix').value.toUpperCase().trim();
         const bat1 = parseInt(document.getElementById('dummyBat1').value);
@@ -574,7 +773,7 @@
     };
     
     // 1. MANUAL ASSIGN & START (Membuat slot dari awal)
-    document.getElementById('btnManualAssign').onclick = () => {
+    window.manualAssign = () => {
         const i = document.getElementById('manSlot').value;
         const p = document.getElementById('manPlat').value.toUpperCase().replace(/\s/g, '').trim();
         const startBat = parseInt(document.getElementById('manBattery').value); 
@@ -617,7 +816,7 @@
     };
     
     // 2. PAKSA KOSONGKAN SLOT (Clear Slot)
-    document.getElementById('btnClearSlotManual').onclick = () => {
+    window.clearSlotManual = () => {
         const i = parseInt(document.getElementById('manSlot').value);
         
         showPopup('confirm', 'HAPUS SLOT PAKSA', `Paksa hapus Slot ${i+1}? Antrian akan ditarik.`, () => {
@@ -666,7 +865,7 @@
     };
 
     // 3. PINDAH ANTRIAN KE SLOT
-    document.getElementById('btnAssignQueueToSlot').onclick = () => {
+    window.assignQueueToSlot = () => {
         const queueIndex = parseInt(document.getElementById('assignQueueIndex').value);
         const slotTarget = parseInt(document.getElementById('assignSlotTarget').value);
 
@@ -707,7 +906,7 @@
     };
     
     // 4. TUKAR SLOT
-    document.getElementById('btnSwapSlots').onclick = () => {
+    window.swapSlots = () => {
         const sourceIndex = parseInt(document.getElementById('slotSource').value);
         const targetIndex = parseInt(document.getElementById('slotTarget').value);
 
@@ -738,7 +937,7 @@
     };
     
     // 5. BLOCK/UNBLOCK
-    document.getElementById('btnBlockUser').onclick = async () => {
+    window.blockUser = async () => {
         const p = document.getElementById('blockPlatInput').value.toUpperCase().trim();
         if(!p) return;
         await runTransaction(db, async (t) => {
@@ -750,7 +949,7 @@
         showPopup('success', 'BLOKIR', `Plat ${p} diblokir.`);
     };
 
-    document.getElementById('btnUnblockUser').onclick = async () => {
+    window.unblockUser = async () => {
         const p = document.getElementById('blockPlatInput').value.toUpperCase().trim();
         if(!p) return;
         await runTransaction(db, async (t) => {
@@ -763,7 +962,7 @@
     };
     
     // 6. DANGER ZONE
-    document.getElementById('btnStopAll').onclick = () => {
+    window.stopAll = () => {
         showPopup('confirm', 'BAHAYA: STOP SEMUA', 'Yakin? Semua slot cas akan dihentikan!', () => {
             runTransaction(db, async(t)=>{ 
                 // Asumsi 3 slot fix
@@ -773,7 +972,7 @@
             showPopup('success', 'ACTION', 'Semua slot dihentikan.');
         });
     };
-    document.getElementById('btnResetAll').onclick = () => {
+    window.resetAll = () => {
         showPopup('confirm', 'BAHAYA: RESET TOTAL', 'Yakin? Semua antrian, slot, dan blokir akan DIHAPUS!', () => {
             setDoc(antrianRef, {chargingSlots:[null,null,null], waitingQueue:[], blockedList:[]});
             logActivity('ADMIN_DB_RESET', 'ALL', 'SUPER_ADMIN');
