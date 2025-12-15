@@ -126,7 +126,7 @@
         .slot-box.active { 
             border-color: var(--accent); 
             background: rgba(204, 255, 0, 0.05); 
-            box-shadow: 0 0 10px rgba(204, 255, 0, 0.3);
+            box-shadow: 0 0 10px rgba(204, 255, 0, 0.4);
         }
         
         .bat-icon {
@@ -141,7 +141,7 @@
             background: var(--accent); 
             border-radius: 3px; 
             transition: height 0.5s; /* Animasi naik mulus */
-            box-shadow: 0 0 10px rgba(204, 255, 0, 0.5); 
+            box-shadow: 0 0 10px rgba(204, 255, 0, 0.9); 
         }
         
         .bat-fill.pulsating-fill {
@@ -191,7 +191,7 @@
             flex-direction: column;
             gap: 3px;
             font-size: 9px; 
-            color: var(--text); 
+            color: var(--accent); 
             margin-top: 5px; 
             font-family:'Inter', sans-serif;
             text-align: left;
@@ -203,11 +203,12 @@
             line-height: 1.2;
         }
         .info-label { 
-            color: var(--text-muted); 
+            color: var(--cyan); 
+            font-weight: 600;
         }
         .info-value { 
-            font-weight: 700;
-            color: #FFD700; /* Ganti warna nilai Awal & Target */
+            font-weight: 800;
+            color: #FFD700; 
         }
 
 
@@ -340,18 +341,24 @@
         }
         .front-queue-item b { color: var(--accent); }
         
-        /* --- STYLE UNTUK MODAL PILIHAN AWAL --- */
+        /* --- STYLE UNTUK MODAL PILIHAN AWAL (Perbaikan Tumpukan Tombol) --- */
         #choiceModal {
             position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 9999;
             display: none; align-items: center; justify-content: center; backdrop-filter: blur(5px);
         }
         .choice-box {
             background: var(--card-bg); border: 2px solid var(--accent); padding: 30px; 
-            border-radius: 20px; width: 85%; max-width: 350px; text-align: center; 
+            border-radius: 20px; w-idth: 85%; max-width: 350px; text-align: center; 
             box-shadow: 0 0 40px rgba(204, 255, 0, 0.2);
             animation: pop 0.3s;
         }
         .choice-box h3 { font-family: 'Syne', sans-serif; font-size: 20px; color: var(--accent); margin: 0 0 15px; }
+        .choice-btns {
+             display: flex; /* Memastikan tombol tersusun */
+             flex-direction: column;
+             gap: 15px; /* Jarak antara tombol */
+             margin-top: 20px;
+        }
         .choice-btns .btn { 
             padding: 15px; border-radius: 10px; font-weight: 800; cursor: pointer;
             text-decoration: none; font-size: 16px;
@@ -507,8 +514,18 @@
                  <input id="queueBattery" placeholder="Baterai %" type="number" class="adm-input" style="width: 48%;">
             </div>
             <button onclick="adminRegisterQueue()" class="btn-cyan adm-btn" style="background:var(--cyan); color:#000; margin-top: 10px;">DAFTAR KE ANTRIAN</button>
-            <hr style="border: none; border-top: 1px solid var(--border); margin: 15px 0;">
             
+            <hr style="border: none; border-top: 1px solid var(--border); margin: 15px 0;">
+            <h3 style="font-size: 14px; color: var(--accent); margin-top: 5px; margin-bottom: 15px;">🔄 PINDAH POSISI ANTRIAN</h3>
+            <label>TUKAR POSISI ANTRIAN TUNGGU</label>
+            <div class="adm-row" style="display: flex; gap: 5px;">
+                <select id="queueSource" class="adm-input" style="width:40%"><option value="-1">Antrian Dari</option></select>
+                <select id="queueTarget" class="adm-input" style="width:40%"><option value="-1">Antrian Ke</option></select>
+                <button onclick="swapQueuePositions()" class="adm-btn" style="width:20%; background:var(--accent); color:#000; font-weight: 700; flex-shrink: 0;">TUKAR</button>
+            </div>
+            
+            <hr style="border: none; border-top: 1px solid var(--border); margin: 15px 0;">
+
             <label>PINDAH SLOT CHARGING (Tukar Posisi)</label>
             <div class="adm-row" style="display: flex; gap: 5px;">
                 <select id="slotSource" class="adm-input" style="width:30%"><option value="-1">Dari</option><option value="0">S1</option><option value="1">S2</option><option value="2">S3</option></select>
@@ -1148,7 +1165,6 @@
         window.closeChoiceModal = () => {
             document.getElementById('choiceModal').style.display = 'none';
         }
-        
         window.logoutUser = () => {
             showPopup('confirm', 'KONFIRMASI', 'Apakah Anda yakin ingin menghapus data antrian lokal Anda?', () => {
                 localStorage.removeItem('myPlat');
@@ -1589,8 +1605,14 @@
                     timeDisplay = `<div style="font-size:16px; font-weight:800; color:var(--accent); margin:5px 0; text-shadow: 0 0 5px rgba(204, 255, 0, 0.5); font-family:'Syne', sans-serif;" data-end="${end}" data-plat="${x.plat}" data-wa="${x.wa}" data-slotindex="${i}" data-username="${x.userName || ''}">...</div>`; 
 
                 } else {
-                    buttons = `<button class="btn-act btn-stop" onclick="window.act(${i},'stop', '${x.plat}', '${x.wa}')">STOP/HAPUS</button>`;
-                    timeDisplay = `<button class="btn-act btn-start" onclick="window.act(${i},'start', '${x.plat}', '${x.wa}')" style="margin-bottom:5px;">MULAI CAS</button>`;
+                    // Tombol Start dan Stop/Hapus dijadikan satu grup di bawah
+                    buttons = `
+                        <div class="btn-group" style="margin-top: 10px;">
+                            <button class="btn-act btn-start" onclick="window.act(${i},'start', '${x.plat}', '${x.wa}')">MULAI CAS</button>
+                            <button class="btn-act btn-stop" onclick="window.act(${i},'stop', '${x.plat}', '${x.wa}')">STOP/HAPUS</button>
+                        </div>
+                    `;
+                    timeDisplay = `<div style="font-size:12px; color:var(--text-muted); margin:5px 0;">Menunggu Start</div>`;
 
                 }
                 
@@ -1598,7 +1620,7 @@
                 let nameDisplay = x.userName ? `<div style="font-size:10px; color:var(--cyan); font-weight: 700; font-family:'Inter', sans-serif;">(${x.userName})</div>` : '';
 
                 
-                // --- PERBAIKAN TAMPILAN KETERANGAN BATERAI + WARNA BARU ---
+                // --- TAMPILAN KETERANGAN BATERAI ---
                 let batInfo = `
                     <div class="bat-info-container">
                         <div class="bat-info-row">
@@ -1613,7 +1635,7 @@
                             <span class="info-label">Saat ini:</span>
                             <span class="info-value" style="color:#00FF44;">${h}%</span> </div>
                     </div>`;
-                // --- END PERBAIKAN ---
+                // --- END TAMPILAN KETERANGAN BATERAI ---
 
                 
                 return `
@@ -1646,7 +1668,18 @@
             
             // RENDER ADMIN QUEUE OPTIONS
             const assignQueueSelect = document.getElementById('assignQueueIndex');
-            assignQueueSelect.innerHTML = q.length ? q.map((x,i)=>`<option value="${i}">${i+1}: ${x.plat} (${x.startBattery}%)</option>`) : '<option value="-1">-- Antrian Kosong --</option>';
+            const queueSourceSelect = document.getElementById('queueSource');
+            const queueTargetSelect = document.getElementById('queueTarget');
+
+            const queueOptions = q.length ? q.map((x,i)=>`<option value="${i}">${i+1}: ${x.plat} (${x.startBattery}%)</option>`).join('') : '<option value="-1">-- Antrian Kosong --</option>';
+
+            assignQueueSelect.innerHTML = queueOptions;
+
+            // Isi Dropdown Tukar Posisi Antrian
+            const swapQueueOptions = q.length ? q.map((x,i)=>`<option value="${i}">#${i+1}: ${x.plat}</option>`).join('') : '';
+            
+            queueSourceSelect.innerHTML = '<option value="-1">Antrian Dari</option>' + swapQueueOptions;
+            queueTargetSelect.innerHTML = '<option value="-1">Antrian Ke</option>' + swapQueueOptions;
 
         });
 
@@ -1814,6 +1847,41 @@
                     showPopup('success', 'SUKSES', `Antrian berhasil dipindah ke Slot ${slotTarget + 1}.`);
                 }).catch(e => {
                     logActivity('ADMIN_MOVE_QUEUE_FAIL', itemToMove?.plat || 'N/A', 'ADMIN', { error: e.toString() });
+                    showPopup('error', 'GAGAL', e);
+                });
+            });
+        };
+
+        window.swapQueuePositions = () => {
+            if (!isAdminLoggedIn) return showPopup('error', 'AKSES DITOLAK', 'Fitur ini hanya untuk Admin.');
+            
+            const sourceIndex = parseInt(document.getElementById('queueSource').value);
+            const targetIndex = parseInt(document.getElementById('queueTarget').value);
+
+            if (sourceIndex === -1 || targetIndex === -1 || sourceIndex === targetIndex) {
+                return showPopup('error', 'Gagal', 'Pilih dua posisi antrian yang valid dan berbeda.');
+            }
+
+            showPopup('confirm', 'KONFIRMASI PINDAH', `Pindahkan Antrian #${sourceIndex + 1} ke #${targetIndex + 1}?`, () => {
+                runTransaction(db, async(t) => {
+                    const d = (await t.get(ref)).data();
+                    let q = d.waitingQueue;
+
+                    if (!q[sourceIndex] || !q[targetIndex]) {
+                        throw "Salah satu antrian tidak ditemukan pada posisi yang dipilih.";
+                    }
+
+                    // Logika Swap (Tukar Posisi)
+                    const sourceItem = q[sourceIndex];
+                    q[sourceIndex] = q[targetIndex];
+                    q[targetIndex] = sourceItem;
+
+                    t.update(ref, { waitingQueue: q });
+                }).then(() => {
+                    logActivity('ADMIN_QUEUE_SWAP', 'N/A', 'ADMIN', { source: sourceIndex + 1, target: targetIndex + 1 });
+                    showPopup('success', 'SUKSES', `Antrian #${sourceIndex + 1} dan #${targetIndex + 1} berhasil ditukar/dipindah.`);
+                }).catch(e => {
+                    logActivity('ADMIN_QUEUE_SWAP_FAIL', 'N/A', 'ADMIN', { error: e.toString() });
                     showPopup('error', 'GAGAL', e);
                 });
             });
