@@ -1,693 +1,1213 @@
-<script type="module">
-    // --- START: TAMBAH FUNGSI FCM & CLOUD FUNCTIONS ---
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-    import { getFirestore, doc, onSnapshot, runTransaction, setDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
-    import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-functions.js";
-    import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-messaging.js";
-    // --- END: TAMBAH FUNGSI FCM & CLOUD FUNCTIONS
-    
-    
-    /* =====================================================
-       SAFE PATCH v1.0 - START
-       (Anti Fake GPS + Slot Stability Lock)
-       ===================================================== */
-    (() => {
-    
-      /* ================= ANTI FAKE GPS ================= */
-      let gpsHistory = [];
-      let fakeGpsStrike = 0;
-    
-      const MAX_SPEED_KMH = 150;
-      const MIN_ACCURACY = 30; // Ditingkatkan untuk toleransi indoor
-      const MAX_STRIKE = 2;
-    
-      function haversine(lat1, lon1, lat2, lon2) {
-        const R = 6371;
-        const dLat = (lat2 - lat1) * Math.PI / 180;
-        const dLon = (lon2 - lon1) * Math.PI / 180;
-        const a =
-          Math.sin(dLat / 2) ** 2 +
-          Math.cos(lat1 * Math.PI / 180) *
-          Math.cos(lat2 * Math.PI / 180) *
-          Math.sin(dLon / 2) ** 2;
-        return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
-      }
-    
-      function detectFakeGPS(pos) {
-        const { latitude, longitude, accuracy } = pos.coords;
-        const now = Date.now();
-        let currentStrike = 0;
-    
-        // 1. Cek Akurasi Tinggi (Indikasi mock) atau Akurasi 0
-        if (accuracy === 0 || accuracy > MIN_ACCURACY) currentStrike++; 
-    
-        gpsHistory.push({ lat: latitude, lng: longitude, time: now });
-        if (gpsHistory.length > 3) gpsHistory.shift();
-    
-        // 2. Cek Kecepatan Tidak Masuk Akal (Teleportasi)
-        if (gpsHistory.length >= 2) {
-          const a = gpsHistory[gpsHistory.length - 2];
-          const b = gpsHistory[gpsHistory.length - 1];
-          const dist = haversine(a.lat, a.lng, b.lat, b.lng);
-          const hours = (b.time - a.time) / 3600000;
-          if (hours > 0 && (dist / hours) > MAX_SPEED_KMH) currentStrike++;
-        }
-    
-        // 3. Cek Lokasi Beku (Mock Location Statis)
-        if (gpsHistory.length === 3) {
-          const [x, y, z] = gpsHistory;
-          if (x.lat === y.lat && y.lat === z.lat &&
-              x.lng === y.lng && y.lng === z.lng) {
-            currentStrike++;
-          }
+<!DOCTYPE html>
+<html lang="id" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>FC Kelapa Gading - Smart Charging</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&family=Syne:wght@700&display=swap" rel="stylesheet">
+
+    <style>
+        /* TEMA DARK/HITAM-NEON */
+        :root {
+            --accent: #CCFF00; 
+            --bg: #050505; 
+            --glass: rgba(17, 17, 17, 0.7); 
+            --text: #ffffff;
+            --text-muted: #888;
+            --cyan: #00d2ff; 
+            --soft-red: #FF3B30;
+            --border: #333;
+            --card-bg: #111;
+            --input-bg: #222;
         }
         
-        // Akumulasi strike
-        fakeGpsStrike += currentStrike;
-    
-        if (fakeGpsStrike >= MAX_STRIKE) {
-          localStorage.setItem("FAKE_GPS_BLOCK", "1");
-          return true;
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body {
+            margin: 0; 
+            font-family: 'Inter', sans-serif; 
+            background-color: var(--bg); color: var(--text);
+            min-height: 100vh; padding: 0; transition: 0.3s;
+            position: relative;
         }
-        return false;
-      }
-    
-      /* Hook geolocation */
-      const _geo = navigator.geolocation.getCurrentPosition.bind(navigator.geolocation);
-      navigator.geolocation.getCurrentPosition = function (success, error, opts) {
-        if (localStorage.getItem("FAKE_GPS_BLOCK") === "1") {
-           alert("FAKE GPS TERDETEKSI.\nAkun diblokir sementara. Matikan Fake GPS lalu refresh.");
-           error({code: 1, message: "FAKE GPS BLOCKED"});
-           return;
+
+        /* FIX: Global Background Image with Opacity */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: url('1763947427555.jpg'); 
+            background-size: cover;
+            background-position: center;
+            opacity: 0.35; /* Opacity for BG Image */
+            z-index: -1;
         }
+
+        .container { max-width: 480px; margin: 0 auto; padding: 20px 25px 120px; position: relative; z-index: 1; }
+        
+        /* HEADER (Fix Sticking) */
+        .header-top {
+            position: sticky; top: 0; z-index: 50;
+            background: linear-gradient(180deg, var(--bg) 90%, transparent); 
+            padding: 20px 25px 10px;
+            margin: 0 -25px; 
+        }
+
+        .header-row { 
+            display: flex; justify-content: space-between; align-items: center; 
+            margin-bottom: 5px;
+        }
+        
+        h1 {
+            font-family: 'Syne', sans-serif; 
+            font-size: clamp(1.8rem, 8vw, 24px); margin: 0;
+            background: linear-gradient(to right, var(--text), var(--accent));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 10px rgba(204, 255, 0, 0.4); letter-spacing: 1px;
+            font-weight: 800;
+        }
+
+        .subtitle { 
+            font-family: 'Syne'; 
+            color: var(--text-muted); font-size: 10px; 
+            letter-spacing: 2px; margin-bottom: 25px; font-weight: 700;
+            text-transform: uppercase; border-bottom: 1px solid var(--border); padding-bottom: 15px;
+        }
+
+        /* Nav Home Button */
+        .btn-home {
+            padding: 8px 15px; background: #222; border: 1px solid #444;
+            color: var(--text); font-weight: 700; border-radius: 10px;
+            text-decoration: none; font-size: 0.75rem;
+            display: flex; align-items: center; gap: 5px;
+        }
+        
+        /* CARD */
+        .glass-card {
+            background: var(--card-bg); 
+            backdrop-filter: blur(5px);
+            border: 1px solid var(--border); border-radius: 20px; padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5); margin-bottom: 25px;
+        }
+
+        label { display: block; font-family: 'Inter', sans-serif; font-size: 10px; color: var(--accent); margin-bottom: 8px; letter-spacing: 1px; font-weight: 700;}
+        input.field {
+            width: 100%; background: var(--input-bg); border: 1px solid var(--border); color: var(--text);
+            padding: 15px; border-radius: 10px; 
+            font-family: 'Inter', sans-serif; 
+            font-size: 20px;
+            font-weight: 800; outline: none; transition: 0.3s; margin-bottom: 15px; text-align: center;
+        }
+        input.field:focus { border-color: var(--accent); box-shadow: 0 0 10px rgba(204, 255, 0, 0.2); }
+
+        .btn-cyan {
+            width: 100%; 
+            background: linear-gradient(90deg, var(--accent), #e6ff66); 
+            border: none; padding: 16px; border-radius: 10px; color: #000; 
+            font-family: 'Inter', sans-serif; 
+            font-weight: 800; font-size: 16px;
+            cursor: pointer; box-shadow: 0 0 20px rgba(204, 255, 0, 0.3); margin-top: 5px;
+        }
+        
+        .slots-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 30px; }
+        .slot-box {
+            background: var(--card-bg); border: 1px solid var(--border); border-radius: 15px;
+            padding: 10px 5px; text-align: center; min-height: 160px; display: flex; flex-direction: column;
+            justify-content: center; position: relative;
+            transition: all 0.3s ease;
+        }
+        
+        /* Efek Tilt/Depth */
+        .slot-box:active {
+            transform: scale(0.98);
+        }
+        
+        /* Slot Active: Pulsating Glow & Border */
+        .slot-box.active { 
+            border-color: var(--accent); 
+            background: rgba(204, 255, 0, 0.05); 
+            box-shadow: 0 0 15px rgba(204, 255, 0, 0.5); /* Base glow */
+        }
+        
+        /* PULSATING GLOW (NEW) */
+        .slot-box.pulsating {
+            animation: pulse-glow 2s infinite alternate ease-in-out;
+        }
+        @keyframes pulse-glow {
+            0% { box-shadow: 0 0 10px var(--accent), 0 0 5px var(--accent) inset; }
+            100% { box-shadow: 0 0 20px var(--accent), 0 0 10px var(--accent) inset; }
+        }
+
+
+        .bat-icon {
+            width: 36px; height: 60px; border: 2px solid var(--text-muted); border-radius: 6px;
+            position: relative; margin: 0 auto 10px; display: flex; align-items: flex-end; padding: 2px;
+        }
+        .bat-icon::before { content: ''; position: absolute; top: -5px; left: 10px; width: 12px; height: 3px; background: var(--text-muted); }
+        .bat-fill { 
+            width: 100%; 
+            background: var(--accent); 
+            border-radius: 3px; transition: height 0.5s; 
+            box-shadow: 0 0 10px rgba(204, 255, 0, 0.5); 
+        }
+        .bat-bolt { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 20px; color: #000; text-shadow: none; z-index: 2; }
+        
+        .slot-box.active .bat-icon { border-color: var(--accent); }
+        .slot-box.active .bat-icon::before { background: var(--accent); }
+
+        /* REVISI LAYOUT TOMBOL SLOT (Vertikal) */
+        .btn-group { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 3px; 
+            margin-top: auto; 
+        }
+        .btn-act { 
+            width: 100%; 
+            padding: 6px; 
+            border-radius: 6px; 
+            border: none; 
+            font-weight: 700; 
+            font-family: 'Inter', sans-serif; 
+            font-size: 10px; 
+            cursor: pointer; 
+        }
+        .btn-start { background: var(--accent); color: #000; } 
+        .btn-stop { background: rgba(255, 59, 48, 0.1); border: 1px solid var(--soft-red); color: var(--soft-red); }
+        .btn-edit-timer { background: rgba(0, 210, 255, 0.1); border: 1px solid var(--cyan); color: var(--cyan); }
+
+
+        /* POPUP MODAL */
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
+        .modal-box { 
+            background: var(--card-bg); border: 2px solid var(--accent); padding: 25px; 
+            border-radius: 20px; w-idth: 85%; max-width: 320px; text-align: center; 
+            box-shadow: 0 0 40px rgba(204, 255, 0, 0.2);
+            animation: pop 0.3s;
+        }
+        .modal-icon { font-size: 40px; margin-bottom: 10px; display: block; color: var(--accent); }
+        .modal-title { font-family: 'Syne', sans-serif; font-size: 18px; margin: 0 0 10px; color: var(--text); font-weight: 700; }
+        .modal-msg { color: var(--text-muted); font-size: 14px; margin-bottom: 20px; line-height: 1.4; }
+        
+        .modal-btns { display: flex; gap: 10px; }
+        .btn-modal { flex: 1; padding: 12px; border-radius: 8px; border: none; font-weight: 700; cursor: pointer; font-family: 'Inter', sans-serif; background: var(--input-bg); color: var(--text); }
+        .btn-modal.primary { background: var(--accent); color: #000; }
+        .btn-modal.danger { background: var(--soft-red); color: #fff; }
+        
+        /* ADMIN */
+        .admin-trigger { 
+            color: var(--text-muted); text-align: center; font-size: 10px; 
+            margin-top: 10px; 
+            margin-bottom: 20px;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            letter-spacing: 1px;
+            font-weight: 600;
+            z-index: 10; 
+            position: relative;
+        }
+        .admin-panel { 
+            background: var(--card-bg); 
+            padding: 20px; 
+            border-radius: 15px; 
+            border: 1px solid var(--soft-red); 
+            margin-top: 20px; 
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            z-index: 5; 
+        }
+        .adm-input { background: var(--input-bg); border: 1px solid var(--border); color: var(--text); padding: 10px; width: 100%; border-radius: 6px; font-family: 'Inter', sans-serif; }
+        .adm-btn { background: var(--input-bg); color: var(--text); font-family: 'Inter', sans-serif; margin-top: 5px; font-weight: 600;}
+        
+        .footer {
+            text-align: center; margin-top: 40px; font-family: 'Syne', sans-serif;
+            font-size: 12px; color: var(--accent); font-weight: 700; letter-spacing: 2px;
+            text-shadow: 0 0 10px rgba(204, 255, 0, 0.4);
+        }
+
+        @keyframes pop { from{transform:scale(0.8); opacity:0} to{transform:scale(1); opacity:1} }
+        
+        /* LOADING SCREEN NEON (FIXED ALIGNMENT) */
+        #loadingScreen {
+            position: fixed; inset: 0; background-color: var(--bg); 
+            z-index: 10000; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center; 
+            align-items: center;
+            text-align: center;
+        }
+        .spinner {
+            width: 80px; height: 80px; border: 4px solid rgba(255, 255, 255, 0.2); 
+            border-radius: 50%; border-top: 4px solid var(--accent);
+            animation: spin 1s linear infinite;
+            box-shadow: 0 0 15px var(--accent);
+            margin-bottom: 20px;
+        }
+        .neon-text {
+            font-family: 'Syne', sans-serif;
+            font-size: 18px;
+            color: var(--text);
+            text-shadow: 0 0 5px var(--cyan), 0 0 10px var(--cyan);
+            letter-spacing: 3px;
+            white-space: pre-wrap; 
+            text-align: center;
+            width: 100%; 
+            padding: 0 20px; 
+            margin: 5px 0; 
+        }
+        
+        /* Style untuk Antrian List */
+        .queue-item-display {
+            display: flex; justify-content: space-between; 
+            background: var(--card-bg); padding: 10px; margin-bottom: 5px; 
+            border-radius: 8px; border: 1px solid var(--border);
+            transition: border-color 0.3s;
+        }
+        /* Highlight Antrian Pengguna */
+        .queue-item-display.is-mine {
+            border: 2px solid var(--cyan);
+            box-shadow: 0 0 10px rgba(0, 210, 255, 0.5);
+            background: rgba(0, 210, 255, 0.05);
+        }
+
+        /* --- GAYA UNTUK RINGKASAN DAFTAR TUNGGU (DI DEPAN) --- */
+        #quickStatusSummary {
+            text-align: center;
+            padding: 15px;
+            background: var(--card-bg);
+            border: 1px solid var(--cyan);
+            border-radius: 10px;
+            margin-bottom: 25px;
+            box-shadow: 0 0 10px rgba(0, 210, 255, 0.2);
+        }
+        .qs-label {
+            display: block;
+            font-size: 10px;
+            color: var(--text-muted);
+            font-weight: 700;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+        .qs-value {
+            font-family: 'Syne', sans-serif;
+            font-size: 24px;
+            font-weight: 900;
+            color: var(--cyan);
+            text-shadow: 0 0 10px rgba(0, 210, 255, 0.5);
+            line-height: 1;
+        }
+        /* List Antrian di Depan */
+        #frontQueueList {
+             padding: 10px; border-top: 1px solid var(--border); margin-top: 15px;
+        }
+        .front-queue-item {
+            font-size: 12px; color: var(--text); margin-top: 5px;
+            font-family: 'Inter', sans-serif;
+        }
+        .front-queue-item b { color: var(--accent); }
+        
+        /* --- STYLE UNTUK MODAL PILIHAN AWAL --- */
+        #choiceModal {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 9999;
+            display: none; align-items: center; justify-content: center; backdrop-filter: blur(5px);
+        }
+        .choice-box {
+            background: var(--card-bg); border: 2px solid var(--accent); padding: 30px; 
+            border-radius: 20px; width: 85%; max-width: 350px; text-align: center; 
+            box-shadow: 0 0 40px rgba(204, 255, 0, 0.2);
+            animation: pop 0.3s;
+        }
+        .choice-box h3 { font-family: 'Syne', sans-serif; font-size: 20px; color: var(--accent); margin: 0 0 15px; }
+        .choice-btns { display: flex; flex-direction: column; gap: 15px; margin-top: 20px; }
+        .choice-btns .btn { 
+            padding: 15px; border-radius: 10px; font-weight: 800; cursor: pointer;
+            text-decoration: none; font-size: 16px;
+        }
+        #btnTutorial { background: var(--cyan); color: #000; }
+        #btnDaftarLangsung { background: var(--input-bg); color: var(--text); border: 1px solid var(--border); }
+        
+    </style>
+</head>
+<body>
+    <div id="loadingScreen">
+        <div class="neon-text top-text">SELAMAT DATANG DI RUMAH MLU</div>
+        <div class="spinner"></div>
+        <div class="neon-text bottom-text">FC KELAPA GADING</div>
+    </div>
+
+
+    <audio id="alarmSound" loop>
+        <source src="data:audio/wav;base64,U..." type="audio/wav"> 
+    </audio>
+
+    <div id="masterModal" class="modal">
+        <div id="modalBox" class="modal-box">
+            <span id="mIcon" class="modal-icon">✅</span>
+            <h3 id="mTitle" class="modal-title">TITLE</h3>
+            <p id="mMsg" class="modal-msg">Message</p>
+            <input type="password" id="mInput" style="display:none; width:100%; padding:10px; text-align:center; margin-bottom:15px; border-radius:5px; border:1px solid var(--border); background:var(--input-bg); color:var(--text);" placeholder="PIN">
+            <input type="number" id="mInputDuration" style="display:none; width:100%; padding:10px; text-align:center; margin-bottom:15px; border-radius:5px; border:1px solid var(--border); background:var(--input-bg); color:var(--text);" placeholder="Durasi (menit)">
+            <div class="modal-btns">
+                <button id="mBtnCancel" class="btn-modal" style="display:none;">BATAL</button>
+                <button id="mBtnOk" class="btn-modal primary">OK</button>
+            </div>
+        </div>
+    </div>
     
-        _geo((pos) => {
-          if (detectFakeGPS(pos)) {
-            alert("FAKE GPS TERDETEKSI!\nSilakan matikan aplikasi Mock Location dan refresh.");
-            return; 
+    <div id="choiceModal">
+        <div class="choice-box">
+            <span class="modal-icon" style="color:var(--cyan);">👋</span>
+            <h3>SELAMAT DATANG!</h3>
+            <p style="color:var(--text-muted); font-size:14px;">Mau lihat panduan atau langsung daftar?</p>
+            <div class="choice-btns">
+                <a href="tutorial.html" id="btnTutorial" class="btn">PANDUAN TUTORIAL</a>
+                <button id="btnDaftarLangsung" class="btn" onclick="closeChoiceModal()">LANGSUNG DAFTAR</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        
+        <div class="header-top">
+             <div class="header-row">
+                <h1>FC KELAPA GADING</h1>
+                <a href="index.html" class="btn-home">🏠 KEMBALI KE HOME</a>
+             </div>
+             <div class="subtitle">HOME OF MLU</div>
+        </div>
+        
+        <div id="registrationArea"> 
+            <div class="glass-card">
+                <label>PLAT NOMOR</label>
+                <input id="userPlat" class="field" oninput="this.value = this.value.toUpperCase().replace(/\s/g, '')" placeholder="PLAT NOMOR" style="text-transform:uppercase;">
+                
+                <label>NAMA PENGGUNA</label>
+                <input id="userName" class="field" placeholder="Nama Anda" style="text-transform:capitalize;">
+                
+                <label>NO WA</label>
+                <input id="userWA" type="tel" class="field" placeholder="08xxxxxxxxxx">
+
+                <label>BATERAI (%)</label>
+                <input id="userBattery" type="number" class="field" placeholder="0 - 99">
+                <button id="btnDaftar" class="btn-cyan">DAFTAR ANTRIAN</button>
+            </div>
+        </div>
+        
+        <a href="tutorial.html" class="btn-cyan" style="display: none; text-align: center; margin: 0 auto 25px; padding: 12px; background: var(--cyan); color: #000; text-decoration: none; font-weight: 800; border-radius: 10px;">
+            LIHAT PANDUAN PENGGUNA (6 Langkah)
+        </a>
+        
+        <div id="quickStatusSummary"> 
+            <div id="qsQueueCount">
+                <span class="qs-label">TOTAL DAFTAR TUNGGU</span>
+                <span id="qsQueueCountValue" class="qs-value">0</span>
+                
+                <div id="qsMaxTarget" style="font-size: 14px; color: var(--accent); margin-top: 5px; font-weight: 700;"></div>
+                
+                <div id="frontQueueList"></div>
+            </div>
+        </div>
+        <div id="statusArea" style="display:none;"> 
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <div style="width:8px; height:8px; background:var(--accent); border-radius:50%; box-shadow:0 0 10px var(--accent);"></div>
+                    <span style="font-family:'Inter'; font-serif; font-size:12px; color:var(--text); font-weight: 600;">STATUS DETAIL 3 SLOT</span>
+                </div>
+            </div>
+
+            <div class="slots-grid" id="slotsContainer">
+                <div style="grid-column:1/-1; text-align:center; padding:30px; color:var(--text-muted);">Loading System...</div>
+            </div>
+
+            <div id="queueSummaryDisplay" class="queue-summary">
+            </div>
+
+            <div class="glass-card" style="padding:15px; min-height:100px;">
+                <div style="display:flex; justify-content:space-between; margin-bottom:15px; border-bottom:1px solid var(--border); padding-bottom:10px;">
+                    <span style="font-family:'Inter'; font-serif; font-size:12px; color:var(--text); font-weight: 600;">DAFTAR TUNGGU (DETAIL)</span>
+                    <span id="qCount" style="font-size:12px; color:var(--accent);">0</span>
+                </div>
+                <div id="queueList"></div>
+            </div>
+        </div>
+        
+        <div id="logoutButtonContainer" style="display:none; margin-top: 25px;">
+            <button onclick="logoutUser()" class="btn-stop" style="width:100%; padding: 12px; font-size: 14px;">KELUAR / HAPUS DATA SAYA</button>
+        </div>
+        
+        <div class="admin-trigger" onclick="openAdminLogin()">🔒 ADMIN LOGIN AREA</div>
+        
+        <div id="adminPanel" class="admin-panel" style="background:var(--card-bg); border-color:var(--soft-red); display:none;">
+            <h4 style="color:var(--soft-red); margin:0 0 15px; font-family:'Syne'; text-align:center; font-weight: 700; border-bottom: 1px solid var(--soft-red); padding-bottom: 10px;">PANEL KONTROL ADMIN</h4>
+
+            <h3 style="font-size: 14px; color: var(--cyan); margin-top: 5px; margin-bottom: 10px;">⚡ KONTROL SISTEM CEPAT</h3>
+            
+            <div class="adm-toggle" style="border: none; padding-top: 0;">
+                <span id="gpsBypassStatus">GPS LOCK BYPASS: OFF</span>
+                <label class="switch">
+                    <input type="checkbox" id="gpsBypassToggle" onclick="toggleGpsBypass()">
+                    <span class="slider"></span>
+                </label>
+            </div>
+            
+            <hr style="border: none; border-top: 1px solid var(--border); margin: 15px 0;">
+
+            <h3 style="font-size: 14px; color: var(--accent); margin-top: 5px; margin-bottom: 15px;">🔋 MANAJEMEN SLOT CHARGING</h3>
+
+            <label>MANUAL ASSIGN (PLAT BARU)</label>
+            <div class="adm-row" style="display: flex; gap: 5px; margin-bottom: 5px;">
+                <select id="manSlot" class="adm-input" style="width:30%"><option value="0">Slot 1</option><option value="1">Slot 2</option><option value="2">Slot 3</option></select>
+                <input id="manPlat" placeholder="Plat" class="adm-input" style="width:70%;">
+            </div>
+            
+            <label style="margin-top:10px;">BATERAI AWAL (%)</label>
+            <input id="manBattery" type="number" class="adm-input" placeholder="Contoh: 30 (0-99)" style="margin-bottom: 10px;">
+
+            <button onclick="manualAssign()" class="btn-cyan adm-btn" style="background:var(--accent); color:#000; margin-bottom: 10px;">ISI SLOT MANUAL</button>
+            <button onclick="clearSlotManual()" class="adm-btn btn-stop" style="background:var(--input-bg); color:var(--text); border: 1px solid var(--soft-red); margin-bottom: 15px;">KOSONGKAN SLOT (PAKSA)</button>
+
+            <hr style="border: none; border-top: 1px solid var(--border); margin: 15px 0;">
+            
+            <label>PINDAH SLOT CHARGING (Tukar Posisi)</label>
+            <div class="adm-row" style="display: flex; gap: 5px;">
+                <select id="slotSource" class="adm-input" style="width:30%"><option value="-1">Dari</option><option value="0">S1</option><option value="1">S2</option><option value="2">S3</option></select>
+                <select id="slotTarget" class="adm-input" style="width:30%"><option value="-1">Ke</option><option value="0">S1</option><option value="1">S2</option><option value="2">S3</option></select>
+                <button onclick="swapSlots()" class="adm-btn" style="width:40%; background:var(--cyan); color:#fff; font-weight: 700;">PINDAH</button>
+            </div>
+
+            <label style="margin-top:15px;">ASSIGN ANTRIAN KE SLOT KOSONG</label>
+            <div class="adm-row" style="display: flex; gap: 5px;">
+                <select id="assignQueueIndex" class="adm-input" style="width:50%"><option value="-1">-- Pilih Antrian --</option></select>
+                <select id="assignSlotTarget" class="adm-input" style="width:50%">
+                    <option value="0">Slot 1</option>
+                    <option value="1">Slot 2</option>
+                    <option value="2">Slot 3</option>
+                </select>
+            </div>
+            <button onclick="assignQueueToSlot()" class="adm-btn" style="background:var(--cyan); color:#000; font-weight: 700;">PINDAH KE SLOT</button>
+
+            <hr style="border: none; border-top: 1px solid var(--border); margin: 15px 0;">
+
+            <h3 style="font-size: 14px; color: var(--soft-red); margin-top: 5px; margin-bottom: 15px;">🚫 MANAJEMEN USER (BLOKIR)</h3>
+            <label>BLOKIR PLAT</label>
+            <div class="adm-row" style="display: flex; gap: 5px; margin-bottom: 15px;">
+                <input id="blockPlatInput" placeholder="Plat Diblokir" class="adm-input" style="width: 70%;">
+                <button onclick="blockUser()" class="adm-btn" style="width:30%; background:var(--soft-red); color:#fff; font-weight: 700;">BLOK</button>
+            </div>
+            
+            <hr style="border: none; border-top: 1px solid var(--soft-red); margin: 15px 0;">
+            
+            <h3 style="font-size: 14px; color: var(--soft-red); margin-top: 5px; margin-bottom: 15px;">⚠️ DANGER ZONE</h3>
+
+            <label>TINDAKAN DARURAT</label>
+            <button onclick="stopAll()" class="adm-btn" style="background:var(--soft-red); color:#fff; font-weight: 700;">STOP SEMUA SLOT (DARURAT)</button>
+            <button onclick="resetAll()" class="adm-btn" style="border:1px solid var(--soft-red); background:none; color:var(--soft-red); font-weight: 700;">RESET DATABASE TOTAL (Hapus Semua Data)</button>
+
+            <div onclick="document.getElementById('adminPanel').style.display='none'" style="text-align:center; margin-top:15px; font-size:10px; color:var(--text-muted); cursor:pointer;">Tutup Panel</div>
+        </div>
+
+
+        <div class="footer">Aplikasi ini buatan MLU bukan punya Maka </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+        import { getFirestore, doc, onSnapshot, runTransaction, setDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+        import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-functions.js";
+        import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-messaging.js";
+
+
+        /* =====================================================
+           SAFE PATCH v1.0 - START (Anti Fake GPS + Stability)
+           ===================================================== */
+        (() => {
+        
+          /* ================= ANTI FAKE GPS ================= */
+          let gpsHistory = [];
+          let fakeGpsStrike = 0;
+        
+          const MAX_SPEED_KMH = 150;
+          const MIN_ACCURACY = 30; 
+          const MAX_STRIKE = 2;
+        
+          function haversine(lat1, lon1, lat2, lon2) {
+            const R = 6371;
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a =
+              Math.sin(dLat / 2) ** 2 +
+              Math.cos(lat1 * Math.PI / 180) *
+              Math.cos(lat2 * Math.PI / 180) *
+              Math.sin(dLon / 2) ** 2;
+            return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
           }
-          success(pos);
-        }, error, opts);
-      };
-    
-      /* ================= FIX SLOT LOGIC (STABILITY) ================= */
-    
-      // Lock durationMinutes dan targetLimit agar tidak diubah oleh onSnapshot setelah startTime terisi
-      const _assign = Object.assign;
-      Object.assign = function (target, ...src) {
-        if (target && target.startTime) {
-          const safe = { ...target };
-          src.forEach(s => {
-            for (const k in s) {
-              // Hanya izinkan update key SELAIN durationMinutes, targetLimit, dan startTime
-              if (k !== "durationMinutes" && k !== "targetLimit" && k !== "startTime") { 
-                safe[k] = s[k];
+        
+          function detectFakeGPS(pos) {
+            const { latitude, longitude, accuracy } = pos.coords;
+            const now = Date.now();
+            let currentStrike = 0;
+        
+            if (accuracy === 0 || accuracy > MIN_ACCURACY) currentStrike++; 
+        
+            gpsHistory.push({ lat: latitude, lng: longitude, time: now });
+            if (gpsHistory.length > 3) gpsHistory.shift();
+        
+            if (gpsHistory.length >= 2) {
+              const a = gpsHistory[gpsHistory.length - 2];
+              const b = gpsHistory[gpsHistory.length - 1];
+              const dist = haversine(a.lat, a.lng, b.lat, b.lng);
+              const hours = (b.time - a.time) / 3600000;
+              if (hours > 0 && (dist / hours) > MAX_SPEED_KMH) currentStrike++;
+            }
+        
+            if (gpsHistory.length === 3) {
+              const [x, y, z] = gpsHistory;
+              if (x.lat === y.lat && y.lat === z.lat &&
+                  x.lng === y.lng && y.lng === z.lng) {
+                currentStrike++;
               }
             }
-          });
-          return _assign(target, safe);
-        }
-        return _assign(target, ...src);
-      };
-      
-      console.log("✅ SAFE PATCH aktif: Anti Fake GPS + Slot stabil");
-    
-    })();
-    /* =====================================================
-       SAFE PATCH v1.0 - END
-       ===================================================== */
-
-    // --- FIREBASE CONFIG (LANJUTKAN DARI SINI) ---
-    const firebaseConfig = {
-    // ... (KONFIGURASI LAMA ANDA) ...
-// (Lanjutan kode di Bagian 2)
-    // --- FIREBASE CONFIG (LANJUTAN DARI BAGIAN 1) ---
-    const firebaseConfig = {
-        apiKey: "AIzaSyALIlkIDALIk83K8s1htalvW6rmNNw02Go",
-        authDomain: "sistem-antrian-b1c39.firebaseapp.com",
-        projectId: "sistem-antrian-b1c39",
-        storageBucket: "sistem-antrian-b1c39.firebasestorage.app",
-        messagingSenderId: "454124587608",
-        appId: "1:454124587608:web:34fbb0f5211067a67f982d"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const ref = doc(db, "antrian", "utama");
-
-    // --- START: KONFIGURASI FCM & GLOBAL VARIABLES ---
-    const messaging = getMessaging(app);
-    const functions = getFunctions(app);
-    let fcmToken = null;
-
-    // KUNCI VAPID PUBLIK Anda
-    const PUBLIC_VAPID_KEY = "BCdz35KcvwtCjbqwEPXAe0EoNRcL_OoKxP12lZRfN9IABufekdXlekacX6jCbmfsqg676roKjZ6tpwZAw";
-
-    // Handler notifikasi saat aplikasi AKTIF (Foreground)
-    onMessage(messaging, (payload) => {
-        console.log("Pesan FCM diterima saat aplikasi aktif:", payload);
-        const plat = payload.data.plat;
-        const myPlat = localStorage.getItem('myPlat');
-        
-        if (myPlat && plat === myPlat) {
-             triggerAlarm(plat, localStorage.getItem('userWA')); 
-        }
-    });
-    
-    // Fungsi untuk mengambil Token FCM
-    async function requestNotificationPermission() {
-        if (!('serviceWorker' in navigator && 'PushManager' in window)) {
-            console.warn("Browser tidak mendukung Service Worker/Push Messaging.");
-            return;
-        }
-
-        try {
-            const registration = await navigator.serviceWorker.register('./firebase-messaging-sw.js');
-            const permission = await Notification.requestPermission();
             
-            if (permission === 'granted') {
-                fcmToken = await getToken(messaging, { 
-                    vapidKey: PUBLIC_VAPID_KEY,
-                    serviceWorkerRegistration: registration 
-                });
-                console.log("FCM Token:", fcmToken);
-            } else {
-                console.warn("Izin notifikasi ditolak.");
+            fakeGpsStrike += currentStrike;
+        
+            if (fakeGpsStrike >= MAX_STRIKE) {
+              localStorage.setItem("FAKE_GPS_BLOCK", "1");
+              return true;
             }
-        } catch (error) {
-            console.error("Gagal inisialisasi FCM/SW:", error);
-        }
-    }
-    // --- END: KONFIGURASI FCM & GLOBAL VARIABLES
-
-
-    // --- GLOBAL CONSTANTS & GPS BYPASS VARIABLE ---
-    const STATION_LOC = { lat: -6.171583, lng: 106.899844 }; 
-    const MAX_DIST_KM = 0.2; 
-    const FONTE_TOKEN = "YOUR_FONTE_TOKEN_HERE"; 
-    
-    let isAdminLoggedIn = false; 
-    let audioCtx = null;
-    let triggeredAlarms = new Set();
-    
-    let isGpsBypassEnabled = localStorage.getItem('gpsBypass') === 'true';
-
-
-    // --- LOGIKA TIMER PRESISI (KURVA ADLI) ---
-    const CHARGING_CURVE = [
-        [91, 9], [90, 15], [89, 20], [85, 23], [82, 25], 
-        [81, 26], [79, 30], [77, 32], [72, 35], [67, 42], 
-        [63, 47], [61, 47], [58, 50], [51, 51], [50, 54], 
-        [49, 54], [46, 56], [40, 60], [21, 69], [18, 71], [0, 75]
-    ];
-
-    function getRemainingTime(batteryPercent) {
-        const soc = Math.max(0, Math.min(100, batteryPercent));
-        if (soc >= 100) return 0;
-        if (soc <= CHARGING_CURVE[CHARGING_CURVE.length - 1][0]) return CHARGING_CURVE[CHARGING_CURVE.length - 1][1];
-
-        for (let i = 0; i < CHARGING_CURVE.length - 1; i++) {
-            const [soc1, time1] = CHARGING_CURVE[i];
-            const [soc2, time2] = CHARGING_CURVE[i + 1];
-
-            if (soc <= soc1 && soc >= soc2) {
-                const socRange = soc1 - soc2;
-                const timeRange = time2 - time1;
-                const ratio = (soc1 - soc) / socRange;
-                return time1 + (ratio * timeRange);
+            return false;
+          }
+        
+          /* Hook geolocation */
+          const _geo = navigator.geolocation.getCurrentPosition.bind(navigator.geolocation);
+          navigator.geolocation.getCurrentPosition = function (success, error, opts) {
+            if (localStorage.getItem("FAKE_GPS_BLOCK") === "1") {
+               alert("FAKE GPS TERDETEKSI.\nAkun diblokir sementara. Matikan Fake GPS lalu refresh.");
+               error({code: 1, message: "FAKE GPS BLOCKED"});
+               return;
             }
+        
+            _geo((pos) => {
+              if (detectFakeGPS(pos)) {
+                // Memanggil error untuk menghentikan alur pendaftaran
+                error({code: 1, message: "FAKE GPS BLOCKED"});
+                alert("FAKE GPS TERDETEKSI!\nSilakan matikan aplikasi Mock Location dan refresh.");
+                return; 
+              }
+              success(pos);
+            }, error, opts);
+          };
+        
+          /* ================= FIX SLOT LOGIC (STABILITY) ================= */
+        
+          const _assign = Object.assign;
+          Object.assign = function (target, ...src) {
+            if (target && target.startTime) {
+              const safe = { ...target };
+              src.forEach(s => {
+                for (const k in s) {
+                  // Hanya izinkan update key SELAIN durationMinutes, targetLimit, dan startTime
+                  if (k !== "durationMinutes" && k !== "targetLimit" && k !== "startTime") { 
+                    safe[k] = s[k];
+                  }
+                }
+              });
+              return _assign(target, safe);
+            }
+            return _assign(target, ...src);
+          };
+          
+          console.log("✅ SAFE PATCH aktif: Anti Fake GPS + Slot stabil");
+        
+        })();
+        /* =====================================================
+           SAFE PATCH v1.0 - END
+           ===================================================== */
+        
+        // --- FIREBASE CONFIG & INIT ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyALIlkIDALIk83K8s1htalvW6rmNNw02Go",
+            authDomain: "sistem-antrian-b1c39.firebaseapp.com",
+            projectId: "sistem-antrian-b1c39",
+            storageBucket: "sistem-antrian-b1c39.firebasestorage.app",
+            messagingSenderId: "454124587608",
+            appId: "1:454124587608:web:34fbb0f5211067a67f982d"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const ref = doc(db, "antrian", "utama");
+        const messaging = getMessaging(app);
+        const functions = getFunctions(app);
+        let fcmToken = null;
+        const PUBLIC_VAPID_KEY = "BCdz35KcvwtCjbqwEPXAe0EoNRcL_OoKxP12lZRfN9IABufekdXlekacX6jCbmfsqg676roKjZ6tpwZAw";
+
+        // --- GLOBAL CONSTANTS & GPS BYPASS VARIABLE ---
+        const STATION_LOC = { lat: -6.171583, lng: 106.899844 }; 
+        const MAX_DIST_KM = 0.2; 
+        const FONTE_TOKEN = "YOUR_FONTE_TOKEN_HERE"; 
+        
+        let isAdminLoggedIn = false; 
+        let isSuperAdminLoggedIn = false; // New state for Super Admin
+        let audioCtx = null;
+        let triggeredAlarms = new Set();
+        
+        let isGpsBypassEnabled = localStorage.getItem('gpsBypass') === 'true';
+
+        // ... (Logika Timer Presisi, calculateDuration, calculateTargetLimit, WA_MESSAGES, dll. akan dimasukkan di Bagian 2) ...
+        // --- LOGIKA TIMER PRESISI (KURVA ADLI) ---
+        const CHARGING_CURVE = [
+            [91, 9], [90, 15], [89, 20], [85, 23], [82, 25], 
+            [81, 26], [79, 30], [77, 32], [72, 35], [67, 42], 
+            [63, 47], [61, 47], [58, 50], [51, 51], [50, 54], 
+            [49, 54], [46, 56], [40, 60], [21, 69], [18, 71], [0, 75]
+        ];
+
+        function getRemainingTime(batteryPercent) {
+            const soc = Math.max(0, Math.min(100, batteryPercent));
+            if (soc >= 100) return 0;
+            if (soc <= CHARGING_CURVE[CHARGING_CURVE.length - 1][0]) return CHARGING_CURVE[CHARGING_CURVE.length - 1][1];
+
+            for (let i = 0; i < CHARGING_CURVE.length - 1; i++) {
+                const [soc1, time1] = CHARGING_CURVE[i];
+                const [soc2, time2] = CHARGING_CURVE[i + 1];
+
+                if (soc <= soc1 && soc >= soc2) {
+                    const socRange = soc1 - soc2;
+                    const timeRange = time2 - time1;
+                    const ratio = (soc1 - soc) / socRange;
+                    return time1 + (ratio * timeRange);
+                }
+            }
+            if (soc > CHARGING_CURVE[0][0]) {
+                const [soc1, time1] = CHARGING_CURVE[0]; 
+                const rate = time1 / (100 - soc1); 
+                return (100 - soc) * rate;
+            }
+            return CHARGING_CURVE[CHARGING_CURVE.length - 1][1];
         }
-        if (soc > CHARGING_CURVE[0][0]) {
-            const [soc1, time1] = CHARGING_CURVE[0]; 
-            const rate = time1 / (100 - soc1); 
-            return (100 - soc) * rate;
+
+        function calculateDuration(startBattery, targetLimit) {
+            if (startBattery >= targetLimit) return 5; 
+
+            const targetTimeRemaining = getRemainingTime(targetLimit);
+            const startTimeRemaining = getRemainingTime(startBattery);
+            
+            let duration = startTimeRemaining - targetTimeRemaining;
+            
+            if (startBattery >= 97 && targetLimit === 100) {
+                duration = (targetLimit - startBattery) * 3;
+            }
+            
+            return Math.max(1, Math.ceil(duration)); 
         }
-        return CHARGING_CURVE[CHARGING_CURVE.length - 1][1];
-    }
 
-    function calculateDuration(startBattery, targetLimit) {
-        if (startBattery >= targetLimit) return 5; 
-
-        const targetTimeRemaining = getRemainingTime(targetLimit);
-        const startTimeRemaining = getRemainingTime(startBattery);
-        
-        let duration = startTimeRemaining - targetTimeRemaining;
-        
-        if (startBattery >= 97 && targetLimit === 100) {
-            duration = (targetLimit - startBattery) * 3;
+        // --- ATURAN TARGET LIMIT ---
+        function calculateTargetLimit(queueLength) {
+            if (queueLength >= 6 && queueLength <= 10) return 90;
+            if (queueLength > 10) return 85;
+            if (queueLength >= 3 && queueLength <= 5) return 95;
+            return 100;
         }
-        
-        return Math.max(1, Math.ceil(duration)); 
-    }
 
-    // --- ATURAN TARGET LIMIT ---
-    function calculateTargetLimit(queueLength) {
-        if (queueLength >= 6 && queueLength <= 10) return 90;
-        if (queueLength > 10) return 85;
-        if (queueLength >= 3 && queueLength <= 5) return 95;
-        return 100;
-    }
+        // --- LOGIC: MEMPERBAIKI TARGET LIMIT MOTOR YANG SEDANG CAS (SLOT) ---
+        async function checkAndUpdateSlotTarget(currentSlots, currentQueueLength) {
+            const newTarget = calculateTargetLimit(currentQueueLength);
+            
+            let mustUpdate = false;
+            let updatedSlots = [...currentSlots];
 
-    // --- LOGIC: MEMPERBAIKI TARGET LIMIT MOTOR YANG SEDANG CAS (SLOT) ---
-    async function checkAndUpdateSlotTarget(currentSlots, currentQueueLength) {
-        const newTarget = calculateTargetLimit(currentQueueLength);
-        
-        let mustUpdate = false;
-        let updatedSlots = [...currentSlots];
-
-        for (let i = 0; i < updatedSlots.length; i++) {
-            const motor = updatedSlots[i];
-            if (motor && motor.startTime) {
-                
-                const currentTarget = motor.targetLimit;
-                
-                // Jika target limit berubah
-                if (currentTarget !== newTarget) {
-                    const newDuration = calculateDuration(motor.startBattery, newTarget);
+            for (let i = 0; i < updatedSlots.length; i++) {
+                const motor = updatedSlots[i];
+                if (motor && motor.startTime) {
                     
-                    updatedSlots[i] = {
+                    const currentTarget = motor.targetLimit;
+                    
+                    if (currentTarget !== newTarget) {
+                        const newDuration = calculateDuration(motor.startBattery, newTarget);
+                        
+                        updatedSlots[i] = {
+                            ...motor,
+                            targetLimit: newTarget,
+                            durationMinutes: newDuration 
+                        };
+                        mustUpdate = true;
+                    }
+                }
+            }
+
+            if (mustUpdate) {
+                 await runTransaction(db, async(t)=>{
+                    t.update(ref, {chargingSlots: updatedSlots});
+                });
+            }
+        }
+        
+        // --- LOGIC: MEMPERBAIKI TARGET MOTOR DI ANTRIAN ---
+        async function checkAndUpdateQueueTarget(currentQueue) {
+            const newTarget = calculateTargetLimit(currentQueue.length);
+            
+            let mustUpdate = false;
+            let updatedQueue = [...currentQueue];
+
+            for (let i = 0; i < updatedQueue.length; i++) {
+                const motor = updatedQueue[i];
+                
+                if (motor.targetLimit !== newTarget) {
+                    updatedQueue[i] = {
                         ...motor,
-                        targetLimit: newTarget,
-                        durationMinutes: newDuration 
+                        targetLimit: newTarget 
                     };
                     mustUpdate = true;
                 }
             }
+
+            if (mustUpdate) {
+                 await runTransaction(db, async(t)=>{
+                    t.update(ref, {waitingQueue: updatedQueue});
+                });
+            }
         }
 
-        if (mustUpdate) {
-             await runTransaction(db, async(t)=>{
-                t.update(ref, {chargingSlots: updatedSlots});
-            });
+        // --- UTILITY FUNCTIONS ---
+        function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
+            const R = 6371;
+            const dLat = (lat2 - lat1) * (Math.PI / 180);
+            const dLon = (lon2 - lon1) * (Math.PI / 180);
+            const a = 
+                Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return R * c; 
         }
-    }
-    
-    // --- LOGIC: MEMPERBAIKI TARGET MOTOR DI ANTRIAN ---
-    async function checkAndUpdateQueueTarget(currentQueue) {
-        const newTarget = calculateTargetLimit(currentQueue.length);
-        
-        let mustUpdate = false;
-        let updatedQueue = [...currentQueue];
 
-        for (let i = 0; i < updatedQueue.length; i++) {
-            const motor = updatedQueue[i];
-            
-            if (motor.targetLimit !== newTarget) {
-                updatedQueue[i] = {
-                    ...motor,
-                    targetLimit: newTarget 
+        const WA_MESSAGES = [
+            (plat, wa) => `Halo user ${plat}! Motor Anda sudah selesai diisi daya dan siap diambil. Mohon segera pindahkan kendaraan Anda.`,
+            (plat, wa) => `Peringatan! Pengisian daya motor ${plat} telah mencapai target. Slot telah terisi penuh. Silakan ambil kendaraan Anda.`,
+            (plat, wa) => `Notifikasi: Motor dengan plat nomor ${plat} telah selesai melakukan pengisian daya. Terima kasih atas kerja samanya.`,
+        ];
+
+        function sendWhatsAppNotification(plat, wa) {
+            if (wa.length < 9 || FONTE_TOKEN === "YOUR_FONTE_TOKEN_HERE") return console.log("WA number too short or FONTE_TOKEN not set. Skipping notification.");
+
+            const index = Math.floor(Math.random() * WA_MESSAGES.length);
+            const baseMessage = WA_MESSAGES[index](plat, wa);
+            const signature = "\n\n- Pesan ini dikirim otomatis oleh Smart Parking System MLU. Terima kasih sudah mampir di Rumah MLU.";
+            const message = encodeURIComponent(baseMessage + signature);
+
+            const url = `https://api.fonnte.com/send?target=${wa}&message=${message}`;
+
+            fetch(url, { method: 'POST', headers: { 'Authorization': FONTE_TOKEN }})
+            .then(response => response.json())
+            .then(data => console.log('WA Sent:', data))
+            .catch(error => console.error('WA Error:', error));
+        }
+
+        function showPopup(type, title, msg, onOk = null, additionalData = null) {
+            const m = document.getElementById('masterModal');
+            const box = document.getElementById('modalBox');
+            const icon = document.getElementById('mIcon');
+            const t = document.getElementById('mTitle');
+            const ms = document.getElementById('mMsg');
+            const btnOk = document.getElementById('mBtnOk');
+            const btnCancel = document.getElementById('mBtnCancel');
+            const inp = document.getElementById('mInput');
+            const inpDuration = document.getElementById('mInputDuration');
+
+            m.style.display = 'flex'; m.className = 'modal'; 
+            box.style.borderColor = 'var(--accent)'; 
+            icon.style.color = 'var(--accent)';
+            t.innerText = title; ms.innerHTML = msg; 
+            inp.style.display = 'none'; inpDuration.style.display = 'none';
+            btnCancel.style.display = 'none';
+            btnOk.className = 'btn-modal primary'; btnOk.innerText = 'OK';
+
+            btnOk.onclick = null; 
+
+            if(type === 'confirm') {
+                icon.innerText = '❓'; btnCancel.style.display = 'block'; btnOk.innerText = 'YA';
+                btnCancel.onclick = () => m.style.display = 'none';
+                btnOk.onclick = () => { m.style.display = 'none'; if(onOk) onOk(); };
+            }
+            else if(type === 'error') {
+                icon.innerText = '❌'; box.style.borderColor = 'var(--soft-red)';
+                btnOk.className = 'btn-modal danger'; btnOk.innerText = 'TUTUP';
+                icon.style.color = 'var(--soft-red)';
+                btnOk.onclick = () => m.style.display = 'none';
+            }
+            else if(type === 'alarm') {
+                icon.innerText = '🔔'; box.style.borderColor = 'var(--soft-red)';
+                btnOk.className = 'btn-modal danger'; btnOk.innerText = 'MATIKAN ALARM';
+                icon.style.color = 'var(--soft-red)';
+                btnOk.onclick = () => { window.stopAlarm(); m.style.display = 'none'; };
+            }
+            else if(type === 'admin') {
+                // --- LOGIC LOGIN BERTINGKAT ---
+                icon.innerText = '🔒'; inp.style.display = 'block'; inp.value=''; inp.focus();
+                btnOk.innerText = 'LOGIN'; btnCancel.style.display = 'block';
+                btnCancel.onclick = () => m.style.display = 'none';
+                
+                btnOk.onclick = () => {
+                    const pin = inp.value;
+                    
+                    if(pin === '8080') { 
+                        // Super Admin Login
+                        isSuperAdminLoggedIn = true;
+                        m.style.display = 'none';
+                        // Redirect ke halaman Super Admin
+                        window.location.href = 'admin.html';
+                    } 
+                    else if(pin === '1131') { 
+                        // Admin Mini Dashboard Login
+                        m.style.display = 'none'; 
+                        document.getElementById('adminPanel').style.display = 'block'; 
+                        isAdminLoggedIn = true;
+                        isSuperAdminLoggedIn = false;
+                        // Set tampilan untuk Admin (langsung ke status area)
+                        checkDisplayMode(); 
+                        // Update GPS toggle status when admin logs in
+                        document.getElementById('gpsBypassToggle').checked = isGpsBypassEnabled;
+                        updateGpsBypassStatus();
+                    }
+                    else showPopup('error','GAGAL','PIN Salah!');
                 };
-                mustUpdate = true;
+                // --- END LOGIC LOGIN BERTINGKAT ---
             }
-        }
-
-        if (mustUpdate) {
-             await runTransaction(db, async(t)=>{
-                t.update(ref, {waitingQueue: updatedQueue});
-            });
-        }
-    }
-
-    // --- UTILITY FUNCTIONS ---
-    function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
-        const R = 6371;
-        const dLat = (lat2 - lat1) * (Math.PI / 180);
-        const dLon = (lon2 - lon1) * (Math.PI / 180);
-        const a = 
-            Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-            Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        return R * c; 
-    }
-
-    const WA_MESSAGES = [
-        (plat, wa) => `Halo user ${plat}! Motor Anda sudah selesai diisi daya dan siap diambil. Mohon segera pindahkan kendaraan Anda.`,
-        (plat, wa) => `Peringatan! Pengisian daya motor ${plat} telah mencapai target. Slot telah terisi penuh. Silakan ambil kendaraan Anda.`,
-        (plat, wa) => `Notifikasi: Motor dengan plat nomor ${plat} telah selesai melakukan pengisian daya. Terima kasih atas kerja samanya.`,
-    ];
-
-    function sendWhatsAppNotification(plat, wa) {
-        if (wa.length < 9 || FONTE_TOKEN === "YOUR_FONTE_TOKEN_HERE") return console.log("WA number too short or FONTE_TOKEN not set. Skipping notification.");
-
-        const index = Math.floor(Math.random() * WA_MESSAGES.length);
-        const baseMessage = WA_MESSAGES[index](plat, wa);
-        const signature = "\n\n- Pesan ini dikirim otomatis oleh Smart Parking System MLU. Terima kasih sudah mampir di Rumah MLU.";
-        const message = encodeURIComponent(baseMessage + signature);
-
-        const url = `https://api.fonnte.com/send?target=${wa}&message=${message}`;
-
-        fetch(url, { method: 'POST', headers: { 'Authorization': FONTE_TOKEN }})
-        .then(response => response.json())
-        .then(data => console.log('WA Sent:', data))
-        .catch(error => console.error('WA Error:', error));
-    }
-
-    function showPopup(type, title, msg, onOk = null, additionalData = null) {
-        const m = document.getElementById('masterModal');
-        const box = document.getElementById('modalBox');
-        const icon = document.getElementById('mIcon');
-        const t = document.getElementById('mTitle');
-        const ms = document.getElementById('mMsg');
-        const btnOk = document.getElementById('mBtnOk');
-        const btnCancel = document.getElementById('mBtnCancel');
-        const inp = document.getElementById('mInput');
-        const inpDuration = document.getElementById('mInputDuration');
-
-        m.style.display = 'flex'; m.className = 'modal'; 
-        box.style.borderColor = 'var(--accent)'; 
-        icon.style.color = 'var(--accent)';
-        t.innerText = title; ms.innerHTML = msg; 
-        inp.style.display = 'none'; inpDuration.style.display = 'none';
-        btnCancel.style.display = 'none';
-        btnOk.className = 'btn-modal primary'; btnOk.innerText = 'OK';
-
-        btnOk.onclick = null; 
-
-        if(type === 'confirm') {
-            icon.innerText = '❓'; btnCancel.style.display = 'block'; btnOk.innerText = 'YA';
-            btnCancel.onclick = () => m.style.display = 'none';
-            btnOk.onclick = () => { m.style.display = 'none'; if(onOk) onOk(); };
-        }
-        else if(type === 'error') {
-            icon.innerText = '❌'; box.style.borderColor = 'var(--soft-red)';
-            btnOk.className = 'btn-modal danger'; btnOk.innerText = 'TUTUP';
-            icon.style.color = 'var(--soft-red)';
-            btnOk.onclick = () => m.style.display = 'none';
-        }
-        else if(type === 'alarm') {
-            icon.innerText = '🔔'; box.style.borderColor = 'var(--soft-red)';
-            btnOk.className = 'btn-modal danger'; btnOk.innerText = 'MATIKAN ALARM';
-            icon.style.color = 'var(--soft-red)';
-            btnOk.onclick = () => { window.stopAlarm(); m.style.display = 'none'; };
-        }
-        else if(type === 'admin') {
-            icon.innerText = '🔒'; inp.style.display = 'block'; inp.value=''; inp.focus();
-            btnOk.innerText = 'LOGIN'; btnCancel.style.display = 'block';
-            btnCancel.onclick = () => m.style.display = 'none';
-            btnOk.onclick = () => {
-                // *** PIN admin di-hardcode ***
-                if(inp.value === '1131') { 
-                    m.style.display = 'none'; 
-                    document.getElementById('adminPanel').style.display = 'block'; 
-                    isAdminLoggedIn = true;
-                    document.getElementById('gpsBypassToggle').checked = isGpsBypassEnabled;
-                    updateGpsBypassStatus();
-                } 
-                else showPopup('error','GAGAL','PIN Salah!');
-            };
-        }
-        else if(type === 'timer') {
-            icon.innerText = '⏱️';
-            inpDuration.style.display = 'block'; inpDuration.value = additionalData?.currentDuration || ''; inpDuration.focus();
-            btnOk.innerText = 'SET BARU'; btnCancel.style.display = 'block';
-            btnCancel.onclick = () => m.style.display = 'none';
-            btnOk.onclick = () => {
-                const newDuration = parseInt(inpDuration.value);
-                if(isNaN(newDuration) || newDuration <= 0) {
-                    return showPopup('error', 'Gagal', 'Durasi tidak valid.');
-                }
-                m.style.display = 'none';
-                if(onOk) onOk(newDuration);
-            };
-        }
-        else { icon.innerText = '✅'; icon.style.color = 'var(--accent)'; btnOk.onclick = () => m.style.display = 'none'; }
-    }
-
-    window.openAdminLogin = () => showPopup('admin', 'ADMIN LOGIN', 'Masukkan PIN');
-    
-    function initAudioAndNotif() {
-        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        if (audioCtx.state === 'suspended') audioCtx.resume();
-        
-        const osc = audioCtx.createOscillator();
-        const g = audioCtx.createGain();
-        g.gain.value = 0.01;
-        osc.connect(g); g.connect(audioCtx.destination);
-        osc.start(); osc.stop(audioCtx.currentTime + 0.01);
-    }
-
-    function playSiren() {
-        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        
-        osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(600, audioCtx.currentTime);
-        osc.frequency.linearRampToValueAtTime(1000, audioCtx.currentTime + 0.5); 
-        osc.frequency.linearRampToValueAtTime(600, audioCtx.currentTime + 1.0);  
-        
-        gain.gain.value = 0.5;
-        osc.connect(gain); gain.connect(audioCtx.destination);
-        osc.start(); osc.stop(audioCtx.currentTime + 2); 
-    }
-
-    document.body.addEventListener('click', initAudioAndNotif, { once: true });
-
-    function triggerAlarm(plat, wa) {
-        const myPlat = localStorage.getItem('myPlat');
-        
-        if(myPlat && plat === myPlat) {
-            showPopup('alarm', 'SELESAI!', `Motor <b>${plat}</b> Selesai!`);
-            if(window.alarmInterval) clearInterval(window.alarmInterval);
-            playSiren();
-            window.alarmInterval = setInterval(playSiren, 2500);
-            if(navigator.vibrate) navigator.vibrate([1000, 500, 1000]);
-            if(Notification.permission === "granted") {
-                new Notification("FC KELAPA GADING", { body: `Plat ${plat} Selesai!`, icon: "https://via.placeholder.com/128?text=⚡" });
-            }
-        }
-        if (wa) sendWhatsAppNotification(plat, wa);
-    }
-
-    window.stopAlarm = () => {
-        if(window.alarmInterval) { clearInterval(window.alarmInterval); window.alarmInterval = null; }
-    };
-
-    // --- GPS BYPASS TOGGLE LOGIC ---
-    function updateGpsBypassStatus() {
-        const statusEl = document.getElementById('gpsBypassStatus');
-        if (statusEl) {
-            statusEl.innerHTML = `GPS LOCK BYPASS: <b>${isGpsBypassEnabled ? 'ON' : 'OFF'}</b>`;
-        }
-    }
-
-    window.toggleGpsBypass = () => {
-        isGpsBypassEnabled = document.getElementById('gpsBypassToggle').checked;
-        localStorage.setItem('gpsBypass', isGpsBypassEnabled);
-        updateGpsBypassStatus();
-        showPopup('success', 'GPS BYPASS', `Mode bypass GPS ${isGpsBypassEnabled ? 'diaktifkan' : 'dinonaktifkan'}.`);
-    };
-
-
-    // --- DUAL VIEW LOGIC ---
-    function checkDisplayMode() {
-        const myPlat = localStorage.getItem('myPlat');
-        const regArea = document.getElementById('registrationArea');
-        const statusArea = document.getElementById('statusArea');
-        const logoutBtnContainer = document.getElementById('logoutButtonContainer');
-        
-        setTimeout(() => {
-            document.getElementById('loadingScreen').style.display = 'none';
-            
-            if (!myPlat && !isAdminLoggedIn) {
-                document.getElementById('choiceModal').style.display = 'flex';
-            } else {
-                document.getElementById('choiceModal').style.display = 'none';
-            }
-        }, 1500); 
-
-        if (myPlat || isAdminLoggedIn) {
-            statusArea.style.display = 'block';
-        } else {
-            statusArea.style.display = 'none';
-        }
-        
-        if (myPlat) {
-            regArea.style.display = 'none';
-            if (logoutBtnContainer) logoutBtnContainer.style.display = 'block';
-        } else {
-            regArea.style.display = 'block';
-            if (logoutBtnContainer) logoutBtnContainer.style.display = 'none';
-        }
-    }
-    
-    window.closeChoiceModal = () => {
-        document.getElementById('choiceModal').style.display = 'none';
-    }
-    
-    window.logoutUser = () => {
-        showPopup('confirm', 'KONFIRMASI', 'Apakah Anda yakin ingin menghapus data antrian lokal Anda?', () => {
-            localStorage.removeItem('myPlat');
-            localStorage.removeItem('userWA'); 
-            isAdminLoggedIn = false; 
-            checkDisplayMode(); 
-            showPopup('success', 'SUKSES', 'Data lokal berhasil dihapus.');
-        });
-    };
-    
-    // HAPUS FUNGSI clearSlotAndPromote LAMA SEPENUHNYA DARI SINI
-    
-// (Lanjutan kode di Bagian 3)
-    // --- REGISTRATION LOGIC ---
-    document.getElementById('btnDaftar').onclick = () => {
-        initAudioAndNotif(); 
-        const plat = document.getElementById('userPlat').value.toUpperCase().replace(/\s/g, '').trim();
-        const name = document.getElementById('userName').value.trim(); 
-        const wa = document.getElementById('userWA').value.trim();
-        const bat = parseInt(document.getElementById('userBattery').value);
-
-        if(!plat || !name || isNaN(bat)) { 
-            return showPopup('error','DATA KURANG','Plat, Nama, dan Baterai harus diisi lengkap.'); 
-        }
-        if (bat < 0 || bat > 99) {
-             return showPopup('error','DATA INVALID','Persentase baterai harus antara 0 dan 99.');
-        }
-        if(!wa || wa.length < 9) { 
-            return showPopup('error','DATA KURANG','Isi nomer WA yang benar.'); 
-        } 
-        
-        document.getElementById('btnDaftar').disabled=true;
-        document.getElementById('btnDaftar').innerText="MENGAMBIL LOKASI...";
-        
-        // Ambil Token FCM sebelum GPS Check
-        requestNotificationPermission().then(() => {
-             getLocationAndRegister(plat, name, wa, bat); 
-        });
-    };
-    
-    function getLocationAndRegister(plat, name, wa, bat) { 
-         
-         if (isGpsBypassEnabled) {
-             console.log("GPS Lock Bypassed by Admin.");
-             registerUser(plat, name, wa, bat, null); 
-             return;
-         }
-
-         if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    const dist = getDistanceFromLatLonInKm(
-                        position.coords.latitude, 
-                        position.coords.longitude, 
-                        STATION_LOC.lat, 
-                        STATION_LOC.lng
-                    );
-
-                    if (dist > MAX_DIST_KM) {
-                         document.getElementById('btnDaftar').disabled=false;
-                         document.getElementById('btnDaftar').innerText="DAFTAR ANTRIAN";
-                         return showPopup('error','GPS GAGAL',`Lu masih jauh cukk, masih ${dist.toFixed(3)} km dari FC Kelapa Gading. Dateng dulu kesini baru daftar bangsat`);
+            else if(type === 'timer') {
+                icon.innerText = '⏱️';
+                inpDuration.style.display = 'block'; inpDuration.value = additionalData?.currentDuration || ''; inpDuration.focus();
+                btnOk.innerText = 'SET BARU'; btnCancel.style.display = 'block';
+                btnCancel.onclick = () => m.style.display = 'none';
+                btnOk.onclick = () => {
+                    const newDuration = parseInt(inpDuration.value);
+                    if(isNaN(newDuration) || newDuration <= 0) {
+                        return showPopup('error', 'Gagal', 'Durasi tidak valid.');
                     }
-                    
-                    registerUser(plat, name, wa, bat, dist); 
-                },
-                (error) => {
-                    document.getElementById('btnDaftar').disabled=false;
-                    document.getElementById('btnDaftar').innerText="DAFTAR ANTRIAN";
-                    if (error.code === error.PERMISSION_DENIED) {
-                        return showPopup('error','GPS DIBLOKIR','Akses lokasi ditolak. Silakan izinkan akses lokasi di pengaturan browser Anda.');
-                    }
-                    if (error.message === "FAKE GPS BLOCKED") return; // Diblokir oleh SAFE PATCH
-                    return showPopup('error','GPS GAGAL', 'Gagal mengambil lokasi: ' + error.message);
-                },
-                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-            );
-        } else {
-            document.getElementById('btnDaftar').disabled=false;
-            document.getElementById('btnDaftar').innerText="DAFTAR ANTRIAN";
-            showPopup('error','GPS TIDAK DIDUKUNG','Browser Anda tidak mendukung Geolocation.');
+                    m.style.display = 'none';
+                    if(onOk) onOk(newDuration);
+                };
+            }
+            else { icon.innerText = '✅'; icon.style.color = 'var(--accent)'; btnOk.onclick = () => m.style.display = 'none'; }
         }
-    }
 
-    async function registerUser(plat, name, wa, bat, dist) { 
-        const btn = document.getElementById('btnDaftar');
-        btn.innerText="PROSES...";
-        let assignedSlot = -1;
-        let finalDuration = 0; 
-
-        try {
-            await runTransaction(db, async(t)=>{
-                const d = (await t.get(ref)).data() || {};
-                let s = d.chargingSlots || [null,null,null];
-                let q = d.waitingQueue || [];
-
-                if((d.blockedList||[]).includes(plat)) throw "Plat ini DIBLOKIR!";
-                if(s.some(x=>x?.plat===plat) || q.some(x=>x?.plat===plat)) throw "Plat sudah terdaftar dalam antrian/slot!";
-                
-                const target = calculateTargetLimit(q.length); 
-                const dur = calculateDuration(bat, target);
-                finalDuration = dur;
-
-                const item = { plat:plat, userName:name, wa:wa, startBattery:bat, targetLimit:target, durationMinutes:dur, startTime:null }; 
-                
-                const empty = s.findIndex(x=>x===null);
-                if(empty!==-1) {
-                    s[empty] = item;
-                    assignedSlot = empty + 1; 
-                }
-                else {
-                    q.push(item);
-                }
-
-                t.set(ref, {chargingSlots:s, waitingQueue:q}, {merge:true});
-            });
+        window.openAdminLogin = () => showPopup('admin', 'ADMIN LOGIN', 'Masukkan PIN');
+        
+        // --- LOGIC FCM ---
+        onMessage(messaging, (payload) => {
+            console.log("Pesan FCM diterima saat aplikasi aktif:", payload);
+            const plat = payload.data.plat;
+            const myPlat = localStorage.getItem('myPlat');
             
-            localStorage.setItem('myPlat', plat); 
-            localStorage.setItem('userWA', wa); 
+            if (myPlat && plat === myPlat) {
+                 triggerAlarm(plat, localStorage.getItem('userWA')); 
+            }
+        });
+        
+        async function requestNotificationPermission() {
+            if (!('serviceWorker' in navigator && 'PushManager' in window)) {
+                console.warn("Browser tidak mendukung Service Worker/Push Messaging.");
+                return;
+            }
 
-            // --- JADWALKAN NOTIFIKASI SERVER (FCM) ---
-            if (fcmToken && (assignedSlot !== -1 || finalDuration > 0)) { 
-                try {
-                    const endTime = Date.now() + (finalDuration * 60000); 
-                    
-                    const scheduleCall = httpsCallable(functions, 'scheduleCharge');
-                    await scheduleCall({
-                        plat: plat,
-                        token: fcmToken,
-                        endTime: endTime,
-                        durationMinutes: finalDuration
+            try {
+                // Pastikan firebase-messaging-sw.js ada di root folder
+                const registration = await navigator.serviceWorker.register('./firebase-messaging-sw.js');
+                const permission = await Notification.requestPermission();
+                
+                if (permission === 'granted') {
+                    fcmToken = await getToken(messaging, { 
+                        vapidKey: PUBLIC_VAPID_KEY,
+                        serviceWorkerRegistration: registration 
                     });
-                    console.log("Notifikasi server berhasil dijadwalkan.");
-                    
-                } catch (error) {
-                    console.error("Gagal menjadwalkan notifikasi FCM:", error);
-                    showPopup('warning', 'PERINGATAN', 'Pendaftaran berhasil, tetapi notifikasi latar belakang mungkin tidak berfungsi. Cek koneksi Anda.');
+                    console.log("FCM Token:", fcmToken);
+                } else {
+                    console.warn("Izin notifikasi ditolak.");
                 }
+            } catch (error) {
+                console.error("Gagal inisialisasi FCM/SW:", error);
             }
-            // --- END JADWALKAN NOTIFIKASI SERVER ---
-            
-            if (assignedSlot !== -1) {
-                showPopup('success', 'BERHASIL', `Udahlah berhasil daftar di slot ${assignedSlot}. Harap gunakan slot ${assignedSlot} ya!`);
-            } else {
-                showPopup('success', 'BERHASIL', 'Motor Anda berhasil masuk daftar tunggu antrian.');
-            }
-            
-            checkDisplayMode(); 
-            
-            document.getElementById('userPlat').value=''; 
-            document.getElementById('userName').value=''; 
-            document.getElementById('userBattery').value='';
-            document.getElementById('userWA').value='';
-        } catch(e) { showPopup('error','GAGAL', e); }
-        
-        btn.disabled=false; 
-        btn.innerText="DAFTAR ANTRIAN";
-    }
+        }
+        // --- END LOGIC FCM ---
 
-
-    // --- SLOT ACTIONS (HANYA MENGURUS STOP/START, TIDAK ADA PROMOSI ANTRIAN DI SINI) ---
-    window.act = (i, type, platName, wa) => { 
-        initAudioAndNotif();
-        const myPlat = localStorage.getItem('myPlat');
-
-        if(type === 'stop' && !isAdminLoggedIn && myPlat !== platName) {
-            return showPopup('error', 'AKSES DITOLAK', 'Ini bukan motor lu bangsat');
+        // --- AUDIO & ALARM LOGIC ---
+        function initAudioAndNotif() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            
+            const osc = audioCtx.createOscillator();
+            const g = audioCtx.createGain();
+            g.gain.value = 0.01;
+            osc.connect(g); g.connect(audioCtx.destination);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.01);
         }
 
-        if(type==='stop') {
-            showPopup('confirm', 'KONFIRMASI', `Stop & Hapus Slot ${i+1}?`, () => {
-                // WAJIB: Gunakan logika manual clear/promote tanpa fungsi lama
-                runTransaction(db, async(t) => {
+        function playSiren() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+            osc.frequency.linearRampToValueAtTime(1000, audioCtx.currentTime + 0.5); 
+            osc.frequency.linearRampToValueAtTime(600, audioCtx.currentTime + 1.0);  
+            
+            gain.gain.value = 0.5;
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.start(); osc.stop(audioCtx.currentTime + 2); 
+        }
+
+        document.body.addEventListener('click', initAudioAndNotif, { once: true });
+
+        function triggerAlarm(plat, wa) {
+            const myPlat = localStorage.getItem('myPlat');
+            
+            if(myPlat && plat === myPlat) {
+                showPopup('alarm', 'SELESAI!', `Motor <b>${plat}</b> Selesai!`);
+                if(window.alarmInterval) clearInterval(window.alarmInterval);
+                playSiren();
+                window.alarmInterval = setInterval(playSiren, 2500);
+                if(navigator.vibrate) navigator.vibrate([1000, 500, 1000]);
+                if(Notification.permission === "granted") {
+                    new Notification("FC KELAPA GADING", { body: `Plat ${plat} Selesai!`, icon: "https://via.placeholder.com/128?text=⚡" });
+                }
+            }
+
+            if (wa) sendWhatsAppNotification(plat, wa);
+        }
+
+        window.stopAlarm = () => {
+            if(window.alarmInterval) { clearInterval(window.alarmInterval); window.alarmInterval = null; }
+        };
+
+        // --- GPS BYPASS TOGGLE LOGIC ---
+        function updateGpsBypassStatus() {
+            const statusEl = document.getElementById('gpsBypassStatus');
+            if (statusEl) {
+                statusEl.innerHTML = `GPS LOCK BYPASS: <b>${isGpsBypassEnabled ? 'ON' : 'OFF'}</b>`;
+            }
+        }
+
+        window.toggleGpsBypass = () => {
+            isGpsBypassEnabled = document.getElementById('gpsBypassToggle').checked;
+            localStorage.setItem('gpsBypass', isGpsBypassEnabled);
+            updateGpsBypassStatus();
+            showPopup('success', 'GPS BYPASS', `Mode bypass GPS ${isGpsBypassEnabled ? 'diaktifkan' : 'dinonaktifkan'}.`);
+        };
+
+
+        // --- DUAL VIEW LOGIC (UPDATED FOR ADMIN) ---
+        function checkDisplayMode() {
+            const myPlat = localStorage.getItem('myPlat');
+            const regArea = document.getElementById('registrationArea');
+            const statusArea = document.getElementById('statusArea');
+            const logoutBtnContainer = document.getElementById('logoutButtonContainer');
+            
+            // Logika untuk menyembunyikan loading screen dengan delay 1.5 detik
+            setTimeout(() => {
+                document.getElementById('loadingScreen').style.display = 'none';
+                
+                // Jika bukan admin dan belum terdaftar, tampilkan modal pilihan
+                if (!myPlat && !isAdminLoggedIn && !isSuperAdminLoggedIn) {
+                    document.getElementById('choiceModal').style.display = 'flex';
+                } else {
+                    document.getElementById('choiceModal').style.display = 'none';
+                }
+            }, 1500); // Delay 1500ms atau 1.5 detik
+
+            // Area Status (detail slot dan antrian) HANYA terlihat jika pengguna terdaftar ATAU Admin
+            if (myPlat || isAdminLoggedIn) {
+                statusArea.style.display = 'block';
+            } else {
+                statusArea.style.display = 'none';
+            }
+            
+            // Registration Area: Admin (1131) tidak perlu melihat area pendaftaran
+            if (myPlat && !isAdminLoggedIn) {
+                // User biasa: Hide registration, show logout
+                regArea.style.display = 'none';
+                if (logoutBtnContainer) logoutBtnContainer.style.display = 'block';
+            } else if (isAdminLoggedIn) {
+                 // Admin: Hide registration, Show Status Area
+                regArea.style.display = 'none';
+                if (logoutBtnContainer) logoutBtnContainer.style.display = 'none';
+            }
+            else {
+                // Belum login/daftar: Show registration, Hide logout
+                regArea.style.display = 'block';
+                if (logoutBtnContainer) logoutBtnContainer.style.display = 'none';
+            }
+        }
+        
+        window.closeChoiceModal = () => {
+            document.getElementById('choiceModal').style.display = 'none';
+        }
+        
+        window.logoutUser = () => {
+            showPopup('confirm', 'KONFIRMASI', 'Apakah Anda yakin ingin menghapus data antrian lokal Anda?', () => {
+                localStorage.removeItem('myPlat');
+                localStorage.removeItem('userWA'); 
+                isAdminLoggedIn = false; 
+                isSuperAdminLoggedIn = false;
+                // Sembunyikan panel admin jika ada
+                document.getElementById('adminPanel').style.display = 'none'; 
+                checkDisplayMode(); 
+                showPopup('success', 'SUKSES', 'Data lokal berhasil dihapus.');
+            });
+        };
+
+        // ... (Logika Registrasi, Slot Actions, Rendering akan dilanjutkan di Bagian 3) 
+        // --- REGISTRATION LOGIC ---
+        document.getElementById('btnDaftar').onclick = () => {
+            initAudioAndNotif(); 
+            const plat = document.getElementById('userPlat').value.toUpperCase().replace(/\s/g, '').trim();
+            const name = document.getElementById('userName').value.trim(); 
+            const wa = document.getElementById('userWA').value.trim();
+            const bat = parseInt(document.getElementById('userBattery').value);
+
+            if(!plat || !name || isNaN(bat)) { 
+                return showPopup('error','DATA KURANG','Plat, Nama, dan Baterai harus diisi lengkap.'); 
+            }
+            if (bat < 0 || bat > 99) {
+                 return showPopup('error','DATA INVALID','Persentase baterai harus antara 0 dan 99.');
+            }
+            if(!wa || wa.length < 9) { 
+                return showPopup('error','DATA KURANG','Isi nomer WA yang benar.'); 
+            } 
+            
+            document.getElementById('btnDaftar').disabled=true;
+            document.getElementById('btnDaftar').innerText="MENGAMBIL LOKASI...";
+            
+            // Ambil Token FCM (jika belum ada) sebelum GPS Check
+            requestNotificationPermission().then(() => {
+                 getLocationAndRegister(plat, name, wa, bat); 
+            });
+        };
+        
+        function getLocationAndRegister(plat, name, wa, bat) { 
+             
+             if (isGpsBypassEnabled) {
+                 console.log("GPS Lock Bypassed by Admin.");
+                 registerUser(plat, name, wa, bat, null); 
+                 return;
+             }
+
+             if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const dist = getDistanceFromLatLonInKm(
+                            position.coords.latitude, 
+                            position.coords.longitude, 
+                            STATION_LOC.lat, 
+                            STATION_LOC.lng
+                        );
+
+                        if (dist > MAX_DIST_KM) {
+                             document.getElementById('btnDaftar').disabled=false;
+                             document.getElementById('btnDaftar').innerText="DAFTAR ANTRIAN";
+                             return showPopup('error','GPS GAGAL',`Lu masih jauh cukk, masih ${dist.toFixed(3)} km dari FC Kelapa Gading. Dateng dulu kesini baru daftar bangsat`);
+                        }
+                        
+                        registerUser(plat, name, wa, bat, dist); 
+                    },
+                    (error) => {
+                        document.getElementById('btnDaftar').disabled=false;
+                        document.getElementById('btnDaftar').innerText="DAFTAR ANTRIAN";
+                        if (error.code === error.PERMISSION_DENIED) {
+                            return showPopup('error','GPS DIBLOKIR','Akses lokasi ditolak. Silakan izinkan akses lokasi di pengaturan browser Anda.');
+                        }
+                        if (error.message === "FAKE GPS BLOCKED") return; 
+                        return showPopup('error','GPS GAGAL', 'Gagal mengambil lokasi: ' + error.message);
+                    },
+                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+                );
+            } else {
+                document.getElementById('btnDaftar').disabled=false;
+                document.getElementById('btnDaftar').innerText="DAFTAR ANTRIAN";
+                showPopup('error','GPS TIDAK DIDUKUNG','Browser Anda tidak mendukung Geolocation.');
+            }
+        }
+
+        async function registerUser(plat, name, wa, bat, dist) { 
+            const btn = document.getElementById('btnDaftar');
+            btn.innerText="PROSES...";
+            let assignedSlot = -1;
+            let finalDuration = 0; 
+
+            try {
+                await runTransaction(db, async(t)=>{
+                    const d = (await t.get(ref)).data() || {};
+                    let s = d.chargingSlots || [null,null,null];
+                    let q = d.waitingQueue || [];
+
+                    if((d.blockedList||[]).includes(plat)) throw "Plat ini DIBLOKIR!";
+                    if(s.some(x=>x?.plat===plat) || q.some(x=>x?.plat===plat)) throw "Plat sudah terdaftar dalam antrian/slot!";
+                    
+                    const target = calculateTargetLimit(q.length); 
+                    const dur = calculateDuration(bat, target);
+                    finalDuration = dur;
+
+                    const item = { plat:plat, userName:name, wa:wa, startBattery:bat, targetLimit:target, durationMinutes:dur, startTime:null }; 
+                    
+                    const empty = s.findIndex(x=>x===null);
+                    if(empty!==-1) {
+                        s[empty] = item;
+                        assignedSlot = empty + 1; 
+                    }
+                    else {
+                        q.push(item);
+                    }
+
+                    t.set(ref, {chargingSlots:s, waitingQueue:q}, {merge:true});
+                });
+                
+                localStorage.setItem('myPlat', plat); 
+                localStorage.setItem('userWA', wa); 
+
+                // --- JADWALKAN NOTIFIKASI SERVER (FCM) ---
+                if (fcmToken && (assignedSlot !== -1 || finalDuration > 0)) { 
+                    try {
+                        const endTime = Date.now() + (finalDuration * 60000); 
+                        
+                        const scheduleCall = httpsCallable(functions, 'scheduleCharge');
+                        await scheduleCall({
+                            plat: plat,
+                            token: fcmToken,
+                            endTime: endTime,
+                            durationMinutes: finalDuration
+                        });
+                        console.log("Notifikasi server berhasil dijadwalkan.");
+                        
+                    } catch (error) {
+                        console.error("Gagal menjadwalkan notifikasi FCM:", error);
+                        // showPopup('warning', 'PERINGATAN', 'Pendaftaran berhasil, tetapi notifikasi latar belakang mungkin tidak berfungsi. Cek koneksi Anda.');
+                    }
+                }
+                // --- END JADWALKAN NOTIFIKASI SERVER ---
+                
+                if (assignedSlot !== -1) {
+                    showPopup('success', 'BERHASIL', `Udahlah berhasil daftar di slot ${assignedSlot}. Harap gunakan slot ${assignedSlot} ya!`);
+                } else {
+                    showPopup('success', 'BERHASIL', 'Motor Anda berhasil masuk daftar tunggu antrian.');
+                }
+                
+                checkDisplayMode(); 
+                
+                document.getElementById('userPlat').value=''; 
+                document.getElementById('userName').value=''; 
+                document.getElementById('userBattery').value='';
+                document.getElementById('userWA').value='';
+            } catch(e) { showPopup('error','GAGAL', e); }
+            
+            btn.disabled=false; 
+            btn.innerText="DAFTAR ANTRIAN";
+        }
+
+
+        // --- LOGIC CLEAR SLOT & PROMOSI ANTRIAN (Dibuat terpisah agar bisa dipanggil oleh timer) ---
+        async function clearSlotAndPromote(i, plat, wa) { 
+            window.stopAlarm();
+            try {
+                await runTransaction(db, async(t) => {
                     const d = (await t.get(ref)).data();
                     let s = d.chargingSlots; 
                     let q = d.waitingQueue;
@@ -698,6 +1218,7 @@
                     
                     if(q.length){ 
                         const nextItem = q.shift();
+                        
                         const target = calculateTargetLimit(q.length); 
                         const dur = calculateDuration(nextItem.startBattery, target);
 
@@ -708,382 +1229,396 @@
                             startTime: null 
                         }; 
                     }
+
                     t.update(ref, {chargingSlots:s, waitingQueue:q});
-                }).then(() => showPopup('success', 'SUKSES', `Slot ${i+1} dikosongkan. Antrian naik (jika ada).`))
-                  .catch(e => console.error("Gagal clear slot:", e));
-            });
-
-        } else if (type === 'start') {
-            runTransaction(db, async(t)=>{
-                const d = (await t.get(ref)).data();
-                const s = d.chargingSlots;
-                const q = d.waitingQueue;
-
-                if(s[i]) {
-                    const newTarget = calculateTargetLimit(q.length); 
-                    
-                    // SAFE PATCH LOCK: Target dan Durasi tidak boleh diubah jika slot aktif
-                    s[i].targetLimit = newTarget;
-                    s[i].durationMinutes = calculateDuration(s[i].startBattery, newTarget);
-                    
-                    s[i].startTime = new Date();
-                }
-                t.update(ref, {chargingSlots:s});
-            });
-        }
-    };
-
-    // --- RENDERING & TIMER FIX (Client-Side) ---
-
-    // FIX: Logika Timer Runaway / Auto Clear - DIBERSIHKAN
-    setInterval(() => {
-        document.querySelectorAll('[data-end]').forEach(el => {
-            const end = parseInt(el.dataset.end);
-            const plat = el.dataset.plat; 
-            const wa = el.dataset.wa;
-            const key = plat+end; 
-
-            const diff = end - Date.now();
-            if(diff > 0) {
-                const m = Math.floor(diff/60000);
-                const s = Math.floor((diff%60000)/1000);
-                el.innerText = `${m}:${s<10?'0'+s:s}`;
-            } else {
-                el.innerText = "0:00"; 
-                el.style.color = "var(--soft-red)";
-                
-                // Klien hanya bertanggung jawab memicu ALARM/WA, BUKAN membersihkan slot
-                if(!triggeredAlarms.has(key)) { 
-                    triggeredAlarms.add(key); 
-                    triggerAlarm(plat, wa); 
-                }
+                });
+            } catch (e) {
+                console.error("Gagal menjalankan clearSlotAndPromote:", e);
             }
-        });
-    }, 1000);
-
-
-    // --- FIREBASE SNAPSHOT & RENDER ---
-    onSnapshot(ref, (snap) => {
-        const d = snap.data() || {};
-        const slots = d.chargingSlots || [null,null,null];
-        const q = d.waitingQueue || [];
-        
-        const myPlat = localStorage.getItem('myPlat'); 
-
-        const currentQueueLength = q.length;
-        const currentMaxTarget = calculateTargetLimit(currentQueueLength);
-        checkAndUpdateSlotTarget(slots, currentQueueLength);
-        checkAndUpdateQueueTarget(q); 
-
-        // RENDER SUMMARY
-        const qsSummary = document.getElementById('quickStatusSummary');
-        const qsQueueCountValue = document.getElementById('qsQueueCountValue');
-        const qsMaxTarget = document.getElementById('qsMaxTarget'); 
-        const frontQueueList = document.getElementById('frontQueueList');
-
-        qsSummary.style.display = 'block';
-        qsQueueCountValue.innerText = currentQueueLength;
-        qsMaxTarget.innerHTML = `MAX CAS: <span style="color: var(--accent);">${currentMaxTarget}%</span>`;
-
-        if (currentQueueLength > 0) {
-            frontQueueList.innerHTML = q.slice(0, 3).map((x, i) => `
-                <div class="front-queue-item">#${i+1}: <b>${x.plat}</b> ${x.userName ? `<span style="font-size:12px; color:var(--cyan); font-family:'Inter', sans-serif;">(${x.userName})</span>` : ''} (${x.startBattery}% > ${x.targetLimit}%)</div>
-            `).join('');
-
-        } else {
-            frontQueueList.innerHTML = '<div class="front-queue-item" style="color:var(--text-muted);">Antrian Kosong</div>';
         }
-        
-        // RENDER SLOTS (Detail)
-        document.getElementById('slotsContainer').innerHTML = slots.map((x,i)=>{
-            if(!x) return `
-                <div class="slot-box" style="opacity:0.5; border-style:dashed; border-color:var(--border);">
-                    <div class="bat-icon" style="border-color:var(--text-muted);"><div class="bat-bolt" style="color:var(--text-muted); background:none; text-shadow:none;">⚡</div></div>
-                    <div style="font-size:12px; color:var(--text-muted); font-family:'Inter', sans-serif;">KOSONG</div>
-                </div>`;
-
-            const isRun = !!x.startTime;
-            
-            let buttons;
-            let timeDisplay;
-            let h = isRun ? 100 : x.startBattery; 
-            let batInfo = `<div style="font-size:9px; color:var(--text); margin-top:5px; font-family:'Inter', sans-serif;">Awal: ${x.startBattery}% → Target: ${x.targetLimit}%</div>`;
-            
-            const pulsingClass = isRun ? 'pulsating' : '';
-            const highlightClass = (myPlat && myPlat === x.plat) ? 'is-mine' : '';
 
 
-            if(isRun) {
-                const start = x.startTime.seconds ? x.startTime.seconds*1000 : new Date(x.startTime).getTime();
-                const end = start + (x.durationMinutes*60000);
-                
-                buttons = `
-                    <div class="btn-group">
-                        <button class="btn-act btn-edit-timer" onclick="window.setTimerManualPrompt(${i}, ${x.durationMinutes})">EDIT TIMER</button>
-                        <button class="btn-act btn-stop" onclick="window.act(${i},'stop', '${x.plat}', '${x.wa}')">STOP</button>
-                    </div>
-                `;
-                timeDisplay = `<div style="font-size:16px; font-weight:800; color:var(--accent); margin:5px 0; text-shadow: 0 0 5px rgba(204, 255, 0, 0.5); font-family:'Syne', sans-serif;" data-end="${end}" data-plat="${x.plat}" data-wa="${x.wa}" data-slotindex="${i}">...</div>`; 
+        // --- SLOT ACTIONS ---
+        window.act = (i, type, platName, wa) => { 
+            initAudioAndNotif();
+            const myPlat = localStorage.getItem('myPlat');
 
-            } else {
-                buttons = `<button class="btn-act btn-stop" onclick="window.act(${i},'stop', '${x.plat}', '${x.wa}')">STOP/HAPUS</button>`;
-                timeDisplay = `<button class="btn-act btn-start" onclick="window.act(${i},'start', '${x.plat}', '${x.wa}')" style="margin-bottom:5px;">MULAI CAS</button>`;
-
+            if(type === 'stop' && !isAdminLoggedIn && myPlat !== platName) {
+                return showPopup('error', 'AKSES DITOLAK', 'Ini bukan motor lu bangsat');
             }
-            
-            let waInfo = x.wa ? `<a href="https://wa.me/${x.wa.replace(/\D/g, '')}" target="_blank" style="color:var(--cyan); font-size:9px; margin-bottom:5px; text-decoration:none; font-family:'Inter', sans-serif;">WA: ${x.wa}</a>` : '';
-            let nameDisplay = x.userName ? `<div style="font-size:10px; color:var(--cyan); font-weight: 700; font-family:'Inter', sans-serif;">(${x.userName})</div>` : '';
 
-            
-            return `
-                <div class="slot-box active ${pulsingClass} ${highlightClass}">
-                    <div style="font-size:10px; color:var(--text-muted); font-family:'Inter', sans-serif;">SLOT ${i+1}</div>
-                    <div class="bat-icon">
-                        <div class="bat-fill" style="height:${h}%"></div>
-                        <div class="bat-bolt" style="color:${isRun ? '#000' : 'var(--text)'};">⚡</div>
-                    </div>
-                    <div style="font-weight:700; color:var(--text); font-family:'Inter', sans-serif;">${x.plat}</div>
-                    ${nameDisplay}
-                    ${waInfo}
-                    ${batInfo}
-                    ${timeDisplay}
-                    ${buttons}
-                </div>`;
-        }).join('');
+            if(type==='stop') {
+                showPopup('confirm', 'KONFIRMASI', `Stop & Hapus Slot ${i+1}?`, () => {
+                    clearSlotAndPromote(i, platName, wa)
+                    .then(() => showPopup('success', 'SUKSES', `Slot ${i+1} dikosongkan. Antrian naik (jika ada).`));
+                });
 
-        // RENDER QUEUE (Detail)
-        document.getElementById('qCount').innerText = q.length;
-        document.getElementById('queueList').innerHTML = q.length ? q.map((x,i)=>{
-            const highlightClass = (myPlat && myPlat === x.plat) ? 'is-mine' : '';
-            return `
-                <div class="queue-item-display ${highlightClass}">
-                    <div><b style="color:var(--accent); font-family:'Inter', sans-serif;">${x.plat}</b> ${x.userName ? `<span style="font-size:12px; color:var(--cyan); font-family:'Inter', sans-serif;">(${x.userName})</span>` : ''} (${x.startBattery}% > ${x.targetLimit}%)</div>
-                    <button onclick="window.delQ(${i}, '${x.plat}')" style="background:none; border:none; color:var(--soft-red); cursor:pointer;">✕</button>
-                </div>
-            `;
-        }).join('') : '<div style="text-align:center; color:var(--text-muted); font-size:12px; font-family:\'Inter\', sans-serif;">Antrian Kosong</div>';
-        
-        // RENDER ADMIN QUEUE OPTIONS
-        const assignQueueSelect = document.getElementById('assignQueueIndex');
-        assignQueueSelect.innerHTML = q.length ? q.map((x,i)=>`<option value="${i}">${i+1}: ${x.plat} (${x.startBattery}%)</option>`) : '<option value="-1">-- Antrian Kosong --</option>';
+            } else if (type === 'start') {
+                runTransaction(db, async(t)=>{
+                    const d = (await t.get(ref)).data();
+                    const s = d.chargingSlots;
+                    const q = d.waitingQueue;
 
-    });
+                    if(s[i]) {
+                        const newTarget = calculateTargetLimit(q.length); 
+                        
+                        // NOTE: Karena SAFE PATCH aktif, targetLimit dan durationMinutes di slot aktif akan diabaikan.
+                        // Namun kita tetap set di sini untuk data yang disimpan ke DB.
+                        s[i].targetLimit = newTarget;
+                        s[i].durationMinutes = calculateDuration(s[i].startBattery, newTarget);
+                        
+                        s[i].startTime = new Date();
+                    }
+                    t.update(ref, {chargingSlots:s});
+                });
+            }
+        };
 
-    // --- QUEUE & ADMIN FUNCTIONS LANJUTAN ---
-    window.delQ = (i, platName) => { 
-        const myPlat = localStorage.getItem('myPlat');
-        if(!isAdminLoggedIn && myPlat !== platName) {
-            return showPopup('error', 'AKSES DITOLAK', 'Ini bukan motor lu bangsat');
-        }
+        // --- HAPUS ANTRIAN ---
+        window.delQ = (i, platName) => { 
+            const myPlat = localStorage.getItem('myPlat');
+            if(!isAdminLoggedIn && myPlat !== platName) {
+                return showPopup('error', 'AKSES DITOLAK', 'Ini bukan motor lu bangsat');
+            }
 
-        showPopup('confirm','HAPUS', 'Hapus antrian ini?', () => {
-            runTransaction(db, async(t)=>{
-                const q = (await t.get(ref)).data().waitingQueue;
-                q.splice(i,1); t.update(ref, {waitingQueue:q});
-            });
-        });
-    };
-
-    window.setTimerManualPrompt = (i, currentDuration) => {
-        if(!isAdminLoggedIn) {
-             return showPopup('error', 'AKSES DITOLAK', 'Hanya Admin yang dapat mengedit timer.');
-        }
-        const setTimerAction = (newDuration) => {
-            runTransaction(db, async(t)=>{
-                const s = (await t.get(ref)).data().chargingSlots;
-                if(!s[i]) throw `Slot ${i+1} kosong. Tidak bisa atur timer.`;
-
-                s[i].durationMinutes = newDuration;
-                s[i].startTime = new Date(); 
-                
-                t.update(ref, {chargingSlots:s});
-            }).then(() => {
-                showPopup('success','TIMER DIATUR',`Timer Slot ${i+1} diatur ke ${newDuration} menit.`);
-            }).catch(e => {
-                showPopup('error','GAGAL', e);
+            showPopup('confirm','HAPUS', 'Hapus antrian ini?', () => {
+                runTransaction(db, async(t)=>{
+                    const q = (await t.get(ref)).data().waitingQueue;
+                    q.splice(i,1); t.update(ref, {waitingQueue:q});
+                });
             });
         };
 
-        showPopup('timer', 
-            `ATUR ULANG TIMER SLOT ${i+1}`, 
-            `Masukkan durasi baru (menit) untuk motor ini.`, 
-            setTimerAction, 
-            { currentDuration: currentDuration }
-        );
-    };
-    
-    // ADMIN FUNCTIONS (ADMIN PANEL LOGIC)
-    window.manualAssign = () => {
-        const i = document.getElementById('manSlot').value;
-        const p = document.getElementById('manPlat').value.toUpperCase().replace(/\s/g, '').trim();
-        const startBatInput = document.getElementById('manBattery').value;
-        const startBat = parseInt(startBatInput); 
+        // --- RENDERING & TIMER FIX (Client-Side) ---
 
-        if(!p) return showPopup('error','ERROR','Plat kosong');
-        
-        if(isNaN(startBat) || startBat < 0 || startBat > 99) {
-            return showPopup('error','ERROR','Persentase baterai awal tidak valid (0-99).');
-        }
-        
-        runTransaction(db, async(t)=>{
-            const s = (await t.get(ref)).data().chargingSlots || [null,null,null];
-            const q = (await t.get(ref)).data().waitingQueue || [];
-            
-            const target = calculateTargetLimit(q.length); 
-            const dur = calculateDuration(startBat, target); 
-            
-            s[i] = { 
-                plat:p, 
-                userName:'ADMIN', 
-                wa:'', 
-                startBattery:startBat, 
-                targetLimit:target, 
-                durationMinutes:dur, 
-                startTime:null 
-            };
-            t.update(ref, {chargingSlots:s}, {merge:true});
-        }).then(() => {
-             showPopup('success','SUKSES',`Slot ${parseInt(i)+1} terisi dengan Baterai Awal ${startBat}%.`);
-             document.getElementById('manPlat').value = ''; 
-             document.getElementById('manBattery').value = ''; 
-        }).catch(e => {
-             showPopup('error','GAGAL', e);
-        });
-    };
+        // Logic Timer Runaway / Auto Clear
+        setInterval(() => {
+            document.querySelectorAll('[data-end]').forEach(el => {
+                const end = parseInt(el.dataset.end);
+                const i = parseInt(el.dataset.slotindex);
+                const plat = el.dataset.plat; 
+                const wa = el.dataset.wa;
+                const key = plat+end; 
 
-    window.clearSlotManual = () => {
-        if (!isAdminLoggedIn) return showPopup('error', 'AKSES DITOLAK', 'Hanya Admin.');
-
-        const i = parseInt(document.getElementById('manSlot').value);
-        showPopup('confirm', 'HAPUS SLOT PAKSA', `Paksa hapus Slot ${i+1}? Antrian akan naik jika tersedia.`, () => {
-             runTransaction(db, async(t) => {
-                const d = (await t.get(ref)).data();
-                let s = d.chargingSlots; 
-                let q = d.waitingQueue;
-                
-                if (s[i]) sendWhatsAppNotification(s[i].plat, s[i].wa); 
-
-                s[i] = null; 
-                
-                if(q.length){ 
-                    const nextItem = q.shift();
-                    const target = calculateTargetLimit(q.length); 
-                    const dur = calculateDuration(nextItem.startBattery, target);
-
-                    s[i] = { 
-                        ...nextItem, 
-                        targetLimit: target,
-                        durationMinutes: dur,
-                        startTime: null 
-                    }; 
+                const diff = end - Date.now();
+                if(diff > 0) {
+                    const m = Math.floor(diff/60000);
+                    const s = Math.floor((diff%60000)/1000);
+                    el.innerText = `${m}:${s<10?'0'+s:s}`;
+                } else {
+                    el.innerText = "0:00"; 
+                    el.style.color = "var(--soft-red)";
+                    
+                    // Pemicu Alarm/WA (Sekali saja per event selesai)
+                    if(!triggeredAlarms.has(key)) { 
+                        triggeredAlarms.add(key); 
+                        triggerAlarm(plat, wa); 
+                    }
+                    
+                    // Auto-Clear Slot jika Timer Habis (Klien mencoba memicu promosi)
+                    if(el.dataset.stopped !== 'true') {
+                         el.dataset.stopped = 'true'; 
+                         clearSlotAndPromote(i, plat, wa); 
+                    }
                 }
-                t.update(ref, {chargingSlots:s, waitingQueue:q});
-            }).then(() => {
-                showPopup('success', 'SUKSES', `Slot ${i+1} dikosongkan dan antrian ditarik (jika ada).`);
-            }).catch(e => {
-                showPopup('error', 'GAGAL', e);
             });
+        }, 1000);
+
+
+        // --- FIREBASE SNAPSHOT & RENDER ---
+        onSnapshot(ref, (snap) => {
+            const d = snap.data() || {};
+            const slots = d.chargingSlots || [null,null,null];
+            const q = d.waitingQueue || [];
+            
+            const myPlat = localStorage.getItem('myPlat'); 
+
+            // Logika Dinamis Target Limit
+            const currentQueueLength = q.length;
+            const currentMaxTarget = calculateTargetLimit(currentQueueLength);
+            checkAndUpdateSlotTarget(slots, currentQueueLength);
+            checkAndUpdateQueueTarget(q); 
+
+            // RENDER SUMMARY
+            const qsSummary = document.getElementById('quickStatusSummary');
+            const qsQueueCountValue = document.getElementById('qsQueueCountValue');
+            const qsMaxTarget = document.getElementById('qsMaxTarget'); 
+            const frontQueueList = document.getElementById('frontQueueList');
+
+            qsSummary.style.display = 'block';
+            qsQueueCountValue.innerText = currentQueueLength;
+            qsMaxTarget.innerHTML = `MAX CAS: <span style="color: var(--accent);">${currentMaxTarget}%</span>`;
+
+            if (currentQueueLength > 0) {
+                
+                frontQueueList.innerHTML = q.slice(0, 3).map((x, i) => `
+                    <div class="front-queue-item">#${i+1}: <b>${x.plat}</b> ${x.userName ? `<span style="font-size:12px; color:var(--cyan); font-family:'Inter', sans-serif;">(${x.userName})</span>` : ''} (${x.startBattery}% > ${x.targetLimit}%)</div>
+                `).join('');
+
+            } else {
+                frontQueueList.innerHTML = '<div class="front-queue-item" style="color:var(--text-muted);">Antrian Kosong</div>';
+            }
+            
+            // RENDER SLOTS (Detail)
+            document.getElementById('slotsContainer').innerHTML = slots.map((x,i)=>{
+                if(!x) return `
+                    <div class="slot-box" style="opacity:0.5; border-style:dashed; border-color:var(--border);">
+                        <div class="bat-icon" style="border-color:var(--text-muted);"><div class="bat-bolt" style="color:var(--text-muted); background:none; text-shadow:none;">⚡</div></div>
+                        <div style="font-size:12px; color:var(--text-muted); font-family:'Inter', sans-serif;">KOSONG</div>
+                    </div>`;
+
+                const isRun = !!x.startTime;
+                
+                let buttons;
+                let timeDisplay;
+                let h = isRun ? 100 : x.startBattery; 
+                let batInfo = `<div style="font-size:9px; color:var(--text); margin-top:5px; font-family:'Inter', sans-serif;">Awal: ${x.startBattery}% → Target: ${x.targetLimit}%</div>`;
+                
+                const pulsingClass = isRun ? 'pulsating' : '';
+                const highlightClass = (myPlat && myPlat === x.plat) ? 'is-mine' : '';
+
+
+                if(isRun) {
+                    const start = x.startTime.seconds ? x.startTime.seconds*1000 : new Date(x.startTime).getTime();
+                    const end = start + (x.durationMinutes*60000);
+                    
+                    buttons = `
+                        <div class="btn-group">
+                            <button class="btn-act btn-edit-timer" onclick="window.setTimerManualPrompt(${i}, ${x.durationMinutes})">EDIT TIMER</button>
+                            <button class="btn-act btn-stop" onclick="window.act(${i},'stop', '${x.plat}', '${x.wa}')">STOP</button>
+                        </div>
+                    `;
+                    timeDisplay = `<div style="font-size:16px; font-weight:800; color:var(--accent); margin:5px 0; text-shadow: 0 0 5px rgba(204, 255, 0, 0.5); font-family:'Syne', sans-serif;" data-end="${end}" data-plat="${x.plat}" data-wa="${x.wa}" data-slotindex="${i}">...</div>`; 
+
+                } else {
+                    buttons = `<button class="btn-act btn-stop" onclick="window.act(${i},'stop', '${x.plat}', '${x.wa}')">STOP/HAPUS</button>`;
+                    timeDisplay = `<button class="btn-act btn-start" onclick="window.act(${i},'start', '${x.plat}', '${x.wa}')" style="margin-bottom:5px;">MULAI CAS</button>`;
+
+                }
+                
+                let waInfo = x.wa ? `<a href="https://wa.me/${x.wa.replace(/\D/g, '')}" target="_blank" style="color:var(--cyan); font-size:9px; margin-bottom:5px; text-decoration:none; font-family:'Inter', sans-serif;">WA: ${x.wa}</a>` : '';
+                let nameDisplay = x.userName ? `<div style="font-size:10px; color:var(--cyan); font-weight: 700; font-family:'Inter', sans-serif;">(${x.userName})</div>` : '';
+
+                
+                return `
+                    <div class="slot-box active ${pulsingClass} ${highlightClass}">
+                        <div style="font-size:10px; color:var(--text-muted); font-family:'Inter', sans-serif;">SLOT ${i+1}</div>
+                        <div class="bat-icon">
+                            <div class="bat-fill" style="height:${h}%"></div>
+                            <div class="bat-bolt" style="color:${isRun ? '#000' : 'var(--text)'};">⚡</div>
+                        </div>
+                        <div style="font-weight:700; color:var(--text); font-family:'Inter', sans-serif;">${x.plat}</div>
+                        ${nameDisplay}
+                        ${waInfo}
+                        ${batInfo}
+                        ${timeDisplay}
+                        ${buttons}
+                    </div>`;
+            }).join('');
+
+            // RENDER QUEUE (Detail)
+            document.getElementById('qCount').innerText = q.length;
+            document.getElementById('queueList').innerHTML = q.length ? q.map((x,i)=>{
+                const highlightClass = (myPlat && myPlat === x.plat) ? 'is-mine' : '';
+                return `
+                    <div class="queue-item-display ${highlightClass}">
+                        <div><b style="color:var(--accent); font-family:'Inter', sans-serif;">${x.plat}</b> ${x.userName ? `<span style="font-size:12px; color:var(--cyan); font-family:'Inter', sans-serif;">(${x.userName})</span>` : ''} (${x.startBattery}% > ${x.targetLimit}%)</div>
+                        <button onclick="window.delQ(${i}, '${x.plat}')" style="background:none; border:none; color:var(--soft-red); cursor:pointer;">✕</button>
+                    </div>
+                `;
+            }).join('') : '<div style="text-align:center; color:var(--text-muted); font-size:12px; font-family:\'Inter\', sans-serif;">Antrian Kosong</div>';
+            
+            // RENDER ADMIN QUEUE OPTIONS
+            const assignQueueSelect = document.getElementById('assignQueueIndex');
+            assignQueueSelect.innerHTML = q.length ? q.map((x,i)=>`<option value="${i}">${i+1}: ${x.plat} (${x.startBattery}%)</option>`) : '<option value="-1">-- Antrian Kosong --</option>';
+
         });
-    };
-    
-    window.assignQueueToSlot = () => {
-        const queueIndex = parseInt(document.getElementById('assignQueueIndex').value);
-        const slotTarget = parseInt(document.getElementById('assignSlotTarget').value);
 
-        if (queueIndex < 0) return showPopup('error', 'Gagal', 'Pilih antrian yang valid.');
+        // --- ADMIN FUNCTIONS LANJUTAN ---
 
-        showPopup('confirm', 'PINDAH ANTRIAN', `Pindah Antrian ke Slot ${slotTarget + 1}?`, () => {
-            runTransaction(db, async(t) => {
-                const d = (await t.get(ref)).data();
-                let s = d.chargingSlots;
-                let q = d.waitingQueue;
+        window.setTimerManualPrompt = (i, currentDuration) => {
+            if(!isAdminLoggedIn) {
+                 return showPopup('error', 'AKSES DITOLAK', 'Hanya Admin yang dapat mengedit timer.');
+            }
+            const setTimerAction = (newDuration) => {
+                runTransaction(db, async(t)=>{
+                    const s = (await t.get(ref)).data().chargingSlots;
+                    if(!s[i]) throw `Slot ${i+1} kosong. Tidak bisa atur timer.`;
 
-                if (!q[queueIndex]) throw "Antrian tidak ditemukan.";
-                if (s[slotTarget]) throw `Slot ${slotTarget + 1} sudah terisi. Kosongkan dulu.`;
+                    s[i].durationMinutes = newDuration;
+                    s[i].startTime = new Date(); 
+                    
+                    t.update(ref, {chargingSlots:s});
+                }).then(() => {
+                    showPopup('success','TIMER DIATUR',`Timer Slot ${i+1} diatur ke ${newDuration} menit.`);
+                }).catch(e => {
+                    showPopup('error','GAGAL', e);
+                });
+            };
 
-                const itemToMove = q[queueIndex];
+            showPopup('timer', 
+                `ATUR ULANG TIMER SLOT ${i+1}`, 
+                `Masukkan durasi baru (menit) untuk motor ini.`, 
+                setTimerAction, 
+                { currentDuration: currentDuration }
+            );
+        };
+        
+        // ADMIN FUNCTIONS (ADMIN PANEL LOGIC)
+        window.manualAssign = () => {
+            const i = document.getElementById('manSlot').value;
+            const p = document.getElementById('manPlat').value.toUpperCase().replace(/\s/g, '').trim();
+            const startBatInput = document.getElementById('manBattery').value;
+            const startBat = parseInt(startBatInput); 
 
-                q.splice(queueIndex, 1);
+            if(!p) return showPopup('error','ERROR','Plat kosong');
+            
+            if(isNaN(startBat) || startBat < 0 || startBat > 99) {
+                return showPopup('error','ERROR','Persentase baterai awal tidak valid (0-99).');
+            }
+            
+            runTransaction(db, async(t)=>{
+                const s = (await t.get(ref)).data().chargingSlots || [null,null,null];
+                const q = (await t.get(ref)).data().waitingQueue || [];
                 
-                const newTarget = calculateTargetLimit(q.length);
-                const newDur = calculateDuration(itemToMove.startBattery, newTarget); 
+                const target = calculateTargetLimit(q.length); 
+                const dur = calculateDuration(startBat, target); 
                 
-                s[slotTarget] = {
-                    ...itemToMove,
-                    targetLimit: newTarget,
-                    durationMinutes: newDur,
-                    startTime: null 
+                s[i] = { 
+                    plat:p, 
+                    userName:'ADMIN', 
+                    wa:'', 
+                    startBattery:startBat, 
+                    targetLimit:target, 
+                    durationMinutes:dur, 
+                    startTime:null 
                 };
-
-                t.update(ref, { chargingSlots: s, waitingQueue: q });
+                t.update(ref, {chargingSlots:s}, {merge:true});
             }).then(() => {
-                showPopup('success', 'SUKSES', `Antrian berhasil dipindah ke Slot ${slotTarget + 1}.`);
+                 showPopup('success','SUKSES',`Slot ${parseInt(i)+1} terisi dengan Baterai Awal ${startBat}%.`);
+                 document.getElementById('manPlat').value = ''; 
+                 document.getElementById('manBattery').value = ''; 
             }).catch(e => {
-                showPopup('error', 'GAGAL', e);
+                 showPopup('error','GAGAL', e);
             });
-        });
-    };
+        };
 
-    window.swapSlots = () => {
-        if (!isAdminLoggedIn) return showPopup('error', 'AKSES DITOLAK', 'Fitur ini hanya untuk Admin.');
-        
-        const sourceIndex = parseInt(document.getElementById('slotSource').value);
-        const targetIndex = parseInt(document.getElementById('slotTarget').value);
+        window.clearSlotManual = () => {
+            if (!isAdminLoggedIn) return showPopup('error', 'AKSES DITOLAK', 'Hanya Admin.');
 
-        if (sourceIndex === -1 || targetIndex === -1 || sourceIndex === targetIndex) {
-            return showPopup('error', 'Gagal', 'Pilih slot sumber dan target yang valid dan berbeda.');
-        }
-
-        showPopup('confirm', 'KONFIRMASI PINDAH', `Pindahkan Slot ${sourceIndex + 1} ke Slot ${targetIndex + 1}?`, () => {
-            runTransaction(db, async(t) => {
-                const d = (await t.get(ref)).data();
-                let s = d.chargingSlots;
-
-                const sourceMotor = s[sourceIndex];
-                const targetMotor = s[targetIndex];
-                
-                s[targetIndex] = sourceMotor;
-                s[sourceIndex] = targetMotor;
-
-                t.update(ref, { chargingSlots: s });
-            }).then(() => {
-                showPopup('success', 'SUKSES', `Slot ${sourceIndex + 1} dan Slot ${targetIndex + 1} berhasil ditukar/dipindah.`);
-            }).catch(e => {
-                showPopup('error', 'GAGAL', e);
+            const i = parseInt(document.getElementById('manSlot').value);
+            showPopup('confirm', 'HAPUS SLOT PAKSA', `Paksa hapus Slot ${i+1}? Antrian akan naik jika tersedia.`, () => {
+                clearSlotAndPromote(i, 'ADMIN_MANUAL', '')
+                .then(() => {
+                    showPopup('success', 'SUKSES', `Slot ${i+1} dikosongkan dan antrian ditarik (jika ada).`);
+                }).catch(e => {
+                    showPopup('error', 'GAGAL', e);
+                });
             });
-        });
-    };
-
-    window.blockUser = async () => {
-        const p = document.getElementById('blockPlatInput').value.toUpperCase().trim();
-        if(!p) return;
-        await runTransaction(db, async (t) => {
-            const d = (await t.get(ref)).data(); const l = d.blockedList || [];
-            if (!l.includes(p)) l.push(p); t.update(ref, {blockedList: l});
-        });
-        showPopup('success', 'BLOKIR', `Plat ${p} diblokir.`);
-    };
-    window.stopAll = () => {
-        showPopup('confirm', 'BAHAYA', 'Stop SEMUA slot?', () => {
-            runTransaction(db, async(t)=>{ t.update(ref, {chargingSlots:[null,null,null]}); });
-        });
-    };
-    window.resetAll = () => {
-        showPopup('confirm', 'RESET DATABASE', 'Hapus antrian & slot?', () => {
-            setDoc(ref, {chargingSlots:[null,null,null], waitingQueue:[], blockedList:[]});
-        });
-    };
-    
-    // JALANKAN LOGIC DUAL VIEW SETELAH LOADING SCREEN SELESAI
-    window.addEventListener('load', () => {
-        const bypassCheckbox = document.getElementById('gpsBypassToggle');
-        if (bypassCheckbox) {
-            bypassCheckbox.checked = isGpsBypassEnabled;
-            updateGpsBypassStatus();
-        }
+        };
         
-        checkDisplayMode(); 
-    });
+        window.assignQueueToSlot = () => {
+            const queueIndex = parseInt(document.getElementById('assignQueueIndex').value);
+            const slotTarget = parseInt(document.getElementById('assignSlotTarget').value);
+
+            if (queueIndex < 0) return showPopup('error', 'Gagal', 'Pilih antrian yang valid.');
+
+            showPopup('confirm', 'PINDAH ANTRIAN', `Pindah Antrian ke Slot ${slotTarget + 1}?`, () => {
+                runTransaction(db, async(t) => {
+                    const d = (await t.get(ref)).data();
+                    let s = d.chargingSlots;
+                    let q = d.waitingQueue;
+
+                    if (!q[queueIndex]) throw "Antrian tidak ditemukan.";
+                    if (s[slotTarget]) throw `Slot ${slotTarget + 1} sudah terisi. Kosongkan dulu.`;
+
+                    const itemToMove = q[queueIndex];
+
+                    q.splice(queueIndex, 1);
+                    
+                    const newTarget = calculateTargetLimit(q.length);
+                    const newDur = calculateDuration(itemToMove.startBattery, newTarget); 
+                    
+                    s[slotTarget] = {
+                        ...itemToMove,
+                        targetLimit: newTarget,
+                        durationMinutes: newDur,
+                        startTime: null 
+                    };
+
+                    t.update(ref, { chargingSlots: s, waitingQueue: q });
+                }).then(() => {
+                    showPopup('success', 'SUKSES', `Antrian berhasil dipindah ke Slot ${slotTarget + 1}.`);
+                }).catch(e => {
+                    showPopup('error', 'GAGAL', e);
+                });
+            });
+        };
+
+        window.swapSlots = () => {
+            if (!isAdminLoggedIn) return showPopup('error', 'AKSES DITOLAK', 'Fitur ini hanya untuk Admin.');
+            
+            const sourceIndex = parseInt(document.getElementById('slotSource').value);
+            const targetIndex = parseInt(document.getElementById('slotTarget').value);
+
+            if (sourceIndex === -1 || targetIndex === -1 || sourceIndex === targetIndex) {
+                return showPopup('error', 'Gagal', 'Pilih slot sumber dan target yang valid dan berbeda.');
+            }
+
+            showPopup('confirm', 'KONFIRMASI PINDAH', `Pindahkan Slot ${sourceIndex + 1} ke Slot ${targetIndex + 1}?`, () => {
+                runTransaction(db, async(t) => {
+                    const d = (await t.get(ref)).data();
+                    let s = d.chargingSlots;
+
+                    const sourceMotor = s[sourceIndex];
+                    const targetMotor = s[targetIndex];
+                    
+                    s[targetIndex] = sourceMotor;
+                    s[sourceIndex] = targetMotor;
+
+                    t.update(ref, { chargingSlots: s });
+                }).then(() => {
+                    showPopup('success', 'SUKSES', `Slot ${sourceIndex + 1} dan Slot ${targetIndex + 1} berhasil ditukar/dipindah.`);
+                }).catch(e => {
+                    showPopup('error', 'GAGAL', e);
+                });
+            });
+        };
+
+        window.blockUser = async () => {
+            const p = document.getElementById('blockPlatInput').value.toUpperCase().trim();
+            if(!p) return;
+            await runTransaction(db, async (t) => {
+                const d = (await t.get(ref)).data(); const l = d.blockedList || [];
+                if (!l.includes(p)) l.push(p); t.update(ref, {blockedList: l});
+            });
+            showPopup('success', 'BLOKIR', `Plat ${p} diblokir.`);
+        };
+        window.stopAll = () => {
+            showPopup('confirm', 'BAHAYA', 'Stop SEMUA slot?', () => {
+                runTransaction(db, async(t)=>{ t.update(ref, {chargingSlots:[null,null,null]}); });
+            });
+        };
+        window.resetAll = () => {
+            showPopup('confirm', 'RESET DATABASE', 'Hapus antrian & slot?', () => {
+                setDoc(ref, {chargingSlots:[null,null,null], waitingQueue:[], blockedList:[]});
+            });
+        };
+        
+        // JALANKAN LOGIC DUAL VIEW SETELAH DOM SIAP
+        window.addEventListener('load', () => {
+            // PENTING: Inisialisasi event listener btnDaftar
+            // Ini sudah didefinisikan di atas, tetapi memastikan GPS Bypass UI siap
+            const bypassCheckbox = document.getElementById('gpsBypassToggle');
+            if (bypassCheckbox) {
+                bypassCheckbox.checked = isGpsBypassEnabled;
+                updateGpsBypassStatus();
+            }
+            
+            checkDisplayMode(); 
+        });
 
 
-</script>
+    </script>
+</body>
+</html>
