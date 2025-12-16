@@ -359,11 +359,17 @@
     let isAdminLoggedIn = false; 
 
     // --- LOGIKA TIMER PRESISI (KURVA ADLI) ---
+    // DATA KURVA DISESUAIKAN: Mempertahankan 91% = 9m dan menghaluskan lompatan di 90%
     const CHARGING_CURVE = [
-        [91, 9], [90, 15], [89, 20], [85, 23], [82, 25], 
-        [81, 26], [79, 30], [77, 32], [72, 35], [67, 42], 
-        [63, 47], [61, 47], [58, 50], [51, 51], [50, 54], 
-        [49, 54], [46, 56], [40, 60], [21, 69], [18, 71], [0, 75]
+        [97, 3],    // 97% sisa 3 menit
+        [95, 5],    // 95% sisa 5 menit
+        [91, 9],    // 91% sisa 9 menit (Sesuai patokan gambar)
+        [90, 11.5], // 90% sisa 11.5 menit (Transisi 90%->91% = 2.5 min)
+        [89, 14],   // 89% sisa 14 menit (Transisi 89%->90% = 2.5 min)
+        [85, 16],   // 85% sisa 16 menit 
+        [82, 19], [79, 23], [77, 25], [72, 28], [67, 35], 
+        [63, 40], [61, 40], [58, 43], [51, 44], [50, 47], 
+        [49, 47], [46, 49], [40, 53], [21, 62], [18, 64], [0, 68]
     ];
 
     function getRemainingTime(batteryPercent) {
@@ -835,7 +841,7 @@
         }
 
         showPopup('confirm', 'KONFIRMASI TEST', 'Yakin ingin mengisi semua 3 slot dengan data dummy?', () => {
-            // PENTING: Mendeklarasikan logDetails, target, dan dur di sini, BUKAN di dalam .then() atau .catch()
+            // PENTING: Mendeklarasikan variabel yang akan digunakan di logActivity di scope terluar
             let logDetails = {}; 
             let target;
             let dur;
@@ -898,8 +904,9 @@
             return showPopup('error', 'DATA KURANG', 'Plat, WA, dan Baterai harus diisi.');
         }
         
+        // PENTING: Deklarasi variabel di luar scope transaksi
         let dur = 0; 
-        let currentQueueLength = 0; // Deklarasi di luar scope transaksi
+        let currentQueueLength = 0; 
         let target = 0;
 
         runTransaction(db, async(t) => {
@@ -945,8 +952,8 @@
         const p = document.getElementById('manPlat').value.toUpperCase().replace(/\s/g, '').trim();
         const startBat = parseInt(document.getElementById('manBattery').value); 
         
-        let target = 0; // Deklarasi di luar
-        let dur = 0;    // Deklarasi di luar
+        let target = 0; 
+        let dur = 0;    
         let currentQueueLength = 0;
 
         if(!p || isNaN(startBat) || startBat < 0 || startBat > 99) {

@@ -125,7 +125,7 @@
         /* Slot Active: Border Glow (dikurangi intensitasnya) */
         .slot-box.active { 
             border-color: var(--accent); 
-            background: rgba(204, 255, 0, 0.15); 
+            background: rgba(204, 255, 0, 0.05); 
             box-shadow: 0 0 10px rgba(204, 255, 0, 0.4);
         }
         
@@ -145,7 +145,7 @@
         }
         
         .bat-fill.pulsating-fill {
-            animation: fill-pulse 2.5s infinite alternate ease-in-out;
+            animation: fill-pulse 1.5s infinite alternate ease-in-out;
         }
         @keyframes fill-pulse {
             0% { 
@@ -368,9 +368,9 @@
 </head>
 <body>
     <div id="loadingScreen">
-        <div class="neon-text top-text">SELAMAT DATANG DI FC KELAPA GADING</div>
+        <div class="neon-text top-text">SELAMAT DATANG DI RUMAH MLU</div>
         <div class="spinner"></div>
-        <div class="neon-text bottom-text">RUMAH MLU</div>
+        <div class="neon-text bottom-text">FC KELAPA GADING</div>
     </div>
 
 
@@ -567,7 +567,6 @@
 
         <div class="footer">Aplikasi ini buatan MLU bukan punya Maka </div>
     </div>
-
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
         import { getFirestore, doc, onSnapshot, runTransaction, setDoc, collection, addDoc, arrayRemove, arrayUnion } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
@@ -727,11 +726,17 @@
         }
 
         // --- LOGIKA TIMER PRESISI (KURVA ADLI) ---
+        // DATA KURVA DISESUAIKAN: Mempertahankan 91% = 9m dan menghaluskan lompatan di 90%
         const CHARGING_CURVE = [
-            [91, 9], [90, 15], [89, 20], [85, 23], [82, 25], 
-            [81, 26], [79, 30], [77, 32], [72, 35], [67, 42], 
-            [63, 47], [61, 47], [58, 50], [51, 51], [50, 54], 
-            [49, 54], [46, 56], [40, 60], [21, 69], [18, 71], [0, 75]
+            [97, 3],    // 97% sisa 3 menit
+            [95, 5],    // 95% sisa 5 menit
+            [91, 9],    // 91% sisa 9 menit (Sesuai patokan gambar)
+            [90, 11.5], // 90% sisa 11.5 menit (Transisi 90%->91% = 2.5 min)
+            [89, 14],   // 89% sisa 14 menit (Transisi 89%->90% = 2.5 min)
+            [85, 16],   // 85% sisa 16 menit 
+            [82, 19], [79, 23], [77, 25], [72, 28], [67, 35], 
+            [63, 40], [61, 40], [58, 43], [51, 44], [50, 47], 
+            [49, 47], [46, 49], [40, 53], [21, 62], [18, 64], [0, 68]
         ];
 
         function getRemainingTime(batteryPercent) {
@@ -1447,11 +1452,11 @@
                 return showPopup('error', 'AKSES DITOLAK', 'Ini bukan motor lu bangsat');
             }
 
-            showPopup('confirm','HAPUS', 'Hapus antrian ini?', () => {
+            showPopup('confirm','HAPUS', 'Hapus antrian ini?', () => { 
                 runTransaction(db, async(t)=>{
                     const q = (await t.get(ref)).data().waitingQueue;
                     q.splice(i,1); t.update(ref, {waitingQueue:q});
-                }).then(() => {
+                }).then(() => { 
                     logActivity('USER_DELETE_QUEUE', platName, logUser, { index: i + 1 });
                     showPopup('success', 'SUKSES', `Antrian ${platName} berhasil dihapus.`);
                 });
@@ -1461,20 +1466,20 @@
         // --- RENDERING & TIMER FIX (Client-Side) ---
 
         // Logic Timer Runaway / Auto Clear
-        setInterval(() => {
-            document.querySelectorAll('[data-end]').forEach(el => {
-                const end = parseInt(el.dataset.end);
-                const i = parseInt(el.dataset.slotindex);
+        setInterval(() => { 
+            document.querySelectorAll('[data-end]').forEach(el => { 
+                const end = parseInt(el.dataset.end); 
+                const i = parseInt(el.dataset.slotindex); 
                 const plat = el.dataset.plat; 
-                const wa = el.dataset.wa;
+                const wa = el.dataset.wa; 
                 const userName = el.dataset.username; 
                 const key = plat+end; 
 
-                const diff = end - Date.now();
-                if(diff > 0) {
-                    const m = Math.floor(diff/60000);
-                    const s = Math.floor((diff%60000)/1000);
-                    el.innerText = `${m}:${s<10?'0'+s:s}`;
+                const diff = end - Date.now(); 
+                if(diff > 0) { 
+                    const m = Math.floor(diff/60000); 
+                    const s = Math.floor((diff%60000)/1000); 
+                    el.innerText = `${m}:${s<10?'0'+s:s}`; 
                 } else {
                     el.innerText = "0:00"; 
                     el.style.color = "var(--soft-red)";
@@ -1486,7 +1491,7 @@
                     }
                     
                     // Auto-Clear Slot jika Timer Habis (Klien mencoba memicu promosi)
-                    if(el.dataset.stopped !== 'true') {
+                    if(el.dataset.stopped !== 'true') { 
                          el.dataset.stopped = 'true'; 
                          // --- LOG BARU: AUTO CLEAR DARI TIMER ---
                          clearSlotAndPromote(i, plat, wa, 'AUTO_TIMER', userName); 
@@ -1498,54 +1503,54 @@
 
 
         // --- FIREBASE SNAPSHOT & RENDER ---
-        onSnapshot(ref, (snap) => {
-            const d = snap.data() || {};
-            const slots = d.chargingSlots || [null,null,null];
-            const q = d.waitingQueue || [];
+        onSnapshot(ref, (snap) => { 
+            const d = snap.data() || {}; 
+            const slots = d.chargingSlots || [null,null,null]; 
+            const q = d.waitingQueue || []; 
             
             const myPlat = localStorage.getItem('myPlat'); 
 
             // Logika Dinamis Target Limit
-            const currentQueueLength = q.length;
-            const currentMaxTarget = calculateTargetLimit(currentQueueLength);
-            checkAndUpdateSlotTarget(slots, currentQueueLength);
+            const currentQueueLength = q.length; 
+            const currentMaxTarget = calculateTargetLimit(currentQueueLength); 
+            checkAndUpdateSlotTarget(slots, currentQueueLength); 
             checkAndUpdateQueueTarget(q); 
 
             // RENDER SUMMARY
-            const qsSummary = document.getElementById('quickStatusSummary');
-            const qsQueueCountValue = document.getElementById('qsQueueCountValue');
+            const qsSummary = document.getElementById('quickStatusSummary'); 
+            const qsQueueCountValue = document.getElementById('qsQueueCountValue'); 
             const qsMaxTarget = document.getElementById('qsMaxTarget'); 
-            const frontQueueList = document.getElementById('frontQueueList');
+            const frontQueueList = document.getElementById('frontQueueList'); 
 
-            qsSummary.style.display = 'block';
-            qsQueueCountValue.innerText = currentQueueLength;
-            qsMaxTarget.innerHTML = `MAX CAS: <span style="color: var(--accent);">${currentMaxTarget}%</span>`;
+            qsSummary.style.display = 'block'; 
+            qsQueueCountValue.innerText = currentQueueLength; 
+            qsMaxTarget.innerHTML = `MAX CAS: <span style="color: var(--accent);">${currentMaxTarget}%</span>`; 
 
-            if (currentQueueLength > 0) {
+            if (currentQueueLength > 0) { 
                 
                 frontQueueList.innerHTML = q.slice(0, 3).map((x, i) => `
                     <div class="front-queue-item">#${i+1}: <b>${x.plat}</b> ${x.userName ? `<span style="font-size:12px; color:var(--cyan); font-family:'Inter', sans-serif;">(${x.userName})</span>` : ''} (${x.startBattery}% > ${x.targetLimit}%)</div>
-                `).join('');
+                `).join(''); 
 
             } else {
-                frontQueueList.innerHTML = '<div class="front-queue-item" style="color:var(--text-muted);">Antrian Kosong</div>';
+                frontQueueList.innerHTML = '<div class="front-queue-item" style="color:var(--text-muted);">Antrian Kosong</div>'; 
             }
             
             // RENDER SLOTS (Detail)
             const slotOptions = ['0', '1', '2']; 
             
             // Update dropdown slot di Admin Panel agar dinamis (jika ada)
-            const updateSlotDropdowns = (slotsLength) => {
-                 const selectIDs = ['manSlot', 'slotSource', 'slotTarget', 'assignSlotTarget'];
-                 const options = Array.from({length: slotsLength}, (_, i) => `<option value="${i}">Slot ${i + 1}</option>`).join('');
+            const updateSlotDropdowns = (slotsLength) => { 
+                 const selectIDs = ['manSlot', 'slotSource', 'slotTarget', 'assignSlotTarget']; 
+                 const options = Array.from({length: slotsLength}, (_, i) => `<option value="${i}">Slot ${i + 1}</option>`).join(''); 
                  
-                 selectIDs.forEach(id => {
-                     const select = document.getElementById(id);
-                     if (select) {
-                        if (id === 'slotSource' || id === 'slotTarget') {
-                             select.innerHTML = '<option value="-1">Dari/Ke</option>' + options;
+                 selectIDs.forEach(id => { 
+                     const select = document.getElementById(id); 
+                     if (select) { 
+                        if (id === 'slotSource' || id === 'slotTarget') { 
+                             select.innerHTML = '<option value="-1">Dari/Ke</option>' + options; 
                         } else {
-                             select.innerHTML = options;
+                             select.innerHTML = options; 
                         }
                      }
                  });
@@ -1554,33 +1559,33 @@
 
 
             // RENDERING UTAMA SLOTS
-            document.getElementById('slotsContainer').innerHTML = slots.map((x,i)=>{
+            document.getElementById('slotsContainer').innerHTML = slots.map((x,i)=>{ 
                 if(!x) return `
                     <div class="slot-box" style="opacity:0.5; border-style:dashed; border-color:var(--border);">
                         <div class="bat-icon" style="border-color:var(--text-muted);"><div class="bat-bolt" style="color:var(--text-muted); background:none; text-shadow:none;">⚡</div></div>
                         <div style="font-size:12px; color:var(--text-muted); font-family:'Inter', sans-serif;">KOSONG</div>
-                    </div>`;
+                    </div>`; 
 
-                const isRun = !!x.startTime;
+                const isRun = !!x.startTime; 
                 
-                let buttons;
-                let timeDisplay;
+                let buttons; 
+                let timeDisplay; 
                 
                 // --- LOGIKA ANIMASI BATERAI ---
                 let h = x.startBattery; 
                 
-                if (isRun) {
-                    const start = x.startTime.seconds ? x.startTime.seconds * 1000 : new Date(x.startTime).getTime();
-                    const durationMs = x.durationMinutes * 60000;
+                if (isRun) { 
+                    const start = x.startTime.seconds ? x.startTime.seconds * 1000 : new Date(x.startTime).getTime(); 
+                    const durationMs = x.durationMinutes * 60000; 
                     
-                    const timeElapsed = Date.now() - start;
-                    const startBat = x.startBattery;
-                    const targetBat = x.targetLimit;
-                    const batRange = targetBat - startBat;
+                    const timeElapsed = Date.now() - start; 
+                    const startBat = x.startBattery; 
+                    const targetBat = x.targetLimit; 
+                    const batRange = targetBat - startBat; 
                     
-                    if (timeElapsed < durationMs) {
-                        const progressRatio = timeElapsed / durationMs;
-                        const currentBat = startBat + (batRange * progressRatio);
+                    if (timeElapsed < durationMs) { 
+                        const progressRatio = timeElapsed / durationMs; 
+                        const currentBat = startBat + (batRange * progressRatio); 
                         h = Math.min(100, Math.ceil(currentBat)); 
                     } else {
                         h = targetBat; 
@@ -1588,21 +1593,21 @@
                 }
                 // --- END LOGIKA ANIMASI BATERAI ---
 
-                const pulsingClass = isRun ? 'pulsating' : ''; // Di box (border)
-                const fillPulsatingClass = isRun ? 'pulsating-fill' : ''; // Di isi batre
-                const highlightClass = (myPlat && myPlat === x.plat) ? 'is-mine' : '';
+                const pulsingClass = isRun ? 'pulsating' : ''; 
+                const fillPulsatingClass = isRun ? 'pulsating-fill' : ''; 
+                const highlightClass = (myPlat && myPlat === x.plat) ? 'is-mine' : ''; 
 
 
-                if(isRun) {
-                    const start = x.startTime.seconds ? x.startTime.seconds*1000 : new Date(x.startTime).getTime();
-                    const end = start + (x.durationMinutes*60000);
+                if(isRun) { 
+                    const start = x.startTime.seconds ? x.startTime.seconds*1000 : new Date(x.startTime).getTime(); 
+                    const end = start + (x.durationMinutes*60000); 
                     
                     buttons = `
                         <div class="btn-group">
                             <button class="btn-act btn-edit-timer" onclick="window.setTimerManualPrompt(${i}, ${x.durationMinutes})">EDIT TIMER</button>
                             <button class="btn-act btn-stop" onclick="window.act(${i},'stop', '${x.plat}', '${x.wa}')">STOP</button>
                         </div>
-                    `;
+                    `; 
                     timeDisplay = `<div style="font-size:16px; font-weight:800; color:var(--accent); margin:5px 0; text-shadow: 0 0 5px rgba(204, 255, 0, 0.5); font-family:'Syne', sans-serif;" data-end="${end}" data-plat="${x.plat}" data-wa="${x.wa}" data-slotindex="${i}" data-username="${x.userName || ''}">...</div>`; 
 
                 } else {
@@ -1612,13 +1617,13 @@
                             <button class="btn-act btn-start" onclick="window.act(${i},'start', '${x.plat}', '${x.wa}')">MULAI CAS</button>
                             <button class="btn-act btn-stop" onclick="window.act(${i},'stop', '${x.plat}', '${x.wa}')">STOP/HAPUS</button>
                         </div>
-                    `;
-                    timeDisplay = `<div style="font-size:12px; color:var(--text-muted); margin:5px 0;">Menunggu Start</div>`;
+                    `; 
+                    timeDisplay = `<div style="font-size:12px; color:var(--text-muted); margin:5px 0;">Menunggu Start</div>`; 
 
                 }
                 
-                let waInfo = x.wa ? `<a href="https://wa.me/${x.wa.replace(/\D/g, '')}" target="_blank" style="color:var(--cyan); font-size:9px; margin-bottom:5px; text-decoration:none; font-family:'Inter', sans-serif;">WA: ${x.wa}</a>` : '';
-                let nameDisplay = x.userName ? `<div style="font-size:10px; color:var(--cyan); font-weight: 700; font-family:'Inter', sans-serif;">(${x.userName})</div>` : '';
+                let waInfo = x.wa ? `<a href="https://wa.me/${x.wa.replace(/\D/g, '')}" target="_blank" style="color:var(--cyan); font-size:9px; margin-bottom:5px; text-decoration:none; font-family:'Inter', sans-serif;">WA: ${x.wa}</a>` : ''; 
+                let nameDisplay = x.userName ? `<div style="font-size:10px; color:var(--cyan); font-weight: 700; font-family:'Inter', sans-serif;">(${x.userName})</div>` : ''; 
 
                 
                 // --- TAMPILAN KETERANGAN BATERAI ---
@@ -1635,7 +1640,7 @@
                         <div class="bat-info-row">
                             <span class="info-label">Saat ini:</span>
                             <span class="info-value" style="color:#00FF44;">${h}%</span> </div>
-                    </div>`;
+                    </div>`; 
                 // --- END TAMPILAN KETERANGAN BATERAI ---
 
                 
@@ -1652,99 +1657,99 @@
                         ${batInfo}
                         ${timeDisplay}
                         ${buttons}
-                    </div>`;
-            }).join('');
+                    </div>`; 
+            }).join(''); 
 
             // RENDER QUEUE (Detail)
-            document.getElementById('qCount').innerText = q.length;
-            document.getElementById('queueList').innerHTML = q.length ? q.map((x,i)=>{
-                const highlightClass = (myPlat && myPlat === x.plat) ? 'is-mine' : '';
+            document.getElementById('qCount').innerText = q.length; 
+            document.getElementById('queueList').innerHTML = q.length ? q.map((x,i)=>{ 
+                const highlightClass = (myPlat && myPlat === x.plat) ? 'is-mine' : ''; 
                 return `
                     <div class="queue-item-display ${highlightClass}">
                         <div><b style="color:var(--accent); font-family:'Inter', sans-serif;">${x.plat}</b> ${x.userName ? `<span style="font-size:12px; color:var(--cyan); font-family:'Inter', sans-serif;">(${x.userName})</span>` : ''} (${x.startBattery}% > ${x.targetLimit}%)</div>
                         <button onclick="window.delQ(${i}, '${x.plat}')" style="background:none; border:none; color:var(--soft-red); cursor:pointer;">✕</button>
                     </div>
-                `;
-            }).join('') : '<div style="text-align:center; color:var(--text-muted); font-size:12px; font-family:\'Inter\', sans-serif;">Antrian Kosong</div>';
+                `; 
+            }).join('') : '<div style="text-align:center; color:var(--text-muted); font-size:12px; font-family:\'Inter\', sans-serif;">Antrian Kosong</div>'; 
             
             // RENDER ADMIN QUEUE OPTIONS
-            const assignQueueSelect = document.getElementById('assignQueueIndex');
-            const queueSourceSelect = document.getElementById('queueSource');
-            const queueTargetSelect = document.getElementById('queueTarget');
+            const assignQueueSelect = document.getElementById('assignQueueIndex'); 
+            const queueSourceSelect = document.getElementById('queueSource'); 
+            const queueTargetSelect = document.getElementById('queueTarget'); 
 
-            const queueOptions = q.length ? q.map((x,i)=>`<option value="${i}">${i+1}: ${x.plat} (${x.startBattery}%)</option>`).join('') : '<option value="-1">-- Antrian Kosong --</option>';
+            const queueOptions = q.length ? q.map((x,i)=>`<option value="${i}">${i+1}: ${x.plat} (${x.startBattery}%)</option>`).join('') : '<option value="-1">-- Antrian Kosong --</option>'; 
 
-            assignQueueSelect.innerHTML = queueOptions;
+            assignQueueSelect.innerHTML = queueOptions; 
 
             // Isi Dropdown Tukar Posisi Antrian
-            const swapQueueOptions = q.length ? q.map((x,i)=>`<option value="${i}">#${i+1}: ${x.plat}</option>`).join('') : '';
+            const swapQueueOptions = q.length ? q.map((x,i)=>`<option value="${i}">#${i+1}: ${x.plat}</option>`).join('') : ''; 
             
-            queueSourceSelect.innerHTML = '<option value="-1">Antrian Dari</option>' + swapQueueOptions;
-            queueTargetSelect.innerHTML = '<option value="-1">Antrian Ke</option>' + swapQueueOptions;
+            queueSourceSelect.innerHTML = '<option value="-1">Antrian Dari</option>' + swapQueueOptions; 
+            queueTargetSelect.innerHTML = '<option value="-1">Antrian Ke</option>' + swapQueueOptions; 
 
         });
 
         // --- ADMIN FUNCTIONS LANJUTAN ---
         
         // ADMIN REGISTER KE ANTRIAN (FITUR BARU)
-        window.adminRegisterQueue = () => {
-            if (!isAdminLoggedIn) return showPopup('error', 'AKSES DITOLAK', 'Hanya Admin.');
+        window.adminRegisterQueue = () => { 
+            if (!isAdminLoggedIn) return showPopup('error', 'AKSES DITOLAK', 'Hanya Admin.'); 
             
-            const plat = document.getElementById('queuePlat').value.toUpperCase().replace(/\s/g, '').trim();
-            const name = document.getElementById('queueName').value.trim() || 'ADMIN_ENTRY';
-            const wa = document.getElementById('queueWA').value.trim();
-            const bat = parseInt(document.getElementById('queueBattery').value);
+            const plat = document.getElementById('queuePlat').value.toUpperCase().replace(/\s/g, '').trim(); 
+            const name = document.getElementById('queueName').value.trim() || 'ADMIN_ENTRY'; 
+            const wa = document.getElementById('queueWA').value.trim(); 
+            const bat = parseInt(document.getElementById('queueBattery').value); 
 
-            if (!plat || !wa || isNaN(bat) || bat < 0 || bat > 99) {
-                return showPopup('error', 'DATA KURANG', 'Plat, WA, dan Baterai harus diisi.');
+            if (!plat || !wa || isNaN(bat) || bat < 0 || bat > 99) { 
+                return showPopup('error', 'DATA KURANG', 'Plat, WA, dan Baterai harus diisi.'); 
             }
 
-            runTransaction(db, async(t) => {
-                const d = (await t.get(ref)).data() || {};
-                let s = d.chargingSlots || [null,null,null];
-                let q = d.waitingQueue || [];
+            runTransaction(db, async(t) => { 
+                const d = (await t.get(ref)).data() || {}; 
+                let s = d.chargingSlots || [null,null,null]; 
+                let q = d.waitingQueue || []; 
 
-                if(s.some(x=>x?.plat===plat) || q.some(x=>x?.plat===plat)) throw "Plat sudah terdaftar dalam antrian/slot!";
+                if(s.some(x=>x?.plat===plat) || q.some(x=>x?.plat===plat)) throw "Plat sudah terdaftar dalam antrian/slot!"; 
                 
                 const target = calculateTargetLimit(q.length); 
-                const dur = calculateDuration(bat, target);
+                const dur = calculateDuration(bat, target); 
                 
                 const item = { plat:plat, userName:name, wa:wa, startBattery:bat, targetLimit:target, durationMinutes:dur, startTime:null }; 
-                q.push(item);
+                q.push(item); 
                 
-                t.update(ref, {waitingQueue: q});
-            }).then(() => {
-                logActivity('ADMIN_REGISTER_QUEUE', plat, 'ADMIN', { startBat: bat, target: calculateTargetLimit(q.length), index: q.length });
-                showPopup('success', 'SUKSES', `Motor ${plat} berhasil ditambahkan ke Antrian.`);
-                document.getElementById('queuePlat').value = '';
-                document.getElementById('queueName').value = '';
-                document.getElementById('queueWA').value = '';
-                document.getElementById('queueBattery').value = '';
-            }).catch(e => {
-                logActivity('ADMIN_REGISTER_QUEUE_FAIL', plat, 'ADMIN', { error: e.toString() });
-                showPopup('error', 'GAGAL', e);
+                t.update(ref, {waitingQueue: q}); 
+            }).then(() => { 
+                logActivity('ADMIN_REGISTER_QUEUE', plat, 'ADMIN', { startBat: bat, target: calculateTargetLimit(q.length), index: q.length }); 
+                showPopup('success', 'SUKSES', `Motor ${plat} berhasil ditambahkan ke Antrian.`); 
+                document.getElementById('queuePlat').value = ''; 
+                document.getElementById('queueName').value = ''; 
+                document.getElementById('queueWA').value = ''; 
+                document.getElementById('queueBattery').value = ''; 
+            }).catch(e => { 
+                logActivity('ADMIN_REGISTER_QUEUE_FAIL', plat, 'ADMIN', { error: e.toString() }); 
+                showPopup('error', 'GAGAL', e); 
             });
         };
 
-        window.setTimerManualPrompt = (i, currentDuration) => {
-            if(!isAdminLoggedIn) {
-                 return showPopup('error', 'AKSES DITOLAK', 'Hanya Admin yang dapat mengedit timer.');
+        window.setTimerManualPrompt = (i, currentDuration) => { 
+            if(!isAdminLoggedIn) { 
+                 return showPopup('error', 'AKSES DITOLAK', 'Hanya Admin yang dapat mengedit timer.'); 
             }
-            const setTimerAction = (newDuration) => {
-                runTransaction(db, async(t)=>{
-                    const s = (await t.get(ref)).data().chargingSlots;
-                    if(!s[i]) throw `Slot ${i+1} kosong. Tidak bisa atur timer.`;
+            const setTimerAction = (newDuration) => { 
+                runTransaction(db, async(t)=>{ 
+                    const s = (await t.get(ref)).data().chargingSlots; 
+                    if(!s[i]) throw `Slot ${i+1} kosong. Tidak bisa atur timer.`; 
 
-                    s[i].durationMinutes = newDuration;
+                    s[i].durationMinutes = newDuration; 
                     s[i].startTime = new Date(); 
                     
-                    t.update(ref, {chargingSlots:s});
-                }).then(() => {
-                    logActivity('ADMIN_SET_TIMER', s[i].plat, 'ADMIN', { slot: i + 1, duration: newDuration });
-                    showPopup('success','TIMER DIATUR',`Timer Slot ${i+1} diatur ke ${newDuration} menit.`);
-                }).catch(e => {
-                    logActivity('ADMIN_SET_TIMER_FAIL', s[i]?.plat || 'N/A', 'ADMIN', { error: e.toString() });
-                    showPopup('error','GAGAL', e);
+                    t.update(ref, {chargingSlots:s}); 
+                }).then(() => { 
+                    logActivity('ADMIN_SET_TIMER', s[i].plat, 'ADMIN', { slot: i + 1, duration: newDuration }); 
+                    showPopup('success','TIMER DIATUR',`Timer Slot ${i+1} diatur ke ${newDuration} menit.`); 
+                }).catch(e => { 
+                    logActivity('ADMIN_SET_TIMER_FAIL', s[i]?.plat || 'N/A', 'ADMIN', { error: e.toString() }); 
+                    showPopup('error','GAGAL', e); 
                 });
             };
 
@@ -1753,25 +1758,25 @@
                 `Masukkan durasi baru (menit) untuk motor ini.`, 
                 setTimerAction, 
                 { currentDuration: currentDuration }
-            );
+            ); 
         };
         
         // ADMIN FUNCTIONS (ADMIN PANEL LOGIC)
-        window.manualAssign = () => {
-            const i = document.getElementById('manSlot').value;
-            const p = document.getElementById('manPlat').value.toUpperCase().replace(/\s/g, '').trim();
-            const startBatInput = document.getElementById('manBattery').value;
+        window.manualAssign = () => { 
+            const i = document.getElementById('manSlot').value; 
+            const p = document.getElementById('manPlat').value.toUpperCase().replace(/\s/g, '').trim(); 
+            const startBatInput = document.getElementById('manBattery').value; 
             const startBat = parseInt(startBatInput); 
 
-            if(!p) return showPopup('error','ERROR','Plat kosong');
+            if(!p) return showPopup('error','ERROR','Plat kosong'); 
             
-            if(isNaN(startBat) || startBat < 0 || startBat > 99) {
-                return showPopup('error','ERROR','Persentase baterai awal tidak valid (0-99).');
+            if(isNaN(startBat) || startBat < 0 || startBat > 99) { 
+                return showPopup('error','ERROR','Persentase baterai awal tidak valid (0-99).'); 
             }
             
-            runTransaction(db, async(t)=>{
-                const s = (await t.get(ref)).data().chargingSlots || [null,null,null];
-                const q = (await t.get(ref)).data().waitingQueue || [];
+            runTransaction(db, async(t)=>{ 
+                const s = (await t.get(ref)).data().chargingSlots || [null,null,null]; 
+                const q = (await t.get(ref)).data().waitingQueue || []; 
                 
                 const target = calculateTargetLimit(q.length); 
                 const dur = calculateDuration(startBat, target); 
@@ -1784,172 +1789,172 @@
                     targetLimit:target, 
                     durationMinutes:dur, 
                     startTime: new Date() // Start Cas saat Manual Assign
-                };
-                t.update(ref, {chargingSlots:s}, {merge:true});
-            }).then(() => {
-                 logActivity('ADMIN_MANUAL_ASSIGN', p, 'ADMIN', { slot: parseInt(i) + 1, startBat: startBat });
-                 showPopup('success','SUKSES',`Slot ${parseInt(i)+1} terisi dengan Baterai Awal ${startBat}%.`);
+                }; 
+                t.update(ref, {chargingSlots:s}, {merge:true}); 
+            }).then(() => { 
+                 logActivity('ADMIN_MANUAL_ASSIGN', p, 'ADMIN', { slot: parseInt(i) + 1, startBat: startBat }); 
+                 showPopup('success','SUKSES',`Slot ${parseInt(i)+1} terisi dengan Baterai Awal ${startBat}%.`); 
                  document.getElementById('manPlat').value = ''; 
                  document.getElementById('manBattery').value = ''; 
-            }).catch(e => {
-                 logActivity('ADMIN_MANUAL_ASSIGN_FAIL', p, 'ADMIN', { error: e.toString() });
-                 showPopup('error','GAGAL', e);
+            }).catch(e => { 
+                 logActivity('ADMIN_MANUAL_ASSIGN_FAIL', p, 'ADMIN', { error: e.toString() }); 
+                 showPopup('error','GAGAL', e); 
             });
         };
 
-        window.clearSlotManual = () => {
-            if (!isAdminLoggedIn) return showPopup('error', 'AKSES DITOLAK', 'Hanya Admin.');
+        window.clearSlotManual = () => { 
+            if (!isAdminLoggedIn) return showPopup('error', 'AKSES DITOLAK', 'Hanya Admin.'); 
 
-            const i = parseInt(document.getElementById('manSlot').value);
-            const platName = document.getElementById('manPlat').value.toUpperCase().trim() || 'N/A';
+            const i = parseInt(document.getElementById('manSlot').value); 
+            const platName = document.getElementById('manPlat').value.toUpperCase().trim() || 'N/A'; 
 
-            showPopup('confirm', 'HAPUS SLOT PAKSA', `Paksa hapus Slot ${i+1}? Antrian akan naik jika tersedia.`, () => {
-                clearSlotAndPromote(i, platName, '', 'ADMIN_MANUAL', 'ADMIN')
-                .then(() => {
-                    showPopup('success', 'SUKSES', `Slot ${i+1} dikosongkan dan antrian ditarik (jika ada).`);
-                }).catch(e => {
-                    showPopup('error', 'GAGAL', e);
+            showPopup('confirm', 'HAPUS SLOT PAKSA', `Paksa hapus Slot ${i+1}? Antrian akan naik jika tersedia.`, () => { 
+                clearSlotAndPromote(i, platName, '', 'ADMIN_MANUAL', 'ADMIN') 
+                .then(() => { 
+                    showPopup('success', 'SUKSES', `Slot ${i+1} dikosongkan dan antrian ditarik (jika ada).`); 
+                }).catch(e => { 
+                    showPopup('error', 'GAGAL', e); 
                 });
             });
         };
         
-        window.assignQueueToSlot = () => {
-            const queueIndex = parseInt(document.getElementById('assignQueueIndex').value);
-            const slotTarget = parseInt(document.getElementById('assignSlotTarget').value);
+        window.assignQueueToSlot = () => { 
+            const queueIndex = parseInt(document.getElementById('assignQueueIndex').value); 
+            const slotTarget = parseInt(document.getElementById('assignSlotTarget').value); 
 
-            if (queueIndex < 0) return showPopup('error', 'Gagal', 'Pilih antrian yang valid.');
+            if (queueIndex < 0) return showPopup('error', 'Gagal', 'Pilih antrian yang valid.'); 
 
-            showPopup('confirm', 'PINDAH ANTRIAN', `Pindah Antrian ke Slot ${slotTarget + 1}?`, () => {
-                runTransaction(db, async(t) => {
-                    const d = (await t.get(ref)).data();
-                    let s = d.chargingSlots;
-                    let q = d.waitingQueue;
+            showPopup('confirm', 'PINDAH ANTRIAN', `Pindah Antrian ke Slot ${slotTarget + 1}?`, () => { 
+                runTransaction(db, async(t) => { 
+                    const d = (await t.get(ref)).data(); 
+                    let s = d.chargingSlots; 
+                    let q = d.waitingQueue; 
 
-                    if (!q[queueIndex]) throw "Antrian tidak ditemukan.";
-                    if (s[slotTarget]) throw `Slot ${slotTarget + 1} sudah terisi. Kosongkan dulu.`;
+                    if (!q[queueIndex]) throw "Antrian tidak ditemukan."; 
+                    if (s[slotTarget]) throw `Slot ${slotTarget + 1} sudah terisi. Kosongkan dulu.`; 
 
-                    const itemToMove = q[queueIndex];
+                    const itemToMove = q[queueIndex]; 
 
-                    q.splice(queueIndex, 1);
+                    q.splice(queueIndex, 1); 
                     
-                    const newTarget = calculateTargetLimit(q.length);
+                    const newTarget = calculateTargetLimit(q.length); 
                     const newDur = calculateDuration(itemToMove.startBattery, newTarget); 
                     
-                    s[slotTarget] = {
-                        ...itemToMove,
-                        targetLimit: newTarget,
-                        durationMinutes: newDur,
+                    s[slotTarget] = { 
+                        ...itemToMove, 
+                        targetLimit: newTarget, 
+                        durationMinutes: newDur, 
                         startTime: null 
-                    };
+                    }; 
 
-                    t.update(ref, { chargingSlots: s, waitingQueue: q });
-                }).then(() => {
-                    logActivity('ADMIN_MOVE_QUEUE', itemToMove.plat, 'ADMIN', { fromQueueIndex: queueIndex + 1, toSlot: slotTarget + 1 });
-                    showPopup('success', 'SUKSES', `Antrian berhasil dipindah ke Slot ${slotTarget + 1}.`);
-                }).catch(e => {
-                    logActivity('ADMIN_MOVE_QUEUE_FAIL', itemToMove?.plat || 'N/A', 'ADMIN', { error: e.toString() });
-                    showPopup('error', 'GAGAL', e);
+                    t.update(ref, { chargingSlots: s, waitingQueue: q }); 
+                }).then(() => { 
+                    logActivity('ADMIN_MOVE_QUEUE', itemToMove.plat, 'ADMIN', { fromQueueIndex: queueIndex + 1, toSlot: slotTarget + 1 }); 
+                    showPopup('success', 'SUKSES', `Antrian berhasil dipindah ke Slot ${slotTarget + 1}.`); 
+                }).catch(e => { 
+                    logActivity('ADMIN_MOVE_QUEUE_FAIL', itemToMove?.plat || 'N/A', 'ADMIN', { error: e.toString() }); 
+                    showPopup('error', 'GAGAL', e); 
                 });
             });
         };
 
-        window.swapQueuePositions = () => {
-            if (!isAdminLoggedIn) return showPopup('error', 'AKSES DITOLAK', 'Fitur ini hanya untuk Admin.');
+        window.swapQueuePositions = () => { 
+            if (!isAdminLoggedIn) return showPopup('error', 'AKSES DITOLAK', 'Fitur ini hanya untuk Admin.'); 
             
-            const sourceIndex = parseInt(document.getElementById('queueSource').value);
-            const targetIndex = parseInt(document.getElementById('queueTarget').value);
+            const sourceIndex = parseInt(document.getElementById('queueSource').value); 
+            const targetIndex = parseInt(document.getElementById('queueTarget').value); 
 
-            if (sourceIndex === -1 || targetIndex === -1 || sourceIndex === targetIndex) {
-                return showPopup('error', 'Gagal', 'Pilih dua posisi antrian yang valid dan berbeda.');
+            if (sourceIndex === -1 || targetIndex === -1 || sourceIndex === targetIndex) { 
+                return showPopup('error', 'Gagal', 'Pilih dua posisi antrian yang valid dan berbeda.'); 
             }
 
-            showPopup('confirm', 'KONFIRMASI PINDAH', `Pindahkan Antrian #${sourceIndex + 1} ke #${targetIndex + 1}?`, () => {
-                runTransaction(db, async(t) => {
-                    const d = (await t.get(ref)).data();
-                    let q = d.waitingQueue;
+            showPopup('confirm', 'KONFIRMASI PINDAH', `Pindahkan Antrian #${sourceIndex + 1} ke #${targetIndex + 1}?`, () => { 
+                runTransaction(db, async(t) => { 
+                    const d = (await t.get(ref)).data(); 
+                    let q = d.waitingQueue; 
 
-                    if (!q[sourceIndex] || !q[targetIndex]) {
-                        throw "Salah satu antrian tidak ditemukan pada posisi yang dipilih.";
+                    if (!q[sourceIndex] || !q[targetIndex]) { 
+                        throw "Salah satu antrian tidak ditemukan pada posisi yang dipilih."; 
                     }
 
                     // Logika Swap (Tukar Posisi)
-                    const sourceItem = q[sourceIndex];
-                    q[sourceIndex] = q[targetIndex];
-                    q[targetIndex] = sourceItem;
+                    const sourceItem = q[sourceIndex]; 
+                    q[sourceIndex] = q[targetIndex]; 
+                    q[targetIndex] = sourceItem; 
 
-                    t.update(ref, { waitingQueue: q });
-                }).then(() => {
-                    logActivity('ADMIN_QUEUE_SWAP', 'N/A', 'ADMIN', { source: sourceIndex + 1, target: targetIndex + 1 });
-                    showPopup('success', 'SUKSES', `Antrian #${sourceIndex + 1} dan #${targetIndex + 1} berhasil ditukar/dipindah.`);
-                }).catch(e => {
-                    logActivity('ADMIN_QUEUE_SWAP_FAIL', 'N/A', 'ADMIN', { error: e.toString() });
-                    showPopup('error', 'GAGAL', e);
+                    t.update(ref, { waitingQueue: q }); 
+                }).then(() => { 
+                    logActivity('ADMIN_QUEUE_SWAP', 'N/A', 'ADMIN', { source: sourceIndex + 1, target: targetIndex + 1 }); 
+                    showPopup('success', 'SUKSES', `Antrian #${sourceIndex + 1} dan #${targetIndex + 1} berhasil ditukar/dipindah.`); 
+                }).catch(e => { 
+                    logActivity('ADMIN_QUEUE_SWAP_FAIL', 'N/A', 'ADMIN', { error: e.toString() }); 
+                    showPopup('error', 'GAGAL', e); 
                 });
             });
         };
 
-        window.swapSlots = () => {
-            if (!isAdminLoggedIn) return showPopup('error', 'AKSES DITOLAK', 'Fitur ini hanya untuk Admin.');
+        window.swapSlots = () => { 
+            if (!isAdminLoggedIn) return showPopup('error', 'AKSES DITOLAK', 'Fitur ini hanya untuk Admin.'); 
             
-            const sourceIndex = parseInt(document.getElementById('slotSource').value);
-            const targetIndex = parseInt(document.getElementById('slotTarget').value);
+            const sourceIndex = parseInt(document.getElementById('slotSource').value); 
+            const targetIndex = parseInt(document.getElementById('slotTarget').value); 
 
-            if (sourceIndex === -1 || targetIndex === -1 || sourceIndex === targetIndex) {
-                return showPopup('error', 'Gagal', 'Pilih slot sumber dan target yang valid dan berbeda.');
+            if (sourceIndex === -1 || targetIndex === -1 || sourceIndex === targetIndex) { 
+                return showPopup('error', 'Gagal', 'Pilih slot sumber dan target yang valid dan berbeda.'); 
             }
 
-            showPopup('confirm', 'KONFIRMASI PINDAH', `Pindahkan Slot ${sourceIndex + 1} ke Slot ${targetIndex + 1}?`, () => {
-                runTransaction(db, async(t) => {
-                    const d = (await t.get(ref)).data();
-                    let s = d.chargingSlots;
+            showPopup('confirm', 'KONFIRMASI PINDAH', `Pindahkan Slot ${sourceIndex + 1} ke Slot ${targetIndex + 1}?`, () => { 
+                runTransaction(db, async(t) => { 
+                    const d = (await t.get(ref)).data(); 
+                    let s = d.chargingSlots; 
 
-                    const sourceMotor = s[sourceIndex];
-                    const targetMotor = s[targetIndex];
+                    const sourceMotor = s[sourceIndex]; 
+                    const targetMotor = s[targetIndex]; 
                     
-                    s[targetIndex] = sourceMotor;
-                    s[sourceIndex] = targetMotor;
+                    s[targetIndex] = sourceMotor; 
+                    s[sourceIndex] = targetMotor; 
 
-                    t.update(ref, { chargingSlots: s });
-                }).then(() => {
-                    logActivity('ADMIN_SLOT_SWAP', 'N/A', 'ADMIN', { source: sourceIndex + 1, target: targetIndex + 1 });
-                    showPopup('success', 'SUKSES', `Slot ${sourceIndex + 1} dan Slot ${targetIndex + 1} berhasil ditukar/dipindah.`);
-                }).catch(e => {
-                    logActivity('ADMIN_SLOT_SWAP_FAIL', 'N/A', 'ADMIN', { error: e.toString() });
-                    showPopup('error', 'GAGAL', e);
+                    t.update(ref, { chargingSlots: s }); 
+                }).then(() => { 
+                    logActivity('ADMIN_SLOT_SWAP', 'N/A', 'ADMIN', { source: sourceIndex + 1, target: targetIndex + 1 }); 
+                    showPopup('success', 'SUKSES', `Slot ${sourceIndex + 1} dan Slot ${targetIndex + 1} berhasil ditukar/dipindah.`); 
+                }).catch(e => { 
+                    logActivity('ADMIN_SLOT_SWAP_FAIL', 'N/A', 'ADMIN', { error: e.toString() }); 
+                    showPopup('error', 'GAGAL', e); 
                 });
             });
         };
 
-        window.blockUser = async () => {
-            const p = document.getElementById('blockPlatInput').value.toUpperCase().trim();
-            if(!p) return;
-            await runTransaction(db, async (t) => {
-                const d = (await t.get(ref)).data(); const l = d.blockedList || [];
-                if (!l.includes(p)) t.update(ref, {blockedList: arrayUnion(p)});
-            }).then(() => {
-                logActivity('ADMIN_BLOCK_USER', p, 'ADMIN');
-                showPopup('success', 'BLOKIR', `Plat ${p} diblokir.`);
+        window.blockUser = async () => { 
+            const p = document.getElementById('blockPlatInput').value.toUpperCase().trim(); 
+            if(!p) return; 
+            await runTransaction(db, async (t) => { 
+                const d = (await t.get(ref)).data(); const l = d.blockedList || []; 
+                if (!l.includes(p)) t.update(ref, {blockedList: arrayUnion(p)}); 
+            }).then(() => { 
+                logActivity('ADMIN_BLOCK_USER', p, 'ADMIN'); 
+                showPopup('success', 'BLOKIR', `Plat ${p} diblokir.`); 
             });
         };
-        window.stopAll = () => {
-            showPopup('confirm', 'BAHAYA', 'Stop SEMUA slot?', () => {
-                runTransaction(db, async(t)=>{ t.update(ref, {chargingSlots:[null,null,null]}); });
-                logActivity('ADMIN_STOP_ALL_SLOTS', 'ALL', 'ADMIN');
-            }).then(() => showPopup('success', 'ACTION', 'Semua slot dihentikan.'));
+        window.stopAll = () => { 
+            showPopup('confirm', 'BAHAYA', 'Stop SEMUA slot?', () => { 
+                runTransaction(db, async(t)=>{ t.update(ref, {chargingSlots:[null,null,null]}); }); 
+                logActivity('ADMIN_STOP_ALL_SLOTS', 'ALL', 'ADMIN'); 
+            }).then(() => showPopup('success', 'ACTION', 'Semua slot dihentikan.')); 
         };
-        window.resetAll = () => {
-            showPopup('confirm', 'RESET DATABASE', 'Hapus antrian & slot?', () => {
-                setDoc(ref, {chargingSlots:[null,null,null], waitingQueue:[], blockedList:[]});
-                logActivity('ADMIN_DB_RESET', 'ALL', 'ADMIN');
-            }).then(() => showPopup('success', 'ACTION', 'Database direset total.'));
+        window.resetAll = () => { 
+            showPopup('confirm', 'RESET DATABASE', 'Hapus antrian & slot?', () => { 
+                setDoc(ref, {chargingSlots:[null,null,null], waitingQueue:[], blockedList:[]}); 
+                logActivity('ADMIN_DB_RESET', 'ALL', 'ADMIN'); 
+            }).then(() => showPopup('success', 'ACTION', 'Database direset total.')); 
         };
         
         // JALANKAN LOGIC DUAL VIEW SETELAH DOM SIAP
-        window.addEventListener('load', () => {
-            const bypassCheckbox = document.getElementById('gpsBypassToggle');
-            if (bypassCheckbox) {
-                bypassCheckbox.checked = isGpsBypassEnabled;
-                updateGpsBypassStatus();
+        window.addEventListener('load', () => { 
+            const bypassCheckbox = document.getElementById('gpsBypassToggle'); 
+            if (bypassCheckbox) { 
+                bypassCheckbox.checked = isGpsBypassEnabled; 
+                updateGpsBypassStatus(); 
             }
             
             // PERBAIKAN: Memastikan checkDisplayMode() dipanggil saat load
