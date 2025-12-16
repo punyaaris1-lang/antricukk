@@ -416,38 +416,41 @@
 
     // --- FUNGSI PENANGANAN ERROR DAN SOLUSI (BAHASA INDONESIA) ---
     function getErrorHandler(action, plat) {
+        // Fungsi untuk membersihkan string dari karakter yang mungkin menyebabkan masalah HTML
+        const cleanStr = (str) => String(str).replace(/<|>/g, '').replace(/\*\*/g, '');
+
         const handlers = {
             // Log Error Pendaftaran User/Device
             'REGISTER_FAIL': {
                 priority: 'KRITIS',
                 color: 'var(--soft-red)',
                 icon: '🔥',
-                message: `Pendaftaran motor **${plat}** ke antrian **GAGAL** (Error Berulang Device/User).`,
-                solution: `**TINDAKAN SEGERA (ADMIN):** Log ini menunjukkan motor **${plat}** berulang kali gagal mendaftar/start. Periksa apakah Plat tersebut **diblokir** (Blocked List) atau **sedang ada di slot** lain. Jika error terus muncul, ini bisa jadi masalah koneksi user tersebut atau masalah di sisi device motor.`,
+                message: `Pendaftaran motor ${plat} ke antrian GAGAL (Error Berulang Device/User).`,
+                solution: `TINDAKAN SEGERA (ADMIN): Log ini menunjukkan motor ${plat} berulang kali gagal mendaftar/start. Periksa apakah Plat tersebut diblokir (Blocked List) atau sedang ada di slot lain. Jika error terus muncul, ini bisa jadi masalah koneksi user tersebut atau masalah di sisi device motor.`,
             },
             // Log Error Pendaftaran Admin
             'ADMIN_REGISTER_QUEUE_FAIL': {
                 priority: 'KRITIS',
                 color: 'var(--soft-red)',
                 icon: '🔥',
-                message: `Pendaftaran motor **${plat}** ke antrian **GAGAL** (Error Transaksi Admin).`,
-                solution: `**TINDAKAN SEGERA (ADMIN):** Periksa apakah Plat **${plat}** sudah terdaftar di salah satu slot charging atau sudah ada di daftar antrian. Jika sudah ada, motor tidak bisa didaftarkan ulang.`,
+                message: `Pendaftaran motor ${plat} ke antrian GAGAL (Error Transaksi Admin).`,
+                solution: `TINDAKAN SEGERA (ADMIN): Periksa apakah Plat ${plat} sudah terdaftar di salah satu slot charging atau sudah ada di daftar antrian. Jika sudah ada, motor tidak bisa didaftarkan ulang.`,
             },
             // Log Error Clear Slot Otomatis
             'CLEAR_FAIL_AUTO_TIMER': {
                 priority: 'KRITIS',
                 color: 'var(--soft-red)',
                 icon: '🚨',
-                message: `Pembersihan slot otomatis untuk motor **${plat}** **GAGAL**. Motor mungkin 'stuck'.`,
-                solution: `**TINDAKAN SEGERA (SUPER ADMIN):** Motor **${plat}** mungkin tidak bisa keluar otomatis. Lakukan **PAKSA KOSONGKAN SLOT** secara manual untuk slot yang bersangkutan. Setelah itu, periksa konsol browser untuk *error* transaksi Firestore.`,
+                message: `Pembersihan slot otomatis untuk motor ${plat} GAGAL. Motor mungkin 'stuck'.`,
+                solution: `TINDAKAN SEGERA (SUPER ADMIN): Motor ${plat} mungkin tidak bisa keluar otomatis. Lakukan PAKSA KOSONGKAN SLOT secara manual untuk slot yang bersangkutan. Setelah itu, periksa konsol browser untuk *error* transaksi Firestore.`,
             },
             // Log Error Assign Manual
             'ADMIN_ASSIGN_FAIL': {
                 priority: 'KRITIS',
                 color: 'var(--soft-red)',
                 icon: '❌',
-                message: `Penugasan Slot Manual untuk motor **${plat}** **GAGAL**.`,
-                solution: `**TINDAKAN SEGERA (ADMIN):** Pastikan slot yang ditargetkan benar-benar **Kosong** (Null) sebelum menekan tombol 'MANUAL ASSIGN'.`,
+                message: `Penugasan Slot Manual untuk motor ${plat} GAGAL.`,
+                solution: `TINDAKAN SEGERA (ADMIN): Pastikan slot yang ditargetkan benar-benar Kosong (Null) sebelum menekan tombol 'MANUAL ASSIGN'.`,
             },
             // Log Error Swap Slot
             'ADMIN_SLOT_SWAP_FAIL': {
@@ -455,7 +458,7 @@
                 color: 'var(--cyan)',
                 icon: '⚠️',
                 message: `Gagal menukar posisi slot.`,
-                solution: `**TINDAKAN (ADMIN):** Coba lagi. Jika berulang, kemungkinan ada masalah koneksi Real-time atau konflik data. Cek error di konsol.`,
+                solution: `TINDAKAN (ADMIN): Coba lagi. Jika berulang, kemungkinan ada masalah koneksi Real-time atau konflik data. Cek error di konsol.`,
             },
             // Log Error Test
             'SA_FILL_FAIL': {
@@ -463,15 +466,15 @@
                 color: 'var(--cyan)',
                 icon: '⚠️',
                 message: `Gagal mengisi semua slot dengan data test.`,
-                solution: `**TINDAKAN (SUPER ADMIN):** Cek kembali input 'Plat Dummy' dan Baterai (0-99). Pastikan database (Firestore) dapat diakses.`,
+                solution: `TINDAKAN (SUPER ADMIN): Cek kembali input 'Plat Dummy' dan Baterai (0-99). Pastikan database (Firestore) dapat diakses.`,
             },
             // Log Error WA
             'WA_SEND_FAIL': {
                 priority: 'INFO',
                 color: 'var(--soft-blue)',
                 icon: '💬',
-                message: `Notifikasi WA untuk motor **${plat}** gagal dikirim.`,
-                solution: `**TINDAKAN (INFO):** Pesan notifikasi selesai cas/antrian gagal terkirim. Periksa token FONTE Anda dan status layanan Fonnte. Kontak user ${plat} secara manual jika motor sudah selesai cas.`,
+                message: `Notifikasi WA untuk motor ${plat} gagal dikirim.`,
+                solution: `TINDAKAN (INFO): Pesan notifikasi selesai cas/antrian gagal terkirim. Periksa token FONTE Anda dan status layanan Fonnte. Kontak user ${plat} secara manual jika motor sudah selesai cas.`,
             },
             // Log Error Login
             'ADMIN_LOGIN_FAIL': {
@@ -479,22 +482,26 @@
                 color: 'var(--soft-red)',
                 icon: '🛑',
                 message: `Percobaan Login Super Admin GAGAL.`,
-                solution: `**TINDAKAN (INFO):** Pastikan PIN Super Admin ('8080') yang dimasukkan benar. Jika ada percobaan berulang, awasi keamanan akses.`,
+                solution: `TINDAKAN (INFO): Pastikan PIN Super Admin ('8080') yang dimasukkan benar. Jika ada percobaan berulang, awasi keamanan akses.`,
             }
         };
         
-        // Default handler untuk log non-error yang perlu diawasi
-        if (!handlers[action]) {
-            return { 
-                priority: 'INFO', 
-                color: '#aaa', 
-                icon: 'i',
-                message: `Aktivitas non-error/sistem: ${action}`,
-                solution: `**TINDAKAN (INFO):** Tidak ada tindakan darurat. Log ini mencatat aktivitas normal atau test. Klik log untuk detail transaksi.`
-            };
-        }
+        const handler = handlers[action] || { 
+            priority: 'INFO', 
+            color: '#aaa', 
+            icon: 'i',
+            message: `Aktivitas non-error/sistem: ${action}`,
+            solution: `TINDAKAN (INFO): Tidak ada tindakan darurat. Log ini mencatat aktivitas normal atau test. Klik log untuk detail transaksi.`
+        };
 
-        return handlers[action];
+        // Pastikan output handler bersih untuk disisipkan ke HTML
+        return {
+            priority: handler.priority,
+            color: handler.color,
+            icon: handler.icon,
+            message: cleanStr(handler.message),
+            solution: cleanStr(handler.solution)
+        };
     }
 
 
@@ -509,7 +516,7 @@
         }).catch(e => console.error("Gagal mencatat log aktivitas:", e));
     }
     
-    // --- TEMPLATE WA SELESAI CAS (5 VARIASI DENGAN NAMA) ---
+    // --- TEMPLATE WA (Dihapus untuk keringkasan script, tidak relevan dengan error log) ---
     const WA_MESSAGES = [
         (plat, wa, userName) => `Halo ${userName} (${plat})! Motor Anda sudah selesai diisi daya dan siap diambil. Mohon segera pindahkan kendaraan Anda.`,
         (plat, wa, userName) => `Peringatan, ${userName}! Pengisian daya motor ${plat} telah mencapai target. Slot telah terisi penuh. Silakan ambil kendaraan Anda sekarang juga.`,
@@ -518,7 +525,6 @@
         (plat, wa, userName) => `Yuhuu, ${userName} (${plat}), baterai sudah full/target! Kami tunggu kedatangan Anda untuk mengambil motor Anda.`,
     ];
     
-    // --- TEMPLATE WA KHUSUS ANTRIAN (2 VARIASI DENGAN SLOT NO) ---
     const WA_MESSAGES_QUEUE = [
         (plat, userName, slotNum) => `GILIRAN ANDA TLAH TIBA! Halo ${userName} (${plat}), Slot Cas #${slotNum} baru saja kosong. Silakan masuk ke area slot.`,
         (plat, userName, slotNum) => `PEMBERITAHUAN! ${userName} (${plat}), silakan bersiap! Slot Cas #${slotNum} kini tersedia untuk Anda.`,
@@ -567,7 +573,7 @@
     }
 
 
-    // --- UTILITY: POPUP MODAL ---
+    // --- UTILITY: POPUP MODAL (Hanya untuk konfirmasi dan pesan umum, bukan solusi log) ---
     function showPopup(type, title, msg, onOk = null, additionalData = null) {
         const m = document.getElementById('masterModal');
         const box = document.getElementById('modalBox');
@@ -740,7 +746,7 @@
             return;
         }
 
-        // Simpan snapshot log ke variabel global agar bisa diakses oleh showLogDetails
+        // Simpan snapshot log ke variabel global agar bisa diakses oleh toggleLogDetails
         window.currentLogSnapshot = snapshot.docs.map(doc => doc.data());
 
         snapshot.forEach((doc, index) => {
@@ -754,7 +760,21 @@
             
             const userDisplay = log.user === 'SUPER_ADMIN' ? `<span style="color:var(--soft-red);">[SA]</span>` : (log.user === 'ADMIN' ? `<span style="color:var(--accent);">[A]</span>` : (log.user === 'SYSTEM' ? `<span style="color:var(--soft-blue);">[S]</span>` : `<span style="color:var(--cyan);">[U]</span>`));
             
-            // Tambahkan display detail
+            
+            // Siapkan Konten Solusi/Pesan Error (Hanya jika Kritis/Awas)
+            let solutionContent = '';
+            if (errorHandler.priority === 'KRITIS' || errorHandler.priority === 'AWAS') {
+                solutionContent = `
+                    <div style="padding: 5px 10px; border-left: 3px solid ${color}; background: rgba(0, 0, 0, 0.3); margin-top: 5px; border-radius: 4px;">
+                        <div style="font-weight: 700; color: ${color}; margin-bottom: 5px;">${errorHandler.icon} ${errorHandler.priority} - ${errorHandler.message}</div>
+                        <div style="font-size: 10px; color: var(--text-muted);">
+                            <span style="color: var(--accent); font-weight: 700;">SOLUSI: </span> ${errorHandler.solution}
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Tambahkan display detail teknis
             let detailDisplay = '';
             if (log.details && Object.keys(log.details).length > 0) {
                 detailDisplay = Object.keys(log.details).map(key => {
@@ -771,13 +791,19 @@
                 <div class="log-item" 
                      style="background-color: ${errorHandler.priority === 'KRITIS' ? 'rgba(255, 85, 85, 0.1)' : 'transparent'}; 
                             cursor: pointer;"
-                     onclick="showLogDetails(${index})">
+                     onclick="toggleLogDetails('${index}')">
                     <span class="log-time" style="color:${color};">${errorHandler.icon} ${time}</span>
                     <span class="log-action" style="color:${color};">${log.action}</span>
                     <span class="log-plat">${log.plat}</span>
                     <span class="log-user">${userDisplay}</span>
                 </div>
-                <div id="details-${index}" style="display:none; font-size: 9px; color: var(--text-muted); padding: 3px 0 3px 70px; border-bottom: 1px dashed var(--border);">${detailDisplay}</div>
+                
+                <div id="details-panel-${index}" style="display:none; padding: 5px 0 10px 10px;">
+                    ${solutionContent}
+                    <div style="font-size: 9px; color: var(--text-muted); margin-top: 5px;">
+                        <span style="color: var(--cyan); font-weight: 700;">DETAIL TEKNIS:</span> ${detailDisplay || 'Tidak ada detail teknis tambahan.'}
+                    </div>
+                </div>
             `;
         });
         
@@ -785,24 +811,18 @@
         container.scrollTop = container.scrollHeight;
     }
     
-    // --- FUNGSI GLOBAL UNTUK MENAMPILKAN POPUP SOLUSI ---
-    window.showLogDetails = (index) => {
-        const log = window.currentLogSnapshot[index];
-        if (!log) return;
-
-        const errorHandler = getErrorHandler(log.action, log.plat);
-        
-        // Tampilkan/Sembunyikan detail mentah
-        const detailsDiv = document.getElementById(`details-${index}`);
-        const currentDisplay = detailsDiv.style.display;
-        detailsDiv.style.display = currentDisplay === 'none' ? 'block' : 'none';
-
-        // Tampilkan Pop-up Solusi Kritis/Awas
-        if (errorHandler.priority === 'KRITIS' || errorHandler.priority === 'AWAS') {
-             showPopup('error', `${errorHandler.icon} ${errorHandler.priority} - ${log.action}`, 
-                       `${errorHandler.message} <br><br> ${errorHandler.solution}`);
+    // --- FUNGSI GLOBAL UNTUK MENAMPILKAN/MENYEMBUNYIKAN DETAIL (TOGGLE) ---
+    window.toggleLogDetails = (index) => {
+        // PERBAIKAN UTAMA: Menggunakan string ID dengan benar
+        const panel = document.getElementById(`details-panel-${index}`);
+        if (panel) {
+            panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+        } else {
+            // Optional: Log error ke console jika panel tidak ditemukan
+            console.error(`Detail panel dengan ID details-panel-${index} tidak ditemukan.`);
         }
     };
+    
 
     // --- SUPER ADMIN TEST FUNCTIONS ---
     window.fillAllSlotsManual = () => {
