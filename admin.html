@@ -682,10 +682,6 @@
         // Memastikan listener log aktivitas berjalan
         const logQuery = query(logRef, orderBy("timestamp", "desc"), limit(25));
         onSnapshot(logQuery, renderActivityLog);
-        
-        // PENTING: Panggil fungsi untuk memasang listener setelah log dimuat
-        document.getElementById('logListContainer').addEventListener('DOMSubtreeModified', attachToggleListeners);
-        attachToggleListeners(); // Panggil pertama kali
     });
     
     // --- LOGIKA REAL-TIME ADMIN (ON SNAPSHOT) ---
@@ -750,7 +746,10 @@
             return;
         }
 
-        snapshot.forEach((doc) => {
+        // Simpan snapshot log ke variabel global agar bisa diakses oleh toggleLogDetails
+        window.currentLogSnapshot = snapshot.docs.map(doc => doc.data());
+
+        snapshot.forEach((doc, index) => {
             const log = doc.data();
             const ts = log.timestamp instanceof Date ? log.timestamp : log.timestamp.toDate(); 
             const time = ts.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
@@ -791,7 +790,8 @@
             logHtml += `
                 <div class="log-item log-item-clickable" 
                      style="background-color: ${errorHandler.priority === 'KRITIS' ? 'rgba(255, 85, 85, 0.1)' : 'transparent'}; 
-                            cursor: pointer;">
+                            cursor: pointer;"
+                     onclick="toggleLogDetails(this)">
                     <span class="log-time" style="color:${color};">${errorHandler.icon} ${time}</span>
                     <span class="log-action" style="color:${color};">${log.action}</span>
                     <span class="log-plat">${log.plat}</span>
@@ -809,31 +809,10 @@
         
         container.innerHTML = logHtml;
         container.scrollTop = container.scrollHeight;
-        
-        // Panggil fungsi untuk memasang listener setelah innerHTML diperbarui
-        attachToggleListeners();
     }
     
-    // --- FUNGSI GLOBAL UNTUK MEMASANG LISTENER (Dipanggil setelah render) ---
-    function attachToggleListeners() {
-        // Hapus listener lama jika ada (pencegahan duplikasi)
-        const oldItems = document.querySelectorAll('.log-item-clickable');
-        oldItems.forEach(item => {
-            item.removeEventListener('click', toggleLogDetails);
-        });
-
-        // Pasang listener baru
-        const items = document.querySelectorAll('.log-item-clickable');
-        items.forEach(item => {
-            item.addEventListener('click', toggleLogDetails);
-        });
-    }
-
     // --- FUNGSI GLOBAL UNTUK MENAMPILKAN/MENYEMBUNYIKAN DETAIL (TOGGLE) ---
-    window.toggleLogDetails = (event) => {
-        // Ambil elemen yang diklik (target)
-        const clickedElement = event.currentTarget;
-        
+    window.toggleLogDetails = (clickedElement) => {
         // Mencari elemen panel berikutnya setelah elemen yang diklik
         const panel = clickedElement.nextElementSibling;
         
@@ -856,6 +835,11 @@
         }
 
         showPopup('confirm', 'KONFIRMASI TEST', 'Yakin ingin mengisi semua 3 slot dengan data dummy?', () => {
+            // PENTING: Mendeklarasikan logDetails, target, dan dur di sini, BUKAN di dalam .then() atau .catch()
+            let logDetails = {}; 
+            let target;
+            let dur;
+            
             runTransaction(db, async(t) => {
                 const d = (await t.get(antrianRef)).data();
                 let s = d.chargingSlots || [null, null, null];
@@ -868,11 +852,10 @@
                 ];
                 
                 const currentQueueLength = q.length;
-                const target = calculateTargetLimit(currentQueueLength);
-                let logDetails = {};
+                target = calculateTargetLimit(currentQueueLength);
 
                 items.forEach((item, i) => {
-                    const dur = calculateDuration(item.startBattery, target);
+                    dur = calculateDuration(item.startBattery, target);
                     s[i] = {
                         plat: item.plat,
                         userName: 'TEST_SA', 
@@ -882,7 +865,7 @@
                         durationMinutes: dur,
                         startTime: new Date()
                     };
-                    // Mencatat detail setiap slot
+                    // Mencatat detail setiap slot ke logDetails yang sudah diinisialisasi
                     logDetails[`slot${i + 1}`] = { 
                         plat: item.plat, 
                         startBat: item.startBattery, 
@@ -893,10 +876,12 @@
 
                 t.update(antrianRef, { chargingSlots: s });
             }).then(() => {
+                // logDetails, target, dan dur kini dapat diakses di sini
                 logActivity('SA_FILL_ALL_SLOTS', prefix, 'SUPER_ADMIN', logDetails);
                 showPopup('success', 'SUKSES', 'Semua slot berhasil diisi untuk tujuan testing.');
             }).catch(e => {
-                logActivity('SA_FILL_FAIL', prefix, 'SUPER_ADMIN', { error: e.toString() });
+                // logDetails juga diakses jika terjadi kegagalan transaksi
+                logActivity('SA_FILL_FAIL', prefix, 'SUPER_ADMIN', { error: e.toString(), details: logDetails }); 
                 showPopup('error', 'GAGAL', e);
             });
         });
@@ -913,7 +898,9 @@
             return showPopup('error', 'DATA KURANG', 'Plat, WA, dan Baterai harus diisi.');
         }
         
-        let dur = 0; // Deklarasi di luar untuk digunakan di .then
+        let dur = 0; 
+        let currentQueueLength = 0; // Deklarasi di luar scope transaksi
+        let target = 0;
 
         runTransaction(db, async(t) => {
             const d = (await t.get(antrianRef)).data() || {};
@@ -922,7 +909,8 @@
 
             if(s.some(x=>x?.plat===plat) || q.some(x=>x?.plat===plat)) throw "Plat sudah terdaftar dalam antrian/slot!";
             
-            const target = calculateTargetLimit(q.length); 
+            currentQueueLength = q.length;
+            target = calculateTargetLimit(currentQueueLength); 
             dur = calculateDuration(bat, target);
             
             const item = { plat:plat, userName:name, wa:wa, startBattery:bat, targetLimit:target, durationMinutes:dur, startTime:null }; 
@@ -930,13 +918,13 @@
             
             t.update(antrianRef, {waitingQueue: q});
         }).then(() => {
-            // Log detail pendaftaran antrian
+            // logActivity diakses setelah transaction berhasil
             logActivity('ADMIN_REGISTER_QUEUE', plat, 'SUPER_ADMIN', { 
                 startBat: bat, 
-                targetLimit: calculateTargetLimit(q.length), 
+                targetLimit: target, 
                 userName: name, 
                 wa: wa.slice(-4), 
-                index: q.length, 
+                index: currentQueueLength + 1, 
                 duration: dur 
             }); 
             showPopup('success', 'SUKSES', `Motor ${plat} berhasil ditambahkan ke Antrian.`);
@@ -945,6 +933,7 @@
             document.getElementById('queueWA').value = '';
             document.getElementById('queueBattery').value = '';
         }).catch(e => {
+            // logActivity diakses jika terjadi kegagalan transaksi
             logActivity('ADMIN_REGISTER_QUEUE_FAIL', plat, 'SUPER_ADMIN', { error: e.toString() });
             showPopup('error', 'GAGAL', e);
         });
@@ -958,6 +947,7 @@
         
         let target = 0; // Deklarasi di luar
         let dur = 0;    // Deklarasi di luar
+        let currentQueueLength = 0;
 
         if(!p || isNaN(startBat) || startBat < 0 || startBat > 99) {
             return showPopup('error','ERROR','Plat/Baterai Awal tidak valid.');
@@ -971,7 +961,8 @@
 
                 if(s[i] !== null) throw `Slot ${parseInt(i)+1} sudah terisi.`;
                 
-                target = calculateTargetLimit(q.length); 
+                currentQueueLength = q.length;
+                target = calculateTargetLimit(currentQueueLength); 
                 dur = calculateDuration(startBat, target); 
                 
                 s[i] = { 
@@ -1068,6 +1059,7 @@
         let itemToMove; // Deklarasi di luar
         let newTarget;
         let newDur;
+        let currentQueueLength;
 
         if (queueIndex < 0) return showPopup('error', 'Gagal', 'Pilih antrian yang valid.');
 
@@ -1084,7 +1076,8 @@
 
                 q.splice(queueIndex, 1);
                 
-                newTarget = calculateTargetLimit(q.length);
+                currentQueueLength = q.length;
+                newTarget = calculateTargetLimit(currentQueueLength);
                 newDur = calculateDuration(itemToMove.startBattery, newTarget); 
                 
                 s[slotTarget] = {
@@ -1103,7 +1096,7 @@
                     startBat: itemToMove.startBattery, 
                     newTarget: newTarget, 
                     newDuration: newDur,
-                    newQueueLength: q.length 
+                    newQueueLength: currentQueueLength 
                 }); 
                 showPopup('success', 'SUKSES', `Antrian berhasil dipindah ke Slot ${slotTarget + 1}.`);
             }).catch(e => {
