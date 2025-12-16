@@ -417,13 +417,23 @@
     // --- FUNGSI PENANGANAN ERROR DAN SOLUSI (BAHASA INDONESIA) ---
     function getErrorHandler(action, plat) {
         const handlers = {
+            // Log Error Pendaftaran User/Device
+            'REGISTER_FAIL': {
+                priority: 'KRITIS',
+                color: 'var(--soft-red)',
+                icon: '🔥',
+                message: `Pendaftaran motor **${plat}** ke antrian **GAGAL** (Error Berulang Device/User).`,
+                solution: `**TINDAKAN SEGERA (ADMIN):** Log ini menunjukkan motor **${plat}** berulang kali gagal mendaftar/start. Periksa apakah Plat tersebut **diblokir** (Blocked List) atau **sedang ada di slot** lain. Jika error terus muncul, ini bisa jadi masalah koneksi user tersebut atau masalah di sisi device motor.`,
+            },
+            // Log Error Pendaftaran Admin
             'ADMIN_REGISTER_QUEUE_FAIL': {
                 priority: 'KRITIS',
                 color: 'var(--soft-red)',
                 icon: '🔥',
-                message: `Pendaftaran motor **${plat}** ke antrian **GAGAL** (Error Transaksi).`,
-                solution: `**TINDAKAN SEGERA (ADMIN):** Periksa apakah Plat **${plat}** sudah terdaftar di salah satu slot charging atau sudah ada di daftar antrian. Jika sudah ada, motor tidak bisa didaftarkan ulang. Jika tidak ada, coba daftarkan kembali.`,
+                message: `Pendaftaran motor **${plat}** ke antrian **GAGAL** (Error Transaksi Admin).`,
+                solution: `**TINDAKAN SEGERA (ADMIN):** Periksa apakah Plat **${plat}** sudah terdaftar di salah satu slot charging atau sudah ada di daftar antrian. Jika sudah ada, motor tidak bisa didaftarkan ulang.`,
             },
+            // Log Error Clear Slot Otomatis
             'CLEAR_FAIL_AUTO_TIMER': {
                 priority: 'KRITIS',
                 color: 'var(--soft-red)',
@@ -431,6 +441,7 @@
                 message: `Pembersihan slot otomatis untuk motor **${plat}** **GAGAL**. Motor mungkin 'stuck'.`,
                 solution: `**TINDAKAN SEGERA (SUPER ADMIN):** Motor **${plat}** mungkin tidak bisa keluar otomatis. Lakukan **PAKSA KOSONGKAN SLOT** secara manual untuk slot yang bersangkutan. Setelah itu, periksa konsol browser untuk *error* transaksi Firestore.`,
             },
+            // Log Error Assign Manual
             'ADMIN_ASSIGN_FAIL': {
                 priority: 'KRITIS',
                 color: 'var(--soft-red)',
@@ -438,6 +449,7 @@
                 message: `Penugasan Slot Manual untuk motor **${plat}** **GAGAL**.`,
                 solution: `**TINDAKAN SEGERA (ADMIN):** Pastikan slot yang ditargetkan benar-benar **Kosong** (Null) sebelum menekan tombol 'MANUAL ASSIGN'.`,
             },
+            // Log Error Swap Slot
             'ADMIN_SLOT_SWAP_FAIL': {
                 priority: 'AWAS',
                 color: 'var(--cyan)',
@@ -445,6 +457,7 @@
                 message: `Gagal menukar posisi slot.`,
                 solution: `**TINDAKAN (ADMIN):** Coba lagi. Jika berulang, kemungkinan ada masalah koneksi Real-time atau konflik data. Cek error di konsol.`,
             },
+            // Log Error Test
             'SA_FILL_FAIL': {
                 priority: 'AWAS',
                 color: 'var(--cyan)',
@@ -452,6 +465,7 @@
                 message: `Gagal mengisi semua slot dengan data test.`,
                 solution: `**TINDAKAN (SUPER ADMIN):** Cek kembali input 'Plat Dummy' dan Baterai (0-99). Pastikan database (Firestore) dapat diakses.`,
             },
+            // Log Error WA
             'WA_SEND_FAIL': {
                 priority: 'INFO',
                 color: 'var(--soft-blue)',
@@ -459,6 +473,7 @@
                 message: `Notifikasi WA untuk motor **${plat}** gagal dikirim.`,
                 solution: `**TINDAKAN (INFO):** Pesan notifikasi selesai cas/antrian gagal terkirim. Periksa token FONTE Anda dan status layanan Fonnte. Kontak user ${plat} secara manual jika motor sudah selesai cas.`,
             },
+            // Log Error Login
             'ADMIN_LOGIN_FAIL': {
                 priority: 'INFO',
                 color: 'var(--soft-red)',
