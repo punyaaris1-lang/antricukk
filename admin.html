@@ -600,7 +600,7 @@
             btnCancel.onclick = () => m.style.display = 'none';
             btnOk.onclick = () => { m.style.display = 'none'; if(onOk) onOk(); };
         }
-        else if(type === 'error') {
+        else if (type === 'error') {
             icon.innerText = '❌'; box.style.borderColor = 'var(--soft-red)';
             btnOk.className = 'btn-modal danger'; btnOk.innerText = 'TUTUP';
             icon.style.color = 'var(--soft-red)';
@@ -682,6 +682,10 @@
         // Memastikan listener log aktivitas berjalan
         const logQuery = query(logRef, orderBy("timestamp", "desc"), limit(25));
         onSnapshot(logQuery, renderActivityLog);
+        
+        // PENTING: Panggil fungsi untuk memasang listener setelah log dimuat
+        document.getElementById('logListContainer').addEventListener('DOMSubtreeModified', attachToggleListeners);
+        attachToggleListeners(); // Panggil pertama kali
     });
     
     // --- LOGIKA REAL-TIME ADMIN (ON SNAPSHOT) ---
@@ -746,10 +750,7 @@
             return;
         }
 
-        // Simpan snapshot log ke variabel global agar bisa diakses oleh toggleLogDetails
-        window.currentLogSnapshot = snapshot.docs.map(doc => doc.data());
-
-        snapshot.forEach((doc, index) => {
+        snapshot.forEach((doc) => {
             const log = doc.data();
             const ts = log.timestamp instanceof Date ? log.timestamp : log.timestamp.toDate(); 
             const time = ts.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
@@ -788,17 +789,16 @@
             
             // Struktur HTML log item
             logHtml += `
-                <div class="log-item" 
+                <div class="log-item log-item-clickable" 
                      style="background-color: ${errorHandler.priority === 'KRITIS' ? 'rgba(255, 85, 85, 0.1)' : 'transparent'}; 
-                            cursor: pointer;"
-                     onclick="toggleLogDetails('${index}')">
+                            cursor: pointer;">
                     <span class="log-time" style="color:${color};">${errorHandler.icon} ${time}</span>
                     <span class="log-action" style="color:${color};">${log.action}</span>
                     <span class="log-plat">${log.plat}</span>
                     <span class="log-user">${userDisplay}</span>
                 </div>
                 
-                <div id="details-panel-${index}" style="display:none; padding: 5px 0 10px 10px;">
+                <div class="details-panel" style="display:none; padding: 5px 0 10px 10px;">
                     ${solutionContent}
                     <div style="font-size: 9px; color: var(--text-muted); margin-top: 5px;">
                         <span style="color: var(--cyan); font-weight: 700;">DETAIL TEKNIS:</span> ${detailDisplay || 'Tidak ada detail teknis tambahan.'}
@@ -809,22 +809,42 @@
         
         container.innerHTML = logHtml;
         container.scrollTop = container.scrollHeight;
+        
+        // Panggil fungsi untuk memasang listener setelah innerHTML diperbarui
+        attachToggleListeners();
     }
     
+    // --- FUNGSI GLOBAL UNTUK MEMASANG LISTENER (Dipanggil setelah render) ---
+    function attachToggleListeners() {
+        // Hapus listener lama jika ada (pencegahan duplikasi)
+        const oldItems = document.querySelectorAll('.log-item-clickable');
+        oldItems.forEach(item => {
+            item.removeEventListener('click', toggleLogDetails);
+        });
+
+        // Pasang listener baru
+        const items = document.querySelectorAll('.log-item-clickable');
+        items.forEach(item => {
+            item.addEventListener('click', toggleLogDetails);
+        });
+    }
+
     // --- FUNGSI GLOBAL UNTUK MENAMPILKAN/MENYEMBUNYIKAN DETAIL (TOGGLE) ---
-    window.toggleLogDetails = (index) => {
-        // PERBAIKAN UTAMA: Menggunakan string ID dengan benar
-        const panel = document.getElementById(`details-panel-${index}`);
-        if (panel) {
+    window.toggleLogDetails = (event) => {
+        // Ambil elemen yang diklik (target)
+        const clickedElement = event.currentTarget;
+        
+        // Mencari elemen panel berikutnya setelah elemen yang diklik
+        const panel = clickedElement.nextElementSibling;
+        
+        // Memastikan elemen yang ditemukan adalah panel detail
+        if (panel && panel.classList.contains('details-panel')) {
             panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
-        } else {
-            // Optional: Log error ke console jika panel tidak ditemukan
-            console.error(`Detail panel dengan ID details-panel-${index} tidak ditemukan.`);
-        }
+        } 
     };
     
 
-    // --- SUPER ADMIN TEST FUNCTIONS ---
+    // --- SUPER ADMIN TEST FUNCTIONS (Menghilangkan error ReferenceError di Admin Tools) ---
     window.fillAllSlotsManual = () => {
         const prefix = document.getElementById('dummyPlatPrefix').value.toUpperCase().trim();
         const bat1 = parseInt(document.getElementById('dummyBat1').value);
