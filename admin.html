@@ -414,6 +414,75 @@
     }
 
 
+    // --- FUNGSI PENANGANAN ERROR DAN SOLUSI (BAHASA INDONESIA) ---
+    function getErrorHandler(action, plat) {
+        const handlers = {
+            'ADMIN_REGISTER_QUEUE_FAIL': {
+                priority: 'KRITIS',
+                color: 'var(--soft-red)',
+                icon: '🔥',
+                message: `Pendaftaran motor **${plat}** ke antrian **GAGAL** (Error Transaksi).`,
+                solution: `**TINDAKAN SEGERA (ADMIN):** Periksa apakah Plat **${plat}** sudah terdaftar di salah satu slot charging atau sudah ada di daftar antrian. Jika sudah ada, motor tidak bisa didaftarkan ulang. Jika tidak ada, coba daftarkan kembali.`,
+            },
+            'CLEAR_FAIL_AUTO_TIMER': {
+                priority: 'KRITIS',
+                color: 'var(--soft-red)',
+                icon: '🚨',
+                message: `Pembersihan slot otomatis untuk motor **${plat}** **GAGAL**. Motor mungkin 'stuck'.`,
+                solution: `**TINDAKAN SEGERA (SUPER ADMIN):** Motor **${plat}** mungkin tidak bisa keluar otomatis. Lakukan **PAKSA KOSONGKAN SLOT** secara manual untuk slot yang bersangkutan. Setelah itu, periksa konsol browser untuk *error* transaksi Firestore.`,
+            },
+            'ADMIN_ASSIGN_FAIL': {
+                priority: 'KRITIS',
+                color: 'var(--soft-red)',
+                icon: '❌',
+                message: `Penugasan Slot Manual untuk motor **${plat}** **GAGAL**.`,
+                solution: `**TINDAKAN SEGERA (ADMIN):** Pastikan slot yang ditargetkan benar-benar **Kosong** (Null) sebelum menekan tombol 'MANUAL ASSIGN'.`,
+            },
+            'ADMIN_SLOT_SWAP_FAIL': {
+                priority: 'AWAS',
+                color: 'var(--cyan)',
+                icon: '⚠️',
+                message: `Gagal menukar posisi slot.`,
+                solution: `**TINDAKAN (ADMIN):** Coba lagi. Jika berulang, kemungkinan ada masalah koneksi Real-time atau konflik data. Cek error di konsol.`,
+            },
+            'SA_FILL_FAIL': {
+                priority: 'AWAS',
+                color: 'var(--cyan)',
+                icon: '⚠️',
+                message: `Gagal mengisi semua slot dengan data test.`,
+                solution: `**TINDAKAN (SUPER ADMIN):** Cek kembali input 'Plat Dummy' dan Baterai (0-99). Pastikan database (Firestore) dapat diakses.`,
+            },
+            'WA_SEND_FAIL': {
+                priority: 'INFO',
+                color: 'var(--soft-blue)',
+                icon: '💬',
+                message: `Notifikasi WA untuk motor **${plat}** gagal dikirim.`,
+                solution: `**TINDAKAN (INFO):** Pesan notifikasi selesai cas/antrian gagal terkirim. Periksa token FONTE Anda dan status layanan Fonnte. Kontak user ${plat} secara manual jika motor sudah selesai cas.`,
+            },
+            'ADMIN_LOGIN_FAIL': {
+                priority: 'INFO',
+                color: 'var(--soft-red)',
+                icon: '🛑',
+                message: `Percobaan Login Super Admin GAGAL.`,
+                solution: `**TINDAKAN (INFO):** Pastikan PIN Super Admin ('8080') yang dimasukkan benar. Jika ada percobaan berulang, awasi keamanan akses.`,
+            }
+        };
+        
+        // Default handler untuk log non-error yang perlu diawasi
+        if (!handlers[action]) {
+            return { 
+                priority: 'INFO', 
+                color: '#aaa', 
+                icon: 'i',
+                message: `Aktivitas non-error/sistem: ${action}`,
+                solution: `**TINDAKAN (INFO):** Tidak ada tindakan darurat. Log ini mencatat aktivitas normal atau test. Klik log untuk detail transaksi.`
+            };
+        }
+
+        return handlers[action];
+    }
+
+
     // --- FUNGSI LOGGING AKTIVITAS (TOLL LOG) ---
     function logActivity(action, plat = 'N/A', user = 'ADMIN', details = {}) {
         addDoc(logRef, {
@@ -656,33 +725,69 @@
             return;
         }
 
-        snapshot.forEach(doc => {
+        // Simpan snapshot log ke variabel global agar bisa diakses oleh showLogDetails
+        window.currentLogSnapshot = snapshot.docs.map(doc => doc.data());
+
+        snapshot.forEach((doc, index) => {
             const log = doc.data();
             const ts = log.timestamp instanceof Date ? log.timestamp : log.timestamp.toDate(); 
             const time = ts.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
             
-            let color = '#aaa'; 
-            if (log.action.includes('CLEAR') || log.action.includes('STOP') || log.action.includes('FAIL')) color = 'var(--soft-red)';
-            else if (log.action.includes('REGISTER') || log.action.includes('MOVE')) color = 'var(--cyan)';
-            else if (log.action.includes('START') || log.action.includes('ASSIGN') || log.action.includes('SWAP')) color = 'var(--accent)';
-            else if (log.action.includes('WA_SENT') || log.action.includes('QUEUE')) color = 'var(--soft-blue)';
-            else if (log.action.includes('LOGIN')) color = 'var(--accent)';
-
+            // Dapatkan Handler Error/Info
+            const errorHandler = getErrorHandler(log.action, log.plat);
+            let color = errorHandler.color; 
+            
             const userDisplay = log.user === 'SUPER_ADMIN' ? `<span style="color:var(--soft-red);">[SA]</span>` : (log.user === 'ADMIN' ? `<span style="color:var(--accent);">[A]</span>` : (log.user === 'SYSTEM' ? `<span style="color:var(--soft-blue);">[S]</span>` : `<span style="color:var(--cyan);">[U]</span>`));
-
+            
+            // Tambahkan display detail
+            let detailDisplay = '';
+            if (log.details && Object.keys(log.details).length > 0) {
+                detailDisplay = Object.keys(log.details).map(key => {
+                    let val = log.details[key];
+                    if (typeof val === 'object' && val !== null) {
+                        return `${key}: {${Object.keys(val).map(subKey => `${subKey}:${val[subKey]}`).join(', ')}}`;
+                    }
+                    return `${key}: ${val}`;
+                }).join(' | ');
+            }
+            
+            // Struktur HTML log item
             logHtml += `
-                <div class="log-item">
-                    <span class="log-time">${time}</span>
+                <div class="log-item" 
+                     style="background-color: ${errorHandler.priority === 'KRITIS' ? 'rgba(255, 85, 85, 0.1)' : 'transparent'}; 
+                            cursor: pointer;"
+                     onclick="showLogDetails(${index})">
+                    <span class="log-time" style="color:${color};">${errorHandler.icon} ${time}</span>
                     <span class="log-action" style="color:${color};">${log.action}</span>
                     <span class="log-plat">${log.plat}</span>
                     <span class="log-user">${userDisplay}</span>
                 </div>
+                <div id="details-${index}" style="display:none; font-size: 9px; color: var(--text-muted); padding: 3px 0 3px 70px; border-bottom: 1px dashed var(--border);">${detailDisplay}</div>
             `;
         });
         
         container.innerHTML = logHtml;
-        container.scrollTop = container.scrollHeight; 
+        container.scrollTop = container.scrollHeight;
     }
+    
+    // --- FUNGSI GLOBAL UNTUK MENAMPILKAN POPUP SOLUSI ---
+    window.showLogDetails = (index) => {
+        const log = window.currentLogSnapshot[index];
+        if (!log) return;
+
+        const errorHandler = getErrorHandler(log.action, log.plat);
+        
+        // Tampilkan/Sembunyikan detail mentah
+        const detailsDiv = document.getElementById(`details-${index}`);
+        const currentDisplay = detailsDiv.style.display;
+        detailsDiv.style.display = currentDisplay === 'none' ? 'block' : 'none';
+
+        // Tampilkan Pop-up Solusi Kritis/Awas
+        if (errorHandler.priority === 'KRITIS' || errorHandler.priority === 'AWAS') {
+             showPopup('error', `${errorHandler.icon} ${errorHandler.priority} - ${log.action}`, 
+                       `${errorHandler.message} <br><br> ${errorHandler.solution}`);
+        }
+    };
 
     // --- SUPER ADMIN TEST FUNCTIONS ---
     window.fillAllSlotsManual = () => {
@@ -709,6 +814,7 @@
                 
                 const currentQueueLength = q.length;
                 const target = calculateTargetLimit(currentQueueLength);
+                let logDetails = {};
 
                 items.forEach((item, i) => {
                     const dur = calculateDuration(item.startBattery, target);
@@ -721,11 +827,18 @@
                         durationMinutes: dur,
                         startTime: new Date()
                     };
+                    // Mencatat detail setiap slot
+                    logDetails[`slot${i + 1}`] = { 
+                        plat: item.plat, 
+                        startBat: item.startBattery, 
+                        target: target, 
+                        dur: dur 
+                    }; 
                 });
 
                 t.update(antrianRef, { chargingSlots: s });
             }).then(() => {
-                logActivity('SA_FILL_ALL_SLOTS', prefix, 'SUPER_ADMIN', { bat: [bat1, bat2, bat3] });
+                logActivity('SA_FILL_ALL_SLOTS', prefix, 'SUPER_ADMIN', logDetails);
                 showPopup('success', 'SUKSES', 'Semua slot berhasil diisi untuk tujuan testing.');
             }).catch(e => {
                 logActivity('SA_FILL_FAIL', prefix, 'SUPER_ADMIN', { error: e.toString() });
@@ -744,6 +857,8 @@
         if (!plat || !wa || isNaN(bat) || bat < 0 || bat > 99) {
             return showPopup('error', 'DATA KURANG', 'Plat, WA, dan Baterai harus diisi.');
         }
+        
+        let dur = 0; // Deklarasi di luar untuk digunakan di .then
 
         runTransaction(db, async(t) => {
             const d = (await t.get(antrianRef)).data() || {};
@@ -753,14 +868,22 @@
             if(s.some(x=>x?.plat===plat) || q.some(x=>x?.plat===plat)) throw "Plat sudah terdaftar dalam antrian/slot!";
             
             const target = calculateTargetLimit(q.length); 
-            const dur = calculateDuration(bat, target);
+            dur = calculateDuration(bat, target);
             
             const item = { plat:plat, userName:name, wa:wa, startBattery:bat, targetLimit:target, durationMinutes:dur, startTime:null }; 
             q.push(item);
             
             t.update(antrianRef, {waitingQueue: q});
         }).then(() => {
-            logActivity('ADMIN_REGISTER_QUEUE', plat, 'SUPER_ADMIN', { startBat: bat, target: calculateTargetLimit(q.length), index: q.length });
+            // Log detail pendaftaran antrian
+            logActivity('ADMIN_REGISTER_QUEUE', plat, 'SUPER_ADMIN', { 
+                startBat: bat, 
+                targetLimit: calculateTargetLimit(q.length), 
+                userName: name, 
+                wa: wa.slice(-4), 
+                index: q.length, 
+                duration: dur 
+            }); 
             showPopup('success', 'SUKSES', `Motor ${plat} berhasil ditambahkan ke Antrian.`);
             document.getElementById('queuePlat').value = '';
             document.getElementById('queueName').value = '';
@@ -777,6 +900,9 @@
         const i = document.getElementById('manSlot').value;
         const p = document.getElementById('manPlat').value.toUpperCase().replace(/\s/g, '').trim();
         const startBat = parseInt(document.getElementById('manBattery').value); 
+        
+        let target = 0; // Deklarasi di luar
+        let dur = 0;    // Deklarasi di luar
 
         if(!p || isNaN(startBat) || startBat < 0 || startBat > 99) {
             return showPopup('error','ERROR','Plat/Baterai Awal tidak valid.');
@@ -790,8 +916,8 @@
 
                 if(s[i] !== null) throw `Slot ${parseInt(i)+1} sudah terisi.`;
                 
-                const target = calculateTargetLimit(q.length); 
-                const dur = calculateDuration(startBat, target); 
+                target = calculateTargetLimit(q.length); 
+                dur = calculateDuration(startBat, target); 
                 
                 s[i] = { 
                     plat:p, 
@@ -804,7 +930,13 @@
                 };
                 t.update(antrianRef, {chargingSlots:s}, {merge:true});
             }).then(() => {
-                logActivity('ADMIN_ASSIGN_START', p, 'SUPER_ADMIN', { slot: parseInt(i) + 1, bat: startBat, dur: dur });
+                // Log detail assign manual
+                logActivity('ADMIN_ASSIGN_START', p, 'SUPER_ADMIN', { 
+                    slot: parseInt(i) + 1, 
+                    startBat: startBat, 
+                    targetLimit: target, 
+                    dur: dur 
+                }); 
                 showPopup('success','SUKSES',`Slot ${parseInt(i)+1} terisi dan cas dimulai.`);
                 document.getElementById('manPlat').value = ''; 
                 document.getElementById('manBattery').value = ''; 
@@ -835,7 +967,8 @@
 
                 s[i] = null; 
                 let promotedPlat = 'NONE';
-                
+                let logDetails = { slot: i + 1, clearedPlat: platClearing, clearedBat: currentMotor?.startBattery || 'N/A' };
+
                 if(q.length){ 
                     const nextItem = q.shift();
                     promotedPlat = nextItem.plat;
@@ -850,10 +983,18 @@
                     }; 
                     // 2. Notifikasi Antrian Berikutnya (WA #2)
                     sendQueueNotification(nextItem.plat, nextItem.wa, nextItem.userName, i + 1); 
+
+                    // Tambahkan detail Promoted
+                    logDetails.promoted = promotedPlat;
+                    logDetails.promotedBat = nextItem.startBattery;
+                    logDetails.promotedTarget = target;
+                    logDetails.newQueueLength = q.length;
                 }
                 
                 t.update(antrianRef, {chargingSlots:s, waitingQueue:q});
-                logActivity('ADMIN_SLOT_CLEARED', platClearing, 'SUPER_ADMIN', { slot: i + 1, promoted: promotedPlat, trigger: 'ADMIN_MANUAL' });
+                
+                // Log detail clear slot
+                logActivity('ADMIN_SLOT_CLEARED', platClearing, 'SUPER_ADMIN', logDetails);
                 
             }).then(() => {
                 showPopup('success', 'SUKSES', `Slot ${i+1} dikosongkan. Antrian naik (jika ada).`);
@@ -868,6 +1009,10 @@
     window.assignQueueToSlot = () => {
         const queueIndex = parseInt(document.getElementById('assignQueueIndex').value);
         const slotTarget = parseInt(document.getElementById('assignSlotTarget').value);
+        
+        let itemToMove; // Deklarasi di luar
+        let newTarget;
+        let newDur;
 
         if (queueIndex < 0) return showPopup('error', 'Gagal', 'Pilih antrian yang valid.');
 
@@ -880,12 +1025,12 @@
                 if (!q[queueIndex]) throw "Antrian tidak ditemukan.";
                 if (s[slotTarget]) throw `Slot ${slotTarget + 1} sudah terisi. Kosongkan dulu.`;
 
-                const itemToMove = q[queueIndex];
+                itemToMove = q[queueIndex];
 
                 q.splice(queueIndex, 1);
                 
-                const newTarget = calculateTargetLimit(q.length);
-                const newDur = calculateDuration(itemToMove.startBattery, newTarget); 
+                newTarget = calculateTargetLimit(q.length);
+                newDur = calculateDuration(itemToMove.startBattery, newTarget); 
                 
                 s[slotTarget] = {
                     ...itemToMove,
@@ -896,7 +1041,15 @@
 
                 t.update(antrianRef, { chargingSlots: s, waitingQueue: q });
             }).then(() => {
-                logActivity('ADMIN_QUEUE_ASSIGNED', itemToMove.plat, 'SUPER_ADMIN', { fromQueue: queueIndex + 1, toSlot: slotTarget + 1 });
+                // Log detail assign queue to slot
+                logActivity('ADMIN_QUEUE_ASSIGNED', itemToMove.plat, 'SUPER_ADMIN', { 
+                    fromQueueIndex: queueIndex + 1, 
+                    toSlot: slotTarget + 1, 
+                    startBat: itemToMove.startBattery, 
+                    newTarget: newTarget, 
+                    newDuration: newDur,
+                    newQueueLength: q.length 
+                }); 
                 showPopup('success', 'SUKSES', `Antrian berhasil dipindah ke Slot ${slotTarget + 1}.`);
             }).catch(e => {
                 logActivity('ADMIN_QUEUE_ASSIGN_FAIL', itemToMove?.plat || 'N/A', 'SUPER_ADMIN', { error: e.toString() });
@@ -924,10 +1077,21 @@
                 
                 s[targetIndex] = sourceMotor;
                 s[sourceIndex] = targetMotor;
+                
+                const sourcePlat = sourceMotor?.plat || 'EMPTY';
+                const targetPlat = targetMotor?.plat || 'EMPTY';
+
 
                 t.update(antrianRef, { chargingSlots: s });
+                // Log detail tukar slot
+                logActivity('ADMIN_SLOT_SWAP', `${sourcePlat} <-> ${targetPlat}`, 'SUPER_ADMIN', { 
+                    sourceSlot: sourceIndex + 1, 
+                    targetSlot: targetIndex + 1,
+                    sourcePlat: sourcePlat,
+                    targetPlat: targetPlat
+                });
+
             }).then(() => {
-                logActivity('ADMIN_SLOT_SWAP', 'N/A', 'SUPER_ADMIN', { source: sourceIndex + 1, target: targetIndex + 1 });
                 showPopup('success', 'SUKSES', `Slot ${sourceIndex + 1} dan Slot ${targetIndex + 1} berhasil ditukar/dipindah.`);
             }).catch(e => {
                 logActivity('ADMIN_SLOT_SWAP_FAIL', 'N/A', 'SUPER_ADMIN', { error: e.toString() });
@@ -941,7 +1105,6 @@
         const p = document.getElementById('blockPlatInput').value.toUpperCase().trim();
         if(!p) return;
         await runTransaction(db, async (t) => {
-            const d = (await t.get(antrianRef)).data(); 
             // Menggunakan ArrayUnion untuk menambahkan secara aman
             t.update(antrianRef, {blockedList: arrayUnion(p)});
         });
@@ -953,7 +1116,6 @@
         const p = document.getElementById('blockPlatInput').value.toUpperCase().trim();
         if(!p) return;
         await runTransaction(db, async (t) => {
-            const d = (await t.get(antrianRef)).data(); 
             // Menggunakan ArrayRemove untuk menghapus secara aman
             t.update(antrianRef, {blockedList: arrayRemove(p)});
         });
