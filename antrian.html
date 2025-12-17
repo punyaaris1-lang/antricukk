@@ -135,7 +135,7 @@
         }
         .bat-icon::before { content: ''; position: absolute; top: -5px; left: 10px; width: 12px; height: 3px; background: var(--text-muted); }
         
-        /* ISI BATERAI & PULSATING FILL (REVISI CSS agar lebih agresif) */
+        /* ISI BATERAI & PULSATING FILL */
         .bat-fill { 
             width: 100%; 
             background: var(--accent); 
@@ -145,15 +145,15 @@
         }
         
         .bat-fill.pulsating-fill {
-            animation: fill-pulse 1.0s infinite alternate ease-in-out; /* Durasi lebih cepat */
+            animation: fill-pulse 1.0s infinite alternate ease-in-out; 
         }
         @keyframes fill-pulse {
             0% { 
                 box-shadow: 0 0 8px var(--accent), 0 0 8px var(--accent) inset;
-                filter: brightness(1.4); /* Lebih cerah */
+                filter: brightness(1.4); 
             }
             100% { 
-                box-shadow: 0 0 20px var(--accent), 0 0 15px var(--accent) inset; /* Lebih menonjol */
+                box-shadow: 0 0 20px var(--accent), 0 0 15px var(--accent) inset; 
                 filter: brightness(1.0); 
             }
         }
@@ -185,17 +185,21 @@
         .btn-stop { background: rgba(255, 59, 48, 0.1); border: 1px solid var(--soft-red); color: var(--soft-red); }
         .btn-edit-timer { background: rgba(0, 210, 255, 0.1); border: 1px solid var(--cyan); color: var(--cyan); }
 
-        /* KETERANGAN BATERAI LEBIH RAPIH */
+        /* KETERANGAN BATERAI LEBIH RAPIH (FINAL) */
         .bat-info-container {
             display: flex;
             flex-direction: column;
-            gap: 3px;
+            gap: 1px; 
             font-size: 9px; 
-            color: var(--accent); 
+            color: var(--text); 
             margin-top: 5px; 
             font-family:'Inter', sans-serif;
             text-align: left;
             padding: 0 5px;
+            background: rgba(0,0,0,0.3); 
+            border-radius: 5px;
+            padding: 5px;
+            border: 1px solid var(--border);
         }
         .bat-info-row {
             display: flex;
@@ -203,12 +207,12 @@
             line-height: 1.2;
         }
         .info-label { 
-            color: var(--cyan); 
+            color: var(--text-muted); 
             font-weight: 600;
         }
         .info-value { 
             font-weight: 800;
-            color: #FFD700; 
+            color: var(--accent); 
         }
 
 
@@ -223,7 +227,6 @@
         .modal-icon { 
             font-size: 40px; margin-bottom: 10px; display: block; 
             color: var(--accent); 
-            /* Tambahan CSS untuk Ikon Gambar */
             display: flex; justify-content: center; align-items: center; 
             height: 40px; 
         }
@@ -267,7 +270,7 @@
 
         @keyframes pop { from{transform:scale(0.8); opacity:0} to{transform:scale(1); opacity:1} }
         
-        /* LOADING SCREEN NEON (FIXED ALIGNMENT) */
+        /* LOADING SCREEN NEON */
         #loadingScreen {
             position: fixed; inset: 0; background-color: var(--bg); 
             z-index: 10000; 
@@ -573,6 +576,7 @@
 
         <div class="footer">Aplikasi ini buatan MLU bukan punya Maka </div>
     </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
         import { getFirestore, doc, onSnapshot, runTransaction, setDoc, collection, addDoc, arrayRemove, arrayUnion } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
@@ -935,6 +939,8 @@
             m.style.display = 'flex'; m.className = 'modal'; 
             box.style.borderColor = 'var(--accent)'; 
             icon.style.color = 'var(--accent)';
+            // Mengembalikan ke innerText untuk emoji
+            icon.innerHTML = '✅'; 
             t.innerText = title; ms.innerHTML = msg; 
             inp.style.display = 'none'; inpDuration.style.display = 'none';
             btnCancel.style.display = 'none';
@@ -948,8 +954,8 @@
                 btnOk.onclick = () => { m.style.display = 'none'; if(onOk) onOk(); };
             }
             else if(type === 'error') {
-                // ICON ERROR BARU: Menggunakan file_error.png (Sesuai permintaan Anda)
-                icon.innerHTML = '<img src="file_error.png" style="width:40px; height:40px;">'; 
+                // ICON ERROR KEMBALI KE EMOTICON ❌
+                icon.innerText = '❌'; 
                 
                 box.style.borderColor = 'var(--soft-red)';
                 btnOk.className = 'btn-modal danger'; btnOk.innerText = 'TUTUP';
@@ -1101,7 +1107,6 @@
             const myPlat = localStorage.getItem('myPlat');
             
             if(myPlat && plat === myPlat) {
-                // MENGGANTI PESAN ALARM
                 showPopup('alarm', 'SELESAI!', `Motor <b>${plat}</b> Selesai!`); 
                 
                 if(window.alarmInterval) clearInterval(window.alarmInterval);
@@ -1188,7 +1193,6 @@
         }
 
         window.logoutUser = () => {
-            // MENGGANTI PESAN KONFIRMASI LOGOUT
             showPopup('confirm', 'KONFIRMASI', 'Apakah Anda yakin ingin menghapus data antrian lokal Anda?', () => {
                 localStorage.removeItem('myPlat');
                 localStorage.removeItem('userWA'); 
@@ -1215,15 +1219,12 @@
             const bat = parseInt(document.getElementById('userBattery').value);
 
             if(!plat || !name || isNaN(bat)) { 
-                // MENGGANTI PESAN DATA KURANG
                 return showPopup('error','DATA KURANG','Plat, Nama, sama Baterai isi yg lengkap cukk.'); 
             }
             if (bat < 0 || bat > 99) {
-                 // PESAN BATERAI INVALID (TIDAK DIGANTI SESUAI PERMINTAAN)
                  return showPopup('error','DATA INVALID','Persentase baterai harus antara 0 dan 99.');
             }
             if(!wa || wa.length < 9) { 
-                // MENGGANTI PESAN WA INVALID
                 return showPopup('error','DATA KURANG','Isi nomer WA yang bener lah'); 
             } 
             
@@ -1258,7 +1259,6 @@
                              document.getElementById('btnDaftar').disabled=false;
                              document.getElementById('btnDaftar').innerText="DAFTAR ANTRIAN";
                              logActivity('REGISTER_FAIL', plat, name, { reason: 'Jarak terlalu jauh', dist: dist });
-                             // PESAN GPS GAGAL (TIDAK DIGANTI SESUAI PERMINTAAN)
                              return showPopup('error','GPS GAGAL',`Lu masih jauh cukk, masih ${dist.toFixed(3)} km dari FC Kelapa Gading. Dateng dulu kesini baru daftar bangsat`);
                         }
                         
@@ -1297,11 +1297,9 @@
                     let q = d.waitingQueue || [];
 
                     if((d.blockedList||[]).includes(plat)) 
-                        // MENGGANTI PESAN PLAT DIBLOKIR
                         throw "Plat ini DIBLOKIR! Karena kamu bangsat suka curang daftar dari jauh";
                         
                     if(s.some(x=>x?.plat===plat) || q.some(x=>x?.plat===plat)) 
-                        // MENGGANTI PESAN PLAT DUPLIKAT
                         throw "Plat sudah terdaftar dalam antrian/slot!";
                     
                     const target = calculateTargetLimit(q.length); 
@@ -1356,10 +1354,8 @@
                 // --- END JADWALKAN NOTIFIKASI SERVER ---
                 
                 if (assignedSlot !== -1) {
-                    // PESAN SUKSES MASUK SLOT (TIDAK DIGANTI SESUAI PERMINTAAN)
                     showPopup('success', 'BERHASIL', `Udahlah berhasil daftar di slot ${assignedSlot}. Harap gunakan slot ${assignedSlot} ya!`);
                 } else {
-                    // PESAN SUKSES MASUK ANTRIAN (TIDAK DIGANTI SESUAI PERMINTAAN)
                     showPopup('success', 'BERHASIL', 'Motor Anda berhasil masuk daftar tunggu antrian.');
                 }
                 
@@ -1439,7 +1435,6 @@
             const logUser = isAdminLoggedIn ? 'ADMIN' : myPlat;
 
             if(type === 'stop' && !isAdminLoggedIn && myPlat !== platName) {
-                // MENGGANTI PESAN AKSES DITOLAK
                 return showPopup('error', 'AKSES DITOLAK', 'Ini bukan motor lu bangsat');
             }
 
@@ -1475,14 +1470,22 @@
         // --- SLOT RENDERING LOGIC ---
         let timerInterval = null; 
 
-        function formatTime(minutes) {
-            const h = Math.floor(minutes / 60);
-            const m = Math.floor(minutes % 60);
-            const s = Math.floor((minutes * 60) % 60);
+        // Fungsi formatTime BARU: Menggunakan M:SS untuk hitungan mundur dan Mm SSd untuk detail
+        function formatTime(minutes, forCountdownDisplay = false) {
+            const totalSeconds = Math.round(minutes * 60);
+            const h = Math.floor(totalSeconds / 3600);
+            const m = Math.floor((totalSeconds % 3600) / 60);
+            const s = totalSeconds % 60;
             const pad = (num) => num.toString().padStart(2, '0');
 
-            if (h > 0) return `${h}J ${pad(m)}M`;
-            return `${pad(m)}M ${pad(s)}D`;
+            if (forCountdownDisplay) {
+                 // Format M:SS untuk display timer besar (Contoh: 3:27)
+                 if (h > 0) return `${h}J ${pad(m)}M`;
+                 return `${m}:${pad(s)}`; 
+            }
+
+            // Format Mm SSd untuk SISA WAKTU detail
+            return `${pad(m)}M ${pad(s)}D`; 
         }
 
         window.editTimer = (i, currentDuration) => {
@@ -1518,6 +1521,7 @@
                 let content = '';
                 let isRun = false;
                 let remainingTime = 0;
+                let countdownDisplay = '0:00'; 
                 let batPercent = motor?.startBattery || 0;
                 let plat = motor?.plat || '';
                 let wa = motor?.wa || '';
@@ -1550,9 +1554,13 @@
                         }
                     } else {
                         isRun = true;
+                        countdownDisplay = formatTime(remainingTime, true); // Format M:SS
                         if (isMySlot) {
                            slotBox.classList.add('pulsating'); // Efek kedipan border/shadow untuk slot sendiri
-                           triggerAlarm(plat, wa); // Notifikasi jika timer < 5 menit (di triggerAlarm ada logika)
+                           // Trigger alarm jika sisa waktu kurang dari 5 menit
+                           if (remainingTime > 0 && remainingTime < 5) {
+                               triggerAlarm(plat, wa);
+                           }
                         } else {
                            slotBox.classList.remove('pulsating');
                         }
@@ -1591,7 +1599,7 @@
 
                     
                     // BATAS: Motor yang sudah selesai di slot tapi belum dipindahkan
-                    if (remainingTime <= 0 && isRun === false && !promotedPlat) {
+                    if (remainingTime <= 0 && isRun === false && !motor.startTime) {
                          // Tampilan untuk motor yang sudah selesai
                          slotBox.classList.remove('active');
                          slotBox.style.backgroundColor = 'rgba(255, 59, 48, 0.05)';
@@ -1611,16 +1619,19 @@
                         // Tampilan Motor sedang Cas
                         slotBox.classList.add('active');
                         content = `
-                            <div style="font-size:12px; color:var(--accent); font-weight:700;">SLOT ${slotNum}</div>
-                            <span style="font-family:'Syne'; font-size:16px; font-weight:800; color:var(--text); margin:5px 0 10px;">${motor.plat}</span>
-                            <div class="bat-icon">
+                            <div style="font-size:10px; color:var(--accent); font-weight:700;">SLOT ${slotNum}</div>
+                            <span style="font-family:'Syne'; font-size:16px; font-weight:800; color:var(--text); margin:5px 0 0;">${motor.plat}</span>
+                            
+                            <span style="font-family:'Syne', sans-serif; font-size: 24px; font-weight:900; color:var(--accent); text-shadow: 0 0 10px rgba(204, 255, 0, 0.5);">${countdownDisplay}</span>
+
+                            <div class="bat-icon" style="margin-top: 5px; margin-bottom: 5px;">
                                 <span class="bat-bolt">⚡</span>
                                 <div class="bat-fill ${isRun ? 'pulsating-fill' : ''}" style="height:${batPercent}%;"></div>
                             </div>
                             <div class="bat-info-container">
-                                <div class="bat-info-row"><span class="info-label">BAT:</span><span class="info-value">${batPercent}%</span></div>
-                                <div class="bat-info-row"><span class="info-label">TARGET:</span><span class="info-value">${motor.targetLimit}%</span></div>
-                                <div class="bat-info-row"><span class="info-label">SISA WAKTU:</span><span class="info-value">${formatTime(remainingTime)}</span></div>
+                                <div class="bat-info-row"><span class="info-label">Awal:</span><span class="info-value">${motor.startBattery}%</span></div>
+                                <div class="bat-info-row"><span class="info-label">Target:</span><span class="info-value">${motor.targetLimit}%</span></div>
+                                <div class="bat-info-row"><span class="info-label">Saat ini:</span><span class="info-value" style="color:#00FF44;">${batPercent}%</span></div>
                             </div>
                         `;
                     }
@@ -1639,19 +1650,24 @@
                     slotBox.style.borderColor = 'var(--cyan)';
                     
                     content = `
-                        <div style="font-size:12px; color:var(--cyan); font-weight:700;">SLOT ${slotNum}</div>
-                        <span style="font-family:'Syne'; font-size:16px; font-weight:800; color:var(--text); margin:5px 0 10px;">${motor.plat}</span>
-                        <div class="bat-icon" style="border-color:var(--cyan);">
+                        <div style="font-size:10px; color:var(--cyan); font-weight:700;">SLOT ${slotNum}</div>
+                        <span style="font-family:'Syne'; font-size:16px; font-weight:800; color:var(--text); margin:5px 0 0;">${motor.plat}</span>
+                        <span style="font-family:'Syne', sans-serif; font-size: 24px; font-weight:900; color:var(--cyan); text-shadow: 0 0 10px rgba(0, 210, 255, 0.5);">READY</span>
+
+                        <div class="bat-icon" style="border-color:var(--cyan); margin-top: 5px; margin-bottom: 5px;">
                             <span class="bat-bolt" style="color:var(--cyan);">...</span>
                             <div class="bat-fill" style="height:${motor.startBattery}%; background:var(--cyan);"></div>
                         </div>
-                        <div style="font-size:10px; color:var(--cyan); margin-top:5px; font-weight:700;">READY | ${motor.startBattery}%</div>
-                        <div style="font-size:9px; color:var(--cyan); font-weight:600;">TARGET ${motor.targetLimit}%</div>
+                        <div class="bat-info-container">
+                            <div class="bat-info-row"><span class="info-label">Awal:</span><span class="info-value">${motor.startBattery}%</span></div>
+                            <div class="bat-info-row"><span class="info-label">Target:</span><span class="info-value">${motor.targetLimit}%</span></div>
+                            <div class="bat-info-row"><span class="info-label">Saat ini:</span><span class="info-value" style="color:var(--text-muted);">WAIT</span></div>
+                        </div>
                     `;
                     
                     // Tombol aksi START (hanya admin/pengguna sendiri) & STOP
                     let stopButton = `<button class="btn-act btn-stop" onclick="act(${i}, 'stop', '${motor.plat}', '${motor.wa}')">KOSONGKAN</button>`;
-                    let startButton = isAdminLoggedIn ? `<button class="btn-act btn-start" onclick="act(${i}, 'start', '${motor.plat}', '${motor.wa}')">START CHARGING</button>` : '';
+                    let startButton = isAdminLoggedIn ? `<button class="btn-act btn-start" onclick="act(${i}, 'start', '${motor.plat}', '${motor.wa}')">MULAI CAS</button>` : '';
                     
                     content += `<div class="btn-group">${startButton}${stopButton}</div>`;
 
@@ -1662,8 +1678,9 @@
                     slotBox.style.borderColor = 'var(--border)';
                     content = `
                         <div style="font-size:12px; color:var(--text-muted); font-weight:700;">SLOT ${slotNum}</div>
-                        <span style="font-family:'Syne'; font-size:16px; font-weight:800; color:var(--text-muted); margin:5px 0 10px;">KOSONG</span>
-                        <div class="bat-icon" style="height:40px; width:24px; border-color:var(--border);">
+                        <span style="font-family:'Syne'; font-size:16px; font-weight:800; color:var(--text-muted); margin:5px 0 0;">KOSONG</span>
+                        <span style="font-family:'Syne', sans-serif; font-size: 24px; font-weight:900; color:var(--text-muted);">- - -</span>
+                        <div class="bat-icon" style="height:40px; width:24px; border-color:var(--border); margin-top: 5px; margin-bottom: 5px;">
                             <div class="bat-fill" style="height:0%; background:var(--text-muted);"></div>
                         </div>
                         <div style="font-size:10px; color:var(--text-muted); margin-top:5px;">IDLE</div>
@@ -1692,12 +1709,11 @@
             summaryContainer.innerHTML = '';
 
             const myPlat = localStorage.getItem('myPlat');
-            const maxQueueLen = Math.max(0, slots.filter(s=>s===null).length); // Beri ruang 1 slot kosong di antrian
             const currentTarget = calculateTargetLimit(queue.length);
 
             countEl.innerText = queue.length;
             qsCountEl.innerText = queue.length;
-            qsTargetEl.innerHTML = `TARGET MAX CAS: <b>${currentTarget}%</b>`;
+            qsTargetEl.innerHTML = `MAX CAS: <b>${currentTarget}%</b>`;
 
             if(queue.length === 0) {
                  container.innerHTML = `<p style="text-align:center; color:var(--text-muted); font-size:12px; padding:10px 0;">Tidak ada daftar tunggu.</p>`;
@@ -1709,7 +1725,8 @@
                 const queueBox = document.createElement('div');
                 queueBox.className = `queue-item-display ${motor.plat === myPlat ? 'is-mine' : ''}`;
                 
-                const deleteBtn = isAdminLoggedIn ? `<button onclick="removeFromQueue(${i}, '${motor.plat}')" style="background:none; border:none; color:var(--soft-red); cursor:pointer; font-size:12px; margin-left:10px;">❌</button>` : '';
+                // Menggunakan window.delQ yang sudah didefinisikan sebelumnya
+                const deleteBtn = isAdminLoggedIn ? `<button onclick="window.delQ(${i}, '${motor.plat}')" style="background:none; border:none; color:var(--soft-red); cursor:pointer; font-size:12px; margin-left:10px;">✕</button>` : '';
 
                 queueBox.innerHTML = `
                     <div style="display:flex; align-items:center;">
@@ -1739,25 +1756,25 @@
         }
         
         // --- QUEUE ACTIONS ---
-        window.removeFromQueue = (i, plat) => {
-             showPopup('confirm', 'HAPUS ANTRIAN', `Hapus ${plat} dari antrian #${i+1}?`, () => {
-                runTransaction(db, async(t) => {
-                    const d = (await t.get(ref)).data();
-                    let q = d.waitingQueue;
-                    
-                    if(i >= 0 && i < q.length) {
-                        q.splice(i, 1);
-                    }
-                    t.update(ref, {waitingQueue:q});
-                }).then(() => {
-                    logActivity('ADMIN_REMOVE_QUEUE', plat, 'ADMIN', { index: i + 1 });
-                    showPopup('success', 'SUKSES', `Antrian #${i+1} (${plat}) berhasil dihapus.`);
-                }).catch(e => {
-                    logActivity('ADMIN_REMOVE_QUEUE_FAIL', plat, 'ADMIN', { index: i + 1, error: e.toString() });
-                    showPopup('error', 'GAGAL', e.toString());
+        window.delQ = (i, platName) => {
+             const myPlat = localStorage.getItem('myPlat');
+             const logUser = isAdminLoggedIn ? 'ADMIN' : myPlat;
+            
+             if(!isAdminLoggedIn && myPlat !== platName) {
+                 return showPopup('error', 'AKSES DITOLAK', 'Ini bukan motor lu bangsat');
+             }
+
+             showPopup('confirm','HAPUS', 'Hapus antrian ini?', () => { 
+                runTransaction(db, async(t)=>{
+                    const q = (await t.get(ref)).data().waitingQueue;
+                    q.splice(i,1); t.update(ref, {waitingQueue:q});
+                }).then(() => { 
+                    logActivity('USER_DELETE_QUEUE', platName, logUser, { index: i + 1 });
+                    showPopup('success', 'SUKSES', `Antrian ${platName} berhasil dihapus.`);
                 });
-            });
+             });
         };
+
 
         // --- ADMIN FUNCTIONS ---
         function updateQueueSelectors(queue) {
@@ -1807,47 +1824,10 @@
                 document.getElementById('manPlat').value = '';
                 document.getElementById('manBattery').value = '';
             }).catch(e => {
-                logActivity('ADMIN_MANUAL_ASSIGN_FAIL', plat, 'ADMIN', { slot: slotIndex + 1, error: e.toString() });
                 showPopup('error', 'GAGAL', e);
             });
         };
         
-        window.adminRegisterQueue = () => {
-             const plat = document.getElementById('queuePlat').value.toUpperCase().replace(/\s/g, '').trim();
-             const name = document.getElementById('queueName').value.trim() || 'ADMIN_ENTRY'; 
-             const wa = document.getElementById('queueWA').value.trim() || 'N/A';
-             const bat = parseInt(document.getElementById('queueBattery').value);
-            
-             if(!plat || isNaN(bat) || bat < 0 || bat > 99) {
-                 return showPopup('error', 'DATA KURANG', 'Plat dan Baterai harus valid (0-99).');
-             }
-             
-             runTransaction(db, async(t) => {
-                 const d = (await t.get(ref)).data();
-                 let s = d.chargingSlots;
-                 let q = d.waitingQueue;
-                 
-                 if(s.some(x=>x?.plat===plat) || q.some(x=>x?.plat===plat)) throw "Plat sudah ada di slot atau antrian!";
-                 
-                 const target = calculateTargetLimit(q.length + 1); // Hitung target seolah-olah sudah ada di queue
-                 const dur = calculateDuration(bat, target);
-                 
-                 q.push({ plat:plat, userName:name, wa:wa, startBattery:bat, targetLimit:target, durationMinutes:dur, startTime:null });
-                 
-                 t.update(ref, {waitingQueue:q});
-             }).then(() => {
-                 logActivity('ADMIN_REGISTER_QUEUE', plat, 'ADMIN', { bat: bat });
-                 showPopup('success', 'SUKSES', `Plat ${plat} berhasil dimasukkan ke Antrian.`);
-                 document.getElementById('queuePlat').value = '';
-                 document.getElementById('queueName').value = '';
-                 document.getElementById('queueWA').value = '';
-                 document.getElementById('queueBattery').value = '';
-             }).catch(e => {
-                 logActivity('ADMIN_REGISTER_QUEUE_FAIL', plat, 'ADMIN', { error: e.toString() });
-                 showPopup('error', 'GAGAL', e);
-             });
-        };
-
         window.clearSlotManual = () => {
             const slotIndex = parseInt(document.getElementById('manSlot').value);
             showPopup('confirm', 'KONFIRMASI HAPUS', `Hapus Slot ${slotIndex + 1} secara paksa?`, () => {
