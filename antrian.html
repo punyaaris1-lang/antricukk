@@ -33,7 +33,6 @@
         #mp3PlayerFrame { width: 100%; height: 100%; border: none; }
         .player-toggle { position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.9); color: var(--accent); text-align: center; font-size: 9px; padding: 4px; cursor: pointer; font-weight: 800; border-top: 1px solid var(--border); }
 
-        /* GRID SLOT */
         .slots-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 30px; }
         .slot-box { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 10px 5px; text-align: center; min-height: 350px; display: flex; flex-direction: column; justify-content: flex-start; position: relative; }
         .slot-box.active { border-color: var(--accent); background: rgba(204, 255, 0, 0.05); box-shadow: 0 0 15px rgba(204, 255, 0, 0.1); }
@@ -68,8 +67,8 @@
         .bg-red { background: rgba(255,0,0,0.3); color: var(--soft-red); border: 1px solid var(--soft-red); }
         .bg-blue { background: rgba(0,210,255,0.2); color: var(--cyan); border: 1px solid var(--cyan); }
 
-        /* QUEUE LIST (SCROLLABLE & RAPI) */
-        #queueList { max-height: 300px; overflow-y: auto; padding-right: 5px; }
+        /* SCROLLABLE QUEUE LIST */
+        #queueList { max-height: 250px; overflow-y: auto; padding-right: 5px; }
         .queue-item-display { display: flex; justify-content: space-between; background: var(--card-bg); padding: 12px; margin-bottom: 8px; border-radius: 8px; border: 1px solid var(--border); align-items: center; }
         .queue-item-display.is-mine { border: 2px solid var(--cyan); background: rgba(0,210,255,0.1); }
 
@@ -271,18 +270,28 @@
 
         onSnapshot(ref, (s) => {
             const d=s.data()||{}; latestSlots=d.chargingSlots||[null,null,null]; latestQueue=d.waitingQueue||[];
+            
+            // AUTO RESET KE DEPAN JIKA DIKOSONGKAN
+            const myPlat = localStorage.getItem('myPlat');
+            const isAdmin = checkIsAdmin();
+            if (myPlat && !isAdmin) {
+                const inSlot = latestSlots.some(s => s?.plat === myPlat);
+                const inQueue = latestQueue.some(q => q.plat === myPlat);
+                if (!inSlot && !inQueue) {
+                    localStorage.removeItem('myPlat');
+                    checkDisplayMode(); 
+                }
+            }
+
             checkDisplayMode();
             
             const qc = document.getElementById('queueList'); qc.innerHTML = latestQueue.length ? '' : '<div style="text-align:center;color:#666;font-size:12px;">Antrian Kosong</div>';
             
-            // FIX COUNTER DISINI
+            // FIX COUNTER
             const qLen = latestQueue.length;
             document.getElementById('qsQueueCountValue').innerText = qLen;
-            document.getElementById('qCount').innerText = `(${qLen})`; // Update (0) jadi (1)
+            document.getElementById('qCount').innerText = `(${qLen})`; // Update di header box
             document.getElementById('qsMaxTargetValue').innerText = `${calculateTargetLimit(qLen)}%`;
-
-            const isAdmin = checkIsAdmin();
-            const myPlat = localStorage.getItem('myPlat');
 
             latestQueue.forEach((m,i)=>{ 
                 const div=document.createElement('div'); 
