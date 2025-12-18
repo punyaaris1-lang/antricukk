@@ -6,8 +6,18 @@
     <title>FC Kelapa Gading - Smart Charging</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&family=Syne:wght@700;800&display=swap" rel="stylesheet">
     <style>
-        /* TEMA NEON FINAL */
-        :root { --accent: #CCFF00; --bg: #050505; --card-bg: #111; --text: #fff; --text-muted: #888; --cyan: #00d2ff; --soft-red: #FF3B30; --border: #333; --input-bg: #222; }
+        /* --- TEMA NEON FINAL --- */
+        :root { 
+            --accent: #CCFF00; 
+            --bg: #050505; 
+            --card-bg: #111; 
+            --text: #fff; 
+            --text-muted: #888; 
+            --cyan: #00d2ff; 
+            --soft-red: #FF3B30; 
+            --border: #333; 
+            --input-bg: #222; 
+        }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { margin: 0; font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; position: relative; overflow-x: hidden; }
         body::before { content: ''; position: fixed; inset: 0; background: url('1763947427555.jpg') center/cover; opacity: 0.35; z-index: -1; }
@@ -27,19 +37,33 @@
         input.field:focus { border-color: var(--accent); box-shadow: 0 0 10px rgba(204, 255, 0, 0.2); }
         .btn-cyan { width: 100%; background: linear-gradient(90deg, var(--accent), #e6ff66); border: none; padding: 16px; border-radius: 10px; color: #000; font-weight: 800; font-size: 16px; cursor: pointer; box-shadow: 0 0 20px rgba(204, 255, 0, 0.3); font-family: 'Inter', sans-serif; }
 
-        /* STATUS BAR SEJAJAR */
-        #quickStatusSummary { padding: 15px; background: var(--card-bg); border: 1px solid var(--cyan); border-radius: 10px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; }
+        /* STATUS BAR SEJAJAR (FIXED) */
+        #quickStatusSummary { 
+            padding: 15px; background: var(--card-bg); border: 1px solid var(--cyan); 
+            border-radius: 10px; margin-bottom: 25px; 
+            display: flex; justify-content: space-between; align-items: center; 
+        }
         #qsContent { display: flex; justify-content: space-between; width: 100%; font-family: 'Syne', sans-serif; font-weight: 900; font-size: 14px; }
         .qs-item { display: flex; align-items: baseline; gap: 5px; }
         .qs-value { color: var(--accent); font-size: 18px; text-shadow: 0 0 5px rgba(204,255,0,0.5); }
 
-        /* SLOT GRID */
+        /* SLOT GRID & BOX */
         .slots-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 30px; }
-        .slot-box { background: var(--card-bg); border: 1px solid var(--border); border-radius: 15px; padding: 10px 5px; text-align: center; min-height: 250px; display: flex; flex-direction: column; justify-content: flex-start; position: relative; transition: 0.3s; }
+        .slot-box { 
+            background: var(--card-bg); border: 1px solid var(--border); border-radius: 15px; 
+            padding: 10px 5px; text-align: center; min-height: 260px; /* Sedikit lebih tinggi utk nama */
+            display: flex; flex-direction: column; justify-content: flex-start; position: relative; transition: 0.3s; 
+        }
         .slot-box.active { border-color: var(--accent); background: rgba(204, 255, 0, 0.05); box-shadow: 0 0 15px rgba(204, 255, 0, 0.2); }
         
         /* BATTERY ICON */
-        .bat-icon { width: 40px; height: 65px; border: 2px solid #fff; border-radius: 6px; position: relative; margin: 10px auto 15px; display: flex; align-items: flex-end; padding: 3px; z-index: 5; background: rgba(0,0,0,0.5); }
+        .bat-icon { 
+            width: 40px; height: 65px; 
+            border: 2px solid #fff; border-radius: 6px; 
+            position: relative; margin: 5px auto 10px; 
+            display: flex; align-items: flex-end; padding: 3px; z-index: 5; 
+            background: rgba(0,0,0,0.6); 
+        }
         .bat-icon::before { content: ''; position: absolute; top: -6px; left: 10px; width: 16px; height: 4px; background: #fff; border-radius: 2px 2px 0 0; }
         .bat-fill { width: 100%; background: var(--accent); border-radius: 2px; transition: height 0.5s; box-shadow: 0 0 10px var(--accent); min-height: 2px; }
         .slot-box.active .bat-icon { border-color: var(--accent); } 
@@ -48,15 +72,11 @@
         @keyframes pulse { from { filter: brightness(1); box-shadow: 0 0 5px var(--accent); } to { filter: brightness(1.3); box-shadow: 0 0 20px var(--accent); } }
         .bat-bolt { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 24px; color: #fff; z-index: 6; text-shadow: 0 0 5px #000; }
 
-        /* TIMER DISPLAY - FONT DIGANTI JADI INTER */
+        /* TIMER DISPLAY (FONT INTER) */
         .timer-display { 
-            font-family: 'Inter', sans-serif; /* FONT TEGAS */
-            font-size: 24px; 
-            font-weight: 900; 
-            color: var(--accent); 
-            text-shadow: 0 0 10px rgba(204, 255, 0, 0.5); 
-            margin: 5px 0; 
-            letter-spacing: -1px;
+            font-family: 'Inter', sans-serif; font-size: 24px; font-weight: 900; 
+            color: var(--accent); text-shadow: 0 0 10px rgba(204, 255, 0, 0.5); 
+            margin: 0 0 5px; letter-spacing: -1px; 
         }
         
         .bat-info-container { font-size: 9px; text-align: left; padding: 5px; background: rgba(0,0,0,0.5); border-radius: 5px; border: 1px solid var(--border); margin-bottom: auto; }
@@ -69,7 +89,7 @@
         .btn-stop { background: rgba(255, 59, 48, 0.15); border: 1px solid var(--soft-red); color: var(--soft-red); }
         .btn-edit { background: rgba(0, 210, 255, 0.15); border: 1px solid var(--cyan); color: var(--cyan); }
 
-        /* MODAL POPUP */
+        /* POPUP MODAL */
         #choiceModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 99999; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
         .choice-box { background: #111; border: 2px solid var(--cyan); padding: 40px 30px; border-radius: 25px; width: 85%; max-width: 350px; text-align: center; box-shadow: 0 0 50px rgba(0, 210, 255, 0.3); animation: pop 0.4s; }
         .choice-btns { display: flex; flex-direction: column; gap: 15px; margin-top: 30px; }
@@ -161,13 +181,10 @@
             <hr style="border:0;border-top:1px solid #333;margin:15px 0;">
             
             <label style="color:var(--cyan)">MANAJEMEN ANTRIAN & PINDAH</label>
-            <div style="margin-bottom:5px;font-size:10px;color:#888;">Tukar Antrian:</div>
             <div class="adm-row"><select id="queueSource" class="field" style="padding:10px;width:40%;margin:0;"></select><select id="queueTarget" class="field" style="padding:10px;width:40%;margin:0;"></select><button onclick="swapQueuePositions()" class="btn-act" style="width:20%;background:var(--accent);color:#000;">TUKAR</button></div>
             
-            <div style="margin-bottom:5px;font-size:10px;color:#888;">Pindah Slot:</div>
             <div class="adm-row"><select id="slotSource" class="field" style="padding:10px;width:30%;margin:0;"></select><select id="slotTarget" class="field" style="padding:10px;width:30%;margin:0;"></select><button onclick="swapSlots()" class="btn-cyan" style="width:40%;padding:10px;margin:0;">PINDAH</button></div>
             
-            <div style="margin-bottom:5px;font-size:10px;color:#888;">Antrian -> Slot:</div>
             <div class="adm-row"><select id="assignQueueIndex" class="field" style="padding:10px;width:50%;margin:0;"></select><select id="assignSlotTarget" class="field" style="padding:10px;width:50%;margin:0;"></select></div>
             <button onclick="assignQueueToSlot()" class="btn-cyan" style="padding:10px;margin-bottom:10px;width:100%;">MASUKKAN KE SLOT</button>
             
@@ -186,7 +203,7 @@
 
         <div class="footer">Aplikasi ini buatan MLU bukan punya Maka</div>
     </div>
-        <script type="module">
+    <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
         import { getFirestore, doc, onSnapshot, runTransaction, setDoc, collection, addDoc, arrayRemove, arrayUnion } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
         import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-functions.js";
@@ -199,7 +216,7 @@
         let isGpsBypassEnabled = localStorage.getItem('gpsBypass') === 'true';
         let fcmToken = null;
         let audioCtx = null;
-        let triggeredAlarms = new Set(); // Ini untuk mencatat agar WA tidak dikirim berkali-kali
+        let triggeredAlarms = new Set(); // Pengunci agar notif WA hanya dikirim 1x per sesi
 
         const firebaseConfig = { apiKey: "AIzaSyALIlkIDALIk83K8s1htalvW6rmNNw02Go", authDomain: "sistem-antrian-b1c39.firebaseapp.com", projectId: "sistem-antrian-b1c39", storageBucket: "sistem-antrian-b1c39.firebasestorage.app", messagingSenderId: "454124587608", appId: "1:454124587608:web:34fbb0f5211067a67f982d" };
         const app = initializeApp(firebaseConfig);
@@ -211,10 +228,10 @@
         const STATION_LOC = { lat: -6.171583, lng: 106.899844 }; 
         const MAX_DIST_KM = 0.2; 
         
-        // --- MASUKKAN TOKEN FONNTE ANDA DI SINI ---
-        const FONTE_TOKEN = "MuR8CucXAsYd2YvWBxVo"; 
+        // --- MASUKKAN TOKEN FONNTE DI SINI ---
+        const FONTE_TOKEN = "MASUKKAN_TOKEN_FONNTE_DISINI"; 
 
-        // --- DATABASE PESAN WA (Teks akan dipilih acak agar terlihat natural) ---
+        // --- DATABASE PESAN WA ---
         const WA_MESSAGES = [
             (plat, name) => `Halo ${name} (${plat})! Pengisian daya selesai. Mohon pindahkan motor dari slot.`,
             (plat, name) => `Hai ${name}, motor ${plat} sudah 100%. Silakan diambil ya. Terima kasih!`,
@@ -256,19 +273,21 @@
             return 100;
         }
 
-        // --- FUNGSI KIRIM WA ---
+        // --- FUNGSI KIRIM WA (FIX KE NOMOR USER) ---
         function sendWhatsAppNotification(plat, wa, name) {
-            // Cek apakah nomor WA valid (minimal 10 digit) dan token sudah diisi
-            if (!wa || wa.length < 9 || wa === '-' || FONTE_TOKEN === "MASUKKAN_TOKEN_FONNTE_DISINI") return;
+            // Validasi: Pastikan nomor WA ada isinya (dari input user)
+            if (!wa || wa.length < 9 || wa === '-' || FONTE_TOKEN === "MASUKKAN_TOKEN_FONNTE_DISINI") {
+                console.log("WA Batal: Nomor tidak valid atau Token kosong.");
+                return;
+            }
 
             const index = Math.floor(Math.random() * WA_MESSAGES.length);
             const msg = WA_MESSAGES[index](plat, name);
             
-            // Log ke console untuk debugging
-            console.log(`Mengirim WA ke ${name} (${wa})...`);
+            console.log(`Mengirim WA ke USER: ${name} (${wa})...`);
 
             const formData = new FormData();
-            formData.append('target', wa);
+            formData.append('target', wa); // INI NOMOR USER DARI DATABASE
             formData.append('message', msg + "\n\n- Smart Charging MLU");
 
             fetch('https://api.fonnte.com/send', {
@@ -277,11 +296,11 @@
                 body: formData
             })
             .then(response => response.json())
-            .then(data => console.log('WA Sent:', data))
+            .then(data => console.log('WA Status:', data))
             .catch(error => console.error('WA Error:', error));
         }
 
-        // --- UI RENDER (WA TRIGGER ADDED) ---
+        // --- UI RENDER (WARNA NAMA DIGANTI PUTIH TERANG) ---
         function renderSlots(slots) {
             const c = document.getElementById('slotsContainer'); c.innerHTML='';
             slots.forEach((m, i) => {
@@ -297,35 +316,39 @@
                         // SLOT SELESAI
                         if (!triggeredAlarms.has(m.plat)) {
                             triggeredAlarms.add(m.plat);
-                            // --- TRIGGER WA DISINI ---
+                            // --- KIRIM WA SEKALI KE NOMOR USER (m.wa) ---
                             sendWhatsAppNotification(m.plat, m.wa, m.userName);
                         }
 
                         box.innerHTML=`
                             <div style="font-weight:700;color:var(--soft-red);font-size:12px;">SLOT ${i+1}</div>
                             <div style="font-size:20px;font-weight:900;margin-top:10px;font-family:'Inter'">${m.plat}</div>
-                            <div style="font-size:11px;color:#aaa;font-weight:400;margin-bottom:10px;">${m.userName}</div>
+                            <div style="font-size:12px;color:#fff;font-weight:700;margin-bottom:10px;text-shadow:0 0 5px #000;">${m.userName}</div>
+                            
                             <div style="font-size:16px;color:var(--soft-red);font-weight:800;">SELESAI</div>
                             <div style="font-size:30px;">❌</div>
                             <div class="btn-group"><button onclick="act(${i},'stop','${m.plat}')" class="btn-act btn-stop">KOSONGKAN</button></div>
                         `;
                     } else {
                         // SLOT BERJALAN
-                        if(isMine && rem < 5) { box.classList.add('pulsating'); } // Alarm visual
+                        if(isMine && rem < 5) { box.classList.add('pulsating'); } 
                         let dispBat = getBatteryFromRemTime(rem);
                         dispBat = Math.max(m.startBattery, dispBat); dispBat = Math.min(m.targetLimit, dispBat);
 
                         box.innerHTML=`
                             <div style="font-size:10px;font-weight:700;color:var(--accent)">SLOT ${i+1}</div>
                             <div style="font-size:18px;font-weight:900;margin-top:5px;font-family:'Inter';letter-spacing:1px;">${m.plat}</div>
-                            <div style="font-size:11px;color:#aaa;font-weight:400;margin-bottom:5px;">${m.userName}</div>
+                            <div style="font-size:12px;color:#fff;font-weight:700;margin-bottom:5px;text-shadow:0 0 5px #000;">${m.userName}</div>
+                            
                             <div class="timer-display">${formatTime(rem)}</div>
                             <div class="bat-icon"><span class="bat-bolt">⚡</span><div class="bat-fill pulsating-fill" style="height:${dispBat}%"></div></div>
+                            
                             <div class="bat-info-container">
                                 <div class="bat-info-row"><span class="info-label">Awal:</span><span class="info-value">${m.startBattery}%</span></div>
                                 <div class="bat-info-row"><span class="info-label">Target:</span><span class="info-value">${m.targetLimit}%</span></div>
                                 <div class="bat-info-row"><span class="info-label">Saat ini:</span><span class="info-value" style="color:#0f0">${dispBat}%</span></div>
                             </div>
+                            
                             <div class="btn-group">
                                 ${isAdminLoggedIn ? `<button onclick="editTimer(${i})" class="btn-act btn-edit">EDIT TIMER</button>` : ''}
                                 <button onclick="act(${i},'stop','${m.plat}')" class="btn-act btn-stop">STOP & KOSONGKAN</button>
@@ -333,14 +356,16 @@
                         `;
                     }
                 } else if(m) {
-                    // SLOT READY
+                    // SLOT READY (WAITING)
                     box.classList.add('active'); box.style.borderColor='var(--cyan)';
                     box.innerHTML=`
                         <div style="color:var(--cyan);font-weight:700;font-size:10px;">SLOT ${i+1}</div>
                         <div style="font-size:18px;font-weight:900;margin-top:5px;font-family:'Inter'">${m.plat}</div>
-                        <div style="font-size:11px;color:#aaa;font-weight:400;margin-bottom:5px;">${m.userName}</div>
+                        <div style="font-size:12px;color:#fff;font-weight:700;margin-bottom:5px;text-shadow:0 0 5px #000;">${m.userName}</div>
+                        
                         <div style="font-family:'Syne';font-size:16px;font-weight:900;color:var(--cyan);margin-bottom:10px;">READY</div>
                         <div class="bat-icon" style="border-color:var(--cyan)"><div class="bat-fill" style="height:${m.startBattery}%;background:var(--cyan)"></div></div>
+                        
                         <div class="btn-group">
                             ${(isAdminLoggedIn || isMine) ? `<button onclick="act(${i},'start')" class="btn-act btn-start">MULAI CAS</button>` : ''}
                             <button onclick="act(${i},'stop','${m.plat}')" class="btn-act btn-stop">BATAL</button>
