@@ -6,10 +6,10 @@
     <title>FC Admin Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
+        /* CSS SAMA SEPERTI SEBELUMNYA (RESPONSIF) */
         :root { --bg: #141414; --surface: #1e1e1e; --border: #333; --text: #eee; --accent: #CCFF00; --red: #ff4444; }
         * { box-sizing: border-box; outline: none; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; width: 100vw; overflow-x: hidden; }
-        
         .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 15px; margin-bottom: 20px; }
         h1 { margin: 0; font-size: 16px; color: var(--accent); }
         .login-box { width: 100%; max-width: 320px; margin: 50px auto; text-align: center; padding: 25px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
@@ -17,63 +17,90 @@
         input:focus, select:focus { border-color: var(--accent); }
         button { width: 100%; padding: 12px; background: var(--accent); border: none; font-weight: 900; cursor: pointer; border-radius: 8px; font-size: 14px; color: #000; text-transform: uppercase; }
         button.red { background: rgba(255,68,68,0.2); color: var(--red); border: 1px solid var(--red); }
-        
+        button.blue { background: rgba(0, 210, 255, 0.2); color: #00d2ff; border: 1px solid #00d2ff; }
         .grid { display: flex; flex-direction: column; gap: 20px; }
         @media(min-width: 768px) { .grid { display: grid; grid-template-columns: 350px 1fr; } } 
         .card { background: var(--surface); padding: 15px; border-radius: 12px; border: 1px solid var(--border); width: 100%; }
         h2 { font-size: 14px; margin-top: 0; border-bottom: 1px solid #333; padding-bottom: 10px; color: #aaa; letter-spacing: 1px; }
-        
         .log-container { height: 500px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-right: 5px; }
         .log-card { background: #252525; padding: 12px; border-radius: 8px; border-left: 4px solid #555; font-size: 12px; }
         .log-head { display: flex; justify-content: space-between; margin-bottom: 5px; font-weight: bold; color: #888; font-size: 10px; }
         .log-body { color: #fff; line-height: 1.4; word-wrap: break-word; }
         .status-KRITIS { border-left-color: var(--red); background: rgba(255,0,0,0.1); }
         .status-AWAS { border-left-color: orange; }
+        .status-INFO { border-left-color: var(--accent); }
         .action-needed { margin-top: 8px; padding: 8px; background: rgba(255,0,0,0.2); border: 1px dashed var(--red); color: #ffcccc; border-radius: 4px; font-size: 11px; }
         .btn-group { display: flex; gap: 8px; width: 100%; }
         .btn-group input, .btn-group select, .btn-group button { flex: 1; }
     </style>
 </head>
 <body>
+
     <div id="loginScreen" class="login-box">
         <h2 style="color:var(--accent)">SUPER ADMIN</h2>
         <input type="password" id="pinInput" placeholder="PIN: 8080" style="text-align:center;">
         <button onclick="login()">MASUK</button>
-        <br><br><a href="antrian.html" style="color:#666;font-size:12px;text-decoration:none;">← KEMBALI KE LAYAR USER</a>
+        <br><br><a href="antrian.html" style="color:#666;font-size:12px;text-decoration:none;">← BATAL (KEMBALI KE USER)</a>
     </div>
 
     <div id="dashboard" style="display:none;">
-        <div class="header"><h1>ADMIN CONSOLE</h1><button onclick="logout()" class="red" style="width:auto; padding:8px 20px;">KELUAR</button></div>
+        <div class="header">
+            <h1>ADMIN CONSOLE</h1>
+            <div style="display:flex; gap:10px;">
+                <button onclick="goToUserView()" class="blue" style="width:auto; padding:8px 15px; font-size:10px;">MONITOR USER</button>
+                <button onclick="logout()" class="red" style="width:auto; padding:8px 15px; font-size:10px;">LOGOUT</button>
+            </div>
+        </div>
+
         <div class="grid">
             <div>
                 <div class="card">
                     <h2>KONTROL SLOT</h2>
                     <select id="manSlot"></select>
-                    <div class="btn-group"><input id="manPlat" placeholder="Plat"><input id="manBat" type="number" placeholder="%" style="flex:0.4;"></div>
+                    <div class="btn-group">
+                        <input id="manPlat" placeholder="Plat">
+                        <input id="manBat" type="number" placeholder="%" style="flex:0.4;">
+                    </div>
                     <button onclick="manualAssign()">ISI SLOT (PAKSA)</button>
                     <button onclick="clearSlot()" class="red" style="margin-top:8px;">KOSONGKAN & TARIK ANTRIAN</button>
                 </div>
+
                 <div class="card" style="margin-top:20px;">
                     <h2>ANTRIAN MANUAL</h2>
                     <input id="qPlat" placeholder="Plat">
-                    <div class="btn-group"><input id="qName" placeholder="Nama"><input id="qBat" type="number" placeholder="%" style="flex:0.4;"></div>
+                    <div class="btn-group">
+                        <input id="qName" placeholder="Nama">
+                        <input id="qBat" type="number" placeholder="%" style="flex:0.4;">
+                    </div>
                     <input id="qWA" placeholder="WA">
                     <button onclick="regQueue()">DAFTAR ANTRIAN</button>
+                    
                     <hr style="border:0; border-top:1px dashed #333; margin:15px 0;">
+                    
                     <label style="font-size:10px; color:#888;">PINDAHKAN ANTRIAN</label>
-                    <div class="btn-group"><select id="qIdx" style="flex:2"></select><select id="qTarget" style="flex:1"></select></div>
+                    <div class="btn-group">
+                        <select id="qIdx" style="flex:2"></select>
+                        <select id="qTarget" style="flex:1"></select>
+                    </div>
                     <button onclick="moveQueue()">PINDAHKAN</button>
                 </div>
+
                 <div class="card" style="margin-top:20px;">
                     <h2>KEAMANAN</h2>
                     <input id="blockPlat" placeholder="Plat Bermasalah">
-                    <div class="btn-group"><button onclick="doBlock()" class="red">BLOKIR</button><button onclick="doUnblock()" style="background:#444; color:#fff;">BUKA</button></div>
+                    <div class="btn-group">
+                        <button onclick="doBlock()" class="red">BLOKIR</button>
+                        <button onclick="doUnblock()" style="background:#444; color:#fff;">BUKA</button>
+                    </div>
                     <div id="blockList" style="font-size:10px; color:var(--red); margin-top:5px;"></div>
                 </div>
             </div>
+
             <div class="card">
                 <h2 style="color:var(--accent);">LOG AKTIVITAS (REAL-TIME)</h2>
-                <div id="logContainer" class="log-container"><div style="text-align:center; color:#666; padding-top:50px;">Menunggu Data...</div></div>
+                <div id="logContainer" class="log-container">
+                    <div style="text-align:center; color:#666; padding-top:50px;">Menunggu Data...</div>
+                </div>
             </div>
         </div>
     </div>
@@ -90,20 +117,24 @@
 
         const PIN = "8080";
         
-        // --- AUTH LOGIC (FIXED) ---
-        // Menggunakan key 'superAdminAuth' agar cocok dengan antrian.html
         window.login = () => {
             if(document.getElementById('pinInput').value === PIN) {
-                localStorage.setItem('superAdminAuth', 'true'); // FIX KEY
+                localStorage.setItem('superAdminAuth', 'true'); // KUNCI UTAMA
                 checkAuth();
             } else alert('PIN SALAH');
         };
+        
+        // FUNGSI BARU: Pindah ke tampilan user TANPA Logout
+        window.goToUserView = () => {
+            window.location.href = "antrian.html"; 
+        };
+
         window.logout = () => { 
-            localStorage.removeItem('superAdminAuth'); // FIX KEY
+            localStorage.removeItem('superAdminAuth'); 
             window.location.href="antrian.html"; 
         };
+        
         function checkAuth() {
-            // Cek key yang benar
             const isAuth = localStorage.getItem('superAdminAuth') === 'true';
             document.getElementById('loginScreen').style.display = isAuth ? 'none' : 'block';
             document.getElementById('dashboard').style.display = isAuth ? 'block' : 'none';
