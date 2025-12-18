@@ -40,7 +40,7 @@
         .slot-box { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 10px 5px; text-align: center; min-height: 350px; display: flex; flex-direction: column; justify-content: flex-start; position: relative; }
         .slot-box.active { border-color: var(--accent); background: rgba(204, 255, 0, 0.05); box-shadow: 0 0 15px rgba(204, 255, 0, 0.1); }
 
-        /* --- BATERAI DESIGN (TEXT DIPERBESAR) --- */
+        /* --- BATERAI DESIGN --- */
         .bat-icon { width: 55px; height: 90px; border: 3px solid #fff; border-radius: 8px; margin: 10px auto 5px; position: relative; display: flex; align-items: flex-end; padding: 3px; z-index: 1; }
         .bat-icon::before { content: ''; position: absolute; top: -7px; left: 50%; transform: translateX(-50%); width: 24px; height: 5px; background: #fff; border-radius: 3px 3px 0 0; }
         .bat-fill { width: 100%; background: var(--accent); border-radius: 4px; transition: height 0.5s; box-shadow: 0 0 15px var(--accent); }
@@ -48,7 +48,7 @@
         .pulsating-fill { animation: pulse 1s infinite alternate; }
         @keyframes pulse { from { filter: brightness(1); } to { filter: brightness(1.3); } }
 
-        /* INFO TEXT (LEBIH GEDE & JELAS) */
+        /* INFO TEXT (GEDE) */
         .bat-stats { font-size: 11px; text-align: center; margin-top: auto; margin-bottom: 10px; font-weight: 700; line-height: 1.5; background: rgba(0,0,0,0.3); border-radius: 6px; padding: 5px 0; }
         .stat-row { display: flex; justify-content: space-between; padding: 0 5px; }
         .c-start { color: #ccc; }
@@ -225,6 +225,14 @@
             return Math.max(1, Math.ceil(timeStart - timeTarget));
         }
         function calculateTargetLimit(len) { return len>=6?90 : len>=3?95 : 100; }
+        
+        // HELPER DATE
+        function parseDate(ts) {
+            if(!ts) return null;
+            if(ts.toDate) return ts.toDate();
+            if(ts instanceof Date) return ts;
+            return new Date(ts);
+        }
 
         // --- RENDER SLOT (RESTORASI TAMPILAN) ---
         function renderSlots(slots) {
@@ -235,7 +243,8 @@
                 if(isMine) box.classList.add('active');
 
                 if(m && m.startTime) {
-                    const end = new Date(m.startTime.seconds*1000 + m.durationMinutes*60000);
+                    const st = parseDate(m.startTime);
+                    const end = new Date(st.getTime() + m.durationMinutes*60000);
                     const rem = (end - new Date())/60000;
                     
                     if(rem <= 0) {
@@ -318,7 +327,7 @@
                 div.innerHTML=`<div style="display:flex;align-items:center;"><span style="font-family:'Inter';font-weight:900;font-size:16px;width:30px;color:var(--accent);">#${i+1}</span><div style="margin-left:5px;font-size:12px;color:#fff;"><b>${m.plat}</b> <span style="color:#aaa;">(${m.userName})</span></div></div><div style="font-size:12px;color:#fff;">${m.startBattery}%</div>`; 
                 qc.appendChild(div); 
             });
-            renderSlots(latestSlots);
+            renderSlots(latestSlots); // Initial render
 
             // UPDATE MINI ADMIN DROPDOWNS
             if(isAdminLoggedIn) {
@@ -377,19 +386,29 @@
             }).then(()=>{ localStorage.setItem('myPlat',plat); alert('Berhasil!'); }).catch(e=>alert(e));
         }
 
-        // --- MINI ADMIN ACTIONS (FULL) ---
+        // --- MINI ADMIN ACTIONS (WITH AUTO CALCULATE) ---
         window.miniManualAssign = () => {
             const s=document.getElementById('miniSlotSelect').value;
             const p=document.getElementById('miniPlatInput').value.toUpperCase();
             const b=parseInt(document.getElementById('miniBatInput').value);
             if(!p || isNaN(b)) return alert('Lengkapi Data');
+            
+            // USE LOGIC AUTO CALCULATE HERE
+            const target = 100;
+            const dur = calculateDuration(b, target);
+
             runTransaction(db, async(t)=>{
                 const d=(await t.get(ref)).data();
                 if(d.chargingSlots[s]) throw "Slot Penuh";
-                d.chargingSlots[s]={plat:p, userName:'ADMIN', wa:'-', startBattery:b, targetLimit:100, durationMinutes:60, startTime:new Date()};
+                d.chargingSlots[s]={
+                    plat:p, userName:'ADMIN', wa:'-', 
+                    startBattery:b, targetLimit:target, durationMinutes:dur, // AUTO TIME
+                    startTime:new Date()
+                };
                 t.update(ref,{chargingSlots:d.chargingSlots});
             }).catch(e=>alert(e));
         };
+        
         window.miniClearSlot = () => {
             const s=document.getElementById('miniSlotSelect').value;
             if(confirm('Clear Paksa?')) runTransaction(db, async(t)=>{ const d=(await t.get(ref)).data(); d.chargingSlots[s]=null; t.update(ref,d); });
@@ -457,21 +476,27 @@
         window.logoutUser = () => { localStorage.removeItem('myPlat'); localStorage.removeItem('isAdminLoggedIn'); localStorage.removeItem('superAdminAuth'); location.reload(); };
         window.onload = checkDisplayMode;
         
-        // AUTO CLEAR
+        // --- REAL-TIME TIMER LOOP (FIX: TIMER JALAN) ---
         setInterval(()=>{
-            if(latestSlots) latestSlots.forEach((m,i)=>{
-                if(m && m.startTime && !isClearing[i]) {
-                    const rem = ((new Date(m.startTime.seconds*1000 + m.durationMinutes*60000)) - new Date()) / 60000;
-                    if(rem <= -1) {
-                        isClearing[i]=true;
-                        runTransaction(db, async(t)=>{
-                            const d=(await t.get(ref)).data(); d.chargingSlots[i]=null;
-                            if(d.waitingQueue.length){const n=d.waitingQueue.shift(); d.chargingSlots[i]={...n, startTime:new Date(), durationMinutes:calculateDuration(n.startBattery,100)};}
-                            t.update(ref,d);
-                        }).finally(()=>isClearing[i]=false);
+            if(latestSlots) {
+                renderSlots(latestSlots); // UPDATE UI SETIAP DETIK
+                
+                // AUTO CLEAR LOGIC
+                latestSlots.forEach((m,i)=>{
+                    if(m && m.startTime && !isClearing[i]) {
+                        const st = parseDate(m.startTime);
+                        const rem = ((new Date(st.getTime() + m.durationMinutes*60000)) - new Date()) / 60000;
+                        if(rem <= -1) {
+                            isClearing[i]=true;
+                            runTransaction(db, async(t)=>{
+                                const d=(await t.get(ref)).data(); d.chargingSlots[i]=null;
+                                if(d.waitingQueue.length){const n=d.waitingQueue.shift(); d.chargingSlots[i]={...n, startTime:new Date(), durationMinutes:calculateDuration(n.startBattery,100)};}
+                                t.update(ref,d);
+                            }).finally(()=>isClearing[i]=false);
+                        }
                     }
-                }
-            });
+                });
+            }
         }, 1000);
     </script>
 </body>
