@@ -3,491 +3,253 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FC Smart Charging - Super Admin Dashboard</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <title>FC Admin Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --bg: #0a0a0a;
-            --surface: #141414;
-            --border: #333;
-            --text: #e0e0e0;
-            --accent: #ccff00; 
-            --soft-red: #ff4444;
-            --cyan: #00ffff;
-            --soft-blue: #4444ff;
-            --terminal-bg: #000000;
-            --terminal-text: #00ff00;
-        }
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
-            margin: 0; padding: 0;
-            min-height: 100vh;
-        }
-        .header {
-            background-color: var(--surface);
-            padding: 15px 20px;
-            border-bottom: 1px solid var(--border);
-            display: flex; justify-content: space-between; align-items: center;
-        }
-        .header h1 { margin: 0; font-size: 16px; font-weight: 900; color: var(--accent); letter-spacing: 1px; }
-        .container { padding: 20px; max-width: 1400px; margin: 0 auto; }
+        :root { --bg: #141414; --surface: #1e1e1e; --border: #333; --text: #eee; --accent: #CCFF00; --red: #ff4444; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; }
         
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 20px;
-        }
-        @media (min-width: 900px) {
-            .dashboard-grid { grid-template-columns: 350px 1fr; } /* Sidebar Tools kiri, Log kanan */
-        }
-
-        .card {
-            background-color: var(--surface);
-            padding: 15px;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-            margin-bottom: 20px;
-        }
-        .card h2 {
-            font-size: 14px; color: var(--text);
-            border-bottom: 1px solid var(--border);
-            padding-bottom: 10px; margin: 0 0 15px 0;
-            font-weight: 700; letter-spacing: 0.5px;
-        }
-
-        /* --- TERMINAL STYLE LOG --- */
-        .log-container {
-            background-color: var(--terminal-bg);
-            border: 1px solid #444;
-            border-radius: 6px;
-            height: 600px; /* Tinggi Terminal */
-            overflow-y: auto;
-            padding: 10px;
-            font-family: 'JetBrains Mono', monospace; /* Font Coding */
-            font-size: 11px;
-            color: #ccc;
-            display: flex;
-            flex-direction: column-reverse; /* Pesan baru di bawah (tapi scroll nempel bawah) */
-        }
-        .log-entry {
-            padding: 2px 0;
-            border-bottom: 1px solid #111;
-            display: flex;
-            gap: 10px;
-        }
-        .log-ts { color: #666; min-width: 60px; }
-        .log-tag { font-weight: bold; min-width: 90px; }
-        .log-msg { flex-grow: 1; word-break: break-all; }
+        /* HEADER & LOGIN */
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 15px; margin-bottom: 20px; }
+        h1 { margin: 0; font-size: 18px; color: var(--accent); }
+        .login-box { max-width: 300px; margin: 100px auto; text-align: center; }
+        input, select { width: 100%; padding: 10px; background: #222; border: 1px solid #444; color: #fff; margin-bottom: 10px; border-radius: 6px; box-sizing: border-box; }
+        button { width: 100%; padding: 10px; background: var(--accent); border: none; font-weight: 800; cursor: pointer; border-radius: 6px; }
+        button.red { background: rgba(255,68,68,0.2); color: var(--red); border: 1px solid var(--red); }
         
-        /* Warna Tag Log */
-        .tag-REGISTER { color: var(--accent); } /* Hijau/Kuning */
-        .tag-AUTO_MOVE { color: var(--cyan); } /* Biru Muda */
-        .tag-AUTO_FINISH { color: #ff00ff; } /* Ungu/Magenta */
-        .tag-MANUAL_STOP { color: var(--soft-red); } /* Merah */
-        .tag-ADMIN_ACTION { color: orange; } /* Oranye */
-        .tag-SYSTEM { color: #888; } /* Abu */
-
-        /* INPUTS & BUTTONS */
-        .input-group { margin-bottom: 10px; }
-        .input-group label { display: block; font-size: 10px; color: #888; margin-bottom: 3px; font-weight: 700; }
-        input, select {
-            width: 100%; padding: 10px;
-            border: 1px solid var(--border); border-radius: 4px;
-            background: #222; color: #fff;
-            font-family: 'Inter'; font-size: 13px;
-            box-sizing: border-box;
-        }
-        .btn {
-            width: 100%; padding: 10px;
-            border: none; border-radius: 4px;
-            font-weight: 800; font-size: 12px;
-            cursor: pointer; margin-top: 5px;
-            text-transform: uppercase;
-        }
-        .btn.primary { background: var(--accent); color: #000; }
-        .btn.danger { background: rgba(255, 68, 68, 0.2); border: 1px solid var(--soft-red); color: var(--soft-red); }
-        .btn.action { background: #333; color: #fff; border: 1px solid #555; }
+        /* LAYOUT */
+        .grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
+        @media(min-width: 768px) { .grid { grid-template-columns: 350px 1fr; } } /* Kiri Tools, Kanan Log */
         
-        .row-btn { display: flex; gap: 5px; }
+        .card { background: var(--surface); padding: 15px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 20px; }
+        h2 { font-size: 14px; margin-top: 0; border-bottom: 1px solid #333; padding-bottom: 10px; color: #888; }
         
-        /* STATUS BADGES */
-        .status-bar { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px; text-align: center; }
-        .stat-box { background: #111; padding: 10px; border-radius: 6px; border: 1px solid var(--border); }
-        .stat-val { font-size: 18px; font-weight: 900; color: var(--accent); }
-        .stat-label { font-size: 10px; color: #888; }
+        /* LOG LIST (ANTI BERTUMPUK) */
+        .log-container { height: 600px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+        .log-card { background: #252525; padding: 10px; border-radius: 6px; border-left: 4px solid #555; font-size: 12px; }
+        .log-head { display: flex; justify-content: space-between; margin-bottom: 5px; font-weight: bold; color: #aaa; font-size: 10px; }
+        .log-body { color: #fff; line-height: 1.4; }
+        
+        /* STATUS COLORS */
+        .status-KRITIS { border-left-color: var(--red); background: rgba(255,0,0,0.1); }
+        .status-AWAS { border-left-color: orange; }
+        .status-INFO { border-left-color: var(--accent); }
+        
+        /* ACTION BOX (DOKTER ADMIN) */
+        .action-needed { margin-top: 8px; padding: 8px; background: rgba(255,0,0,0.2); border: 1px dashed var(--red); color: #ffcccc; border-radius: 4px; }
+        .action-title { font-weight: 900; color: var(--red); display: block; margin-bottom: 2px; }
 
+        .btn-group { display: flex; gap: 5px; }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <h1>SUPER ADMIN_CONSOLE v2.0</h1>
-        <button id="btnLogout" class="btn danger" style="width: auto; padding: 5px 15px; margin: 0;">LOGOUT</button>
+    <div id="loginScreen" class="login-box">
+        <h2 style="color:var(--accent)">SUPER ADMIN</h2>
+        <input type="password" id="pinInput" placeholder="PIN: 8080" style="text-align:center;">
+        <button onclick="login()">MASUK</button>
+        <br><br><a href="antrian.html" style="color:#666;font-size:12px;">Kembali ke User</a>
     </div>
 
-    <div class="container">
-        <div id="loginArea" style="display: none; max-width: 300px; margin: 100px auto; text-align: center;">
-            <h2 style="color: var(--accent);">ACCESS REQUIRED</h2>
-            <input type="password" id="adminPin" placeholder="PIN: 8080" style="text-align: center; margin-bottom: 10px;">
-            <button id="btnLogin" class="btn primary">ENTER SYSTEM</button>
-            <div style="margin-top: 20px;"><a href="./antrian.html" style="color: #666; font-size: 12px; text-decoration: none;">[ Back to Client View ]</a></div>
+    <div id="dashboard" style="display:none;">
+        <div class="header">
+            <h1>ADMIN CONSOLE</h1>
+            <button onclick="logout()" class="red" style="width:auto;">KELUAR</button>
         </div>
 
-        <div id="dashboardArea" style="display: none;">
-            
-            <div class="status-bar" id="quickStatus">
+        <div class="grid">
+            <div>
+                <div class="card">
+                    <h2>KONTROL SLOT</h2>
+                    <select id="manSlot"></select>
+                    <div class="btn-group">
+                        <input id="manPlat" placeholder="Plat">
+                        <input id="manBat" type="number" placeholder="%" style="width:60px;">
+                    </div>
+                    <button onclick="manualAssign()">ISI SLOT (PAKSA)</button>
+                    <button onclick="clearSlot()" class="red" style="margin-top:5px;">KOSONGKAN (PAKSA)</button>
                 </div>
 
-            <div class="dashboard-grid">
-                
-                <div class="left-col">
-                    <div class="card">
-                        <h2>MANAJEMEN SLOT</h2>
-                        <div class="input-group">
-                            <label>TARGET SLOT</label>
-                            <div class="row-btn">
-                                <select id="manSlot" style="flex:1"></select>
-                                <input type="number" id="manBattery" placeholder="Bat %" style="width: 60px;">
-                            </div>
-                        </div>
-                        <input type="text" id="manPlat" placeholder="PLAT NOMOR (e.g. B 1234 ABC)" style="margin-bottom: 5px;">
-                        <button id="btnManualAssign" class="btn primary">ISI SLOT MANUAL</button>
-                        <button id="btnClearSlotManual" class="btn danger">PAKSA KOSONGKAN (CLEAR)</button>
+                <div class="card">
+                    <h2>ANTRIAN MANUAL</h2>
+                    <input id="qPlat" placeholder="Plat">
+                    <div class="btn-group">
+                        <input id="qName" placeholder="Nama">
+                        <input id="qBat" type="number" placeholder="%" style="width:60px;">
                     </div>
-
-                    <div class="card">
-                        <h2>MANAJEMEN ANTRIAN</h2>
-                        <div class="input-group">
-                            <label>TAMBAH ANTRIAN (ADMIN)</label>
-                            <input id="queuePlat" placeholder="Plat" style="margin-bottom: 3px;">
-                            <div class="row-btn">
-                                <input id="queueName" placeholder="Nama" style="flex:1">
-                                <input id="queueBattery" placeholder="Bat%" type="number" style="width: 60px;">
-                            </div>
-                            <input id="queueWA" placeholder="WhatsApp (08...)" style="margin-top: 3px;">
-                        </div>
-                        <button onclick="adminRegisterQueue()" class="btn action">DAFTAR KE ANTRIAN</button>
-                        
-                        <div style="margin: 15px 0; border-top: 1px dashed #333;"></div>
-                        
-                        <label>PINDAH ANTRIAN -> SLOT</label>
-                        <div class="row-btn">
-                            <select id="assignQueueIndex" style="flex:2"></select>
-                            <span style="align-self:center;">➜</span>
-                            <select id="assignSlotTarget" style="flex:1"></select>
-                        </div>
-                        <button id="btnAssignQueueToSlot" class="btn primary">EKSEKUSI PINDAH</button>
+                    <input id="qWA" placeholder="WA">
+                    <button onclick="regQueue()">DAFTAR ANTRIAN</button>
+                    <hr style="border:0; border-top:1px dashed #333; margin:15px 0;">
+                    <label style="font-size:10px; color:#888;">PINDAHKAN ANTRIAN</label>
+                    <div class="btn-group">
+                        <select id="qIdx"></select>
+                        <select id="qTarget"></select>
                     </div>
-
-                    <div class="card">
-                        <h2>DARURAT / SYSTEM</h2>
-                        <div class="row-btn" style="margin-bottom: 10px;">
-                            <select id="slotSource"><option value="-1">Slot A</option></select>
-                            <select id="slotTarget"><option value="-1">Slot B</option></select>
-                        </div>
-                        <button id="btnSwapSlots" class="btn action">TUKAR POSISI SLOT</button>
-                        
-                        <div style="margin: 15px 0; border-top: 1px dashed #333;"></div>
-
-                        <input id="blockPlatInput" placeholder="PLAT BLOKIR" style="margin-bottom: 5px;">
-                        <div class="row-btn">
-                            <button id="btnBlockUser" class="btn danger" style="border:none; background:#330000; color:red;">BLOCK</button>
-                            <button id="btnUnblockUser" class="btn action">UNBLOCK</button>
-                        </div>
-                        <div id="blockedListDisplay" style="font-size: 10px; color: #666; margin-top: 5px;"></div>
-
-                        <div style="margin: 15px 0; border-top: 1px dashed #333;"></div>
-                        <button id="btnStopAll" class="btn danger">STOP ALL CHARGING</button>
-                        <button id="btnResetAll" class="btn danger" style="margin-top: 5px; border: 1px solid red; background: transparent;">RESET DATABASE</button>
-                    </div>
+                    <button onclick="moveQueue()">PINDAHKAN</button>
                 </div>
 
-                <div class="right-col">
-                    <div class="card" style="height: 100%; border: none; background: transparent; padding: 0;">
-                        <h2 style="color: var(--accent); border:none;">SYSTEM LOG (REAL-TIME)</h2>
-                        <div id="logListContainer" class="log-container">
-                            <div style="text-align:center; padding-top: 50px; color: #444;">Connecting to Server Logs...</div>
-                        </div>
+                <div class="card">
+                    <h2>KEAMANAN (BLOKIR)</h2>
+                    <input id="blockPlat" placeholder="Plat Bermasalah">
+                    <div class="btn-group">
+                        <button onclick="doBlock()" class="red">BLOKIR</button>
+                        <button onclick="doUnblock()" style="background:#444; color:#fff;">BUKA BLOKIR</button>
                     </div>
+                    <div id="blockList" style="font-size:10px; color:var(--red); margin-top:5px;"></div>
                 </div>
-
             </div>
-        </div>
-    </div>
 
-    <div id="masterModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; justify-content:center; align-items:center;">
-        <div style="background:#1a1a1a; padding:25px; border:1px solid var(--accent); width:300px; text-align:center; border-radius: 8px;">
-            <h3 id="mTitle" style="color:#fff; margin-top:0;">TITLE</h3>
-            <p id="mMsg" style="color:#aaa; font-size:13px;"></p>
-            <div style="margin-top:20px; display:flex; gap:10px;">
-                <button id="mBtnCancel" class="btn action" style="display:none;">BATAL</button>
-                <button id="mBtnOk" class="btn primary">OK</button>
+            <div class="card" style="height:calc(100vh - 100px); padding:0; background:transparent; border:none;">
+                <h2 style="color:var(--accent);">LOG AKTIVITAS (REAL-TIME)</h2>
+                <div id="logContainer" class="log-container">
+                    <div style="text-align:center; color:#666; padding-top:50px;">Menunggu Data...</div>
+                </div>
             </div>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-        import { getFirestore, doc, onSnapshot, runTransaction, setDoc, collection, addDoc, query, orderBy, limit, updateDoc, arrayRemove, arrayUnion } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+        import { getFirestore, doc, onSnapshot, runTransaction, collection, addDoc, query, orderBy, limit, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
-        // CONFIG
-        const firebaseConfig = {
-            apiKey: "AIzaSyALIlkIDALIk83K8s1htalvW6rmNNw02Go",
-            authDomain: "sistem-antrian-b1c39.firebaseapp.com",
-            projectId: "sistem-antrian-b1c39",
-            storageBucket: "sistem-antrian-b1c39.firebasestorage.app",
-            messagingSenderId: "454124587608",
-            appId: "1:454124587608:web:34fbb0f5211067a67f982d"
-        };
+        const firebaseConfig = { apiKey: "AIzaSyALIlkIDALIk83K8s1htalvW6rmNNw02Go", authDomain: "sistem-antrian-b1c39.firebaseapp.com", projectId: "sistem-antrian-b1c39", storageBucket: "sistem-antrian-b1c39.firebasestorage.app", messagingSenderId: "454124587608", appId: "1:454124587608:web:34fbb0f5211067a67f982d" };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-        const antrianRef = doc(db, "antrian", "utama");
+        const ref = doc(db, "antrian", "utama");
         const logRef = collection(db, "activityLog");
-        
-        const ADMIN_PIN = '8080';
-        const FONTE_TOKEN = "YOUR_FONTE_TOKEN_HERE";
 
-        // --- HELPER LOGGING (Disimpan di sini agar admin juga bisa nulis log) ---
-        function logActivity(action, plat, user, details={}) {
-            addDoc(logRef, { timestamp: new Date(), action, plat, user, details })
-            .catch(e => console.error("Log err:", e));
-        }
+        const PIN = "8080";
+        let isAuth = false;
 
-        // --- LOGIC UTAMA ---
-        let isAdminLoggedIn = false;
-
+        // AUTH
+        window.login = () => {
+            if(document.getElementById('pinInput').value === PIN) {
+                localStorage.setItem('saAuth', 'true'); checkAuth();
+            } else alert('PIN SALAH');
+        };
+        window.logout = () => { localStorage.removeItem('saAuth'); checkAuth(); };
         function checkAuth() {
-            isAdminLoggedIn = localStorage.getItem('superAdminAuth') === 'true';
-            document.getElementById('loginArea').style.display = isAdminLoggedIn ? 'none' : 'block';
-            document.getElementById('dashboardArea').style.display = isAdminLoggedIn ? 'block' : 'none';
-            document.getElementById('btnLogout').style.display = isAdminLoggedIn ? 'block' : 'none';
+            isAuth = localStorage.getItem('saAuth') === 'true';
+            document.getElementById('loginScreen').style.display = isAuth ? 'none' : 'block';
+            document.getElementById('dashboard').style.display = isAuth ? 'block' : 'none';
         }
 
-        // RENDER LOG (TERMINAL STYLE)
-        function renderLogs(snapshot) {
-            const container = document.getElementById('logListContainer');
-            if(snapshot.empty) return;
-
-            let html = '';
-            // Kita ambil data secara terbalik agar yang paling baru ada di paling bawah (seperti Terminal)
-            // Namun karena query Firestore 'desc', data index 0 adalah yang terbaru. 
-            // Kita render normal saja (atas=baru) atau (bawah=baru). 
-            // Untuk terminal, biasanya bawah = baru.
-            
-            const docs = snapshot.docs; // Order desc (0 = Newest)
-            
-            docs.forEach(doc => {
-                const d = doc.data();
-                const ts = d.timestamp?.toDate ? d.timestamp.toDate() : new Date();
-                const time = ts.toLocaleTimeString('id-ID', {hour12:false});
-                
-                // MAPPING WARNA & TEXT
-                let tagClass = 'tag-SYSTEM';
-                if(d.action.includes('REGISTER')) tagClass = 'tag-REGISTER';
-                else if(d.action.includes('AUTO_MOVE') || d.action.includes('ASSIGN')) tagClass = 'tag-AUTO_MOVE';
-                else if(d.action.includes('FINISH') || d.action.includes('COMPLETE')) tagClass = 'tag-AUTO_FINISH';
-                else if(d.action.includes('STOP') || d.action.includes('BLOCK')) tagClass = 'tag-MANUAL_STOP';
-                else if(d.action.includes('ADMIN')) tagClass = 'tag-ADMIN_ACTION';
-
-                let detailsTxt = '';
-                if(d.details) {
-                    // Format details jadi string simpel
-                    detailsTxt = Object.entries(d.details).map(([k,v]) => `${k}:${v}`).join(' ');
-                }
-
-                html += `
-                    <div class="log-entry">
-                        <span class="log-ts">[${time}]</span>
-                        <span class="log-tag ${tagClass}">${d.action}</span>
-                        <span class="log-msg">
-                            <span style="color:#fff; font-weight:bold;">${d.plat}</span> 
-                            <span style="color:#666;">by ${d.user}</span> 
-                            <span style="color:#444;">>> ${detailsTxt}</span>
-                        </span>
-                    </div>
-                `;
-            });
-            container.innerHTML = html;
-        }
-
-        // --- INIT & LISTENERS ---
+        // INIT
         window.onload = () => {
             checkAuth();
-            
-            // Listen Activity Log (Realtime Terminal)
+            // LOG LISTENER
             const qLog = query(logRef, orderBy("timestamp", "desc"), limit(50));
             onSnapshot(qLog, renderLogs);
-
-            // Listen Data Utama
-            onSnapshot(antrianRef, (snap) => {
+            
+            // DATA LISTENER
+            onSnapshot(ref, (snap) => {
                 const d = snap.data() || {};
-                const slots = d.chargingSlots || [null,null,null];
+                const s = d.chargingSlots || [null,null,null];
                 const q = d.waitingQueue || [];
                 
-                // Update Quick Status
-                const running = slots.filter(x=>x&&x.startTime).length;
-                document.getElementById('quickStatus').innerHTML = `
-                    <div class="stat-box"><div class="stat-val">${running}/${slots.length}</div><div class="stat-label">CHARGING</div></div>
-                    <div class="stat-box"><div class="stat-val">${q.length}</div><div class="stat-label">QUEUE</div></div>
-                    <div class="stat-box"><div class="stat-val">${(d.blockedList||[]).length}</div><div class="stat-label">BLOCKED</div></div>
-                    <div class="stat-box"><div class="stat-val" style="color:var(--cyan)">ONLINE</div><div class="stat-label">SYSTEM</div></div>
-                `;
-
                 // Update Dropdowns
-                const slotOpts = slots.map((_,i)=>`<option value="${i}">Slot ${i+1}</option>`).join('');
-                ['manSlot','slotSource','slotTarget','assignSlotTarget'].forEach(id=>{
-                    const el = document.getElementById(id); if(el) el.innerHTML = slotOpts;
-                });
-                // Fix dropdown source/target for swap
-                document.getElementById('slotSource').innerHTML = `<option value="-1">Sumber</option>` + slotOpts;
-                document.getElementById('slotTarget').innerHTML = `<option value="-1">Tujuan</option>` + slotOpts;
+                const sOpt = s.map((_,i)=>`<option value="${i}">Slot ${i+1}</option>`).join('');
+                document.getElementById('manSlot').innerHTML = sOpt;
+                document.getElementById('qTarget').innerHTML = sOpt;
+                
+                const qOpt = q.length ? q.map((x,i)=>`<option value="${i}">#${i+1} ${x.plat}</option>`).join('') : '<option value="-1">Kosong</option>';
+                document.getElementById('qIdx').innerHTML = qOpt;
 
-                // Update Queue Dropdown
-                const qOpts = q.length ? q.map((x,i)=>`<option value="${i}">#${i+1} ${x.plat} (${x.startBattery}%)</option>`).join('') : '<option value="-1">Kosong</option>';
-                document.getElementById('assignQueueIndex').innerHTML = qOpts;
-
-                // Blocked List
-                document.getElementById('blockedListDisplay').innerText = "Blocked: " + (d.blockedList||[]).join(', ');
+                document.getElementById('blockList').innerText = "List Blokir: " + (d.blockedList||[]).join(', ');
             });
-
-            // Button Events
-            document.getElementById('btnLogin').onclick = () => {
-                if(document.getElementById('adminPin').value === ADMIN_PIN) {
-                    localStorage.setItem('superAdminAuth','true'); checkAuth();
-                    logActivity('ADMIN_LOGIN', 'N/A', 'SUPER_ADMIN');
-                } else alert('PIN Salah');
-            };
-            document.getElementById('btnLogout').onclick = () => {
-                localStorage.removeItem('superAdminAuth'); checkAuth();
-            };
-
-            // Bind Admin Actions
-            setupAdminActions();
         };
 
-        // --- ADMIN ACTIONS (Logic Copy from previous, simplified) ---
-        function setupAdminActions() {
-            // Manual Assign
-            document.getElementById('btnManualAssign').onclick = () => {
-                const s=document.getElementById('manSlot').value, p=document.getElementById('manPlat').value.toUpperCase(), b=parseInt(document.getElementById('manBattery').value);
-                if(!p || isNaN(b)) return alert('Data tidak lengkap');
-                runTransaction(db, async(t)=>{
-                    const d=(await t.get(antrianRef)).data(); const sl=d.chargingSlots;
-                    if(sl[s]) throw "Slot penuh";
-                    // Hitung durasi simpel (default logic, bisa diganti pakai logic kurva kalau mau sama persis)
-                    sl[s] = { plat:p, userName:'ADMIN', wa:'-', startBattery:b, targetLimit:100, durationMinutes:60, startTime:new Date() };
-                    t.update(antrianRef, {chargingSlots:sl});
-                }).then(()=>logActivity('MANUAL_ASSIGN', p, 'SUPER_ADMIN', {slot:parseInt(s)+1, bat:b}))
-                  .catch(e=>alert(e));
-            };
+        // RENDER LOGS
+        function renderLogs(snap) {
+            const c = document.getElementById('logContainer');
+            if(snap.empty) return;
+            let h = '';
+            snap.forEach(doc => {
+                const d = doc.data();
+                const time = d.timestamp?.toDate().toLocaleTimeString('id-ID');
+                
+                // DIAGNOSA ERROR
+                let status = 'INFO';
+                let tips = '';
+                
+                if(d.action.includes('FAIL') || d.action.includes('GAGAL')) {
+                    status = 'KRITIS';
+                    tips = 'Cek koneksi internet atau reset data jika slot macet.';
+                } else if(d.action.includes('ASSIGN')) {
+                    status = 'AWAS'; // Manual intervention
+                }
 
-            // Clear Slot
-            document.getElementById('btnClearSlotManual').onclick = () => {
-                const s=document.getElementById('manSlot').value;
-                showPopup('confirm', 'CLEAR SLOT', 'Yakin kosongkan slot ini paksa?', ()=>{
-                    runTransaction(db, async(t)=>{
-                        const d=(await t.get(antrianRef)).data(); 
-                        const oldP = d.chargingSlots[s]?.plat || 'Unknown';
-                        d.chargingSlots[s] = null;
-                        t.update(antrianRef, {chargingSlots:d.chargingSlots});
-                        logActivity('MANUAL_STOP', oldP, 'SUPER_ADMIN', {slot:parseInt(s)+1, reason:'Force Clear'});
-                    });
-                });
-            };
-
-            // Swap
-            document.getElementById('btnSwapSlots').onclick = () => {
-                const s1=document.getElementById('slotSource').value, s2=document.getElementById('slotTarget').value;
-                if(s1<0 || s2<0 || s1==s2) return alert('Pilih slot valid');
-                runTransaction(db, async(t)=>{
-                    const d=(await t.get(antrianRef)).data(); const sl=d.chargingSlots;
-                    [sl[s1], sl[s2]] = [sl[s2], sl[s1]];
-                    t.update(antrianRef, {chargingSlots:sl});
-                }).then(()=>logActivity('ADMIN_ACTION', 'SWAP', 'SUPER_ADMIN', {from:s1, to:s2}));
-            };
-
-            // Block
-            document.getElementById('btnBlockUser').onclick = () => {
-                const p=document.getElementById('blockPlatInput').value.toUpperCase();
-                if(p) { updateDoc(antrianRef, {blockedList: arrayUnion(p)}); logActivity('ADMIN_ACTION', p, 'SUPER_ADMIN', {type:'BLOCK'}); }
-            };
-            document.getElementById('btnUnblockUser').onclick = () => {
-                const p=document.getElementById('blockPlatInput').value.toUpperCase();
-                if(p) { updateDoc(antrianRef, {blockedList: arrayRemove(p)}); logActivity('ADMIN_ACTION', p, 'SUPER_ADMIN', {type:'UNBLOCK'}); }
-            };
-
-            // Move Queue
-            document.getElementById('btnAssignQueueToSlot').onclick = () => {
-                const qI = document.getElementById('assignQueueIndex').value;
-                const sI = document.getElementById('assignSlotTarget').value;
-                if(qI < 0) return alert('Antrian kosong');
-                runTransaction(db, async(t)=>{
-                    const d=(await t.get(antrianRef)).data(); const q=d.waitingQueue; const sl=d.chargingSlots;
-                    if(sl[sI]) throw "Slot tujuan penuh";
-                    const item = q.splice(qI, 1)[0];
-                    item.startTime = new Date(); // Start charging
-                    sl[sI] = item;
-                    t.update(antrianRef, {chargingSlots:sl, waitingQueue:q});
-                    logActivity('ADMIN_ACTION', item.plat, 'SUPER_ADMIN', {type:'QUEUE_TO_SLOT', slot:sI});
-                }).catch(e=>alert(e));
-            };
-            
-            // Stop All & Reset
-            document.getElementById('btnStopAll').onclick = () => {
-                if(confirm('STOP SEMUA?')) { updateDoc(antrianRef, {chargingSlots:[null,null,null]}); logActivity('ADMIN_ACTION', 'ALL', 'SUPER_ADMIN', {type:'STOP_ALL'}); }
-            };
-            document.getElementById('btnResetAll').onclick = () => {
-                if(confirm('RESET TOTAL DATABASE?')) { setDoc(antrianRef, {chargingSlots:[null,null,null], waitingQueue:[], blockedList:[]}); logActivity('ADMIN_ACTION', 'ALL', 'SUPER_ADMIN', {type:'RESET_DB'}); }
-            };
+                h += `
+                <div class="log-card status-${status}">
+                    <div class="log-head">
+                        <span>${time}</span>
+                        <span>${d.user || 'SYSTEM'}</span>
+                    </div>
+                    <div class="log-body">
+                        <b>${d.action}</b>: ${d.plat}
+                        ${d.details ? `<br><span style="color:#888">${JSON.stringify(d.details)}</span>` : ''}
+                    </div>
+                    ${tips ? `<div class="action-needed"><span class="action-title">⚠️ TINDAKAN SEGERA</span>${tips}</div>` : ''}
+                </div>`;
+            });
+            c.innerHTML = h;
         }
 
-        // Register Queue Function (Window Scope)
-        window.adminRegisterQueue = () => {
-            const p = document.getElementById('queuePlat').value.toUpperCase();
-            const n = document.getElementById('queueName').value;
-            const w = document.getElementById('queueWA').value;
-            const b = parseInt(document.getElementById('queueBattery').value);
-            if(!p || !n || isNaN(b)) return alert('Data kurang');
-            
+        // ACTIONS
+        function log(action, plat, det) { addDoc(logRef, {timestamp:new Date(), action, plat, user:'SUPERADMIN', details:det}); }
+
+        window.manualAssign = () => {
+            const s=document.getElementById('manSlot').value, p=document.getElementById('manPlat').value.toUpperCase(), b=parseInt(document.getElementById('manBat').value);
+            if(!p) return alert('Isi Plat');
             runTransaction(db, async(t)=>{
-                const d=(await t.get(antrianRef)).data(); 
-                const q = d.waitingQueue || [];
-                // Simple logic duration
-                q.push({plat:p, userName:n, wa:w, startBattery:b, targetLimit:100, durationMinutes:60, startTime:null});
-                t.update(antrianRef, {waitingQueue:q});
-            }).then(()=>{
-                logActivity('REGISTER', p, 'SUPER_ADMIN', {via:'Admin Panel'});
-                document.getElementById('queuePlat').value='';
-            });
+                const d=(await t.get(ref)).data();
+                d.chargingSlots[s] = {plat:p, userName:'ADMIN', wa:'-', startBattery:b, targetLimit:100, durationMinutes:60, startTime:new Date()};
+                t.update(ref, {chargingSlots:d.chargingSlots});
+            }).then(()=>log('MANUAL_ASSIGN', p));
         };
 
-        // MODAL
-        function showPopup(type, title, msg, okCallback) {
-            const m=document.getElementById('masterModal');
-            document.getElementById('mTitle').innerText=title;
-            document.getElementById('mMsg').innerText=msg;
-            m.style.display='flex';
-            const btnOk = document.getElementById('mBtnOk');
-            const btnCancel = document.getElementById('mBtnCancel');
-            
-            if(type=='confirm') {
-                btnCancel.style.display='block';
-                btnCancel.onclick = ()=>m.style.display='none';
-            } else {
-                btnCancel.style.display='none';
+        window.clearSlot = () => {
+            const s=document.getElementById('manSlot').value;
+            if(confirm('Kosongkan Paksa?')) {
+                runTransaction(db, async(t)=>{
+                    const d=(await t.get(ref)).data();
+                    d.chargingSlots[s] = null;
+                    t.update(ref, {chargingSlots:d.chargingSlots});
+                }).then(()=>log('FORCE_CLEAR', `Slot ${parseInt(s)+1}`));
             }
-            
-            // Clone to remove listener
-            const newBtn = btnOk.cloneNode(true);
-            btnOk.parentNode.replaceChild(newBtn, btnOk);
-            
-            newBtn.onclick = () => {
-                m.style.display='none';
-                if(okCallback) okCallback();
-            };
-        }
+        };
+
+        window.regQueue = () => {
+            const p=document.getElementById('qPlat').value.toUpperCase(), n=document.getElementById('qName').value, w=document.getElementById('qWA').value, b=parseInt(document.getElementById('qBat').value);
+            if(!p) return alert('Data Kurang');
+            runTransaction(db, async(t)=>{
+                const d=(await t.get(ref)).data(); const q=d.waitingQueue||[];
+                q.push({plat:p, userName:n, wa:w, startBattery:b, targetLimit:100, durationMinutes:60, startTime:null});
+                t.update(ref, {waitingQueue:q});
+            }).then(()=>log('ADMIN_REGISTER', p));
+        };
+
+        window.moveQueue = () => {
+            const qi=document.getElementById('qIdx').value, si=document.getElementById('qTarget').value;
+            if(qi<0) return alert('Antrian Kosong');
+            runTransaction(db, async(t)=>{
+                const d=(await t.get(ref)).data(); const q=d.waitingQueue; const s=d.chargingSlots;
+                if(s[si]) throw "Slot Penuh";
+                const item = q.splice(qi,1)[0];
+                item.startTime = new Date();
+                s[si] = item;
+                t.update(ref, {chargingSlots:s, waitingQueue:q});
+            }).then(()=>log('QUEUE_MOVE', `Slot ${parseInt(si)+1}`));
+        };
+
+        window.doBlock = () => {
+            const p=document.getElementById('blockPlat').value.toUpperCase();
+            if(p) { updateDoc(ref, {blockedList: arrayUnion(p)}); log('BLOCK_USER', p); }
+        };
+        window.doUnblock = () => {
+            const p=document.getElementById('blockPlat').value.toUpperCase();
+            if(p) { updateDoc(ref, {blockedList: arrayRemove(p)}); log('UNBLOCK_USER', p); }
+        };
     </script>
 </body>
 </html>
