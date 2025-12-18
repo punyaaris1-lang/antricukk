@@ -199,7 +199,7 @@
         let isGpsBypassEnabled = localStorage.getItem('gpsBypass') === 'true';
         let fcmToken = null;
         let audioCtx = null;
-        let triggeredAlarms = new Set();
+        let triggeredAlarms = new Set(); // Ini untuk mencatat agar WA tidak dikirim berkali-kali
 
         const firebaseConfig = { apiKey: "AIzaSyALIlkIDALIk83K8s1htalvW6rmNNw02Go", authDomain: "sistem-antrian-b1c39.firebaseapp.com", projectId: "sistem-antrian-b1c39", storageBucket: "sistem-antrian-b1c39.firebasestorage.app", messagingSenderId: "454124587608", appId: "1:454124587608:web:34fbb0f5211067a67f982d" };
         const app = initializeApp(firebaseConfig);
@@ -210,7 +210,17 @@
         const PUBLIC_VAPID_KEY = "BCdz35KcvwtCjbqwEPXAe0EoNRcL_OoKxP12lZRfN9IABufekdXlekacX6jCbmfsqg676roKjZ6tpwZAw";
         const STATION_LOC = { lat: -6.171583, lng: 106.899844 }; 
         const MAX_DIST_KM = 0.2; 
-        const FONTE_TOKEN = "MuR8CucXAsYd2YvWBxVo"; 
+        
+        // --- MASUKKAN TOKEN FONNTE ANDA DI SINI ---
+        const FONTE_TOKEN = "MASUKKAN_TOKEN_FONNTE_DISINI"; 
+
+        // --- DATABASE PESAN WA (Teks akan dipilih acak agar terlihat natural) ---
+        const WA_MESSAGES = [
+            (plat, name) => `Halo ${name} (${plat})! Pengisian daya selesai. Mohon pindahkan motor dari slot.`,
+            (plat, name) => `Hai ${name}, motor ${plat} sudah 100%. Silakan diambil ya. Terima kasih!`,
+            (plat, name) => `Info MLU: ${name} (${plat}), baterai sudah target. Slot dibutuhkan antrian lain.`,
+            (plat, name) => `Sesi Selesai! Motor ${plat} milik ${name} siap digunakan kembali.`,
+        ];
 
         // --- KURVA WAKTU AGRESIF (91% -> 11 min) ---
         const CHARGING_CURVE = [[97,4],[95,7],[92,10],[91,11],[90,16],[89,20],[85,26],[82,32],[79,38],[77,42],[72,48],[67,55],[63,60],[61,62],[58,65],[51,68],[50,71],[49,71],[46,73],[40,77],[21,86],[18,88],[0,92]];
@@ -246,7 +256,32 @@
             return 100;
         }
 
-        // --- UI RENDER (UPDATED: NAMA MUNCUL & READY KECIL) ---
+        // --- FUNGSI KIRIM WA ---
+        function sendWhatsAppNotification(plat, wa, name) {
+            // Cek apakah nomor WA valid (minimal 10 digit) dan token sudah diisi
+            if (!wa || wa.length < 9 || wa === '-' || FONTE_TOKEN === "MASUKKAN_TOKEN_FONNTE_DISINI") return;
+
+            const index = Math.floor(Math.random() * WA_MESSAGES.length);
+            const msg = WA_MESSAGES[index](plat, name);
+            
+            // Log ke console untuk debugging
+            console.log(`Mengirim WA ke ${name} (${wa})...`);
+
+            const formData = new FormData();
+            formData.append('target', wa);
+            formData.append('message', msg + "\n\n- Smart Charging MLU");
+
+            fetch('https://api.fonnte.com/send', {
+                method: 'POST',
+                headers: { 'Authorization': FONTE_TOKEN },
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => console.log('WA Sent:', data))
+            .catch(error => console.error('WA Error:', error));
+        }
+
+        // --- UI RENDER (WA TRIGGER ADDED) ---
         function renderSlots(slots) {
             const c = document.getElementById('slotsContainer'); c.innerHTML='';
             slots.forEach((m, i) => {
@@ -260,19 +295,23 @@
                     
                     if(rem <= 0) {
                         // SLOT SELESAI
-                        if (!triggeredAlarms.has(m.plat)) triggeredAlarms.add(m.plat);
+                        if (!triggeredAlarms.has(m.plat)) {
+                            triggeredAlarms.add(m.plat);
+                            // --- TRIGGER WA DISINI ---
+                            sendWhatsAppNotification(m.plat, m.wa, m.userName);
+                        }
+
                         box.innerHTML=`
                             <div style="font-weight:700;color:var(--soft-red);font-size:12px;">SLOT ${i+1}</div>
                             <div style="font-size:20px;font-weight:900;margin-top:10px;font-family:'Inter'">${m.plat}</div>
                             <div style="font-size:11px;color:#aaa;font-weight:400;margin-bottom:10px;">${m.userName}</div>
-                            
                             <div style="font-size:16px;color:var(--soft-red);font-weight:800;">SELESAI</div>
                             <div style="font-size:30px;">❌</div>
                             <div class="btn-group"><button onclick="act(${i},'stop','${m.plat}')" class="btn-act btn-stop">KOSONGKAN</button></div>
                         `;
                     } else {
                         // SLOT BERJALAN
-                        if(isMine && rem < 5) { box.classList.add('pulsating'); triggerAlarm(m.plat); }
+                        if(isMine && rem < 5) { box.classList.add('pulsating'); } // Alarm visual
                         let dispBat = getBatteryFromRemTime(rem);
                         dispBat = Math.max(m.startBattery, dispBat); dispBat = Math.min(m.targetLimit, dispBat);
 
@@ -280,16 +319,13 @@
                             <div style="font-size:10px;font-weight:700;color:var(--accent)">SLOT ${i+1}</div>
                             <div style="font-size:18px;font-weight:900;margin-top:5px;font-family:'Inter';letter-spacing:1px;">${m.plat}</div>
                             <div style="font-size:11px;color:#aaa;font-weight:400;margin-bottom:5px;">${m.userName}</div>
-                            
                             <div class="timer-display">${formatTime(rem)}</div>
                             <div class="bat-icon"><span class="bat-bolt">⚡</span><div class="bat-fill pulsating-fill" style="height:${dispBat}%"></div></div>
-                            
                             <div class="bat-info-container">
                                 <div class="bat-info-row"><span class="info-label">Awal:</span><span class="info-value">${m.startBattery}%</span></div>
                                 <div class="bat-info-row"><span class="info-label">Target:</span><span class="info-value">${m.targetLimit}%</span></div>
                                 <div class="bat-info-row"><span class="info-label">Saat ini:</span><span class="info-value" style="color:#0f0">${dispBat}%</span></div>
                             </div>
-                            
                             <div class="btn-group">
                                 ${isAdminLoggedIn ? `<button onclick="editTimer(${i})" class="btn-act btn-edit">EDIT TIMER</button>` : ''}
                                 <button onclick="act(${i},'stop','${m.plat}')" class="btn-act btn-stop">STOP & KOSONGKAN</button>
@@ -297,17 +333,14 @@
                         `;
                     }
                 } else if(m) {
-                    // SLOT READY (WAITING)
+                    // SLOT READY
                     box.classList.add('active'); box.style.borderColor='var(--cyan)';
                     box.innerHTML=`
                         <div style="color:var(--cyan);font-weight:700;font-size:10px;">SLOT ${i+1}</div>
                         <div style="font-size:18px;font-weight:900;margin-top:5px;font-family:'Inter'">${m.plat}</div>
                         <div style="font-size:11px;color:#aaa;font-weight:400;margin-bottom:5px;">${m.userName}</div>
-                        
                         <div style="font-family:'Syne';font-size:16px;font-weight:900;color:var(--cyan);margin-bottom:10px;">READY</div>
-                        
                         <div class="bat-icon" style="border-color:var(--cyan)"><div class="bat-fill" style="height:${m.startBattery}%;background:var(--cyan)"></div></div>
-                        
                         <div class="btn-group">
                             ${(isAdminLoggedIn || isMine) ? `<button onclick="act(${i},'start')" class="btn-act btn-start">MULAI CAS</button>` : ''}
                             <button onclick="act(${i},'stop','${m.plat}')" class="btn-act btn-stop">BATAL</button>
