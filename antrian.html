@@ -208,8 +208,6 @@
         const messaging = getMessaging(app);
         const functions = getFunctions(app);
         const PUBLIC_VAPID_KEY = "BCdz35KcvwtCjbqwEPXAe0EoNRcL_OoKxP12lZRfN9IABufekdXlekacX6jCbmfsqg676roKjZ6tpwZAw";
-        
-        // KOORDINAT STASIUN (Sesuaikan jika perlu)
         const STATION_LOC = { lat: -6.171583, lng: 106.899844 }; 
         const MAX_DIST_KM = 0.2; 
         const FONTE_TOKEN = "YOUR_FONTE_TOKEN_HERE"; 
@@ -233,11 +231,9 @@
             if(start<=CHARGING_CURVE[CHARGING_CURVE.length-1][0]) timeStart=CHARGING_CURVE[CHARGING_CURVE.length-1][1];
             else if(start>CHARGING_CURVE[0][0]) timeStart=(100-start)*(CHARGING_CURVE[0][1]/(100-CHARGING_CURVE[0][0]));
             else { for(let i=0; i<CHARGING_CURVE.length-1; i++){ if(start<=CHARGING_CURVE[i][0] && start>=CHARGING_CURVE[i+1][0]) { const ratio = (CHARGING_CURVE[i][0]-start)/(CHARGING_CURVE[i][0]-CHARGING_CURVE[i+1][0]); timeStart = CHARGING_CURVE[i][1] + ratio*(CHARGING_CURVE[i+1][1]-CHARGING_CURVE[i][1]); break; } } }
-            
             if(target<=CHARGING_CURVE[CHARGING_CURVE.length-1][0]) timeTarget=CHARGING_CURVE[CHARGING_CURVE.length-1][1];
             else if(target>CHARGING_CURVE[0][0]) timeTarget=(100-target)*(CHARGING_CURVE[0][1]/(100-CHARGING_CURVE[0][0]));
             else { for(let i=0; i<CHARGING_CURVE.length-1; i++){ if(target<=CHARGING_CURVE[i][0] && target>=CHARGING_CURVE[i+1][0]) { const ratio = (CHARGING_CURVE[i][0]-target)/(CHARGING_CURVE[i][0]-CHARGING_CURVE[i+1][0]); timeTarget = CHARGING_CURVE[i][1] + ratio*(CHARGING_CURVE[i+1][1]-CHARGING_CURVE[i][1]); break; } } }
-            
             let dur = timeStart - timeTarget;
             if(start>=97 && target===100) dur=(target-start)*3;
             return Math.max(1, Math.ceil(dur));
@@ -250,7 +246,7 @@
             return 100;
         }
 
-        // --- UI RENDER ---
+        // --- UI RENDER (UPDATED: NAMA MUNCUL & READY KECIL) ---
         function renderSlots(slots) {
             const c = document.getElementById('slotsContainer'); c.innerHTML='';
             slots.forEach((m, i) => {
@@ -263,16 +259,61 @@
                     const rem = (end - new Date())/60000;
                     
                     if(rem <= 0) {
-                        box.innerHTML=`<div style="font-weight:700;color:var(--soft-red);font-size:12px;">SLOT ${i+1}</div><div style="font-size:20px;font-weight:900;margin:10px 0;font-family:'Inter'">${m.plat}</div><div style="font-size:16px;color:var(--soft-red);font-weight:800;">SELESAI</div><div style="font-size:30px;">❌</div><div class="btn-group"><button onclick="act(${i},'stop','${m.plat}')" class="btn-act btn-stop">KOSONGKAN</button></div>`;
+                        // SLOT SELESAI
+                        if (!triggeredAlarms.has(m.plat)) triggeredAlarms.add(m.plat);
+                        box.innerHTML=`
+                            <div style="font-weight:700;color:var(--soft-red);font-size:12px;">SLOT ${i+1}</div>
+                            <div style="font-size:20px;font-weight:900;margin-top:10px;font-family:'Inter'">${m.plat}</div>
+                            <div style="font-size:11px;color:#aaa;font-weight:400;margin-bottom:10px;">${m.userName}</div>
+                            
+                            <div style="font-size:16px;color:var(--soft-red);font-weight:800;">SELESAI</div>
+                            <div style="font-size:30px;">❌</div>
+                            <div class="btn-group"><button onclick="act(${i},'stop','${m.plat}')" class="btn-act btn-stop">KOSONGKAN</button></div>
+                        `;
                     } else {
+                        // SLOT BERJALAN
+                        if(isMine && rem < 5) { box.classList.add('pulsating'); triggerAlarm(m.plat); }
                         let dispBat = getBatteryFromRemTime(rem);
                         dispBat = Math.max(m.startBattery, dispBat); dispBat = Math.min(m.targetLimit, dispBat);
-                        box.innerHTML=`<div style="font-size:10px;font-weight:700;color:var(--accent)">SLOT ${i+1}</div><div style="font-size:18px;font-weight:900;margin:5px 0;font-family:'Inter';letter-spacing:1px;">${m.plat}</div><div class="timer-display">${formatTime(rem)}</div><div class="bat-icon"><span class="bat-bolt">⚡</span><div class="bat-fill pulsating-fill" style="height:${dispBat}%"></div></div><div class="bat-info-container"><div class="bat-info-row"><span class="info-label">Awal:</span><span class="info-value">${m.startBattery}%</span></div><div class="bat-info-row"><span class="info-label">Target:</span><span class="info-value">${m.targetLimit}%</span></div><div class="bat-info-row"><span class="info-label">Saat ini:</span><span class="info-value" style="color:#0f0">${dispBat}%</span></div></div><div class="btn-group">${isAdminLoggedIn ? `<button onclick="editTimer(${i})" class="btn-act btn-edit">EDIT TIMER</button>` : ''}<button onclick="act(${i},'stop','${m.plat}')" class="btn-act btn-stop">STOP & KOSONGKAN</button></div>`;
+
+                        box.innerHTML=`
+                            <div style="font-size:10px;font-weight:700;color:var(--accent)">SLOT ${i+1}</div>
+                            <div style="font-size:18px;font-weight:900;margin-top:5px;font-family:'Inter';letter-spacing:1px;">${m.plat}</div>
+                            <div style="font-size:11px;color:#aaa;font-weight:400;margin-bottom:5px;">${m.userName}</div>
+                            
+                            <div class="timer-display">${formatTime(rem)}</div>
+                            <div class="bat-icon"><span class="bat-bolt">⚡</span><div class="bat-fill pulsating-fill" style="height:${dispBat}%"></div></div>
+                            
+                            <div class="bat-info-container">
+                                <div class="bat-info-row"><span class="info-label">Awal:</span><span class="info-value">${m.startBattery}%</span></div>
+                                <div class="bat-info-row"><span class="info-label">Target:</span><span class="info-value">${m.targetLimit}%</span></div>
+                                <div class="bat-info-row"><span class="info-label">Saat ini:</span><span class="info-value" style="color:#0f0">${dispBat}%</span></div>
+                            </div>
+                            
+                            <div class="btn-group">
+                                ${isAdminLoggedIn ? `<button onclick="editTimer(${i})" class="btn-act btn-edit">EDIT TIMER</button>` : ''}
+                                <button onclick="act(${i},'stop','${m.plat}')" class="btn-act btn-stop">STOP & KOSONGKAN</button>
+                            </div>
+                        `;
                     }
                 } else if(m) {
+                    // SLOT READY (WAITING)
                     box.classList.add('active'); box.style.borderColor='var(--cyan)';
-                    box.innerHTML=`<div style="color:var(--cyan);font-weight:700;font-size:10px;">SLOT ${i+1}</div><div style="font-size:18px;font-weight:900;margin:5px 0;font-family:'Inter'">${m.plat}</div><div style="font-family:'Syne';font-size:24px;font-weight:900;color:var(--cyan);margin-bottom:10px;">READY</div><div class="bat-icon" style="border-color:var(--cyan)"><div class="bat-fill" style="height:${m.startBattery}%;background:var(--cyan)"></div></div><div class="btn-group">${isAdminLoggedIn ? `<button onclick="act(${i},'start')" class="btn-act btn-start">MULAI CAS</button>` : ''}<button onclick="act(${i},'stop','${m.plat}')" class="btn-act btn-stop">BATAL</button></div>`;
+                    box.innerHTML=`
+                        <div style="color:var(--cyan);font-weight:700;font-size:10px;">SLOT ${i+1}</div>
+                        <div style="font-size:18px;font-weight:900;margin-top:5px;font-family:'Inter'">${m.plat}</div>
+                        <div style="font-size:11px;color:#aaa;font-weight:400;margin-bottom:5px;">${m.userName}</div>
+                        
+                        <div style="font-family:'Syne';font-size:16px;font-weight:900;color:var(--cyan);margin-bottom:10px;">READY</div>
+                        
+                        <div class="bat-icon" style="border-color:var(--cyan)"><div class="bat-fill" style="height:${m.startBattery}%;background:var(--cyan)"></div></div>
+                        
+                        <div class="btn-group">
+                            ${(isAdminLoggedIn || isMine) ? `<button onclick="act(${i},'start')" class="btn-act btn-start">MULAI CAS</button>` : ''}
+                            <button onclick="act(${i},'stop','${m.plat}')" class="btn-act btn-stop">BATAL</button>
+                        </div>`;
                 } else {
+                    // SLOT KOSONG
                     box.classList.remove('active'); box.style.borderColor='#333';
                     box.innerHTML=`<div style="color:#666;font-weight:700;font-size:10px;">SLOT ${i+1}</div><div style="color:#666;margin:20px 0;font-weight:700;">KOSONG</div><div style="font-size:24px;color:#333;font-weight:900;">- - -</div><div class="bat-icon" style="border-color:#333"><div class="bat-fill" style="height:0%;"></div></div><div class="btn-group"><button class="btn-act" style="visibility:hidden">.</button></div>`;
                 }
@@ -389,7 +430,7 @@
             requestNotificationPermission();
             setInterval(()=>{ if(latestSlots) renderSlots(latestSlots); }, 1000);
 
-            // --- TOMBOL DAFTAR (FIX YANG DULU HILANG) ---
+            // --- TOMBOL DAFTAR ---
             document.getElementById('btnDaftar').onclick = () => {
                 const plat = document.getElementById('userPlat').value.toUpperCase().replace(/\s/g, '').trim();
                 const name = document.getElementById('userName').value.trim(); 
