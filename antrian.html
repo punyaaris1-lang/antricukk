@@ -15,6 +15,7 @@
         .header-top { position: sticky; top: 0; z-index: 50; background: linear-gradient(180deg, var(--bg) 90%, transparent); padding: 20px 0 10px; }
         .header-row { display: flex; justify-content: space-between; align-items: center; }
         h1 { font-family: 'Syne', sans-serif; font-size: 22px; margin: 0; background: linear-gradient(to right, #fff, var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 800; text-shadow: 0 0 10px rgba(204, 255, 0, 0.4); }
+        .subtitle { font-family: 'Syne'; color: #888; font-size: 10px; letter-spacing: 2px; font-weight: 700; margin-bottom: 10px; }
         .btn-home { padding: 6px 12px; background: #222; border: 1px solid #444; color: #fff; border-radius: 8px; text-decoration: none; font-size: 11px; font-weight: 700; }
 
         .glass-card { background: var(--card-bg); backdrop-filter: blur(5px); border: 1px solid var(--border); border-radius: 16px; padding: 20px; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
@@ -103,7 +104,10 @@
     </div>
 
     <div class="container">
-        <div class="header-top"><div class="header-row"><h1>FC KELAPA GADING</h1><a href="admin.html" class="btn-home">FULL ADMIN</a></div></div>
+        <div class="header-top">
+            <div class="header-row"><h1>FC KELAPA GADING</h1><a href="admin.html" class="btn-home">FULL ADMIN</a></div>
+            <div class="subtitle">HOME OF MLU</div>
+        </div>
         
         <div id="registrationArea"> 
             <div class="glass-card">
@@ -259,16 +263,24 @@
             checkDisplayMode();
             
             const qc = document.getElementById('queueList'); qc.innerHTML = latestQueue.length ? '' : '<div style="text-align:center;color:#666;font-size:12px;">Antrian Kosong</div>';
-            document.getElementById('qsQueueCountValue').innerText = latestQueue.length;
-            document.getElementById('qsMaxTargetValue').innerText = `${calculateTargetLimit(latestQueue.length)}%`;
+            
+            // FIX COUNTER UPDATE
+            const qCount = latestQueue.length;
+            document.getElementById('qsQueueCountValue').innerText = qCount;
+            document.getElementById('qsMaxTargetValue').innerText = `${calculateTargetLimit(qCount)}%`;
+            document.getElementById('qCount').innerText = qCount; // Update Text Header juga
             
             latestQueue.forEach((m,i)=>{ 
                 const div=document.createElement('div'); 
                 const isMyQueue = localStorage.getItem('myPlat')===m.plat;
                 div.className='queue-item-display '+(isMyQueue?'is-mine':''); 
-                // TOMBOL BATAL UNTUK USER
-                const cancelBtn = isMyQueue ? `<button onclick="cancelQ(${i})" style="border:none;background:red;color:#fff;border-radius:4px;padding:5px;font-weight:bold;cursor:pointer;margin-left:5px;">BATAL</button>` : '';
-                div.innerHTML=`<div style="display:flex;align-items:center;"><span style="font-family:'Inter';font-weight:900;font-size:16px;width:30px;color:var(--accent);">#${i+1}</span><div style="margin-left:5px;font-size:12px;color:#fff;"><b>${m.plat}</b> <span style="color:#aaa;">(${m.userName})</span></div></div><div style="display:flex;align-items:center;"><span style="font-size:12px;color:#fff;font-weight:700;">${m.startBattery}%</span>${cancelBtn}</div>`; 
+                
+                // TOMBOL BATAL (USER) & X (ADMIN)
+                let actionBtn = '';
+                if(isMyQueue) actionBtn = `<button onclick="cancelQ(${i})" style="border:none;background:red;color:#fff;border-radius:4px;padding:5px;font-weight:bold;cursor:pointer;margin-left:5px;font-size:10px;">BATAL</button>`;
+                if(isAdminLoggedIn) actionBtn = `<button onclick="cancelQ(${i})" style="border:none;background:transparent;color:red;font-weight:900;cursor:pointer;margin-left:5px;font-size:14px;">✕</button>`;
+
+                div.innerHTML=`<div style="display:flex;align-items:center;"><span style="font-family:'Inter';font-weight:900;font-size:16px;width:30px;color:var(--accent);">#${i+1}</span><div style="margin-left:5px;font-size:12px;color:#fff;"><b>${m.plat}</b> <span style="color:#aaa;">(${m.userName})</span></div></div><div style="display:flex;align-items:center;"><span style="font-size:12px;color:#fff;font-weight:700;">${m.startBattery}%</span>${actionBtn}</div>`; 
                 qc.appendChild(div); 
             });
             renderSlots(latestSlots);
@@ -426,7 +438,7 @@
                     t.update(ref, {waitingQueue: d.waitingQueue});
                 }).then(()=> {
                     localStorage.removeItem('myPlat');
-                    location.reload();
+                    // location.reload(); // Optional: reload if needed
                 });
             }
         };

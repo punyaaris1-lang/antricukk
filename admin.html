@@ -7,37 +7,46 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         :root { --bg: #141414; --surface: #1e1e1e; --border: #333; --text: #eee; --accent: #CCFF00; --red: #ff4444; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; box-sizing: border-box; }
+        
+        /* RESET & BOX SIZING AGAR TIDAK MELEBAR */
+        * { box-sizing: border-box; outline: none; }
+        
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; width: 100vw; overflow-x: hidden; }
         
         /* HEADER & LOGIN */
         .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 15px; margin-bottom: 20px; }
         h1 { margin: 0; font-size: 16px; color: var(--accent); }
-        .login-box { max-width: 300px; margin: 50px auto; text-align: center; padding: 20px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); }
-        input, select { width: 100%; padding: 12px; background: #222; border: 1px solid #444; color: #fff; margin-bottom: 10px; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
-        button { width: 100%; padding: 12px; background: var(--accent); border: none; font-weight: 800; cursor: pointer; border-radius: 6px; font-size: 14px; color: #000; }
+        
+        .login-box { width: 100%; max-width: 320px; margin: 50px auto; text-align: center; padding: 25px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
+        
+        /* INPUT & BUTTONS (FULL WIDTH MOBILE) */
+        input, select { width: 100%; padding: 12px; background: #222; border: 1px solid #444; color: #fff; margin-bottom: 10px; border-radius: 8px; font-size: 14px; }
+        input:focus, select:focus { border-color: var(--accent); }
+        
+        button { width: 100%; padding: 12px; background: var(--accent); border: none; font-weight: 900; cursor: pointer; border-radius: 8px; font-size: 14px; color: #000; text-transform: uppercase; }
         button.red { background: rgba(255,68,68,0.2); color: var(--red); border: 1px solid var(--red); }
         
-        /* LAYOUT */
-        .grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
-        @media(min-width: 768px) { .grid { grid-template-columns: 350px 1fr; } } 
+        /* LAYOUT GRID */
+        .grid { display: flex; flex-direction: column; gap: 20px; }
+        @media(min-width: 768px) { .grid { display: grid; grid-template-columns: 350px 1fr; } } 
         
-        .card { background: var(--surface); padding: 15px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 20px; }
-        h2 { font-size: 14px; margin-top: 0; border-bottom: 1px solid #333; padding-bottom: 10px; color: #888; }
+        .card { background: var(--surface); padding: 15px; border-radius: 12px; border: 1px solid var(--border); width: 100%; }
+        h2 { font-size: 14px; margin-top: 0; border-bottom: 1px solid #333; padding-bottom: 10px; color: #aaa; letter-spacing: 1px; }
         
         /* LOG LIST */
-        .log-container { height: 500px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
-        .log-card { background: #252525; padding: 10px; border-radius: 6px; border-left: 4px solid #555; font-size: 12px; }
-        .log-head { display: flex; justify-content: space-between; margin-bottom: 5px; font-weight: bold; color: #aaa; font-size: 10px; }
-        .log-body { color: #fff; line-height: 1.4; }
+        .log-container { height: 500px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-right: 5px; }
+        .log-card { background: #252525; padding: 12px; border-radius: 8px; border-left: 4px solid #555; font-size: 12px; }
+        .log-head { display: flex; justify-content: space-between; margin-bottom: 5px; font-weight: bold; color: #888; font-size: 10px; }
+        .log-body { color: #fff; line-height: 1.4; word-wrap: break-word; }
         
         .status-KRITIS { border-left-color: var(--red); background: rgba(255,0,0,0.1); }
         .status-AWAS { border-left-color: orange; }
         .status-INFO { border-left-color: var(--accent); }
         
-        .action-needed { margin-top: 8px; padding: 8px; background: rgba(255,0,0,0.2); border: 1px dashed var(--red); color: #ffcccc; border-radius: 4px; }
-        .action-title { font-weight: 900; color: var(--red); display: block; margin-bottom: 2px; }
-
-        .btn-group { display: flex; gap: 5px; }
+        .action-needed { margin-top: 8px; padding: 8px; background: rgba(255,0,0,0.2); border: 1px dashed var(--red); color: #ffcccc; border-radius: 4px; font-size: 11px; }
+        
+        .btn-group { display: flex; gap: 8px; width: 100%; }
+        .btn-group input, .btn-group select, .btn-group button { flex: 1; }
     </style>
 </head>
 <body>
@@ -52,7 +61,7 @@
     <div id="dashboard" style="display:none;">
         <div class="header">
             <h1>ADMIN CONSOLE</h1>
-            <button onclick="logout()" class="red" style="width:auto; padding:8px 15px;">KELUAR</button>
+            <button onclick="logout()" class="red" style="width:auto; padding:8px 20px;">KELUAR</button>
         </div>
 
         <div class="grid">
@@ -62,42 +71,44 @@
                     <select id="manSlot"></select>
                     <div class="btn-group">
                         <input id="manPlat" placeholder="Plat">
-                        <input id="manBat" type="number" placeholder="%" style="width:60px;">
+                        <input id="manBat" type="number" placeholder="%" style="flex:0.4;">
                     </div>
                     <button onclick="manualAssign()">ISI SLOT (PAKSA)</button>
-                    <button onclick="clearSlot()" class="red" style="margin-top:5px;">KOSONGKAN & TARIK ANTRIAN</button>
+                    <button onclick="clearSlot()" class="red" style="margin-top:8px;">KOSONGKAN & TARIK ANTRIAN</button>
                 </div>
 
-                <div class="card">
+                <div class="card" style="margin-top:20px;">
                     <h2>ANTRIAN MANUAL</h2>
                     <input id="qPlat" placeholder="Plat">
                     <div class="btn-group">
                         <input id="qName" placeholder="Nama">
-                        <input id="qBat" type="number" placeholder="%" style="width:60px;">
+                        <input id="qBat" type="number" placeholder="%" style="flex:0.4;">
                     </div>
                     <input id="qWA" placeholder="WA">
                     <button onclick="regQueue()">DAFTAR ANTRIAN</button>
+                    
                     <hr style="border:0; border-top:1px dashed #333; margin:15px 0;">
+                    
                     <label style="font-size:10px; color:#888;">PINDAHKAN ANTRIAN</label>
                     <div class="btn-group">
-                        <select id="qIdx"></select>
-                        <select id="qTarget"></select>
+                        <select id="qIdx" style="flex:2"></select>
+                        <select id="qTarget" style="flex:1"></select>
                     </div>
                     <button onclick="moveQueue()">PINDAHKAN</button>
                 </div>
 
-                <div class="card">
-                    <h2>KEAMANAN (BLOKIR)</h2>
+                <div class="card" style="margin-top:20px;">
+                    <h2>KEAMANAN</h2>
                     <input id="blockPlat" placeholder="Plat Bermasalah">
                     <div class="btn-group">
                         <button onclick="doBlock()" class="red">BLOKIR</button>
-                        <button onclick="doUnblock()" style="background:#444; color:#fff;">BUKA BLOKIR</button>
+                        <button onclick="doUnblock()" style="background:#444; color:#fff;">BUKA</button>
                     </div>
                     <div id="blockList" style="font-size:10px; color:var(--red); margin-top:5px;"></div>
                 </div>
             </div>
 
-            <div class="card" style="height:calc(100vh - 100px); padding:0; background:transparent; border:none;">
+            <div class="card">
                 <h2 style="color:var(--accent);">LOG AKTIVITAS (REAL-TIME)</h2>
                 <div id="logContainer" class="log-container">
                     <div style="text-align:center; color:#666; padding-top:50px;">Menunggu Data...</div>
@@ -119,7 +130,6 @@
         const PIN = "8080";
         let isAuth = false;
 
-        // AUTH
         window.login = () => {
             if(document.getElementById('pinInput').value === PIN) {
                 localStorage.setItem('saAuth', 'true'); checkAuth();
@@ -132,7 +142,6 @@
             document.getElementById('dashboard').style.display = isAuth ? 'block' : 'none';
         }
 
-        // LOGIC BATERAI (SAMA DENGAN USER)
         const CHARGING_CURVE = [[100,0],[99,2],[97,5],[95,6],[92,9],[91,10],[87,21],[81,26],[72,35],[68,42],[61,47],[56,50],[20,72],[10,80],[0,90]];
         function calculateDuration(start, target) {
             if (start >= target) return 5;
@@ -143,7 +152,6 @@
         }
         function calculateTargetLimit(len) { return len>=6?90 : len>=3?95 : 100; }
 
-        // INIT
         window.onload = () => {
             checkAuth();
             const qLog = query(logRef, orderBy("timestamp", "desc"), limit(50));
@@ -164,7 +172,6 @@
             });
         };
 
-        // RENDER LOGS
         function renderLogs(snap) {
             const c = document.getElementById('logContainer');
             if(snap.empty) return;
@@ -172,38 +179,21 @@
             snap.forEach(doc => {
                 const d = doc.data();
                 const time = d.timestamp?.toDate().toLocaleTimeString('id-ID');
-                let status = 'INFO';
-                let tips = '';
-                
-                if(d.action.includes('FAIL') || d.action.includes('GAGAL')) {
-                    status = 'KRITIS'; tips = 'Cek koneksi atau data duplikat.';
-                } else if(d.action.includes('ASSIGN')) {
-                    status = 'AWAS';
-                }
+                let status = 'INFO'; let tips = '';
+                if(d.action.includes('FAIL') || d.action.includes('GAGAL')) { status = 'KRITIS'; tips = 'Cek koneksi atau data duplikat.'; } 
+                else if(d.action.includes('ASSIGN')) { status = 'AWAS'; }
 
-                h += `
-                <div class="log-card status-${status}">
-                    <div class="log-head"><span>${time}</span><span>${d.user || 'SYSTEM'}</span></div>
-                    <div class="log-body"><b>${d.action}</b>: ${d.plat} ${d.details ? `<br><span style="color:#888">${JSON.stringify(d.details)}</span>` : ''}</div>
-                    ${tips ? `<div class="action-needed"><span class="action-title">⚠️ TINDAKAN</span>${tips}</div>` : ''}
-                </div>`;
+                h += `<div class="log-card status-${status}"><div class="log-head"><span>${time}</span><span>${d.user || 'SYSTEM'}</span></div><div class="log-body"><b>${d.action}</b>: ${d.plat} ${d.details ? `<br><span style="color:#888">${JSON.stringify(d.details)}</span>` : ''}</div>${tips ? `<div class="action-needed"><span class="action-title">⚠️ TINDAKAN</span>${tips}</div>` : ''}</div>`;
             });
             c.innerHTML = h;
         }
 
         function log(action, plat, det) { addDoc(logRef, {timestamp:new Date(), action, plat, user:'SUPERADMIN', details:det}); }
 
-        // --- ACTIONS ---
-
-        // 1. MANUAL ASSIGN (DENGAN RUMUS)
         window.manualAssign = () => {
             const s=document.getElementById('manSlot').value, p=document.getElementById('manPlat').value.toUpperCase(), b=parseInt(document.getElementById('manBat').value);
             if(!p) return alert('Isi Plat');
-            
-            // HITUNG DURASI
-            const tar = 100;
-            const dur = calculateDuration(b, tar);
-
+            const tar = 100; const dur = calculateDuration(b, tar);
             runTransaction(db, async(t)=>{
                 const d=(await t.get(ref)).data();
                 d.chargingSlots[s] = {plat:p, userName:'ADMIN', wa:'-', startBattery:b, targetLimit:tar, durationMinutes:dur, startTime:new Date()};
@@ -211,7 +201,6 @@
             }).then(()=>log('MANUAL_ASSIGN', p, {durasi:dur}));
         };
 
-        // 2. CLEAR SLOT + AUTO PULL QUEUE (FIX)
         window.clearSlot = () => {
             const s = document.getElementById('manSlot').value;
             if(confirm('Kosongkan Slot & Tarik Antrian Otomatis?')) {
@@ -219,32 +208,16 @@
                     const d = (await t.get(ref)).data();
                     const q = d.waitingQueue || [];
                     const oldP = d.chargingSlots[s]?.plat || 'Unknown';
-                    
-                    // KOSONGKAN SLOT DULU
                     d.chargingSlots[s] = null;
                     let pulled = 'TIDAK ADA ANTRIAN';
-
-                    // CEK ANTRIAN: JIKA ADA, TARIK KE SLOT
                     if(q.length > 0) {
-                        const nextItem = q.shift(); // Ambil paling depan
+                        const nextItem = q.shift();
                         const tar = calculateTargetLimit(q.length);
                         const dur = calculateDuration(nextItem.startBattery, tar);
-                        
-                        // MASUKKAN KE SLOT
-                        d.chargingSlots[s] = {
-                            ...nextItem,
-                            startTime: new Date(), // Langsung start
-                            targetLimit: tar,
-                            durationMinutes: dur
-                        };
+                        d.chargingSlots[s] = { ...nextItem, startTime: new Date(), targetLimit: tar, durationMinutes: dur };
                         pulled = nextItem.plat;
                     }
-
-                    t.update(ref, {
-                        chargingSlots: d.chargingSlots, 
-                        waitingQueue: q
-                    });
-                    
+                    t.update(ref, { chargingSlots: d.chargingSlots, waitingQueue: q });
                     log('FORCE_CLEAR_AUTO_PULL', `Slot ${parseInt(s)+1}`, {cleared:oldP, pulled:pulled});
                 });
             }
@@ -253,10 +226,7 @@
         window.regQueue = () => {
             const p=document.getElementById('qPlat').value.toUpperCase(), n=document.getElementById('qName').value, w=document.getElementById('qWA').value, b=parseInt(document.getElementById('qBat').value);
             if(!p) return alert('Data Kurang');
-            // HITUNG DURASI
-            const tar = 100; // Default queue target
-            const dur = calculateDuration(b, tar);
-
+            const tar = 100; const dur = calculateDuration(b, tar);
             runTransaction(db, async(t)=>{
                 const d=(await t.get(ref)).data(); const q=d.waitingQueue||[];
                 q.push({plat:p, userName:n, wa:w, startBattery:b, targetLimit:tar, durationMinutes:dur, startTime:null});
@@ -277,14 +247,8 @@
             }).then(()=>log('QUEUE_MOVE', `Slot ${parseInt(si)+1}`));
         };
 
-        window.doBlock = () => {
-            const p=document.getElementById('blockPlat').value.toUpperCase();
-            if(p) { updateDoc(ref, {blockedList: arrayUnion(p)}); log('BLOCK_USER', p); }
-        };
-        window.doUnblock = () => {
-            const p=document.getElementById('blockPlat').value.toUpperCase();
-            if(p) { updateDoc(ref, {blockedList: arrayRemove(p)}); log('UNBLOCK_USER', p); }
-        };
+        window.doBlock = () => { const p=document.getElementById('blockPlat').value.toUpperCase(); if(p) { updateDoc(ref, {blockedList: arrayUnion(p)}); log('BLOCK_USER', p); } };
+        window.doUnblock = () => { const p=document.getElementById('blockPlat').value.toUpperCase(); if(p) { updateDoc(ref, {blockedList: arrayRemove(p)}); log('UNBLOCK_USER', p); } };
     </script>
 </body>
 </html>
