@@ -67,7 +67,6 @@
         .bg-red { background: rgba(255,0,0,0.3); color: var(--soft-red); border: 1px solid var(--soft-red); }
         .bg-blue { background: rgba(0,210,255,0.2); color: var(--cyan); border: 1px solid var(--cyan); }
 
-        /* SCROLLABLE QUEUE LIST */
         #queueList { max-height: 250px; overflow-y: auto; padding-right: 5px; }
         .queue-item-display { display: flex; justify-content: space-between; background: var(--card-bg); padding: 12px; margin-bottom: 8px; border-radius: 8px; border: 1px solid var(--border); align-items: center; }
         .queue-item-display.is-mine { border: 2px solid var(--cyan); background: rgba(0,210,255,0.1); }
@@ -160,12 +159,23 @@
                     <button onclick="miniClearSlot()" class="mini-btn bg-red">CLEAR</button>
                 </div>
             </div>
+            
             <div class="mini-section">
                 <span class="mini-label">MANAJEMEN ANTRIAN</span>
                 <div class="mini-row">
-                    <input id="miniQPlat" placeholder="Plat Antri" class="mini-inp">
-                    <button onclick="miniRegQ()" class="mini-btn bg-blue">DAFTAR</button>
+                    <input id="miniQPlat" placeholder="Plat" class="mini-inp">
+                    <input id="miniQBat" type="number" placeholder="Bat %" class="mini-inp" style="width:60px;">
                 </div>
+                <div class="mini-row">
+                    <input id="miniQName" placeholder="Nama" class="mini-inp">
+                    <input id="miniQWA" placeholder="WhatsApp (08...)" class="mini-inp">
+                </div>
+                <div class="mini-row">
+                    <button onclick="miniRegQ()" class="mini-btn bg-blue" style="width:100%">DAFTAR ANTRIAN</button>
+                </div>
+                
+                <hr style="border:0; border-top:1px dashed #333; margin:10px 0;">
+                
                 <div class="mini-row">
                     <select id="miniQIdx" class="mini-inp" style="flex:2"></select>
                     <span style="color:#888;align-self:center;">➜</span>
@@ -173,6 +183,7 @@
                 </div>
                 <button onclick="miniMoveQ()" class="mini-btn bg-green" style="width:100%">PINDAHKAN ANTRIAN KE SLOT</button>
             </div>
+
             <div class="mini-section" style="border:none;">
                 <span class="mini-label">SYSTEM / DARURAT</span>
                 <div class="mini-row">
@@ -271,7 +282,7 @@
         onSnapshot(ref, (s) => {
             const d=s.data()||{}; latestSlots=d.chargingSlots||[null,null,null]; latestQueue=d.waitingQueue||[];
             
-            // AUTO RESET KE DEPAN JIKA DIKOSONGKAN
+            // AUTO RESET KE DEPAN
             const myPlat = localStorage.getItem('myPlat');
             const isAdmin = checkIsAdmin();
             if (myPlat && !isAdmin) {
@@ -287,10 +298,9 @@
             
             const qc = document.getElementById('queueList'); qc.innerHTML = latestQueue.length ? '' : '<div style="text-align:center;color:#666;font-size:12px;">Antrian Kosong</div>';
             
-            // FIX COUNTER
             const qLen = latestQueue.length;
             document.getElementById('qsQueueCountValue').innerText = qLen;
-            document.getElementById('qCount').innerText = `(${qLen})`; // Update di header box
+            document.getElementById('qCount').innerText = `(${qLen})`;
             document.getElementById('qsMaxTargetValue').innerText = `${calculateTargetLimit(qLen)}%`;
 
             latestQueue.forEach((m,i)=>{ 
@@ -388,15 +398,32 @@
                 });
             }
         };
+        
+        // --- UPDATED MINI REGISTER QUEUE ---
         window.miniRegQ = () => {
-            const p=document.getElementById('miniQPlat').value.toUpperCase();
-            if(!p) return;
+            const p = document.getElementById('miniQPlat').value.toUpperCase().replace(/\s/g,'');
+            const n = document.getElementById('miniQName').value.trim() || 'ADMIN_INPUT';
+            const w = document.getElementById('miniQWA').value.trim() || '-';
+            const b = parseInt(document.getElementById('miniQBat').value);
+
+            if(!p || isNaN(b)) return alert('Plat dan Baterai Wajib Diisi!');
+
+            const tar = 100; 
+            const dur = calculateDuration(b, tar);
+
             runTransaction(db, async(t)=>{
                 const d=(await t.get(ref)).data(); const q=d.waitingQueue||[];
-                q.push({plat:p, userName:'ADMIN', wa:'-', startBattery:50, targetLimit:100, durationMinutes:60, startTime:null});
+                q.push({plat:p, userName:n, wa:w, startBattery:b, targetLimit:tar, durationMinutes:dur, startTime:null});
                 t.update(ref,{waitingQueue:q});
-            }).then(()=>alert('Daftar OK'));
+            }).then(() => {
+                alert('Berhasil Daftar Antrian');
+                document.getElementById('miniQPlat').value = '';
+                document.getElementById('miniQName').value = '';
+                document.getElementById('miniQWA').value = '';
+                document.getElementById('miniQBat').value = '';
+            }).catch(e => alert(e));
         };
+
         window.miniMoveQ = () => {
             const qi=document.getElementById('miniQIdx').value, si=document.getElementById('miniQTarget').value;
             if(qi<0) return;
@@ -421,7 +448,6 @@
         window.miniReset = () => { if(confirm('RESET DB??')) setDoc(ref,{chargingSlots:[null,null,null],waitingQueue:[],blockedList:[]}); };
 
         function formatTime(m){ const s=Math.round(m*60); return `${Math.floor(s/60)}:${(s%60).toString().padStart(2,'0')}`; }
-        
         function checkDisplayMode() {
             document.getElementById('loadingScreen').style.display='none';
             const isAdmin = checkIsAdmin();
@@ -477,12 +503,7 @@
             const m = prompt("Durasi Baru (Menit):");
             if(m) runTransaction(db, async(t)=>{ const d=(await t.get(ref)).data(); d.chargingSlots[i].durationMinutes=parseInt(m); d.chargingSlots[i].startTime=new Date(); t.update(ref,d); });
         };
-        
-        window.logoutUser = () => { 
-            localStorage.removeItem('myPlat'); 
-            localStorage.removeItem('superAdminAuth'); 
-            location.reload(); 
-        };
+        window.logoutUser = () => { localStorage.removeItem('myPlat'); localStorage.removeItem('isAdminLoggedIn'); localStorage.removeItem('superAdminAuth'); location.reload(); };
         window.onload = checkDisplayMode;
         
         setInterval(()=>{
