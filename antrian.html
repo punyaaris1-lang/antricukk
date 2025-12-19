@@ -177,14 +177,14 @@
             </div>
             
             <div class="mini-section">
-                <span class="mini-label">MANAJEMEN ANTRIAN</span>
+                <span class="mini-label">MANAJEMEN ANTRIAN (LENGKAP)</span>
                 <div class="mini-row">
                     <input id="miniQPlat" placeholder="Plat Antri" class="mini-inp">
                     <input id="miniQBat" type="number" placeholder="Bat %" class="mini-inp" style="width:60px;">
                 </div>
                 <div class="mini-row">
                     <input id="miniQName" placeholder="Nama" class="mini-inp">
-                    <input id="miniQWA" placeholder="WhatsApp" class="mini-inp">
+                    <input id="miniQWA" placeholder="WhatsApp (08...)" class="mini-inp">
                 </div>
                 <div class="mini-row">
                     <button onclick="miniRegQ()" class="mini-btn bg-blue" style="width:100%">DAFTAR ANTRIAN</button>
@@ -197,6 +197,15 @@
                     </div>
                     <button onclick="miniMoveQ()" class="mini-btn bg-green" style="width:100%">PINDAHKAN KE SLOT</button>
                 </div>
+                <div style="margin-top:10px; border-top:1px dashed #333; padding-top:10px;">
+                    <label class="mini-label">TUKAR URUTAN ANTRIAN</label>
+                    <div class="mini-row">
+                        <select id="miniQSwap1" class="mini-inp"></select>
+                        <span style="color:#444;align-self:center;">⇄</span>
+                        <select id="miniQSwap2" class="mini-inp"></select>
+                    </div>
+                    <button onclick="miniSwapQueuePositions()" class="mini-btn bg-blue" style="width:100%">TUKAR POSISI</button>
+                </div>
             </div>
 
             <div class="mini-section" style="border:none;">
@@ -204,7 +213,7 @@
                 <div class="mini-row">
                     <select id="miniSwap1" class="mini-inp"></select>
                     <select id="miniSwap2" class="mini-inp"></select>
-                    <button onclick="miniSwap()" class="mini-btn">SWAP</button>
+                    <button onclick="miniSwap()" class="mini-btn">SWAP SLOT</button>
                 </div>
                 <div class="mini-row">
                     <input id="miniBlockPlat" placeholder="Plat Blokir" class="mini-inp">
@@ -215,7 +224,7 @@
                     <button onclick="miniStopAll()" class="mini-btn bg-red">STOP ALL</button>
                     <button onclick="miniReset()" class="mini-btn bg-red">RESET DB</button>
                 </div>
-                <button onclick="logoutUser()" class="mini-btn" style="width:100%; margin-top:20px; background:#111; color:#666; border:1px solid #333;">KELUAR ADMIN MODE</button>
+                <button onclick="logoutUser()" class="mini-btn" style="width:100%; margin-top:20px; background:#111; color:#666; border:1px solid #333;">KELUAR MODE ADMIN</button>
             </div>
         </div>
     </div>
@@ -240,7 +249,12 @@
 
         function checkIsAdmin() { return localStorage.getItem('superAdminAuth') === 'true'; }
 
-        const CHARGING_CURVE = [[100,0],[99,2],[97,5],[95,6],[92,9],[91,10],[87,21],[81,26],[72,35],[68,42],[61,47],[56,50],[20,72],[10,80],[0,90]];
+        // --- UPDATED CHARGING CURVE (ADAPTASI MESIN ASLI) ---
+        const CHARGING_CURVE = [
+            [100,0], [99,2], [95,6], [91,10], [89,18], 
+            [81,26], [72,35], [61,47], [50,55], [20,72], [0,90]
+        ];
+
         function getBatteryFromRemTime(rem) {
             if (rem <= 0) return 100;
             for (let i=0; i<CHARGING_CURVE.length-1; i++) {
@@ -263,7 +277,7 @@
             const c = document.getElementById('slotsContainer'); c.innerHTML='';
             const isAdmin = checkIsAdmin();
             const myPlat = localStorage.getItem('myPlat');
-            const qLen = latestQueue.length; // Needed for dynamic target display
+            const qLen = latestQueue.length; 
 
             slots.forEach((m, i) => {
                 const box = document.createElement('div'); box.className = 'slot-box';
@@ -272,8 +286,6 @@
 
                 if(isMine) box.classList.add('active');
 
-                // DYNAMIC TARGET (REALTIME)
-                // Jika slot sedang jalan, target tidak berubah. Jika baru masuk, target ikut queue.
                 const displayTarget = m ? m.targetLimit : calculateTargetLimit(qLen);
 
                 if(m && m.startTime) {
@@ -320,7 +332,6 @@
             const qLen = latestQueue.length;
             document.getElementById('qsQueueCountValue').innerText = qLen;
             document.getElementById('qCount').innerText = `(${qLen})`; 
-            // FIX: TARGET MENGIKUTI JUMLAH ANTRIAN
             document.getElementById('qsMaxTargetValue').innerText = `${calculateTargetLimit(qLen)}%`;
 
             latestQueue.forEach((m,i)=>{ 
@@ -343,8 +354,11 @@
                 document.getElementById('miniQTarget').innerHTML = sOpts;
                 document.getElementById('miniSwap1').innerHTML = sOpts;
                 document.getElementById('miniSwap2').innerHTML = sOpts;
+                
                 const qOpts = latestQueue.length ? latestQueue.map((x,i)=>`<option value="${i}">#${i+1} ${x.plat}</option>`).join('') : '<option value="-1">Kosong</option>';
                 document.getElementById('miniQIdx').innerHTML = qOpts;
+                document.getElementById('miniQSwap1').innerHTML = qOpts;
+                document.getElementById('miniQSwap2').innerHTML = qOpts;
             }
         });
 
@@ -383,15 +397,10 @@
                 const tar = calculateTargetLimit(q.length);
                 const dur = calculateDuration(bat, tar);
                 
-                // USER REG: Masuk ke Antrian jika slot penuh, atau slot jika kosong
-                // Logic: Jika slot kosong -> Masuk Slot (READY). Jika Penuh -> Masuk Queue
                 const idx = s.findIndex(x=>x===null);
-                
                 if(idx!==-1) { 
-                    // Masuk Slot (READY) - StartTime: NULL
-                    s[idx]={plat, userName:name, wa, startBattery:bat, targetLimit:tar, durationMinutes:dur, startTime:null};
+                    s[idx]={plat, userName:name, wa, startBattery:bat, targetLimit:tar, durationMinutes:dur, startTime:null}; // READY
                 } else { 
-                    // Masuk Queue
                     q.push({plat, userName:name, wa, startBattery:bat, targetLimit:tar, durationMinutes:dur, startTime:null}); 
                 }
                 t.set(ref, {chargingSlots:s, waitingQueue:q}, {merge:true});
@@ -403,12 +412,12 @@
             const p=document.getElementById('miniPlatInput').value.toUpperCase();
             const b=parseInt(document.getElementById('miniBatInput').value);
             if(!p || isNaN(b)) return alert('Lengkapi Data');
-            const target = calculateTargetLimit(latestQueue.length); 
+            const target = calculateTargetLimit(latestQueue.length); // FIX: Target dinamis
             const dur = calculateDuration(b, target);
             runTransaction(db, async(t)=>{
                 const d=(await t.get(ref)).data();
                 if(d.chargingSlots[s]) throw "Slot Penuh";
-                d.chargingSlots[s]={plat:p, userName:'ADMIN', wa:'-', startBattery:b, targetLimit:target, durationMinutes:dur, startTime:null}; // READY
+                d.chargingSlots[s]={plat:p, userName:'ADMIN', wa:'-', startBattery:b, targetLimit:target, durationMinutes:dur, startTime:null}; // FIX: StartTime NULL
                 t.update(ref,{chargingSlots:d.chargingSlots});
             }).catch(e=>alert(e));
         };
@@ -421,28 +430,39 @@
                     d.chargingSlots[s] = null;
                     if(q.length > 0) {
                         const next = q.shift();
-                        const tar = calculateTargetLimit(q.length); 
+                        const tar = calculateTargetLimit(q.length); // FIX: Target Dinamis
                         const dur = calculateDuration(next.startBattery, tar);
-                        d.chargingSlots[s] = { ...next, startTime: null, targetLimit: tar, durationMinutes: dur }; // READY
+                        d.chargingSlots[s] = { ...next, startTime: null, targetLimit: tar, durationMinutes: dur }; // FIX: StartTime NULL
                     }
                     t.update(ref, {chargingSlots:d.chargingSlots, waitingQueue:q});
                 });
             }
         };
+        
         window.miniRegQ = () => {
             const p = document.getElementById('miniQPlat').value.toUpperCase().replace(/\s/g,'');
             const n = document.getElementById('miniQName').value.trim() || 'ADMIN_INPUT';
             const w = document.getElementById('miniQWA').value.trim() || '-';
             const b = parseInt(document.getElementById('miniQBat').value);
+
             if(!p || isNaN(b)) return alert('Plat dan Baterai Wajib Diisi!');
+
             const tar = calculateTargetLimit(latestQueue.length + 1); 
             const dur = calculateDuration(b, tar);
+
             runTransaction(db, async(t)=>{
                 const d=(await t.get(ref)).data(); const q=d.waitingQueue||[];
                 q.push({plat:p, userName:n, wa:w, startBattery:b, targetLimit:tar, durationMinutes:dur, startTime:null});
                 t.update(ref,{waitingQueue:q});
-            }).then(() => { alert('Berhasil Daftar Antrian'); }).catch(e => alert(e));
+            }).then(() => {
+                alert('Berhasil Daftar Antrian');
+                document.getElementById('miniQPlat').value = '';
+                document.getElementById('miniQName').value = '';
+                document.getElementById('miniQWA').value = '';
+                document.getElementById('miniQBat').value = '';
+            }).catch(e => alert(e));
         };
+
         window.miniMoveQ = () => {
             const qi=document.getElementById('miniQIdx').value, si=document.getElementById('miniQTarget').value;
             if(qi<0) return;
@@ -450,12 +470,24 @@
                 const d=(await t.get(ref)).data(); const q=d.waitingQueue; const s=d.chargingSlots;
                 if(s[si]) throw "Penuh";
                 const item=q.splice(qi,1)[0]; 
-                item.startTime=null; 
-                item.targetLimit = calculateTargetLimit(q.length);
+                item.startTime=null; // FIX: StartTime NULL
+                item.targetLimit = calculateTargetLimit(q.length); // FIX: Target Dinamis
                 item.durationMinutes = calculateDuration(item.startBattery, item.targetLimit);
                 s[si]=item;
                 t.update(ref,{chargingSlots:s, waitingQueue:q});
             });
+        };
+        window.miniSwapQueuePositions = () => {
+            const i1 = document.getElementById('miniQSwap1').value;
+            const i2 = document.getElementById('miniQSwap2').value;
+            if(i1 == i2 || i1 < 0 || i2 < 0) return alert('Pilih dua antrian berbeda');
+            runTransaction(db, async(t)=>{
+                const d = (await t.get(ref)).data();
+                const q = d.waitingQueue || [];
+                if(!q[i1] || !q[i2]) throw "Data berubah";
+                [q[i1], q[i2]] = [q[i2], q[i1]];
+                t.update(ref, {waitingQueue: q});
+            }).then(()=> alert('Posisi Ditukar!')).catch(e=>alert(e));
         };
         window.miniSwap = () => {
             const s1=document.getElementById('miniSwap1').value, s2=document.getElementById('miniSwap2').value;
