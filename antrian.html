@@ -6,14 +6,10 @@
     <title>FC Kelapa Gading - Smart Charging</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&family=Syne:wght@700;800&display=swap" rel="stylesheet">
     <style>
-        /* TEMA MAKA MOTORS (CYBER BLUE & VOLT GREEN) */
+        /* TEMA MAKA MOTORS (CYBER BLUE & VOLT GREEN) - TIDAK ADA PERUBAHAN */
         :root { 
-            --volt-green: #D9FF00;
-            --cyber-blue: #00F0FF;
-            --bg-black: #050505;
-            --text-main: #FFFFFF;
-            --text-muted: #888888;
-            --danger: #FF2A2A;
+            --volt-green: #D9FF00; --cyber-blue: #00F0FF; --bg-black: #050505;
+            --text-main: #FFFFFF; --text-muted: #888888; --danger: #FF2A2A;
         }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { margin: 0; font-family: 'Inter', sans-serif; background: var(--bg-black); color: var(--text-main); min-height: 100vh; overflow-x: hidden; padding-bottom: 80px; }
@@ -69,7 +65,7 @@
         .queue-item-display { display: flex; justify-content: space-between; background: #111; padding: 12px; margin-bottom: 8px; border-radius: 6px; border-left: 3px solid #333; align-items: center; }
         .queue-item-display.is-mine { border-left: 3px solid var(--volt-green); background: #1a1a1a; border-top: 1px solid #333; border-right: 1px solid #333; border-bottom: 1px solid #333; }
 
-        /* MINI DASHBOARD (LENGKAP) */
+        /* MINI ADMIN DASHBOARD */
         .mini-dashboard { display: none; background: #000; border-top: 2px solid var(--cyber-blue); border-bottom: 2px solid var(--cyber-blue); padding: 20px; margin-top: 40px; margin-left: -20px; margin-right: -20px; }
         .mini-head { font-size: 12px; font-weight: 900; color: var(--cyber-blue); border-bottom: 1px solid #333; padding-bottom: 10px; margin-bottom: 15px; text-align: left; letter-spacing: 2px; text-transform: uppercase; }
         .mini-section { border-bottom: 1px dashed #333; padding-bottom: 15px; margin-bottom: 15px; }
@@ -115,23 +111,16 @@
 
     <div class="container">
         <div class="header-top">
-            <div class="header-row">
-                <h1>FC <span>KELAPA GADING</span></h1>
-                <a href="admin.html" class="btn-home">ADMIN</a>
-            </div>
+            <div class="header-row"><h1>FC <span>KELAPA GADING</span></h1><a href="admin.html" class="btn-home">ADMIN</a></div>
             <div class="subtitle">HOME OF MLU</div>
         </div>
         
         <div id="registrationArea"> 
             <div class="glass-card">
-                <label>PLAT NOMOR KENDARAAN</label>
-                <input id="userPlat" class="field" style="text-transform:uppercase;" placeholder="CONTOH: B 1234 ABC">
-                <label>NAMA PENGENDARA</label>
-                <input id="userName" class="field" placeholder="Nama Panggilan">
-                <label>NOMOR WHATSAPP</label>
-                <input id="userWA" type="tel" class="field" placeholder="08xxxxxxxxxx">
-                <label>SISA BATERAI SAAT INI (%)</label>
-                <input id="userBattery" type="number" class="field" placeholder="0-99">
+                <label>PLAT NOMOR KENDARAAN</label><input id="userPlat" class="field" style="text-transform:uppercase;" placeholder="CONTOH: B 1234 ABC">
+                <label>NAMA PENGENDARA</label><input id="userName" class="field" placeholder="Nama Panggilan">
+                <label>NOMOR WHATSAPP</label><input id="userWA" type="tel" class="field" placeholder="08xxxxxxxxxx">
+                <label>SISA BATERAI SAAT INI (%)</label><input id="userBattery" type="number" class="field" placeholder="0-99">
                 <button id="btnDaftar" class="btn-cyan">DAFTAR ANTRIAN</button>
             </div>
             <button onclick="monitorMode()" class="btn-outline">PANTAU STATUS (TANPA DAFTAR)</button>
@@ -154,8 +143,7 @@
             <div class="slots-grid" id="slotsContainer"></div>
             <div class="glass-card" style="padding:20px;min-height:100px;">
                 <div style="margin-bottom:15px;border-bottom:1px solid #333;padding-bottom:10px;font-size:12px;font-weight:700;display:flex;justify-content:space-between;color:#fff;">
-                    <span>DAFTAR TUNGGU</span>
-                    <span id="qCount" style="color:var(--volt-green)">0</span>
+                    <span>DAFTAR TUNGGU</span><span id="qCount" style="color:var(--volt-green)">(0)</span>
                 </div>
                 <div id="queueList"></div>
             </div>
@@ -178,14 +166,14 @@
             </div>
             
             <div class="mini-section">
-                <span class="mini-label">MANAJEMEN ANTRIAN (LENGKAP)</span>
+                <span class="mini-label">MANAJEMEN ANTRIAN</span>
                 <div class="mini-row">
                     <input id="miniQPlat" placeholder="Plat Antri" class="mini-inp">
                     <input id="miniQBat" type="number" placeholder="Bat %" class="mini-inp" style="width:60px;">
                 </div>
                 <div class="mini-row">
                     <input id="miniQName" placeholder="Nama" class="mini-inp">
-                    <input id="miniQWA" placeholder="WhatsApp (08...)" class="mini-inp">
+                    <input id="miniQWA" placeholder="WhatsApp" class="mini-inp">
                 </div>
                 <div class="mini-row">
                     <button onclick="miniRegQ()" class="mini-btn bg-blue" style="width:100%">DAFTAR ANTRIAN</button>
@@ -232,13 +220,14 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-        import { getFirestore, doc, onSnapshot, runTransaction, setDoc, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+        import { getFirestore, doc, onSnapshot, runTransaction, setDoc, updateDoc, arrayUnion, arrayRemove, collection, addDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
         const firebaseConfig = { apiKey: "AIzaSyALIlkIDALIk83K8s1htalvW6rmNNw02Go", authDomain: "sistem-antrian-b1c39.firebaseapp.com", projectId: "sistem-antrian-b1c39", storageBucket: "sistem-antrian-b1c39.firebasestorage.app", messagingSenderId: "454124587608", appId: "1:454124587608:web:34fbb0f5211067a67f982d" };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const ref = doc(db, "antrian", "utama");
-        
+        const logRef = collection(db, "activityLog"); // ADD LOG REF
+
         const STATION_LOC = { lat: -6.171583, lng: 106.899844 }; 
         const MAX_DIST_KM = 0.2; 
         const FONTE_TOKEN = "MASUKKAN_TOKEN_FONNTE_DISINI"; 
@@ -249,6 +238,17 @@
         let isClearing = [false,false,false];
 
         function checkIsAdmin() { return localStorage.getItem('superAdminAuth') === 'true'; }
+
+        // FUNGSI LOGGING DI ANTRIAN
+        function log(action, plat, det) { 
+            addDoc(logRef, {
+                timestamp: new Date(),
+                action: action, 
+                plat: plat, 
+                user: 'SYSTEM_AUTO', 
+                details: det
+            }); 
+        }
 
         const CHARGING_CURVE = [ [100,0], [99,2], [95,6], [91,10], [89,18], [81,26], [72,35], [61,47], [50,55], [20,72], [0,90] ];
         function getBatteryFromRemTime(rem) {
@@ -281,6 +281,9 @@
                 const canControl = isAdmin || isMine;
 
                 if(isMine) box.classList.add('active');
+
+                // TARGET DINAMIS (UPDATED)
+                const displayTarget = m ? m.targetLimit : calculateTargetLimit(qLen);
 
                 if(m && m.startTime) {
                     const st = parseDate(m.startTime);
@@ -387,21 +390,17 @@
                 let s=d.chargingSlots||[null,null,null], q=d.waitingQueue||[];
                 if(s.some(x=>x?.plat===plat)||q.some(x=>x?.plat===plat)) throw "Sudah terdaftar";
                 
-                // --- FIX: TARGET UPDATE SAAT DAFTAR ---
-                const qLen = q.length; // Hitung antrian yg sudah ada
+                // --- FIX TARGET DINAMIS ---
+                const qLen = q.length; 
+                let tar = 100;
                 const idx = s.findIndex(x=>x===null);
                 
-                // Jika masuk slot, hitung target berdasarkan antrian saat ini
-                // Jika masuk antrian, target dihitung nanti saat dia masuk slot
-                let tar = 100;
-                
                 if(idx!==-1) { 
-                    // MASUK SLOT
-                    tar = calculateTargetLimit(qLen);
+                    tar = calculateTargetLimit(qLen); // HITUNG TARGET BERDASARKAN QUEUE SAAT INI
                     const dur = calculateDuration(bat, tar);
                     s[idx]={plat, userName:name, wa, startBattery:bat, targetLimit:tar, durationMinutes:dur, startTime:null}; // READY
                 } else { 
-                    // MASUK QUEUE (Target placeholder 100, nanti diupdate saat masuk slot)
+                    // Masuk queue, target placeholder 100 (dihitung saat masuk slot)
                     q.push({plat, userName:name, wa, startBattery:bat, targetLimit:100, durationMinutes:0, startTime:null}); 
                 }
                 t.set(ref, {chargingSlots:s, waitingQueue:q}, {merge:true});
@@ -413,11 +412,8 @@
             const p=document.getElementById('miniPlatInput').value.toUpperCase();
             const b=parseInt(document.getElementById('miniBatInput').value);
             if(!p || isNaN(b)) return alert('Lengkapi Data');
-            
-            // FIX: TARGET UPDATE MANUAL ADMIN
-            const target = calculateTargetLimit(latestQueue.length); 
+            const target = calculateTargetLimit(latestQueue.length); // TARGET DINAMIS
             const dur = calculateDuration(b, target);
-            
             runTransaction(db, async(t)=>{
                 const d=(await t.get(ref)).data();
                 if(d.chargingSlots[s]) throw "Slot Penuh";
@@ -432,15 +428,17 @@
                 runTransaction(db, async(t)=>{
                     const d = (await t.get(ref)).data();
                     const q = d.waitingQueue || [];
+                    const oldP = d.chargingSlots[s]?.plat;
                     d.chargingSlots[s] = null;
                     if(q.length > 0) {
                         const next = q.shift();
-                        // FIX: TARGET UPDATE SAAT PINDAH DARI ANTRIAN
-                        const tar = calculateTargetLimit(q.length); 
+                        const tar = calculateTargetLimit(q.length); // TARGET DINAMIS
                         const dur = calculateDuration(next.startBattery, tar);
                         d.chargingSlots[s] = { ...next, startTime: null, targetLimit: tar, durationMinutes: dur }; // READY
                     }
                     t.update(ref, {chargingSlots:d.chargingSlots, waitingQueue:q});
+                    // LOG MANUAL CLEAR
+                    log('ADMIN_CLEAR_SLOT', oldP || 'Unknown', 'Cleared by Mini Admin');
                 });
             }
         };
@@ -454,16 +452,9 @@
             
             runTransaction(db, async(t)=>{
                 const d=(await t.get(ref)).data(); const q=d.waitingQueue||[];
-                // Masuk antrian, target belum dihitung (nanti pas masuk slot)
                 q.push({plat:p, userName:n, wa:w, startBattery:b, targetLimit:100, durationMinutes:0, startTime:null});
                 t.update(ref,{waitingQueue:q});
-            }).then(() => {
-                alert('Berhasil Daftar Antrian');
-                document.getElementById('miniQPlat').value = '';
-                document.getElementById('miniQName').value = '';
-                document.getElementById('miniQWA').value = '';
-                document.getElementById('miniQBat').value = '';
-            }).catch(e => alert(e));
+            }).then(() => { alert('Berhasil Daftar Antrian'); }).catch(e => alert(e));
         };
 
         window.miniMoveQ = () => {
@@ -474,11 +465,10 @@
                 if(s[si]) throw "Penuh";
                 const item=q.splice(qi,1)[0]; 
                 
-                // FIX: TARGET UPDATE SAAT PINDAH MANUAL
-                item.startTime=null; 
+                // TARGET DINAMIS
+                item.startTime=null; // READY
                 item.targetLimit = calculateTargetLimit(q.length); 
                 item.durationMinutes = calculateDuration(item.startBattery, item.targetLimit);
-                
                 s[si]=item;
                 t.update(ref,{chargingSlots:s, waitingQueue:q});
             });
@@ -567,27 +557,39 @@
         window.logoutUser = () => { localStorage.removeItem('myPlat'); localStorage.removeItem('isAdminLoggedIn'); localStorage.removeItem('superAdminAuth'); location.reload(); };
         window.onload = checkDisplayMode;
         
+        // --- SAFE TIMER LOOP (PREVENT GHOSTING & AUTO LOG) ---
         setInterval(()=>{
             if(latestSlots) {
                 renderSlots(latestSlots);
                 latestSlots.forEach((m,i)=>{
-                    // --- FIX GHOSTING BUG: DO NOT CALCULATE IF START TIME IS NULL ---
+                    // HANYA JALANKAN JIKA ADA START TIME (TIDAK NULL)
                     if(m && m.startTime && !isClearing[i]) {
                         const st = parseDate(m.startTime);
                         const rem = ((new Date(st.getTime() + m.durationMinutes*60000)) - new Date()) / 60000;
-                        if(rem <= -1) {
+                        if(rem <= -1) { // Waktu habis -> Auto Clear
                             isClearing[i]=true;
                             runTransaction(db, async(t)=>{
-                                const d=(await t.get(ref)).data(); d.chargingSlots[i]=null;
+                                const d=(await t.get(ref)).data(); 
+                                const finishedPlat = d.chargingSlots[i]?.plat || 'Unknown';
+                                d.chargingSlots[i]=null;
+                                let pulledPlat = 'None';
                                 
-                                // FIX: AUTO CLEAR JUGA HARUS HITUNG TARGET
                                 if(d.waitingQueue.length){
                                     const n=d.waitingQueue.shift(); 
+                                    // RE-CALCULATE TARGET SAAT AUTO PULL
                                     const tar = calculateTargetLimit(d.waitingQueue.length);
                                     const dur = calculateDuration(n.startBattery, tar);
-                                    d.chargingSlots[i]={ ...n, startTime:null, targetLimit:tar, durationMinutes:dur }; // READY
+                                    d.chargingSlots[i]={...n, startTime:null, targetLimit:tar, durationMinutes:dur}; // READY
+                                    pulledPlat = n.plat;
                                 }
                                 t.update(ref,d);
+                                
+                                // --- CRITICAL: AUTO LOGGING ---
+                                log('SYSTEM_AUTO_FINISH', finishedPlat, {
+                                    slot: i+1, 
+                                    next_queue: pulledPlat
+                                });
+
                             }).finally(()=>isClearing[i]=false);
                         }
                     }
