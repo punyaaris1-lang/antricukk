@@ -22,10 +22,16 @@
         @media(min-width: 768px) { .grid { display: grid; grid-template-columns: 350px 1fr; } } 
         .card { background: var(--surface); padding: 15px; border-radius: 12px; border: 1px solid var(--border); width: 100%; }
         h2 { font-size: 14px; margin-top: 0; border-bottom: 1px solid #333; padding-bottom: 10px; color: #aaa; letter-spacing: 1px; }
+        
+        /* LOG CONTAINER STYLE */
         .log-container { height: 500px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-right: 5px; }
         .log-card { background: #252525; padding: 12px; border-radius: 8px; border-left: 4px solid #555; font-size: 12px; }
+        
+        /* LOG DETAIL STYLE */
         .log-head { display: flex; justify-content: space-between; margin-bottom: 5px; font-weight: bold; color: #888; font-size: 10px; }
+        .log-time { color: var(--accent); font-family: monospace; font-size: 11px; } /* Style khusus waktu */
         .log-body { color: #fff; line-height: 1.4; word-wrap: break-word; }
+        
         .status-KRITIS { border-left-color: var(--red); background: rgba(255,0,0,0.1); }
         .status-AWAS { border-left-color: orange; }
         .status-INFO { border-left-color: var(--accent); }
@@ -97,7 +103,7 @@
             </div>
 
             <div class="card">
-                <h2 style="color:var(--accent);">LOG AKTIVITAS (REAL-TIME)</h2>
+                <h2 style="color:var(--accent);">LOG AKTIVITAS LENGKAP</h2>
                 <div id="logContainer" class="log-container">
                     <div style="text-align:center; color:#666; padding-top:50px;">Menunggu Data...</div>
                 </div>
@@ -119,20 +125,13 @@
         
         window.login = () => {
             if(document.getElementById('pinInput').value === PIN) {
-                localStorage.setItem('superAdminAuth', 'true'); // KUNCI UTAMA
+                localStorage.setItem('superAdminAuth', 'true'); 
                 checkAuth();
             } else alert('PIN SALAH');
         };
         
-        // FUNGSI BARU: Pindah ke tampilan user TANPA Logout
-        window.goToUserView = () => {
-            window.location.href = "antrian.html"; 
-        };
-
-        window.logout = () => { 
-            localStorage.removeItem('superAdminAuth'); 
-            window.location.href="antrian.html"; 
-        };
+        window.goToUserView = () => { window.location.href = "antrian.html"; };
+        window.logout = () => { localStorage.removeItem('superAdminAuth'); window.location.href="antrian.html"; };
         
         function checkAuth() {
             const isAuth = localStorage.getItem('superAdminAuth') === 'true';
@@ -167,22 +166,55 @@
             });
         };
 
+        // --- UPDATE: RENDER LOG DENGAN FORMAT TANGGAL DAN JAM LENGKAP ---
         function renderLogs(snap) {
             const c = document.getElementById('logContainer');
             if(snap.empty) return;
             let h = '';
             snap.forEach(doc => {
                 const d = doc.data();
-                const time = d.timestamp?.toDate().toLocaleTimeString('id-ID');
+                
+                // FORMAT WAKTU DETAIL
+                let dateStr = "-";
+                if(d.timestamp && d.timestamp.toDate) {
+                    const dt = d.timestamp.toDate();
+                    // Format: DD/MM/YYYY HH:MM:SS
+                    dateStr = dt.toLocaleString('id-ID', { 
+                        day: '2-digit', month: '2-digit', year: 'numeric', 
+                        hour: '2-digit', minute: '2-digit', second: '2-digit' 
+                    });
+                }
+
                 let status = 'INFO'; let tips = '';
                 if(d.action.includes('FAIL') || d.action.includes('GAGAL')) { status = 'KRITIS'; tips = 'Cek koneksi atau data duplikat.'; } 
                 else if(d.action.includes('ASSIGN')) { status = 'AWAS'; }
-                h += `<div class="log-card status-${status}"><div class="log-head"><span>${time}</span><span>${d.user || 'SYSTEM'}</span></div><div class="log-body"><b>${d.action}</b>: ${d.plat} ${d.details ? `<br><span style="color:#888">${JSON.stringify(d.details)}</span>` : ''}</div>${tips ? `<div class="action-needed"><span class="action-title">⚠️ TINDAKAN</span>${tips}</div>` : ''}</div>`;
+                
+                h += `
+                <div class="log-card status-${status}">
+                    <div class="log-head">
+                        <span class="log-time">${dateStr}</span>
+                        <span>${d.user || 'SYSTEM'}</span>
+                    </div>
+                    <div class="log-body">
+                        <b>${d.action}</b>: ${d.plat} 
+                        ${d.details ? `<br><span style="color:#888">${JSON.stringify(d.details)}</span>` : ''}
+                    </div>
+                    ${tips ? `<div class="action-needed"><span class="action-title">⚠️ TINDAKAN</span>${tips}</div>` : ''}
+                </div>`;
             });
             c.innerHTML = h;
         }
 
-        function log(action, plat, det) { addDoc(logRef, {timestamp:new Date(), action, plat, user:'SUPERADMIN', details:det}); }
+        // FUNGSI LOGGING
+        function log(action, plat, det) { 
+            addDoc(logRef, {
+                timestamp: new Date(), // Simpan waktu server saat ini
+                action: action, 
+                plat: plat, 
+                user: 'SUPERADMIN', 
+                details: det
+            }); 
+        }
 
         window.manualAssign = () => {
             const s=document.getElementById('manSlot').value, p=document.getElementById('manPlat').value.toUpperCase(), b=parseInt(document.getElementById('manBat').value);
@@ -190,9 +222,9 @@
             const tar = 100; const dur = calculateDuration(b, tar);
             runTransaction(db, async(t)=>{
                 const d=(await t.get(ref)).data();
-                d.chargingSlots[s] = {plat:p, userName:'ADMIN', wa:'-', startBattery:b, targetLimit:tar, durationMinutes:dur, startTime:new Date()};
+                d.chargingSlots[s] = {plat:p, userName:'ADMIN', wa:'-', startBattery:b, targetLimit:tar, durationMinutes:dur, startTime:null}; // READY
                 t.update(ref, {chargingSlots:d.chargingSlots});
-            }).then(()=>log('MANUAL_ASSIGN', p, {durasi:dur}));
+            }).then(()=>log('MANUAL_ASSIGN_SLOT', p, {slot: parseInt(s)+1, bat: b}));
         };
 
         window.clearSlot = () => {
@@ -208,11 +240,11 @@
                         const nextItem = q.shift();
                         const tar = calculateTargetLimit(q.length);
                         const dur = calculateDuration(nextItem.startBattery, tar);
-                        d.chargingSlots[s] = { ...nextItem, startTime: new Date(), targetLimit: tar, durationMinutes: dur };
+                        d.chargingSlots[s] = { ...nextItem, startTime: null, targetLimit: tar, durationMinutes: dur }; // READY
                         pulled = nextItem.plat;
                     }
                     t.update(ref, { chargingSlots: d.chargingSlots, waitingQueue: q });
-                    log('FORCE_CLEAR_AUTO_PULL', `Slot ${parseInt(s)+1}`, {cleared:oldP, pulled:pulled});
+                    log('FORCE_CLEAR_AUTO_PULL', `Slot ${parseInt(s)+1}`, {cleared_plat:oldP, pulled_plat:pulled});
                 });
             }
         };
@@ -225,7 +257,7 @@
                 const d=(await t.get(ref)).data(); const q=d.waitingQueue||[];
                 q.push({plat:p, userName:n, wa:w, startBattery:b, targetLimit:tar, durationMinutes:dur, startTime:null});
                 t.update(ref, {waitingQueue:q});
-            }).then(()=>log('ADMIN_REGISTER', p));
+            }).then(()=>log('ADMIN_REGISTER_QUEUE', p, {nama: n, bat: b}));
         };
 
         window.moveQueue = () => {
@@ -235,14 +267,14 @@
                 const d=(await t.get(ref)).data(); const q=d.waitingQueue; const s=d.chargingSlots;
                 if(s[si]) throw "Slot Penuh";
                 const item = q.splice(qi,1)[0];
-                item.startTime = new Date();
+                item.startTime = null; // READY
                 s[si] = item;
                 t.update(ref, {chargingSlots:s, waitingQueue:q});
-            }).then(()=>log('QUEUE_MOVE', `Slot ${parseInt(si)+1}`));
+            }).then(()=>log('QUEUE_MOVE_TO_SLOT', `Slot ${parseInt(si)+1}`, {from_queue_index: qi}));
         };
 
-        window.doBlock = () => { const p=document.getElementById('blockPlat').value.toUpperCase(); if(p) { updateDoc(ref, {blockedList: arrayUnion(p)}); log('BLOCK_USER', p); } };
-        window.doUnblock = () => { const p=document.getElementById('blockPlat').value.toUpperCase(); if(p) { updateDoc(ref, {blockedList: arrayRemove(p)}); log('UNBLOCK_USER', p); } };
+        window.doBlock = () => { const p=document.getElementById('blockPlat').value.toUpperCase(); if(p) { updateDoc(ref, {blockedList: arrayUnion(p)}); log('BLOCK_USER', p, null); } };
+        window.doUnblock = () => { const p=document.getElementById('blockPlat').value.toUpperCase(); if(p) { updateDoc(ref, {blockedList: arrayRemove(p)}); log('UNBLOCK_USER', p, null); } };
     </script>
 </body>
 </html>
