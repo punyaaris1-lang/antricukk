@@ -6,14 +6,13 @@
     <title>FC Kelapa Gading - Smart Charging</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&family=Syne:wght@700;800&display=swap" rel="stylesheet">
     <style>
-        /* --- TEMA MAKA MOTORS (CYBER BLUE & VOLT GREEN) --- */
+        /* TEMA MAKA MOTORS (CYBER BLUE & VOLT GREEN) */
         :root { 
             --volt-green: #D9FF00; --cyber-blue: #00F0FF; --bg-black: #050505;
             --text-main: #FFFFFF; --text-muted: #888888; --danger: #FF2A2A;
-            --card-surface: #111;
         }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { margin: 0; font-family: 'Inter', sans-serif; background: var(--bg-black); color: var(--text-main); min-height: 100vh; overflow-x: hidden; padding-bottom: 150px; } /* Padding bottom ditambah agar admin panel ga kepotong */
+        body { margin: 0; font-family: 'Inter', sans-serif; background: var(--bg-black); color: var(--text-main); min-height: 100vh; overflow-x: hidden; padding-bottom: 150px; }
         body::before { content: ''; position: fixed; inset: 0; background: url('1763947427555.jpg') center/cover; opacity: 0.25; z-index: -1; filter: grayscale(100%) contrast(1.2); }
         .container { max-width: 480px; margin: 0 auto; padding: 20px; }
         
@@ -66,44 +65,18 @@
         .queue-item-display { display: flex; justify-content: space-between; background: #111; padding: 12px; margin-bottom: 8px; border-radius: 6px; border-left: 3px solid #333; align-items: center; }
         .queue-item-display.is-mine { border-left: 3px solid var(--volt-green); background: #1a1a1a; border-top: 1px solid #333; border-right: 1px solid #333; border-bottom: 1px solid #333; }
 
-        /* --- DASHBOARD ADMIN "EASY MODE" --- */
-        .mini-dashboard { 
-            display: none; background: transparent; 
-            margin-top: 20px; 
-        }
-        
-        /* Kartu Admin Terpisah agar Jelas */
-        .admin-card {
-            background: #000;
-            border: 1px solid #333;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.5);
-        }
-        .admin-card.highlight { border: 1px solid var(--cyber-blue); background: #0a0a0a; } /* Highlight untuk Pendaftaran */
+        /* MINI ADMIN DASHBOARD (ADMIN FRIENDLY) */
+        .mini-dashboard { display: none; background: transparent; margin-top: 20px; }
+        .admin-card { background: #000; border: 1px solid #333; border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 5px 20px rgba(0,0,0,0.5); }
+        .admin-card.highlight { border: 1px solid var(--cyber-blue); background: #0a0a0a; } 
         .admin-card.danger { border: 1px solid #500; }
-
-        .ac-header {
-            font-size: 12px; font-weight: 900; 
-            color: #fff; text-transform: uppercase; 
-            border-bottom: 1px solid #333; 
-            padding-bottom: 10px; margin-bottom: 15px;
-            display: flex; align-items: center; gap: 8px;
-        }
+        .ac-header { font-size: 12px; font-weight: 900; color: #fff; text-transform: uppercase; border-bottom: 1px solid #333; padding-bottom: 10px; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
         .ac-header span { color: var(--volt-green); }
-
         .mini-row { display: flex; gap: 10px; margin-bottom: 10px; }
         .mini-btn { flex: 1; padding: 14px; border-radius: 6px; border: none; font-weight: 700; cursor: pointer; font-size: 11px; color: #fff; background: #222; border: 1px solid #444; transition: 0.2s; }
         .mini-btn:active { transform: scale(0.98); }
-        
-        .mini-inp { 
-            flex: 1; background: #1a1a1a; border: 1px solid #444; color: #fff; 
-            padding: 12px; border-radius: 6px; font-size: 12px; width: 100%; outline: none; 
-        }
+        .mini-inp { flex: 1; background: #1a1a1a; border: 1px solid #444; color: #fff; padding: 12px; border-radius: 6px; font-size: 12px; width: 100%; outline: none; }
         .mini-inp:focus { border-color: var(--cyber-blue); background: #000; }
-        
-        /* Warna Tombol Spesifik */
         .btn-blue { background: rgba(0, 240, 255, 0.1); border-color: var(--cyber-blue); color: var(--cyber-blue); }
         .btn-green { background: var(--volt-green); border-color: var(--volt-green); color: #000; font-weight: 900; }
         .btn-red { background: rgba(255, 42, 42, 0.1); border-color: var(--danger); color: var(--danger); }
@@ -180,8 +153,7 @@
             <div class="slots-grid" id="slotsContainer"></div>
             <div class="glass-card" style="padding:20px;min-height:100px;">
                 <div style="margin-bottom:15px;border-bottom:1px solid #333;padding-bottom:10px;font-size:12px;font-weight:700;display:flex;justify-content:space-between;color:#fff;">
-                    <span>DAFTAR TUNGGU</span>
-                    <span id="qCount" style="color:var(--volt-green)">0</span>
+                    <span>DAFTAR TUNGGU</span><span id="qCount" style="color:var(--volt-green)">(0)</span>
                 </div>
                 <div id="queueList"></div>
             </div>
@@ -189,7 +161,6 @@
 
         <div id="miniAdminPanel" class="mini-dashboard">
             <div style="text-align:center; color:#666; font-size:10px; margin-bottom:10px; letter-spacing:2px;">PANEL ADMIN</div>
-
             <div class="admin-card highlight">
                 <div class="ac-header">📝 <span>DAFTAR ANTRIAN BARU</span></div>
                 <div class="mini-row">
@@ -202,10 +173,8 @@
                 </div>
                 <button onclick="miniRegQ()" class="mini-btn btn-blue" style="width:100%">+ TAMBAH KE ANTRIAN</button>
             </div>
-
             <div class="admin-card">
                 <div class="ac-header">🚀 <span>PENGATURAN ARUS</span></div>
-                
                 <div style="margin-bottom:15px;">
                     <label style="margin-bottom:5px; display:block;">PINDAHKAN ANTRIAN KE SLOT</label>
                     <div class="mini-row">
@@ -215,7 +184,6 @@
                     </div>
                     <button onclick="miniMoveQ()" class="mini-btn btn-green" style="width:100%">PINDAHKAN SEKARANG</button>
                 </div>
-
                 <div style="border-top:1px dashed #333; padding-top:15px;">
                     <label style="margin-bottom:5px; display:block;">TUKAR URUTAN ANTRIAN</label>
                     <div class="mini-row">
@@ -226,7 +194,6 @@
                     <button onclick="miniSwapQueuePositions()" class="mini-btn" style="width:100%">TUKAR POSISI</button>
                 </div>
             </div>
-
             <div class="admin-card">
                 <div class="ac-header">⚡ <span>KONTROL SLOT (MANUAL)</span></div>
                 <div class="mini-row">
@@ -239,7 +206,6 @@
                     <button onclick="miniClearSlot()" class="mini-btn btn-red">KOSONGKAN PAKSA</button>
                 </div>
             </div>
-
             <div class="admin-card danger">
                 <div class="ac-header">🛡️ <span>SYSTEM & DARURAT</span></div>
                 <div class="mini-row">
@@ -271,9 +237,13 @@
         const ref = doc(db, "antrian", "utama");
         const logRef = collection(db, "activityLog");
 
-        const STATION_LOC = { lat: -6.171583, lng: 106.899844 }; 
-        const MAX_DIST_KM = 0.2; 
         const FONTE_TOKEN = "MASUKKAN_TOKEN_FONNTE_DISINI"; 
+        const WA_SIGNATURE = "\n\n- Admin FC Kelapa Gading";
+        const WA_TEMPLATES = [
+            "Halo {name}, motor {plat} sudah selesai charging. Mohon segera dipindahkan agar teman lain bisa pakai.",
+            "Charging selesai untuk {plat}. Terima kasih {name}, jangan lupa cabut kabel ya.",
+            "Waktu habis! Motor {plat} milik {name} sudah 100%. Giliran teman lain."
+        ];
 
         let latestSlots = [null, null, null]; 
         let latestQueue = [];
@@ -282,15 +252,33 @@
 
         function checkIsAdmin() { return localStorage.getItem('superAdminAuth') === 'true'; }
 
-        // FUNGSI LOGGING
+        // --- FUNGSI LOGGER PENTING ---
         function log(action, plat, det) { 
             addDoc(logRef, {
                 timestamp: new Date(),
                 action: action, 
                 plat: plat, 
-                user: 'SYSTEM_AUTO', 
+                user: checkIsAdmin() ? 'ADMIN' : 'USER', 
                 details: det
             }); 
+        }
+
+        async function sendFonnteNotif(targetWA, plat, name) {
+            if(!targetWA || targetWA.length < 5 || targetWA === '-') return;
+            const randomMsg = WA_TEMPLATES[Math.floor(Math.random() * WA_TEMPLATES.length)];
+            const finalMsg = randomMsg.replace("{name}", name).replace("{plat}", plat) + WA_SIGNATURE;
+            try {
+                const formData = new FormData();
+                formData.append('target', targetWA);
+                formData.append('message', finalMsg);
+                /*
+                await fetch('https://api.fonnte.com/send', {
+                    method: 'POST',
+                    headers: { 'Authorization': FONTE_TOKEN },
+                    body: formData
+                });
+                */
+            } catch(e) { console.error("WA Error", e); }
         }
 
         const CHARGING_CURVE = [ [100,0], [99,2], [95,6], [91,10], [89,18], [81,26], [72,35], [61,47], [50,55], [20,72], [0,90] ];
@@ -305,7 +293,7 @@
         function calculateDuration(start, target) {
             if (start >= target) return 5;
             let timeStart=90, timeTarget=0;
-            for(let i=0; i<CHARGING_CURVE.length-1; i++){ if(start<=CHARGING_CURVE[i][0] && start>=CHARGING_CURVE[i+1][0]) { const r=(CHARGING_CURVE[i][0]-start)/(CHARGING_CURVE[i][0]-CHARGING_CURVE[i+1][0]); timeStart=CHARGING_CURVE[i][1]+r*(CHARGING_CURVE[i+1][1]-CHARGING_CURVE[i+1][1]); break; }}
+            for(let i=0; i<CHARGING_CURVE.length-1; i++){ if(start<=CHARGING_CURVE[i][0] && start>=CHARGING_CURVE[i+1][0]) { const r=(CHARGING_CURVE[i][0]-start)/(CHARGING_CURVE[i][0]-CHARGING_CURVE[i+1][0]); timeStart=CHARGING_CURVE[i][1]+r*(CHARGING_CURVE[i+1][1]-CHARGING_CURVE[i][1]); break; }}
             for(let i=0; i<CHARGING_CURVE.length-1; i++){ if(target<=CHARGING_CURVE[i][0] && target>=CHARGING_CURVE[i+1][0]) { const r=(CHARGING_CURVE[i][0]-target)/(CHARGING_CURVE[i][0]-CHARGING_CURVE[i+1][0]); timeTarget=CHARGING_CURVE[i][1]+r*(CHARGING_CURVE[i+1][1]-CHARGING_CURVE[i][1]); break; }}
             return Math.max(1, Math.ceil(timeStart - timeTarget));
         }
@@ -342,7 +330,10 @@
                         box.innerHTML = `<div style="font-weight:900;color:var(--danger);font-size:10px;">SLOT ${i+1}</div><div style="font-size:16px;font-weight:900;margin-top:5px;font-family:'Inter'">${m.plat}</div><div style="font-size:10px;color:#aaa;">${m.userName.split(' ')[0]}</div><div style="font-size:14px;color:var(--danger);font-weight:900;margin-top:10px;">SELESAI</div><div style="font-size:30px;">❌</div><div style="margin-top:auto">${canControl ? `<button onclick="act(${i},'stop','${m.plat}')" class="btn-slot btn-stop">KOSONGKAN</button>` : ''}</div>`;
                     } else {
                         if(isMine && rem < 5) box.classList.add('pulsating');
-                        let dispBat = getBatteryFromRemTime(rem); 
+                        
+                        const timeToTarget = calculateDuration(globalTarget, 100); 
+                        const adjustedRem = rem + timeToTarget; 
+                        let dispBat = getBatteryFromRemTime(adjustedRem); 
                         dispBat = Math.min(Math.max(m.startBattery, dispBat), globalTarget);
                         
                         box.innerHTML = `<div style="font-size:9px;font-weight:700;color:var(--volt-green)">SLOT ${i+1}</div><div style="font-size:16px;font-weight:900;margin-top:2px;font-family:'Inter'">${m.plat}</div><div style="font-size:10px;color:#fff;">${m.userName.split(' ')[0]}</div><div style="font-family:'Inter';font-size:22px;font-weight:900;color:var(--volt-green);margin:2px 0;">${formatTime(rem)}</div><div class="bat-icon"><span class="bat-bolt">⚡</span><div class="bat-fill pulsating-fill" style="height:${dispBat}%"></div></div><div class="bat-stats"><div class="stat-row"><span class="c-start">Awal:</span> <span class="c-start">${m.startBattery}%</span></div><div class="stat-row"><span class="c-target">Target:</span> <span class="c-target">${globalTarget}%</span></div><div class="stat-row"><span class="c-now">Kini:</span> <span class="c-now">${dispBat}%</span></div></div><div>${isAdmin ? `<button onclick="editTimer(${i})" class="btn-slot btn-edit">EDIT</button>` : ''} ${canControl ? `<button onclick="act(${i},'stop','${m.plat}')" class="btn-slot btn-stop">STOP</button>` : ''}</div>`;
@@ -466,12 +457,16 @@
                 
                 const idx = s.findIndex(x=>x===null);
                 if(idx!==-1) { 
-                    s[idx]={plat, userName:name, wa, startBattery:bat, targetLimit:tar, durationMinutes:dur, startTime:null, readyTime: new Date()}; // READY + TIME
+                    s[idx]={plat, userName:name, wa, startBattery:bat, targetLimit:tar, durationMinutes:dur, startTime:null, readyTime: new Date()}; 
                 } else { 
                     q.push({plat, userName:name, wa, startBattery:bat, targetLimit:100, durationMinutes:0, startTime:null}); 
                 }
                 t.set(ref, {chargingSlots:s, waitingQueue:q}, {merge:true});
-            }).then(()=>{ localStorage.setItem('myPlat',plat); alert('Berhasil!'); }).catch(e=>alert(e));
+            }).then(()=>{ 
+                localStorage.setItem('myPlat',plat); 
+                log('USER_DAFTAR_MANDIRI', plat, {nama: name, bat: bat}); // LOG
+                alert('Berhasil!'); 
+            }).catch(e=>alert(e));
         }
 
         window.miniManualAssign = () => {
@@ -504,7 +499,7 @@
                         d.chargingSlots[s] = { ...next, startTime: null, readyTime: new Date(), targetLimit: tar, durationMinutes: dur }; // READY
                     }
                     t.update(ref, {chargingSlots:d.chargingSlots, waitingQueue:q});
-                    log('MANUAL_CLEAR', oldP, 'Cleared by Admin');
+                    log('ADMIN_CLEAR_SLOT', oldP, 'Force clear by Mini Admin'); // LOG
                 });
             }
         };
@@ -618,13 +613,28 @@
                         localStorage.removeItem('myPlat');
                         location.reload();
                     }
+                    log('USER_BATAL_ANTRI', 'Unknown', 'User cancelled queue'); // LOG
                 });
             }
         };
         
         window.act = (i,t,p) => {
-            if(t==='stop') if(confirm('Stop?')) runTransaction(db, async(tr)=>{ const d=(await tr.get(ref)).data(); d.chargingSlots[i]=null; if(d.waitingQueue.length){const n=d.waitingQueue.shift(); d.chargingSlots[i]={...n, startTime:null, durationMinutes:calculateDuration(n.startBattery,100)};} tr.update(ref,d); });
-            if(t==='start') runTransaction(db, async(tr)=>{ const d=(await tr.get(ref)).data(); d.chargingSlots[i].startTime=new Date(); tr.update(ref,d); });
+            if(t==='stop') if(confirm('Stop?')) runTransaction(db, async(tr)=>{ 
+                const d=(await tr.get(ref)).data(); 
+                d.chargingSlots[i]=null; 
+                if(d.waitingQueue.length){
+                    const n=d.waitingQueue.shift(); 
+                    d.chargingSlots[i]={...n, startTime:null, durationMinutes:calculateDuration(n.startBattery,100)};
+                } 
+                tr.update(ref,d);
+                log('USER_STOP_MANUAL', p, {slot: i+1}); // LOG
+            });
+            if(t==='start') runTransaction(db, async(tr)=>{ 
+                const d=(await tr.get(ref)).data(); 
+                d.chargingSlots[i].startTime=new Date(); 
+                tr.update(ref,d); 
+                log('USER_START_MANUAL', d.chargingSlots[i].plat, {slot: i+1}); // LOG
+            });
         };
         window.editTimer = (i) => {
             const m = prompt("Durasi Baru (Menit):");
@@ -642,7 +652,6 @@
                         const readyLimit = 5 * 60 * 1000; 
                         const elapsed = new Date() - parseDate(m.readyTime);
                         if(elapsed >= readyLimit) {
-                            // AUTO START TRIGGER
                             runTransaction(db, async(t)=>{
                                 const d=(await t.get(ref)).data();
                                 if(d.chargingSlots[i] && !d.chargingSlots[i].startTime) {
@@ -654,7 +663,7 @@
                         }
                     }
 
-                    // --- TIME CHECK ---
+                    // --- TIME CHECK & AUTO FINISH ---
                     if(m && m.startTime && !isClearing[i]) {
                         const st = parseDate(m.startTime);
                         const rem = ((new Date(st.getTime() + m.durationMinutes*60000)) - new Date()) / 60000;
@@ -663,6 +672,9 @@
                             runTransaction(db, async(t)=>{
                                 const d=(await t.get(ref)).data(); 
                                 const oldP = d.chargingSlots[i]?.plat || 'Unknown';
+                                const oldWA = d.chargingSlots[i]?.wa; 
+                                const oldName = d.chargingSlots[i]?.userName;
+
                                 d.chargingSlots[i]=null;
                                 let pulled = 'None';
                                 if(d.waitingQueue.length){
@@ -673,7 +685,10 @@
                                     pulled = n.plat;
                                 }
                                 t.update(ref,d);
-                                log('AUTO_FINISH', oldP, {pulled_next: pulled});
+                                
+                                sendFonnteNotif(oldWA, oldP, oldName);
+                                
+                                log('SYSTEM_AUTO_FINISH', oldP, {pulled_next: pulled}); // LOG
                             }).finally(()=>isClearing[i]=false);
                         }
                     }
