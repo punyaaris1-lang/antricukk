@@ -51,15 +51,19 @@
         #queueList { max-height: 250px; overflow-y: auto; padding-right: 5px; }
         .queue-item-display { display: flex; justify-content: space-between; background: #111; padding: 12px; margin-bottom: 8px; border-radius: 6px; border-left: 3px solid #333; align-items: center; }
         .queue-item-display.is-mine { border-left: 3px solid var(--volt-green); background: #1a1a1a; border-top: 1px solid #333; border-right: 1px solid #333; border-bottom: 1px solid #333; }
+        
+        /* MINI DASHBOARD ADMIN */
         .mini-dashboard { display: none; background: transparent; margin-top: 20px; }
-        .admin-card { background: #000; border: 1px solid #333; border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+        .admin-card { background: #000; border: 1px solid #333; border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 5px 20px rgba(0,0,0,0.5); }
         .admin-card.highlight { border: 1px solid var(--cyber-blue); background: #0a0a0a; } 
         .admin-card.danger { border: 1px solid #500; }
         .ac-header { font-size: 12px; font-weight: 900; color: #fff; text-transform: uppercase; border-bottom: 1px solid #333; padding-bottom: 10px; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
         .ac-header span { color: var(--volt-green); }
         .mini-row { display: flex; gap: 10px; margin-bottom: 10px; }
         .mini-btn { flex: 1; padding: 14px; border-radius: 6px; border: none; font-weight: 700; cursor: pointer; font-size: 11px; color: #fff; background: #222; border: 1px solid #444; transition: 0.2s; }
+        .mini-btn:active { transform: scale(0.98); }
         .mini-inp { flex: 1; background: #1a1a1a; border: 1px solid #444; color: #fff; padding: 12px; border-radius: 6px; font-size: 12px; width: 100%; outline: none; }
+        .mini-inp:focus { border-color: var(--cyber-blue); background: #000; }
         .btn-blue { background: rgba(0, 240, 255, 0.1); border-color: var(--cyber-blue); color: var(--cyber-blue); }
         .btn-green { background: var(--volt-green); border-color: var(--volt-green); color: #000; font-weight: 900; }
         .btn-red { background: rgba(255, 42, 42, 0.1); border-color: var(--danger); color: var(--danger); }
@@ -68,11 +72,29 @@
         #choiceModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.98); z-index: 99999; justify-content: center; align-items: center; }
         .choice-box { background: #050505; border: 1px solid var(--volt-green); padding: 40px 30px; border-radius: 12px; text-align: center; width: 85%; max-width: 350px; }
         .choice-btn { display: block; width: 100%; padding: 16px; margin-top: 15px; border-radius: 6px; font-weight: 800; cursor: pointer; border: none; font-size: 13px; }
+
+        /* LOG VIEWER STYLES */
+        #logModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 99999; justify-content: center; align-items: flex-start; padding-top: 50px; }
+        .log-box { background: #000; border: 1px solid var(--volt-green); width: 90%; max-width: 600px; max-height: 80vh; overflow-y: auto; border-radius: 8px; padding: 20px; font-family: monospace; }
+        .log-item { border-bottom: 1px solid #333; padding: 8px 0; font-size: 10px; color: #aaa; }
+        .log-time { color: var(--cyber-blue); font-weight: bold; margin-right: 5px; }
+        .log-action { color: #fff; font-weight: bold; }
+        .log-detail { color: var(--volt-green); display: block; margin-top: 2px; }
     </style>
 </head>
 <body>
     <div id="loadingScreen" style="position:fixed;inset:0;background:#000;z-index:99999;display:flex;justify-content:center;align-items:center;color:var(--volt-green);font-family:'Inter';font-weight:900;letter-spacing:2px;font-size:12px;">LOADING SYSTEM...</div>
     
+    <div id="logModal">
+        <div class="log-box">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;border-bottom:2px solid #333;padding-bottom:10px;">
+                <h3 style="margin:0;color:#fff;">📜 SYSTEM LOGS (LAST 20)</h3>
+                <button onclick="document.getElementById('logModal').style.display='none'" style="background:var(--danger);color:#fff;border:none;padding:5px 10px;cursor:pointer;font-weight:bold;">TUTUP</button>
+            </div>
+            <div id="logContent">Memuat data log...</div>
+        </div>
+    </div>
+
     <div id="choiceModal">
         <div class="choice-box">
             <h2 style="color:#fff;margin-top:0;">SELAMAT DATANG</h2>
@@ -155,6 +177,8 @@
                 </div>
                 <button onclick="miniRegQ()" class="mini-btn btn-blue" style="width:100%">+ TAMBAH KE ANTRIAN</button>
             </div>
+            <button onclick="viewLogs()" class="mini-btn" style="width:100%;margin-bottom:20px;border:1px solid var(--volt-green);color:var(--volt-green);">📜 CEK RIWAYAT LOG (ERROR & AKTIVITAS)</button>
+
             <div class="admin-card">
                 <div class="ac-header">🚀 <span>PENGATURAN ARUS</span></div>
                 <div style="margin-bottom:15px;">
@@ -211,7 +235,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, doc, onSnapshot, runTransaction, setDoc, updateDoc, arrayUnion, arrayRemove, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, doc, onSnapshot, runTransaction, setDoc, updateDoc, arrayUnion, arrayRemove, collection, addDoc, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = { apiKey: "AIzaSyALIlkIDALIk83K8s1htalvW6rmNNw02Go", authDomain: "sistem-antrian-b1c39.firebaseapp.com", projectId: "sistem-antrian-b1c39", storageBucket: "sistem-antrian-b1c39.firebasestorage.app", messagingSenderId: "454124587608", appId: "1:454124587608:web:34fbb0f5211067a67f982d" };
         const app = initializeApp(firebaseConfig);
@@ -219,7 +243,7 @@
         const ref = doc(db, "antrian", "utama");
         const logRef = collection(db, "activityLog");
 
-        // --- TOKEN FONNTE (SUDAH DITANAM) ---
+        // --- TOKEN FONNTE (WAJIB ISI TOKEN) ---
         const FONTE_TOKEN = "MuR8CucXAsYd2YvWBxVo"; 
         const WA_SIGNATURE = "\n\n- Admin FC Kelapa Gading";
         const WA_TEMPLATES = [
@@ -236,7 +260,6 @@
         let isGpsBypassEnabled = localStorage.getItem('gpsBypass') === 'true';
         let isProcessing = false;
 
-        // Safety Loader (5 Detik)
         setTimeout(() => {
             const ls = document.getElementById('loadingScreen');
             if(ls) ls.style.display = 'none';
@@ -255,14 +278,46 @@
             }).catch(e => console.error("Log Error:", e)); 
         }
 
-        // --- FUNGSI KIRIM WA (SUDAH AKTIF) ---
+        // --- FITUR BARU: MONITOR LOG VIEWER ---
+        window.viewLogs = async () => {
+            document.getElementById('logModal').style.display = 'flex';
+            const logDiv = document.getElementById('logContent');
+            logDiv.innerHTML = 'Sedang mengambil data...';
+            
+            try {
+                const q = query(logRef, orderBy("timestamp", "desc"), limit(30));
+                const querySnapshot = await getDocs(q);
+                let html = '';
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    const time = data.timestamp ? new Date(data.timestamp.seconds * 1000).toLocaleTimeString() : '-';
+                    const det = JSON.stringify(data.details || {});
+                    html += `
+                        <div class="log-item">
+                            <div><span class="log-time">[${time}]</span> <span class="log-action">${data.action}</span> (${data.user})</div>
+                            <div style="color:#fff;">Plat: ${data.plat}</div>
+                            <div class="log-detail">${det}</div>
+                        </div>
+                    `;
+                });
+                logDiv.innerHTML = html || 'Belum ada log.';
+            } catch (e) {
+                logDiv.innerHTML = 'Gagal ambil log: ' + e.message;
+            }
+        };
+
+        // --- AUTO FORMAT WA (62) ---
+        function formatWA(num) {
+            let n = num.replace(/\D/g,'');
+            if(n.startsWith('0')) n = '62' + n.substring(1);
+            if(!n.startsWith('62')) n = '62' + n;
+            return n;
+        }
+
         async function sendFonnteNotif(targetWA, plat, name) {
             if(!targetWA || targetWA.length < 5 || targetWA === '-') return;
             
-            // Format Nomor (08 -> 628)
-            let formattedWA = targetWA.replace(/\D/g,'');
-            if(formattedWA.startsWith('0')) formattedWA = '62' + formattedWA.substring(1);
-
+            const formattedWA = formatWA(targetWA);
             const randomMsg = WA_TEMPLATES[Math.floor(Math.random() * WA_TEMPLATES.length)];
             const finalMsg = randomMsg.replace("{name}", name).replace("{plat}", plat) + WA_SIGNATURE;
             
@@ -276,17 +331,20 @@
                     headers: { 'Authorization': FONTE_TOKEN },
                     body: formData
                 });
-                console.log("WA Sent to " + formattedWA);
-            } catch(e) { console.error("WA Error", e); }
+                // Log sukses WA
+                log('WA_SENT_SUCCESS', plat, {to: formattedWA});
+            } catch(e) { 
+                console.error("WA Error", e); 
+                log('WA_SENT_FAILED', plat, {err: e.message});
+            }
         }
 
-        // --- KURVA KALIBRASI (DATA DARI FOTO MESIN) ---
+        // --- KURVA AGAK LEBIH CEPAT (BUFFER 2-4 MENIT) ---
         const CHARGING_CURVE = [
-            [100,0], [99,2], [95,6], [91,10], 
-            [90,19], // Titik Kritis: 90% = 19 Menit
-            [85,24], [81,27], [77,31], [72,35], 
-            [61,47], [58,50], [50,55], 
-            [22,71], [20,72], [0,90]
+            [100,0], [99,1], [95,4], 
+            [90,17], // 90% = 17m (Mesin 19m)
+            [89,18], [85,22], [81,25], [72,33], 
+            [61,45], [50,50], [20,68], [0,86]
         ];
 
         function getBatteryFromRemTime(rem) {
@@ -356,7 +414,9 @@
                             dispBat = Math.min(Math.max(m.startBattery, dispBat), globalTarget);
                         }
                         
-                        box.innerHTML = `<div style="font-size:9px;font-weight:700;color:var(--volt-green)">SLOT ${i+1}</div><div style="font-size:16px;font-weight:900;margin-top:2px;font-family:'Inter'">${m.plat}</div><div style="font-size:10px;color:#fff;">${m.userName.split(' ')[0]}</div><div style="font-family:'Inter';font-size:22px;font-weight:900;color:var(--volt-green);margin:2px 0;">${formatTime(rem)}</div><div class="bat-icon"><span class="bat-bolt">⚡</span><div class="bat-fill pulsating-fill" style="height:${dispBat}%"></div></div><div class="bat-stats"><div class="stat-row"><span class="c-start">Awal:</span> <span class="c-start">${m.startBattery}%</span></div><div class="stat-row"><span class="c-target">Target:</span> <span class="c-target">${m.isManualTime ? 'MAN' : globalTarget}%</span></div><div class="stat-row"><span class="c-now">Kini:</span> <span class="c-now">${dispBat}%</span></div></div><div>${isAdmin ? `<button onclick="editTimer(${i})" class="btn-slot btn-edit">EDIT</button>` : ''} ${canControl ? `<button onclick="act(${i},'stop','${m.plat}')" class="btn-slot btn-stop">STOP</button>` : ''}</div>`;
+                        const targetDisplay = globalTarget + '%'; 
+
+                        box.innerHTML = `<div style="font-size:9px;font-weight:700;color:var(--volt-green)">SLOT ${i+1}</div><div style="font-size:16px;font-weight:900;margin-top:2px;font-family:'Inter'">${m.plat}</div><div style="font-size:10px;color:#fff;">${m.userName.split(' ')[0]}</div><div style="font-family:'Inter';font-size:22px;font-weight:900;color:var(--volt-green);margin:2px 0;">${formatTime(rem)}</div><div class="bat-icon"><span class="bat-bolt">⚡</span><div class="bat-fill pulsating-fill" style="height:${dispBat}%"></div></div><div class="bat-stats"><div class="stat-row"><span class="c-start">Awal:</span> <span class="c-start">${m.startBattery}%</span></div><div class="stat-row"><span class="c-target">Target:</span> <span class="c-target">${targetDisplay}</span></div><div class="stat-row"><span class="c-now">Kini:</span> <span class="c-now">${dispBat}%</span></div></div><div>${isAdmin ? `<button onclick="editTimer(${i})" class="btn-slot btn-edit">EDIT</button>` : ''} ${canControl ? `<button onclick="act(${i},'stop','${m.plat}')" class="btn-slot btn-stop">STOP</button>` : ''}</div>`;
                     }
                 } else if(m) {
                     let autoStartMsg = "READY";
@@ -413,7 +473,7 @@
                 
                 let btn = '';
                 if(isAdmin) {
-                    let waLink = `https://wa.me/${m.wa.replace(/^0/,'62')}?text=Halo%20${m.userName},%20pantau%20antrianmu%20di:%20${window.location.href}`;
+                    let waLink = `https://wa.me/${formatWA(m.wa)}?text=Halo%20${m.userName},%20pantau%20antrianmu%20di:%20${window.location.href}`;
                     btn = `
                     <div style="display:flex;gap:5px;">
                         <a href="${waLink}" target="_blank" style="background:#25D366;color:#fff;border-radius:4px;padding:3px 6px;text-decoration:none;font-weight:bold;font-size:10px;">WA</a>
@@ -682,7 +742,6 @@
                     const cancelledItem = d.waitingQueue[i];
                     d.waitingQueue.splice(i, 1);
                     t.update(ref, {waitingQueue: d.waitingQueue});
-                    // LOG
                     const actor = checkIsAdmin() ? 'ADMIN_CANCEL_QUEUE' : 'USER_BATAL_ANTRI';
                     log(actor, cancelledItem?.plat || 'Unknown', {queue_index: i});
                 }).then(()=> {
@@ -704,7 +763,6 @@
                     d.chargingSlots[i]={...n, startTime:null, durationMinutes:calculateDuration(n.startBattery,100)};
                 } 
                 tr.update(ref,d);
-                // LOG
                 const actor = checkIsAdmin() ? 'ADMIN_STOP_SLOT' : 'USER_STOP_MANUAL';
                 log(actor, p, {slot: i+1}); 
             });
@@ -712,7 +770,6 @@
                 const d=(await tr.get(ref)).data(); 
                 d.chargingSlots[i].startTime=new Date(); 
                 tr.update(ref,d); 
-                // LOG
                 const actor = checkIsAdmin() ? 'ADMIN_START_SLOT' : 'USER_START_MANUAL';
                 log(actor, d.chargingSlots[i].plat, {slot: i+1}); 
             });
@@ -725,7 +782,6 @@
                     const d=(await t.get(ref)).data(); 
                     const oldDur = d.chargingSlots[i].durationMinutes;
                     
-                    // ADMIN INPUT = ABSOLUTE TRUTH
                     d.chargingSlots[i].startTime = new Date(); 
                     d.chargingSlots[i].durationMinutes = parseInt(m);
                     d.chargingSlots[i].isManualTime = true; 
@@ -739,7 +795,6 @@
         window.logoutUser = () => { localStorage.removeItem('myPlat'); localStorage.removeItem('isAdminLoggedIn'); localStorage.removeItem('superAdminAuth'); location.reload(); };
         window.onload = checkDisplayMode;
         
-        // --- SAFE TIMER LOOP ---
         setInterval(()=>{
             if(latestSlots) {
                 renderSlots(latestSlots);
@@ -770,7 +825,7 @@
                         const end = new Date(st.getTime() + durationToUse*60000);
                         const rem = (end - new Date())/60000;
                         
-                        if(rem <= -1) {
+                        if(rem <= 0) {
                             isClearing[i]=true;
                             isProcessing = true;
                             runTransaction(db, async(t)=>{
@@ -790,7 +845,6 @@
                                 }
                                 t.update(ref,d);
                                 
-                                // Kirim Pesan Setelah Transaksi
                                 sendFonnteNotif(oldWA, oldP, oldName);
                                 
                                 log('SYSTEM_AUTO_FINISH', oldP, {pulled_next: pulled}); 
