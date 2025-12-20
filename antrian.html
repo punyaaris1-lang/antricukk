@@ -228,7 +228,6 @@
         const ref = doc(db, "antrian", "utama");
         const logRef = collection(db, "activityLog");
 
-        // --- KONFIGURASI FONNTE (WAJIB ISI TOKEN) ---
         const FONTE_TOKEN = "MASUKKAN_TOKEN_FONNTE_DISINI"; 
         const WA_SIGNATURE = "\n\n- Admin FC Kelapa Gading";
         const WA_TEMPLATES = [
@@ -245,7 +244,6 @@
         let isGpsBypassEnabled = localStorage.getItem('gpsBypass') === 'true';
         let isProcessing = false;
 
-        // --- SAFETY LOADER (5 Detik Force Open) ---
         setTimeout(() => {
             const ls = document.getElementById('loadingScreen');
             if(ls) ls.style.display = 'none';
@@ -253,7 +251,6 @@
 
         function checkIsAdmin() { return localStorage.getItem('superAdminAuth') === 'true'; }
 
-        // --- FUNGSI LOGGER PENTING (A-Z) ---
         function log(action, plat, det) { 
             const userType = checkIsAdmin() ? 'ADMIN' : 'USER/SYSTEM';
             addDoc(logRef, {
@@ -273,8 +270,6 @@
                 const formData = new FormData();
                 formData.append('target', targetWA);
                 formData.append('message', finalMsg);
-                
-                // UNCOMMENT JIKA SUDAH ADA TOKEN
                 /*
                 await fetch('https://api.fonnte.com/send', {
                     method: 'POST',
@@ -285,13 +280,7 @@
             } catch(e) { console.error("WA Error", e); }
         }
 
-        // --- KURVA KALIBRASI TERBARU (SESUAI FOTO) ---
-        const CHARGING_CURVE = [
-            [100,0], [99,2], [95,6], [93,8], [91,10], 
-            [90,19], [89,20], [81,26], [72,35], 
-            [61,47], [50,55], [20,72], [0,90]
-        ];
-
+        const CHARGING_CURVE = [ [100,0], [99,2], [95,6], [91,10], [89,18], [81,26], [72,35], [61,47], [50,55], [20,72], [0,90] ];
         function getBatteryFromRemTime(rem) {
             if (rem <= 0) return 100;
             for (let i=0; i<CHARGING_CURVE.length-1; i++) {
@@ -332,7 +321,15 @@
 
                 if(m && m.startTime) {
                     const st = parseDate(m.startTime);
-                    const durReal = calculateDuration(m.startBattery, globalTarget);
+                    
+                    // --- FIX MANUAL OVERRIDE LOGIC ---
+                    let durReal;
+                    if (m.isManualTime) {
+                        durReal = m.durationMinutes; // PAKAI NILAI MANUAL ADMIN
+                    } else {
+                        durReal = calculateDuration(m.startBattery, globalTarget); // PAKAI RUMUS KURVA
+                    }
+
                     const end = new Date(st.getTime() + durReal*60000);
                     const rem = (end - new Date())/60000;
                     
@@ -341,13 +338,21 @@
                     } else {
                         if(isMine && rem < 5) box.classList.add('pulsating');
                         
-                        // FIX: Logic Baterai mengikuti sisa waktu real-time
-                        const timeToTarget = calculateDuration(globalTarget, 100); 
-                        const adjustedRem = rem + timeToTarget; 
-                        let dispBat = getBatteryFromRemTime(adjustedRem); 
-                        dispBat = Math.min(Math.max(m.startBattery, dispBat), globalTarget);
+                        let dispBat;
+                        if(m.isManualTime) {
+                            // JIKA MANUAL, BATTERY = 100 - (Sisa Menit / 1 Menit per persen * Faktor)
+                            // Simpelnya: Kita hitung mundur dari 100% menggunakan kurva terbalik
+                            // Atau paling aman: Gunakan sisa waktu manual untuk menebak posisi di kurva
+                            const timeToFull = rem; 
+                            dispBat = getBatteryFromRemTime(timeToFull);
+                        } else {
+                            const timeToTarget = calculateDuration(globalTarget, 100); 
+                            const adjustedRem = rem + timeToTarget; 
+                            dispBat = getBatteryFromRemTime(adjustedRem); 
+                            dispBat = Math.min(Math.max(m.startBattery, dispBat), globalTarget);
+                        }
                         
-                        box.innerHTML = `<div style="font-size:9px;font-weight:700;color:var(--volt-green)">SLOT ${i+1}</div><div style="font-size:16px;font-weight:900;margin-top:2px;font-family:'Inter'">${m.plat}</div><div style="font-size:10px;color:#fff;">${m.userName.split(' ')[0]}</div><div style="font-family:'Inter';font-size:22px;font-weight:900;color:var(--volt-green);margin:2px 0;">${formatTime(rem)}</div><div class="bat-icon"><span class="bat-bolt">⚡</span><div class="bat-fill pulsating-fill" style="height:${dispBat}%"></div></div><div class="bat-stats"><div class="stat-row"><span class="c-start">Awal:</span> <span class="c-start">${m.startBattery}%</span></div><div class="stat-row"><span class="c-target">Target:</span> <span class="c-target">${globalTarget}%</span></div><div class="stat-row"><span class="c-now">Kini:</span> <span class="c-now">${dispBat}%</span></div></div><div>${isAdmin ? `<button onclick="editTimer(${i})" class="btn-slot btn-edit">EDIT</button>` : ''} ${canControl ? `<button onclick="act(${i},'stop','${m.plat}')" class="btn-slot btn-stop">STOP</button>` : ''}</div>`;
+                        box.innerHTML = `<div style="font-size:9px;font-weight:700;color:var(--volt-green)">SLOT ${i+1}</div><div style="font-size:16px;font-weight:900;margin-top:2px;font-family:'Inter'">${m.plat}</div><div style="font-size:10px;color:#fff;">${m.userName.split(' ')[0]}</div><div style="font-family:'Inter';font-size:22px;font-weight:900;color:var(--volt-green);margin:2px 0;">${formatTime(rem)}</div><div class="bat-icon"><span class="bat-bolt">⚡</span><div class="bat-fill pulsating-fill" style="height:${dispBat}%"></div></div><div class="bat-stats"><div class="stat-row"><span class="c-start">Awal:</span> <span class="c-start">${m.startBattery}%</span></div><div class="stat-row"><span class="c-target">Target:</span> <span class="c-target">${m.isManualTime ? 'MAN' : globalTarget}%</span></div><div class="stat-row"><span class="c-now">Kini:</span> <span class="c-now">${dispBat}%</span></div></div><div>${isAdmin ? `<button onclick="editTimer(${i})" class="btn-slot btn-edit">EDIT</button>` : ''} ${canControl ? `<button onclick="act(${i},'stop','${m.plat}')" class="btn-slot btn-stop">STOP</button>` : ''}</div>`;
                     }
                 } else if(m) {
                     let autoStartMsg = "READY";
@@ -673,6 +678,7 @@
                     const cancelledItem = d.waitingQueue[i];
                     d.waitingQueue.splice(i, 1);
                     t.update(ref, {waitingQueue: d.waitingQueue});
+                    // LOG
                     const actor = checkIsAdmin() ? 'ADMIN_CANCEL_QUEUE' : 'USER_BATAL_ANTRI';
                     log(actor, cancelledItem?.plat || 'Unknown', {queue_index: i});
                 }).then(()=> {
@@ -694,6 +700,7 @@
                     d.chargingSlots[i]={...n, startTime:null, durationMinutes:calculateDuration(n.startBattery,100)};
                 } 
                 tr.update(ref,d);
+                // LOG
                 const actor = checkIsAdmin() ? 'ADMIN_STOP_SLOT' : 'USER_STOP_MANUAL';
                 log(actor, p, {slot: i+1}); 
             });
@@ -701,12 +708,13 @@
                 const d=(await tr.get(ref)).data(); 
                 d.chargingSlots[i].startTime=new Date(); 
                 tr.update(ref,d); 
+                // LOG
                 const actor = checkIsAdmin() ? 'ADMIN_START_SLOT' : 'USER_START_MANUAL';
                 log(actor, d.chargingSlots[i].plat, {slot: i+1}); 
             });
         };
         
-        // --- FIX LOGIC EDIT TIMER (INPUT = SISA WAKTU MESIN) ---
+        // --- FIX LOGIC EDIT TIMER: MANUAL OVERRIDE (ADMIN IS GOD) ---
         window.editTimer = (i) => {
             const m = prompt("Masukkan SISA WAKTU di Mesin (Menit):");
             if(m && !isNaN(m)) {
@@ -714,9 +722,10 @@
                     const d=(await t.get(ref)).data(); 
                     const oldDur = d.chargingSlots[i].durationMinutes;
                     
-                    // RESET TIMER IKUTI INPUT ADMIN
+                    // ADMIN INPUT = ABSOLUTE TRUTH
                     d.chargingSlots[i].startTime = new Date(); 
-                    d.chargingSlots[i].durationMinutes = parseInt(m); 
+                    d.chargingSlots[i].durationMinutes = parseInt(m);
+                    d.chargingSlots[i].isManualTime = true; // Flag Manual Aktif
                     
                     t.update(ref,d); 
                     log('ADMIN_SYNC_TIME', d.chargingSlots[i].plat, {manual_input: m});
@@ -727,12 +736,11 @@
         window.logoutUser = () => { localStorage.removeItem('myPlat'); localStorage.removeItem('isAdminLoggedIn'); localStorage.removeItem('superAdminAuth'); location.reload(); };
         window.onload = checkDisplayMode;
         
-        // --- SAFE TIMER LOOP ---
         setInterval(()=>{
             if(latestSlots) {
                 renderSlots(latestSlots);
                 
-                if(isProcessing) return; // LOCK
+                if(isProcessing) return;
 
                 latestSlots.forEach((m,i)=>{
                     if(m && !m.startTime && m.readyTime) {
@@ -753,7 +761,13 @@
 
                     if(m && m.startTime && !isClearing[i]) {
                         const st = parseDate(m.startTime);
-                        const rem = ((new Date(st.getTime() + m.durationMinutes*60000)) - new Date()) / 60000;
+                        
+                        // Use Manual Duration if Flag exists
+                        const durationToUse = m.isManualTime ? m.durationMinutes : calculateDuration(m.startBattery, m.targetLimit || 100);
+                        
+                        const end = new Date(st.getTime() + durationToUse*60000);
+                        const rem = (end - new Date())/60000;
+                        
                         if(rem <= -1) {
                             isClearing[i]=true;
                             isProcessing = true;
