@@ -229,12 +229,12 @@
         const logRef = collection(db, "activityLog");
 
         // --- KONFIGURASI FONNTE (WAJIB ISI TOKEN) ---
-        const FONTE_TOKEN = "MuR8CucXAsYd2YvWBxVo"; 
-        const WA_SIGNATURE = "\n\n- Admin FC Kelapa Gading | Terima kasih sudah mampir dirumah MLU";
+        const FONTE_TOKEN = "MASUKKAN_TOKEN_FONNTE_DISINI"; 
+        const WA_SIGNATURE = "\n\n- Admin FC Kelapa Gading";
         const WA_TEMPLATES = [
             "Halo {name}, motor {plat} sudah selesai charging. Mohon segera dipindahkan agar teman lain bisa pakai.",
             "Charging selesai untuk {plat}. Terima kasih {name}, jangan lupa cabut kabel ya.",
-            "Waktu habis! Motor {plat} milik {name} sudah 100%. Giliran yang lain."
+            "Waktu habis! Motor {plat} milik {name} sudah 100%. Giliran teman lain."
         ];
 
         const STATION_LOC = { lat: -6.171583, lng: 106.899844 }; 
@@ -243,7 +243,9 @@
         let latestSlots = [null, null, null]; 
         let latestQueue = [];
         let isGpsBypassEnabled = localStorage.getItem('gpsBypass') === 'true';
-        let isClearing = [false,false,false];
+        
+        // GLOBAL LOCK FOR TRANSACTIONS (ANTI-GHOSTING)
+        let isProcessing = false;
 
         // --- SAFETY LOADER (5 Detik Force Open) ---
         setTimeout(() => {
@@ -674,6 +676,7 @@
                     const cancelledItem = d.waitingQueue[i];
                     d.waitingQueue.splice(i, 1);
                     t.update(ref, {waitingQueue: d.waitingQueue});
+                    // LOG
                     const actor = checkIsAdmin() ? 'ADMIN_CANCEL_QUEUE' : 'USER_BATAL_ANTRI';
                     log(actor, cancelledItem?.plat || 'Unknown', {queue_index: i});
                 }).then(()=> {
@@ -695,6 +698,7 @@
                     d.chargingSlots[i]={...n, startTime:null, durationMinutes:calculateDuration(n.startBattery,100)};
                 } 
                 tr.update(ref,d);
+                // LOG
                 const actor = checkIsAdmin() ? 'ADMIN_STOP_SLOT' : 'USER_STOP_MANUAL';
                 log(actor, p, {slot: i+1}); 
             });
@@ -702,6 +706,7 @@
                 const d=(await tr.get(ref)).data(); 
                 d.chargingSlots[i].startTime=new Date(); 
                 tr.update(ref,d); 
+                // LOG
                 const actor = checkIsAdmin() ? 'ADMIN_START_SLOT' : 'USER_START_MANUAL';
                 log(actor, d.chargingSlots[i].plat, {slot: i+1}); 
             });
@@ -720,14 +725,21 @@
         window.logoutUser = () => { localStorage.removeItem('myPlat'); localStorage.removeItem('isAdminLoggedIn'); localStorage.removeItem('superAdminAuth'); location.reload(); };
         window.onload = checkDisplayMode;
         
+        // --- SAFE TIMER LOOP (TRANSACTION LOCK) ---
         setInterval(()=>{
             if(latestSlots) {
                 renderSlots(latestSlots);
+                
+                // IF PROCESSING, SKIP LOOP TO PREVENT RACE CONDITIONS
+                if(isProcessing) return;
+
                 latestSlots.forEach((m,i)=>{
+                    // --- AUTO START CHECK (5 MENIT) ---
                     if(m && !m.startTime && m.readyTime) {
                         const readyLimit = 5 * 60 * 1000; 
                         const elapsed = new Date() - parseDate(m.readyTime);
                         if(elapsed >= readyLimit) {
+                            isProcessing = true; // LOCK
                             runTransaction(db, async(t)=>{
                                 const d=(await t.get(ref)).data();
                                 if(d.chargingSlots[i] && !d.chargingSlots[i].startTime) {
@@ -735,15 +747,17 @@
                                     t.update(ref, d);
                                     log('AUTO_START_TIMER', d.chargingSlots[i].plat, 'User did not click start');
                                 }
-                            });
+                            }).finally(() => isProcessing = false); // UNLOCK
                         }
                     }
 
+                    // --- TIME CHECK & AUTO FINISH ---
                     if(m && m.startTime && !isClearing[i]) {
                         const st = parseDate(m.startTime);
                         const rem = ((new Date(st.getTime() + m.durationMinutes*60000)) - new Date()) / 60000;
                         if(rem <= -1) {
                             isClearing[i]=true;
+                            isProcessing = true; // LOCK
                             runTransaction(db, async(t)=>{
                                 const d=(await t.get(ref)).data(); 
                                 const oldP = d.chargingSlots[i]?.plat || 'Unknown';
@@ -756,7 +770,7 @@
                                     const n=d.waitingQueue.shift(); 
                                     const tar = calculateTargetLimit(d.waitingQueue.length);
                                     const dur = calculateDuration(n.startBattery, tar);
-                                    d.chargingSlots[i]={...n, startTime:null, readyTime:new Date(), targetLimit:tar, durationMinutes:dur}; 
+                                    d.chargingSlots[i]={...n, startTime:null, readyTime:new Date(), targetLimit:tar, durationMinutes:dur}; // READY
                                     pulled = n.plat;
                                 }
                                 t.update(ref,d);
@@ -764,7 +778,10 @@
                                 sendFonnteNotif(oldWA, oldP, oldName);
                                 
                                 log('SYSTEM_AUTO_FINISH', oldP, {pulled_next: pulled}); 
-                            }).finally(()=>isClearing[i]=false);
+                            }).finally(()=>{
+                                isClearing[i]=false;
+                                isProcessing = false; // UNLOCK
+                            });
                         }
                     }
                 });
