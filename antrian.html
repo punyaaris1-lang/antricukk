@@ -80,7 +80,7 @@
     </style>
 </head>
 <body>
-    <div id="loadingScreen" style="position:fixed;inset:0;background:#000;z-index:99999;display:flex;justify-content:center;align-items:center;color:var(--volt-green);font-family:'Inter';font-weight:900;letter-spacing:2px;font-size:12px;">LOADING SYSTEM...</div>
+    <div id="loadingScreen" style="position:fixed;inset:0;background:#000;z-index:99999;display:flex;justify-content:center;align-items:center;color:var(--volt-green);font-family:'Inter';font-weight:900;letter-spacing:2px;font-size:12px;">...LOADING MLU SYSTEM...</div>
     
     <div id="choiceModal">
         <div class="choice-box">
@@ -219,8 +219,8 @@
     </div>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-        import { getFirestore, doc, onSnapshot, runTransaction, setDoc, updateDoc, arrayUnion, arrayRemove, collection, addDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, doc, onSnapshot, runTransaction, setDoc, updateDoc, arrayUnion, arrayRemove, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = { apiKey: "AIzaSyALIlkIDALIk83K8s1htalvW6rmNNw02Go", authDomain: "sistem-antrian-b1c39.firebaseapp.com", projectId: "sistem-antrian-b1c39", storageBucket: "sistem-antrian-b1c39.firebasestorage.app", messagingSenderId: "454124587608", appId: "1:454124587608:web:34fbb0f5211067a67f982d" };
         const app = initializeApp(firebaseConfig);
@@ -237,10 +237,19 @@
             "Waktu habis! Motor {plat} milik {name} sudah 100%. Giliran teman lain."
         ];
 
+        const STATION_LOC = { lat: -6.171583, lng: 106.899844 }; 
+        const MAX_DIST_KM = 0.2; 
+
         let latestSlots = [null, null, null]; 
         let latestQueue = [];
         let isGpsBypassEnabled = localStorage.getItem('gpsBypass') === 'true';
         let isClearing = [false,false,false];
+
+        // --- SAFETY LOADER (5 Detik Paksa Hilang) ---
+        setTimeout(() => {
+            const ls = document.getElementById('loadingScreen');
+            if(ls) ls.style.display = 'none';
+        }, 5000);
 
         function checkIsAdmin() { return localStorage.getItem('superAdminAuth') === 'true'; }
 
@@ -420,29 +429,70 @@
             const n = document.getElementById('userName').value.trim();
             const w = document.getElementById('userWA').value.trim();
             const b = parseInt(document.getElementById('userBattery').value);
-            if(!p||!n||isNaN(b)) return alert('Data kurang');
-            let strikes = parseInt(localStorage.getItem('gpsStrikes')||'0');
-            if(strikes >= 3) return alert('ANDA DIBLOKIR KARENA LOKASI PALSU!');
+            
+            if(!p || !n || !w || isNaN(b)) return alert('Mohon lengkapi semua data!');
+            if(b < 0 || b > 100) return alert('Baterai harus 0-100%');
 
-            document.getElementById('btnDaftar').innerText="CEK LOKASI...";
-            navigator.geolocation.getCurrentPosition((pos)=>{
-                const dist = getDist(pos.coords.latitude, pos.coords.longitude, STATION_LOC.lat, STATION_LOC.lng);
-                if(dist > MAX_DIST_KM && !isGpsBypassEnabled) {
-                    strikes++; localStorage.setItem('gpsStrikes', strikes);
-                    if(strikes>=3) { 
-                        updateDoc(ref, {blockedList: arrayUnion(p)}); 
-                        log('GPS_REJECTED_BLOCK', p, {dist: dist}); // LOG
-                        alert('3x Gagal. Anda Diblokir.'); 
+            // Cek Blokir Lokal
+            let strikes = parseInt(localStorage.getItem('gpsStrikes')||'0');
+            if(strikes >= 3) return alert('AKSES DITOLAK: Terdeteksi manipulasi lokasi berulang.');
+
+            const btn = document.getElementById('btnDaftar');
+            const originalText = btn.innerText;
+            
+            // UI Loading & Disable
+            btn.innerText = "⏳ SEDANG CEK LOKASI...";
+            btn.disabled = true;
+            btn.style.opacity = "0.7";
+
+            // OPS GPS: Timeout 10s & Anti-Cache
+            const geoOptions = {
+                enableHighAccuracy: true,
+                timeout: 10000, 
+                maximumAge: 0
+            };
+
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                    const dist = getDist(pos.coords.latitude, pos.coords.longitude, STATION_LOC.lat, STATION_LOC.lng);
+                    
+                    // Kembalikan Tombol
+                    btn.innerText = originalText;
+                    btn.disabled = false;
+                    btn.style.opacity = "1";
+
+                    if(dist > MAX_DIST_KM && !isGpsBypassEnabled) {
+                        strikes++; 
+                        localStorage.setItem('gpsStrikes', strikes);
+                        
+                        log('GPS_REJECTED', p, {dist: dist.toFixed(3) + " km", strikes: strikes}); // LOG GPS
+                        
+                        if(strikes >= 3) { 
+                            updateDoc(ref, {blockedList: arrayUnion(p)}); 
+                            alert('LOKASI TERLALU JAUH (3x Gagal). Sistem memblokir sementara.'); 
+                        } else {
+                            alert(`GAGAL: Lokasi Anda terdeteksi sejauh ${dist.toFixed(2)} km dari Station.\nWajib berada di lokasi (< 200m).\nSisa percobaan: ${3-strikes}`);
+                        }
+                    } else {
+                        processReg(p, n, w, b);
                     }
-                    else {
-                        log('GPS_REJECTED', p, {dist: dist, strikes: strikes}); // LOG
-                        alert(`Kejauhan! Strike ${strikes}/3`);
-                    }
-                    document.getElementById('btnDaftar').innerText="DAFTAR ANTRIAN";
-                    return;
-                }
-                processReg(p,n,w,b);
-            }, ()=>alert('GPS Wajib Aktif!'));
+                }, 
+                (err) => {
+                    // Kembalikan Tombol jika error
+                    btn.innerText = originalText;
+                    btn.disabled = false;
+                    btn.style.opacity = "1";
+
+                    console.error("GPS Error:", err);
+                    let msg = "Gagal mendeteksi lokasi.";
+                    if(err.code === 1) msg = "Izin Lokasi Ditolak. Mohon izinkan akses lokasi di browser.";
+                    else if(err.code === 2) msg = "Sinyal GPS tidak ditemukan. Pastikan GPS aktif.";
+                    else if(err.code === 3) msg = "Waktu habis (Timeout). Sinyal GPS lemah, coba bergeser ke area terbuka.";
+                    
+                    alert(msg);
+                },
+                geoOptions 
+            );
         };
 
         function processReg(plat,name,wa,bat) {
