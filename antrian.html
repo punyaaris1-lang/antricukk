@@ -80,7 +80,7 @@
     </style>
 </head>
 <body>
-    <div id="loadingScreen" style="position:fixed;inset:0;background:#000;z-index:99999;display:flex;justify-content:center;align-items:center;color:var(--volt-green);font-family:'Inter';font-weight:900;letter-spacing:2px;font-size:12px;">...LOADING MLU SYSTEM...</div>
+    <div id="loadingScreen" style="position:fixed;inset:0;background:#000;z-index:99999;display:flex;justify-content:center;align-items:center;color:var(--volt-green);font-family:'Inter';font-weight:900;letter-spacing:2px;font-size:12px;">LOADING SYSTEM...</div>
     
     <div id="choiceModal">
         <div class="choice-box">
@@ -228,7 +228,7 @@
         const ref = doc(db, "antrian", "utama");
         const logRef = collection(db, "activityLog");
 
-        // --- KONFIGURASI FONNTE ---
+        // --- KONFIGURASI FONNTE (WAJIB ISI TOKEN) ---
         const FONTE_TOKEN = "MASUKKAN_TOKEN_FONNTE_DISINI"; 
         const WA_SIGNATURE = "\n\n- Admin FC Kelapa Gading";
         const WA_TEMPLATES = [
@@ -245,7 +245,7 @@
         let isGpsBypassEnabled = localStorage.getItem('gpsBypass') === 'true';
         let isClearing = [false,false,false];
 
-        // --- SAFETY LOADER (5 Detik Paksa Hilang) ---
+        // --- SAFETY LOADER (5 Detik Force Open) ---
         setTimeout(() => {
             const ls = document.getElementById('loadingScreen');
             if(ls) ls.style.display = 'none';
@@ -273,6 +273,8 @@
                 const formData = new FormData();
                 formData.append('target', targetWA);
                 formData.append('message', finalMsg);
+                
+                // UNCOMMENT JIKA SUDAH ADA TOKEN
                 /*
                 await fetch('https://api.fonnte.com/send', {
                     method: 'POST',
@@ -433,19 +435,16 @@
             if(!p || !n || !w || isNaN(b)) return alert('Mohon lengkapi semua data!');
             if(b < 0 || b > 100) return alert('Baterai harus 0-100%');
 
-            // Cek Blokir Lokal
             let strikes = parseInt(localStorage.getItem('gpsStrikes')||'0');
             if(strikes >= 3) return alert('AKSES DITOLAK: Terdeteksi manipulasi lokasi berulang.');
 
             const btn = document.getElementById('btnDaftar');
             const originalText = btn.innerText;
             
-            // UI Loading & Disable
             btn.innerText = "⏳ SEDANG CEK LOKASI...";
             btn.disabled = true;
             btn.style.opacity = "0.7";
 
-            // OPS GPS: Timeout 10s & Anti-Cache
             const geoOptions = {
                 enableHighAccuracy: true,
                 timeout: 10000, 
@@ -456,7 +455,6 @@
                 (pos) => {
                     const dist = getDist(pos.coords.latitude, pos.coords.longitude, STATION_LOC.lat, STATION_LOC.lng);
                     
-                    // Kembalikan Tombol
                     btn.innerText = originalText;
                     btn.disabled = false;
                     btn.style.opacity = "1";
@@ -465,7 +463,7 @@
                         strikes++; 
                         localStorage.setItem('gpsStrikes', strikes);
                         
-                        log('GPS_REJECTED', p, {dist: dist.toFixed(3) + " km", strikes: strikes}); // LOG GPS
+                        log('GPS_REJECTED', p, {dist: dist.toFixed(3) + " km", strikes: strikes}); 
                         
                         if(strikes >= 3) { 
                             updateDoc(ref, {blockedList: arrayUnion(p)}); 
@@ -478,7 +476,6 @@
                     }
                 }, 
                 (err) => {
-                    // Kembalikan Tombol jika error
                     btn.innerText = originalText;
                     btn.disabled = false;
                     btn.style.opacity = "1";
@@ -514,7 +511,7 @@
                 t.set(ref, {chargingSlots:s, waitingQueue:q}, {merge:true});
             }).then(()=>{ 
                 localStorage.setItem('myPlat',plat); 
-                log('USER_DAFTAR_MANDIRI', plat, {nama: name, bat: bat}); // LOG
+                log('USER_DAFTAR_MANDIRI', plat, {nama: name, bat: bat}); 
                 alert('Berhasil!'); 
             }).catch(e=>alert(e));
         }
@@ -524,12 +521,12 @@
             const p=document.getElementById('miniPlatInput').value.toUpperCase();
             const b=parseInt(document.getElementById('miniBatInput').value);
             if(!p || isNaN(b)) return alert('Lengkapi Data');
-            const target = calculateTargetLimit(latestQueue.length); // TARGET DINAMIS
+            const target = calculateTargetLimit(latestQueue.length); 
             const dur = calculateDuration(b, target);
             runTransaction(db, async(t)=>{
                 const d=(await t.get(ref)).data();
                 if(d.chargingSlots[s]) throw "Slot Penuh";
-                d.chargingSlots[s]={plat:p, userName:'ADMIN', wa:'-', startBattery:b, targetLimit:target, durationMinutes:dur, startTime:null, readyTime: new Date()}; // READY
+                d.chargingSlots[s]={plat:p, userName:'ADMIN', wa:'-', startBattery:b, targetLimit:target, durationMinutes:dur, startTime:null, readyTime: new Date()}; 
                 t.update(ref,{chargingSlots:d.chargingSlots});
             }).then(() => log('ADMIN_MANUAL_ASSIGN', p, {slot: s, bat: b})).catch(e=>alert(e));
         };
@@ -544,12 +541,12 @@
                     d.chargingSlots[s] = null;
                     if(q.length > 0) {
                         const next = q.shift();
-                        const tar = calculateTargetLimit(q.length); // TARGET DINAMIS
+                        const tar = calculateTargetLimit(q.length); 
                         const dur = calculateDuration(next.startBattery, tar);
-                        d.chargingSlots[s] = { ...next, startTime: null, readyTime: new Date(), targetLimit: tar, durationMinutes: dur }; // READY
+                        d.chargingSlots[s] = { ...next, startTime: null, readyTime: new Date(), targetLimit: tar, durationMinutes: dur }; 
                     }
                     t.update(ref, {chargingSlots:d.chargingSlots, waitingQueue:q});
-                    log('ADMIN_FORCE_CLEAR', oldP, {slot: s}); // LOG
+                    log('ADMIN_FORCE_CLEAR', oldP, {slot: s}); 
                 });
             }
         };
@@ -566,7 +563,7 @@
                 q.push({plat:p, userName:n, wa:w, startBattery:b, targetLimit:100, durationMinutes:0, startTime:null});
                 t.update(ref,{waitingQueue:q});
             }).then(() => {
-                log('ADMIN_REGISTER_QUEUE', p, {nama: n, bat: b}); // LOG
+                log('ADMIN_REGISTER_QUEUE', p, {nama: n, bat: b}); 
                 alert('Berhasil Daftar Antrian');
             }).catch(e => alert(e));
         };
@@ -677,7 +674,6 @@
                     const cancelledItem = d.waitingQueue[i];
                     d.waitingQueue.splice(i, 1);
                     t.update(ref, {waitingQueue: d.waitingQueue});
-                    // LOG
                     const actor = checkIsAdmin() ? 'ADMIN_CANCEL_QUEUE' : 'USER_BATAL_ANTRI';
                     log(actor, cancelledItem?.plat || 'Unknown', {queue_index: i});
                 }).then(()=> {
@@ -699,7 +695,6 @@
                     d.chargingSlots[i]={...n, startTime:null, durationMinutes:calculateDuration(n.startBattery,100)};
                 } 
                 tr.update(ref,d);
-                // LOG
                 const actor = checkIsAdmin() ? 'ADMIN_STOP_SLOT' : 'USER_STOP_MANUAL';
                 log(actor, p, {slot: i+1}); 
             });
@@ -707,7 +702,6 @@
                 const d=(await tr.get(ref)).data(); 
                 d.chargingSlots[i].startTime=new Date(); 
                 tr.update(ref,d); 
-                // LOG
                 const actor = checkIsAdmin() ? 'ADMIN_START_SLOT' : 'USER_START_MANUAL';
                 log(actor, d.chargingSlots[i].plat, {slot: i+1}); 
             });
@@ -730,7 +724,6 @@
             if(latestSlots) {
                 renderSlots(latestSlots);
                 latestSlots.forEach((m,i)=>{
-                    // --- AUTO START CHECK (5 MENIT) ---
                     if(m && !m.startTime && m.readyTime) {
                         const readyLimit = 5 * 60 * 1000; 
                         const elapsed = new Date() - parseDate(m.readyTime);
@@ -746,7 +739,6 @@
                         }
                     }
 
-                    // --- TIME CHECK & AUTO FINISH ---
                     if(m && m.startTime && !isClearing[i]) {
                         const st = parseDate(m.startTime);
                         const rem = ((new Date(st.getTime() + m.durationMinutes*60000)) - new Date()) / 60000;
@@ -764,14 +756,14 @@
                                     const n=d.waitingQueue.shift(); 
                                     const tar = calculateTargetLimit(d.waitingQueue.length);
                                     const dur = calculateDuration(n.startBattery, tar);
-                                    d.chargingSlots[i]={...n, startTime:null, readyTime:new Date(), targetLimit:tar, durationMinutes:dur}; // READY
+                                    d.chargingSlots[i]={...n, startTime:null, readyTime:new Date(), targetLimit:tar, durationMinutes:dur}; 
                                     pulled = n.plat;
                                 }
                                 t.update(ref,d);
                                 
                                 sendFonnteNotif(oldWA, oldP, oldName);
                                 
-                                log('SYSTEM_AUTO_FINISH', oldP, {pulled_next: pulled}); // LOG
+                                log('SYSTEM_AUTO_FINISH', oldP, {pulled_next: pulled}); 
                             }).finally(()=>isClearing[i]=false);
                         }
                     }
