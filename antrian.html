@@ -51,6 +51,7 @@
         .queue-item-display { display: flex; justify-content: space-between; background: #111; padding: 12px; margin-bottom: 8px; border-radius: 6px; border-left: 3px solid #333; align-items: center; }
         .queue-item-display.is-mine { border-left: 3px solid var(--volt-green); background: #1a1a1a; border-top: 1px solid #333; border-right: 1px solid #333; border-bottom: 1px solid #333; }
         
+        /* MINI DASHBOARD ADMIN */
         .mini-dashboard { display: none; background: transparent; margin-top: 20px; }
         .admin-card { background: #000; border: 1px solid #333; border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 5px 20px rgba(0,0,0,0.5); }
         .admin-card.highlight { border: 1px solid var(--cyber-blue); background: #0a0a0a; } 
@@ -59,7 +60,9 @@
         .ac-header span { color: var(--volt-green); }
         .mini-row { display: flex; gap: 10px; margin-bottom: 10px; }
         .mini-btn { flex: 1; padding: 14px; border-radius: 6px; border: none; font-weight: 700; cursor: pointer; font-size: 11px; color: #fff; background: #222; border: 1px solid #444; transition: 0.2s; }
+        .mini-btn:active { transform: scale(0.98); }
         .mini-inp { flex: 1; background: #1a1a1a; border: 1px solid #444; color: #fff; padding: 12px; border-radius: 6px; font-size: 12px; width: 100%; outline: none; }
+        .mini-inp:focus { border-color: var(--cyber-blue); background: #000; }
         .btn-blue { background: rgba(0, 240, 255, 0.1); border-color: var(--cyber-blue); color: var(--cyber-blue); }
         .btn-green { background: var(--volt-green); border-color: var(--volt-green); color: #000; font-weight: 900; }
         .btn-red { background: rgba(255, 42, 42, 0.1); border-color: var(--danger); color: var(--danger); }
@@ -261,7 +264,7 @@
         let isGpsBypassEnabled = localStorage.getItem('gpsBypass') === 'true';
         let isProcessing = false;
         
-        // --- FIX ERROR: DEKLARASI VARIABEL 'isClearing' DITAMBAHKAN ---
+        // --- FIX ERROR: VARIABLE DECLARED HERE ---
         let isClearing = {}; 
 
         setTimeout(() => {
@@ -314,6 +317,7 @@
             return n;
         }
 
+        // --- FIX ERROR: FUNCTION DEFINED ---
         function formatTime(m) { 
             const s = Math.round(m * 60); 
             return `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`; 
@@ -482,9 +486,8 @@
             }
         });
 
-        // --- FUNGSI SILENT KILL (DENGAN FLAG LOCK) ---
-        function silentKill(i, expectedPlat) {
-            // Cek Lock Lokal (Client Side) untuk cegah spam request
+        // --- FUNGSI ADMIN EXPOSED KE WINDOW (AGAR TOMBOL BISA DIKLIK) ---
+        window.silentKill = function(i, expectedPlat) {
             if(isClearing[i]) return; 
             isClearing[i] = true;
 
@@ -513,10 +516,134 @@
             })
             .catch(e => console.log("Silent kill aborted/failed", e))
             .finally(() => {
-                // Lepas lock setelah selesai (sukses/gagal)
                 setTimeout(() => { delete isClearing[i]; }, 2000); 
             });
-        }
+        };
+
+        window.miniRegQ = () => {
+            const p = document.getElementById('miniQPlat').value.toUpperCase().replace(/\s/g,'');
+            const n = document.getElementById('miniQName').value.trim() || 'ADMIN_INPUT';
+            const w = document.getElementById('miniQWA').value.trim() || '-';
+            const b = parseInt(document.getElementById('miniQBat').value);
+            if(!p || isNaN(b)) return alert('Plat dan Baterai Wajib Diisi!');
+            
+            runTransaction(db, async(t)=>{
+                const d=(await t.get(ref)).data(); const q=d.waitingQueue||[];
+                q.push({plat:p, userName:n, wa:w, startBattery:b, targetLimit:100, durationMinutes:0, startTime:null});
+                t.update(ref,{waitingQueue:q});
+            }).then(() => {
+                log('ADMIN_REGISTER_QUEUE', p, {nama: n, bat: b}); 
+                alert('Berhasil Daftar Antrian');
+            }).catch(e => alert(e));
+        };
+
+        window.miniManualAssign = () => {
+            const s=document.getElementById('miniSlotSelect').value;
+            const p=document.getElementById('miniPlatInput').value.toUpperCase();
+            const b=parseInt(document.getElementById('miniBatInput').value);
+            if(!p || isNaN(b)) return alert('Lengkapi Data');
+            const target = calculateTargetLimit(latestQueue.length); 
+            const dur = calculateDuration(b, target);
+            runTransaction(db, async(t)=>{
+                const d=(await t.get(ref)).data();
+                if(d.chargingSlots[s]) throw "Slot Penuh";
+                d.chargingSlots[s]={plat:p, userName:'ADMIN', wa:'-', startBattery:b, targetLimit:target, durationMinutes:dur, startTime:null, readyTime: new Date()}; 
+                t.update(ref,{chargingSlots:d.chargingSlots});
+            }).then(() => log('ADMIN_MANUAL_ASSIGN', p, {slot: s, bat: b})).catch(e=>alert(e));
+        };
+        
+        window.miniClearSlot = () => {
+            const s=document.getElementById('miniSlotSelect').value;
+            if(confirm('Clear Paksa?')) {
+                runTransaction(db, async(t)=>{
+                    const d = (await t.get(ref)).data();
+                    const q = d.waitingQueue || [];
+                    const oldP = d.chargingSlots[s]?.plat || 'Unknown';
+                    d.chargingSlots[s] = null;
+                    if(q.length > 0) {
+                        const next = q.shift();
+                        const tar = calculateTargetLimit(q.length); 
+                        const dur = calculateDuration(next.startBattery, tar);
+                        d.chargingSlots[s] = { ...next, startTime: null, readyTime: new Date(), targetLimit: tar, durationMinutes: dur }; 
+                    }
+                    t.update(ref, {chargingSlots:d.chargingSlots, waitingQueue:q});
+                    log('ADMIN_FORCE_CLEAR', oldP, {slot: s}); 
+                });
+            }
+        };
+
+        window.miniMoveQ = () => {
+            const qi=document.getElementById('miniQIdx').value, si=document.getElementById('miniQTarget').value;
+            if(qi<0) return;
+            runTransaction(db, async(t)=>{
+                const d=(await t.get(ref)).data(); const q=d.waitingQueue; const s=d.chargingSlots;
+                if(s[si]) throw "Penuh";
+                const item=q.splice(qi,1)[0]; 
+                item.startTime=null; 
+                item.readyTime = new Date();
+                const tar = calculateTargetLimit(q.length); 
+                const dur = calculateDuration(item.startBattery, tar);
+                item.targetLimit = tar;
+                item.durationMinutes = dur;
+                s[si]=item;
+                t.update(ref,{chargingSlots:s, waitingQueue:q});
+            }).then(() => log('ADMIN_MOVE_QUEUE', 'Queue', {to_slot: si}));
+        };
+
+        window.miniSwapQueuePositions = () => {
+            const i1 = document.getElementById('miniQSwap1').value;
+            const i2 = document.getElementById('miniQSwap2').value;
+            if(i1 == i2 || i1 < 0 || i2 < 0) return alert('Pilih dua antrian berbeda');
+            runTransaction(db, async(t)=>{
+                const d = (await t.get(ref)).data();
+                const q = d.waitingQueue || [];
+                if(!q[i1] || !q[i2]) throw "Data berubah";
+                [q[i1], q[i2]] = [q[i2], q[i1]];
+                t.update(ref, {waitingQueue: q});
+            }).then(()=> {
+                log('ADMIN_SWAP_QUEUE_POS', 'Queue', {pos1: i1, pos2: i2});
+                alert('Posisi Ditukar!');
+            }).catch(e=>alert(e));
+        };
+
+        window.miniSwap = () => {
+            const s1=document.getElementById('miniSwap1').value, s2=document.getElementById('miniSwap2').value;
+            if(s1==s2) return;
+            runTransaction(db, async(t)=>{
+                const d=(await t.get(ref)).data(); const s=d.chargingSlots;
+                [s[s1],s[s2]]=[s[s2],s[s1]]; t.update(ref,{chargingSlots:s});
+            }).then(() => log('ADMIN_SWAP_SLOT', 'Slots', {s1: s1, s2: s2}));
+        };
+
+        window.miniBlock = () => { 
+            const p=document.getElementById('miniBlockPlat').value.toUpperCase(); 
+            if(p) {
+                updateDoc(ref,{blockedList:arrayUnion(p)}); 
+                log('ADMIN_BLOCK_USER', p, null);
+            }
+        };
+
+        window.miniUnblock = () => { 
+            const p=document.getElementById('miniBlockPlat').value.toUpperCase(); 
+            if(p) {
+                updateDoc(ref,{blockedList:arrayRemove(p)}); 
+                log('ADMIN_UNBLOCK_USER', p, null);
+            }
+        };
+
+        window.miniStopAll = () => { 
+            if(confirm('STOP ALL?')) {
+                updateDoc(ref,{chargingSlots:[null,null,null]}); 
+                log('ADMIN_EMERGENCY_STOP', 'ALL', 'Stopped all slots');
+            }
+        };
+
+        window.miniReset = () => { 
+            if(confirm('RESET DB??')) {
+                setDoc(ref,{chargingSlots:[null,null,null],waitingQueue:[],blockedList:[]}); 
+                log('ADMIN_RESET_DB', 'ALL', 'Full Database Reset');
+            }
+        };
 
         window.act = (i,t,p) => {
             if(t==='stop') if(confirm('Stop?')) runTransaction(db, async(tr)=>{ 
