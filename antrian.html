@@ -64,7 +64,7 @@
         .btn-green { background: var(--volt-green); border-color: var(--volt-green); color: #000; font-weight: 900; }
         .btn-red { background: rgba(255, 42, 42, 0.1); border-color: var(--danger); color: var(--danger); }
         
-        /* LOG TERMUX */
+        /* LOG TERMUX STYLE */
         #logModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.98); z-index: 99999; justify-content: center; align-items: flex-start; padding-top: 20px; }
         .log-box { background: var(--term-bg); border: 1px solid #333; width: 95%; max-width: 600px; height: 90vh; display:flex; flex-direction: column; border-radius: 4px; box-shadow: 0 0 20px rgba(0,255,0,0.1); font-family: 'JetBrains Mono', monospace; }
         .log-header { background: #111; padding: 10px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; color: #fff; font-size: 12px; font-weight: bold; }
@@ -260,6 +260,9 @@
         let latestQueue = [];
         let isGpsBypassEnabled = localStorage.getItem('gpsBypass') === 'true';
         let isProcessing = false;
+        
+        // --- FIX ERROR: DEKLARASI VARIABEL 'isClearing' DITAMBAHKAN ---
+        let isClearing = {}; 
 
         setTimeout(() => {
             const ls = document.getElementById('loadingScreen');
@@ -311,6 +314,11 @@
             return n;
         }
 
+        function formatTime(m) { 
+            const s = Math.round(m * 60); 
+            return `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`; 
+        }
+
         async function sendFonnteNotif(targetWA, plat, name) {
             if(!targetWA || targetWA.length < 5 || targetWA === '-') return;
             const formattedWA = formatWA(targetWA);
@@ -324,7 +332,6 @@
             } catch(e) { console.error("WA Error", e); log('WA_SENT_FAILED', plat, {err: e.message}); }
         }
 
-        // --- MATH FIX: FORMULA TYPO CORRECTED ---
         const CHARGING_CURVE = [
             [100,0], [99,1], [95,4], 
             [90,17], [89,18], [85,22], [81,25], [72,33], 
@@ -387,7 +394,8 @@
                         const diffSeconds = (new Date() - finishTime) / 1000; 
                         const timeLeftToClear = Math.max(0, Math.ceil(60 - diffSeconds));
                         const autoClearText = timeLeftToClear > 0 ? `AUTO CLEAR: ${timeLeftToClear}s` : 'CLEARING...';
-                        box.innerHTML = `<div style="font-weight:900;color:var(--danger);font-size:10px;">SLOT ${i+1}</div><div style="font-size:16px;font-weight:900;margin-top:5px;font-family:'Inter'">${m.plat}</div><div style="font-size:10px;color:#aaa;">${m.userName.split(' ')[0]}</div><div style="font-size:14px;color:var(--danger);font-weight:900;margin-top:10px;">SELESAI</div><div style="font-size:30px;">❌</div><div style="color:var(--volt-green);font-size:10px;margin-top:5px;font-weight:bold;animation:pulse 1s infinite;">${autoClearText}</div><div style="margin-top:auto">${canControl ? `<button onclick="silentKill(${i},'${m.plat}')" class="btn-slot btn-stop">KOSONGKAN</button>` : ''}</div>`;
+                        
+                        box.innerHTML = `<div style="font-weight:900;color:var(--danger);font-size:10px;">SLOT ${i+1}</div><div style="font-size:16px;font-weight:900;margin-top:5px;font-family:'Inter'">${m.plat}</div><div style="font-size:10px;color:#aaa;">${m.userName.split(' ')[0]}</div><div style="font-size:14px;color:var(--danger);font-weight:900;margin-top:5px;">SELESAI</div><div class="bat-icon" style="border-color:var(--volt-green)"><span class="bat-bolt">⚡</span><div class="bat-fill" style="height:100%;background:var(--volt-green)"></div></div><div style="color:var(--volt-green);font-weight:900;font-size:12px;margin-bottom:5px;">FULL 100%</div><div style="color:var(--danger);font-size:10px;font-weight:bold;animation:pulse 1s infinite;">${autoClearText}</div><div style="margin-top:auto">${canControl ? `<button onclick="silentKill(${i},'${m.plat}')" class="btn-slot btn-stop">KOSONGKAN</button>` : ''}</div>`;
                     } else {
                         if(isMine && rem < 5) box.classList.add('pulsating');
                         let dispBat;
@@ -430,13 +438,12 @@
             const d=s.data()||{}; latestSlots=d.chargingSlots||[null,null,null]; latestQueue=d.waitingQueue||[];
             checkDisplayMode();
             
-            // --- AGGRESSIVE CLEANUP CHECK (Silent) ---
             latestSlots.forEach((m,i)=>{
                 if(m && m.startTime) {
                     const duration = m.isManualTime ? m.durationMinutes : calculateDuration(m.startBattery, m.targetLimit||100);
                     const finishTime = new Date(parseDate(m.startTime).getTime() + duration*60000);
                     if(new Date() > new Date(finishTime.getTime() + 60000)) {
-                        silentKill(i, m.plat); // Panggil fungsi SILENT
+                        silentKill(i, m.plat); 
                     }
                 }
             });
@@ -475,8 +482,12 @@
             }
         });
 
-        // --- FUNGSI BARU: SILENT KILL (TANPA POPUP & PROTEKSI RACE CONDITION) ---
+        // --- FUNGSI SILENT KILL (DENGAN FLAG LOCK) ---
         function silentKill(i, expectedPlat) {
+            // Cek Lock Lokal (Client Side) untuk cegah spam request
+            if(isClearing[i]) return; 
+            isClearing[i] = true;
+
             runTransaction(db, async(t)=>{
                 const d = (await t.get(ref)).data();
                 const slotNow = d.chargingSlots[i];
@@ -498,8 +509,13 @@
                 
                 t.update(ref, d);
                 sendFonnteNotif(oldWA, expectedPlat, oldName);
-                log('SYSTEM_SILENT_KILL', expectedPlat, {pulled: pulled});
-            }).catch(e => console.log("Silent kill aborted/failed", e));
+                log('SYSTEM_SILENT_KILL', expectedPlat, {pulled_next: pulled});
+            })
+            .catch(e => console.log("Silent kill aborted/failed", e))
+            .finally(() => {
+                // Lepas lock setelah selesai (sukses/gagal)
+                setTimeout(() => { delete isClearing[i]; }, 2000); 
+            });
         }
 
         window.act = (i,t,p) => {
@@ -538,8 +554,102 @@
             }
         };
 
-        window.logoutUser = () => { localStorage.removeItem('myPlat'); localStorage.removeItem('isAdminLoggedIn'); localStorage.removeItem('superAdminAuth'); location.reload(); };
+        window.logoutUser = () => { 
+            localStorage.removeItem('myPlat'); 
+            localStorage.removeItem('isAdminLoggedIn'); 
+            localStorage.removeItem('superAdminAuth'); 
+            sessionStorage.removeItem('monitorMode'); 
+            location.reload(); 
+        };
+
+        function checkDisplayMode() {
+            document.getElementById('loadingScreen').style.display='none';
+            const isAdmin = checkIsAdmin();
+            const myPlat = localStorage.getItem('myPlat');
+            const isMonitor = sessionStorage.getItem('monitorMode') === 'true'; 
+
+            if(!myPlat && !isAdmin && !isMonitor && !sessionStorage.getItem('modalClosed')) {
+                document.getElementById('choiceModal').style.display = 'flex';
+            } else {
+                document.getElementById('choiceModal').style.display = 'none';
+            }
+
+            if(myPlat || isAdmin || isMonitor) { 
+                document.getElementById('registrationArea').style.display='none';
+                document.getElementById('statusArea').style.display='block';
+            } else {
+                document.getElementById('registrationArea').style.display='block';
+                document.getElementById('statusArea').style.display='none';
+            }
+            document.getElementById('miniAdminPanel').style.display = isAdmin ? 'block' : 'none';
+        }
+        
+        window.monitorMode = () => {
+            sessionStorage.setItem('monitorMode', 'true'); 
+            checkDisplayMode();
+        };
+        
+        window.closeChoiceModal = () => {
+            document.getElementById('choiceModal').style.display = 'none';
+            sessionStorage.setItem('modalClosed', 'true');
+        };
+
+        window.cancelQ = (i) => {
+            if(confirm('Batalkan antrian?')) {
+                runTransaction(db, async(t)=>{
+                    const d = (await t.get(ref)).data();
+                    const cancelledItem = d.waitingQueue[i];
+                    d.waitingQueue.splice(i, 1);
+                    t.update(ref, {waitingQueue: d.waitingQueue});
+                    // LOG
+                    const actor = checkIsAdmin() ? 'ADMIN_CANCEL_QUEUE' : 'USER_BATAL_ANTRI';
+                    log(actor, cancelledItem?.plat || 'Unknown', {queue_index: i});
+                }).then(()=> {
+                    const isAdmin = checkIsAdmin();
+                    if(!isAdmin) {
+                        localStorage.removeItem('myPlat');
+                        location.reload();
+                    }
+                });
+            }
+        };
+
         window.onload = checkDisplayMode;
+        
+        setInterval(()=>{
+            if(latestSlots) {
+                renderSlots(latestSlots);
+                if(isProcessing) return;
+                latestSlots.forEach((m,i)=>{
+                    if(m && !m.startTime && m.readyTime) {
+                        const readyLimit = 5 * 60 * 1000; 
+                        const elapsed = new Date() - parseDate(m.readyTime);
+                        if(elapsed >= readyLimit) {
+                            isProcessing = true;
+                            runTransaction(db, async(t)=>{
+                                const d=(await t.get(ref)).data();
+                                if(d.chargingSlots[i] && !d.chargingSlots[i].startTime) {
+                                    d.chargingSlots[i].startTime = new Date();
+                                    t.update(ref, d);
+                                    log('AUTO_START_TIMER', d.chargingSlots[i].plat, 'User did not click start');
+                                }
+                            }).finally(()=>isProcessing=false);
+                        }
+                    }
+                    if(m && m.startTime && !isClearing[i]) {
+                        const st = parseDate(m.startTime);
+                        const durationToUse = m.isManualTime ? m.durationMinutes : calculateDuration(m.startBattery, m.targetLimit || 100);
+                        const finishTime = new Date(st.getTime() + durationToUse*60000);
+                        const now = new Date();
+                        
+                        // AUTO KILL IF < -1 MINUTE
+                        if(now > new Date(finishTime.getTime() + 60000)) { 
+                            silentKill(i, m.plat); 
+                        }
+                    }
+                });
+            }
+        }, 1000);
     </script>
 </body>
 </html>
