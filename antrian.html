@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+  <!DOCTYPE html>
 <html lang="id" data-theme="dark">
 <head>
     <meta charset="UTF-8">
@@ -346,20 +346,10 @@
             }
         }
 
-        // --- KURVA KALIBRASI FIX (BUFFER 1-2 MENIT DARI MESIN) ---
         const CHARGING_CURVE = [
-            [100,0], 
-            [99,1],  // Mesin 2m -> App 1m
-            [95,4],  // Mesin 6m -> App 4m
-            [90,17], // Mesin 19m -> App 17m (Request 90% = 17m)
-            [89,18], 
-            [85,22], // Mesin 24m -> App 22m
-            [81,25], 
-            [72,33], 
-            [61,45], 
-            [50,50], 
-            [20,68], // Mesin 72m -> App 68m
-            [0,86]
+            [100,0], [99,1], [95,4], 
+            [90,17], [89,18], [85,22], [81,25], [72,33], 
+            [61,45], [50,50], [20,68], [0,86]
         ];
 
         function getBatteryFromRemTime(rem) {
@@ -414,7 +404,7 @@
                     const rem = (end - new Date())/60000;
                     
                     if(rem <= 0) {
-                        // AUTO CLEAR VISUAL (60s COUNTDOWN)
+                        // AUTO CLEAR COUNTDOWN
                         const finishTime = new Date(st.getTime() + durReal*60000);
                         const diffSeconds = (new Date() - finishTime) / 1000; 
                         const timeLeftToClear = Math.max(0, Math.ceil(60 - diffSeconds));
@@ -479,6 +469,19 @@
             }
 
             checkDisplayMode();
+            
+            // --- AGGRESSIVE CLEANUP CHECK ON LOAD ---
+            latestSlots.forEach((m,i)=>{
+                if(m && m.startTime) {
+                    const duration = m.isManualTime ? m.durationMinutes : calculateDuration(m.startBattery, m.targetLimit||100);
+                    const finishTime = new Date(parseDate(m.startTime).getTime() + duration*60000);
+                    // Jika sudah lewat 60 detik dari finish time, paksa hapus sekarang
+                    if(new Date() > new Date(finishTime.getTime() + 60000)) {
+                        console.log("Found Zombie Slot, Killing:", i);
+                        act(i, 'stop', m.plat);
+                    }
+                }
+            });
             
             const qc = document.getElementById('queueList'); qc.innerHTML = latestQueue.length ? '' : '<div style="text-align:center;color:#444;font-size:12px;margin-top:20px;">Antrian Kosong</div>';
             
@@ -823,7 +826,7 @@
         window.logoutUser = () => { localStorage.removeItem('myPlat'); localStorage.removeItem('isAdminLoggedIn'); localStorage.removeItem('superAdminAuth'); location.reload(); };
         window.onload = checkDisplayMode;
         
-        // --- SAFE TIMER LOOP ---
+        // --- SAFE TIMER LOOP (DENGAN CHECK EXPIRED) ---
         setInterval(()=>{
             if(latestSlots) {
                 renderSlots(latestSlots);
@@ -847,7 +850,7 @@
                         }
                     }
 
-                    if(m && m.startTime && !isClearing[i]) {
+                    if(m && m.startTime) {
                         const st = parseDate(m.startTime);
                         
                         const durationToUse = m.isManualTime ? m.durationMinutes : calculateDuration(m.startBattery, m.targetLimit || 100);
@@ -856,7 +859,6 @@
                         
                         // AUTO CLEAR TRIGGER (1 Menit Setelah Finish)
                         if(now > new Date(finishTime.getTime() + 60000)) { 
-                            isClearing[i]=true;
                             isProcessing = true;
                             runTransaction(db, async(t)=>{
                                 const d=(await t.get(ref)).data(); 
@@ -879,14 +881,13 @@
                                 
                                 log('SYSTEM_AUTO_FINISH', oldP, {pulled_next: pulled}); 
                             }).finally(()=>{
-                                isClearing[i]=false;
                                 isProcessing = false;
                             });
                         }
                     }
                 });
             }
-        }, 1000);
+        }, 5000); // Loop tiap 5 detik biar gak berat
     </script>
 </body>
 </html>
