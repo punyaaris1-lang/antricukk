@@ -1,4 +1,4 @@
-  <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="id" data-theme="dark">
 <head>
     <meta charset="UTF-8">
@@ -245,7 +245,6 @@
         const ref = doc(db, "antrian", "utama");
         const logRef = collection(db, "activityLog");
 
-        // --- TOKEN FONNTE (WAJIB ISI TOKEN) ---
         const FONTE_TOKEN = "MuR8CucXAsYd2YvWBxVo"; 
         const WA_SIGNATURE = "\n\n- Admin FC Kelapa Gading";
         const WA_TEMPLATES = [
@@ -280,12 +279,10 @@
             }).catch(e => console.error("Log Error:", e)); 
         }
 
-        // --- TERMUX LOG VIEWER ---
         window.viewLogs = async () => {
             document.getElementById('logModal').style.display = 'flex';
             const logDiv = document.getElementById('logContent');
             logDiv.innerHTML = '<span style="color:#0f0;">> Fetching logs from db...</span>';
-            
             try {
                 const q = query(logRef, orderBy("timestamp", "desc"), limit(50));
                 const querySnapshot = await getDocs(q);
@@ -294,23 +291,12 @@
                     const data = doc.data();
                     const time = data.timestamp ? new Date(data.timestamp.seconds * 1000).toLocaleTimeString() : '00:00:00';
                     const act = data.action || 'UNKNOWN';
-                    
                     let colorClass = 'l-info';
                     if(act.includes('ERROR') || act.includes('FAILED') || act.includes('REJECTED')) colorClass = 'l-err';
                     else if(act.includes('SUCCESS') || act.includes('FINISH')) colorClass = 'l-succ';
                     else if(act.includes('MANUAL') || act.includes('EDIT')) colorClass = 'l-warn';
-
                     const detailStr = JSON.stringify(data.details || {}).replace(/"/g,'');
-
-                    html += `
-                        <div class="log-line">
-                            <span class="l-ts">[${time}]</span>
-                            <span class="${colorClass}">${act}</span>
-                            <span style="color:#444;">::</span>
-                            <span style="color:#fff;">${data.plat || '-'}</span>
-                            <span style="color:#666;">${detailStr}</span>
-                        </div>
-                    `;
+                    html += `<div class="log-line"><span class="l-ts">[${time}]</span><span class="${colorClass}">${act}</span><span style="color:#444;">::</span><span style="color:#fff;">${data.plat || '-'}</span><span style="color:#666;">${detailStr}</span></div>`;
                 });
                 logDiv.innerHTML = html || '<span style="color:#666;">> No logs found.</span>';
             } catch (e) {
@@ -328,24 +314,17 @@
         async function sendFonnteNotif(targetWA, plat, name) {
             if(!targetWA || targetWA.length < 5 || targetWA === '-') return;
             const formattedWA = formatWA(targetWA);
-            const randomMsg = WA_TEMPLATES[Math.floor(Math.random() * WA_TEMPLATES.length)];
-            const finalMsg = randomMsg.replace("{name}", name).replace("{plat}", plat) + WA_SIGNATURE;
+            const finalMsg = WA_TEMPLATES[Math.floor(Math.random() * WA_TEMPLATES.length)].replace("{name}", name).replace("{plat}", plat) + WA_SIGNATURE;
             try {
                 const formData = new FormData();
                 formData.append('target', formattedWA);
                 formData.append('message', finalMsg);
-                await fetch('https://api.fonnte.com/send', {
-                    method: 'POST',
-                    headers: { 'Authorization': FONTE_TOKEN },
-                    body: formData
-                });
+                await fetch('https://api.fonnte.com/send', { method: 'POST', headers: { 'Authorization': FONTE_TOKEN }, body: formData });
                 log('WA_SENT_SUCCESS', plat, {to: formattedWA});
-            } catch(e) { 
-                console.error("WA Error", e); 
-                log('WA_SENT_FAILED', plat, {err: e.message});
-            }
+            } catch(e) { console.error("WA Error", e); log('WA_SENT_FAILED', plat, {err: e.message}); }
         }
 
+        // --- MATH FIX: FORMULA TYPO CORRECTED ---
         const CHARGING_CURVE = [
             [100,0], [99,1], [95,4], 
             [90,17], [89,18], [85,22], [81,25], [72,33], 
@@ -360,19 +339,28 @@
             }
             return 0;
         }
+        
         function calculateDuration(start, target) {
             if (start >= target) return 5;
             let timeStart=90, timeTarget=0;
-            for(let i=0; i<CHARGING_CURVE.length-1; i++){ if(start<=CHARGING_CURVE[i][0] && start>=CHARGING_CURVE[i+1][0]) { const r=(CHARGING_CURVE[i][0]-start)/(CHARGING_CURVE[i][0]-CHARGING_CURVE[i+1][0]); timeStart=CHARGING_CURVE[i][1]+r*(CHARGING_CURVE[i+1][1]-CHARGING_CURVE[i+1][1]); break; }}
-            for(let i=0; i<CHARGING_CURVE.length-1; i++){ if(target<=CHARGING_CURVE[i][0] && target>=CHARGING_CURVE[i+1][0]) { const r=(CHARGING_CURVE[i][0]-target)/(CHARGING_CURVE[i][0]-CHARGING_CURVE[i+1][0]); timeTarget=CHARGING_CURVE[i][1]+r*(CHARGING_CURVE[i+1][1]-CHARGING_CURVE[i+1][1]); break; }}
+            for(let i=0; i<CHARGING_CURVE.length-1; i++){ 
+                if(start<=CHARGING_CURVE[i][0] && start>=CHARGING_CURVE[i+1][0]) { 
+                    const r=(CHARGING_CURVE[i][0]-start)/(CHARGING_CURVE[i][0]-CHARGING_CURVE[i+1][0]); 
+                    timeStart=CHARGING_CURVE[i][1]+r*(CHARGING_CURVE[i+1][1]-CHARGING_CURVE[i][1]); 
+                    break; 
+                }
+            }
+            for(let i=0; i<CHARGING_CURVE.length-1; i++){ 
+                if(target<=CHARGING_CURVE[i][0] && target>=CHARGING_CURVE[i+1][0]) { 
+                    const r=(CHARGING_CURVE[i][0]-target)/(CHARGING_CURVE[i][0]-CHARGING_CURVE[i+1][0]); 
+                    timeTarget=CHARGING_CURVE[i][1]+r*(CHARGING_CURVE[i+1][1]-CHARGING_CURVE[i][1]); 
+                    break; 
+                }
+            }
             return Math.max(1, Math.ceil(timeStart - timeTarget));
         }
-        function calculateTargetLimit(len) { 
-            if(len >= 11) return 85;
-            if(len >= 6) return 90;
-            if(len >= 3) return 95;
-            return 100; 
-        }
+        
+        function calculateTargetLimit(len) { if(len >= 11) return 85; if(len >= 6) return 90; if(len >= 3) return 95; return 100; }
         function parseDate(ts) { if(!ts) return null; if(ts.toDate) return ts.toDate(); if(ts instanceof Date) return ts; return new Date(ts); }
 
         function renderSlots(slots) {
@@ -385,48 +373,33 @@
                 const box = document.createElement('div'); box.className = 'slot-box';
                 const isMine = myPlat === m?.plat;
                 const canControl = isAdmin || isMine;
-
                 if(isMine) box.classList.add('active');
-
                 const globalTarget = calculateTargetLimit(qLen); 
 
                 if(m && m.startTime) {
                     const st = parseDate(m.startTime);
-                    
-                    let durReal;
-                    if (m.isManualTime) {
-                        durReal = m.durationMinutes; 
-                    } else {
-                        durReal = calculateDuration(m.startBattery, globalTarget); 
-                    }
-
+                    let durReal = m.isManualTime ? m.durationMinutes : calculateDuration(m.startBattery, globalTarget); 
                     const end = new Date(st.getTime() + durReal*60000);
                     const rem = (end - new Date())/60000;
                     
                     if(rem <= 0) {
-                        // AUTO CLEAR COUNTDOWN
                         const finishTime = new Date(st.getTime() + durReal*60000);
                         const diffSeconds = (new Date() - finishTime) / 1000; 
                         const timeLeftToClear = Math.max(0, Math.ceil(60 - diffSeconds));
                         const autoClearText = timeLeftToClear > 0 ? `AUTO CLEAR: ${timeLeftToClear}s` : 'CLEARING...';
-
-                        box.innerHTML = `<div style="font-weight:900;color:var(--danger);font-size:10px;">SLOT ${i+1}</div><div style="font-size:16px;font-weight:900;margin-top:5px;font-family:'Inter'">${m.plat}</div><div style="font-size:10px;color:#aaa;">${m.userName.split(' ')[0]}</div><div style="font-size:14px;color:var(--danger);font-weight:900;margin-top:10px;">SELESAI</div><div style="font-size:30px;">❌</div><div style="color:var(--volt-green);font-size:10px;margin-top:5px;font-weight:bold;animation:pulse 1s infinite;">${autoClearText}</div><div style="margin-top:auto">${canControl ? `<button onclick="act(${i},'stop','${m.plat}')" class="btn-slot btn-stop">KOSONGKAN</button>` : ''}</div>`;
+                        box.innerHTML = `<div style="font-weight:900;color:var(--danger);font-size:10px;">SLOT ${i+1}</div><div style="font-size:16px;font-weight:900;margin-top:5px;font-family:'Inter'">${m.plat}</div><div style="font-size:10px;color:#aaa;">${m.userName.split(' ')[0]}</div><div style="font-size:14px;color:var(--danger);font-weight:900;margin-top:10px;">SELESAI</div><div style="font-size:30px;">❌</div><div style="color:var(--volt-green);font-size:10px;margin-top:5px;font-weight:bold;animation:pulse 1s infinite;">${autoClearText}</div><div style="margin-top:auto">${canControl ? `<button onclick="silentKill(${i},'${m.plat}')" class="btn-slot btn-stop">KOSONGKAN</button>` : ''}</div>`;
                     } else {
                         if(isMine && rem < 5) box.classList.add('pulsating');
-                        
                         let dispBat;
                         if(m.isManualTime) {
-                            const timeToFull = rem; 
-                            dispBat = getBatteryFromRemTime(timeToFull);
+                            dispBat = getBatteryFromRemTime(rem);
                         } else {
                             const timeToTarget = calculateDuration(globalTarget, 100); 
                             const adjustedRem = rem + timeToTarget; 
                             dispBat = getBatteryFromRemTime(adjustedRem); 
                             dispBat = Math.min(Math.max(m.startBattery, dispBat), globalTarget);
                         }
-                        
                         const targetDisplay = globalTarget + '%'; 
-
                         box.innerHTML = `<div style="font-size:9px;font-weight:700;color:var(--volt-green)">SLOT ${i+1}</div><div style="font-size:16px;font-weight:900;margin-top:2px;font-family:'Inter'">${m.plat}</div><div style="font-size:10px;color:#fff;">${m.userName.split(' ')[0]}</div><div style="font-family:'Inter';font-size:22px;font-weight:900;color:var(--volt-green);margin:2px 0;">${formatTime(rem)}</div><div class="bat-icon"><span class="bat-bolt">⚡</span><div class="bat-fill pulsating-fill" style="height:${dispBat}%"></div></div><div class="bat-stats"><div class="stat-row"><span class="c-start">Awal:</span> <span class="c-start">${m.startBattery}%</span></div><div class="stat-row"><span class="c-target">Target:</span> <span class="c-target">${targetDisplay}</span></div><div class="stat-row"><span class="c-now">Kini:</span> <span class="c-now">${dispBat}%</span></div></div><div>${isAdmin ? `<button onclick="editTimer(${i})" class="btn-slot btn-edit">EDIT</button>` : ''} ${canControl ? `<button onclick="act(${i},'stop','${m.plat}')" class="btn-slot btn-stop">STOP</button>` : ''}</div>`;
                     }
                 } else if(m) {
@@ -443,7 +416,6 @@
                             autoStartMsg = "STARTING...";
                         }
                     }
-
                     box.classList.add('active'); box.style.borderColor='var(--volt-green)';
                     box.innerHTML = `<div style="color:var(--volt-green);font-weight:700;font-size:10px;">SLOT ${i+1}</div><div style="font-size:16px;font-weight:900;margin-top:5px;font-family:'Inter'">${m.plat}</div><div style="font-size:10px;color:#aaa;">${m.userName.split(' ')[0]}</div><div style="font-family:'Syne';font-size:12px;font-weight:900;color:var(--volt-green);margin:10px 0;">${autoStartMsg}</div><div class="bat-icon" style="border-color:var(--volt-green)"><div class="bat-fill" style="height:${m.startBattery}%;background:var(--volt-green)"></div></div><div style="margin-top:auto">${canControl ? `<button onclick="act(${i},'start')" class="btn-slot btn-start">MULAI</button><button onclick="act(${i},'stop','${m.plat}')" class="btn-slot btn-stop">BATAL</button>` : ''}</div>`;
                 } else {
@@ -456,35 +428,20 @@
 
         onSnapshot(ref, (s) => {
             const d=s.data()||{}; latestSlots=d.chargingSlots||[null,null,null]; latestQueue=d.waitingQueue||[];
-            
-            const myPlat = localStorage.getItem('myPlat');
-            const isAdmin = checkIsAdmin();
-            if (myPlat && !isAdmin) {
-                const inSlot = latestSlots.some(s => s?.plat === myPlat);
-                const inQueue = latestQueue.some(q => q.plat === myPlat);
-                if (!inSlot && !inQueue) {
-                    localStorage.removeItem('myPlat');
-                    checkDisplayMode(); 
-                }
-            }
-
             checkDisplayMode();
             
-            // --- AGGRESSIVE CLEANUP CHECK ON LOAD ---
+            // --- AGGRESSIVE CLEANUP CHECK (Silent) ---
             latestSlots.forEach((m,i)=>{
                 if(m && m.startTime) {
                     const duration = m.isManualTime ? m.durationMinutes : calculateDuration(m.startBattery, m.targetLimit||100);
                     const finishTime = new Date(parseDate(m.startTime).getTime() + duration*60000);
-                    // Jika sudah lewat 60 detik dari finish time, paksa hapus sekarang
                     if(new Date() > new Date(finishTime.getTime() + 60000)) {
-                        console.log("Found Zombie Slot, Killing:", i);
-                        act(i, 'stop', m.plat);
+                        silentKill(i, m.plat); // Panggil fungsi SILENT
                     }
                 }
             });
             
             const qc = document.getElementById('queueList'); qc.innerHTML = latestQueue.length ? '' : '<div style="text-align:center;color:#444;font-size:12px;margin-top:20px;">Antrian Kosong</div>';
-            
             const qLen = latestQueue.length;
             document.getElementById('qsQueueCountValue').innerText = qLen;
             document.getElementById('qCount').innerText = `(${qLen})`; 
@@ -492,26 +449,20 @@
 
             latestQueue.forEach((m,i)=>{ 
                 const div=document.createElement('div'); 
-                const isMine = myPlat === m.plat;
+                const isMine = localStorage.getItem('myPlat') === m.plat;
                 div.className='queue-item-display '+(isMine?'is-mine':''); 
-                
                 let btn = '';
-                if(isAdmin) {
+                if(checkIsAdmin()) {
                     let waLink = `https://wa.me/${formatWA(m.wa)}?text=Halo%20${m.userName},%20pantau%20antrianmu%20di:%20${window.location.href}`;
-                    btn = `
-                    <div style="display:flex;gap:5px;">
-                        <a href="${waLink}" target="_blank" style="background:#25D366;color:#fff;border-radius:4px;padding:3px 6px;text-decoration:none;font-weight:bold;font-size:10px;">WA</a>
-                        <button onclick="cancelQ(${i})" style="border:none;background:transparent;color:var(--danger);font-weight:900;cursor:pointer;">&times;</button>
-                    </div>`;
+                    btn = `<div style="display:flex;gap:5px;"><a href="${waLink}" target="_blank" style="background:#25D366;color:#fff;border-radius:4px;padding:3px 6px;text-decoration:none;font-weight:bold;font-size:10px;">WA</a><button onclick="cancelQ(${i})" style="border:none;background:transparent;color:var(--danger);font-weight:900;cursor:pointer;">&times;</button></div>`;
                 }
                 else if(isMine) btn = `<button onclick="cancelQ(${i})" style="border:none;background:var(--danger);color:#fff;border-radius:4px;padding:3px 6px;font-size:9px;font-weight:bold;cursor:pointer;margin-left:5px;">BATAL</button>`;
-
                 div.innerHTML=`<div style="display:flex;align-items:center;"><span style="font-family:'Inter';font-weight:900;font-size:16px;width:30px;color:var(--volt-green);">#${i+1}</span><div style="margin-left:5px;font-size:12px;color:#fff;"><b>${m.plat}</b> <span style="color:#aaa;">(${m.userName})</span></div></div><div style="display:flex;align-items:center;"><span style="font-size:12px;color:#fff;font-weight:700;">${m.startBattery}%</span>${btn}</div>`; 
                 qc.appendChild(div); 
             });
             renderSlots(latestSlots);
-
-            if(isAdmin) {
+            
+            if(checkIsAdmin()) {
                 const sOpts = latestSlots.map((_,i)=>`<option value="${i}">Slot ${i+1}</option>`).join('');
                 document.getElementById('miniSlotSelect').innerHTML = sOpts;
                 document.getElementById('miniQTarget').innerHTML = sOpts;
@@ -524,265 +475,33 @@
             }
         });
 
-        function getDist(lat1,lon1,lat2,lon2){ const R=6371; const dLat=(lat2-lat1)*Math.PI/180; const dLon=(lon2-lon1)*Math.PI/180; const a=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)*Math.sin(dLon/2); return R*(2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a))); }
-        
-        document.getElementById('btnDaftar').onclick = () => {
-            const p = document.getElementById('userPlat').value.toUpperCase().replace(/\s/g,'');
-            const n = document.getElementById('userName').value.trim();
-            const w = document.getElementById('userWA').value.trim();
-            const b = parseInt(document.getElementById('userBattery').value);
-            
-            if(!p || !n || !w || isNaN(b)) return alert('Mohon lengkapi semua data!');
-            if(b < 0 || b > 100) return alert('Baterai harus 0-100%');
-
-            let strikes = parseInt(localStorage.getItem('gpsStrikes')||'0');
-            if(strikes >= 3) return alert('AKSES DITOLAK: Terdeteksi manipulasi lokasi berulang.');
-
-            const btn = document.getElementById('btnDaftar');
-            const originalText = btn.innerText;
-            
-            btn.innerText = "⏳ SEDANG CEK LOKASI...";
-            btn.disabled = true;
-            btn.style.opacity = "0.7";
-
-            const geoOptions = {
-                enableHighAccuracy: true,
-                timeout: 10000, 
-                maximumAge: 0
-            };
-
-            navigator.geolocation.getCurrentPosition(
-                (pos) => {
-                    const dist = getDist(pos.coords.latitude, pos.coords.longitude, STATION_LOC.lat, STATION_LOC.lng);
-                    
-                    btn.innerText = originalText;
-                    btn.disabled = false;
-                    btn.style.opacity = "1";
-
-                    if(dist > MAX_DIST_KM && !isGpsBypassEnabled) {
-                        strikes++; 
-                        localStorage.setItem('gpsStrikes', strikes);
-                        
-                        log('GPS_REJECTED', p, {dist: dist.toFixed(3) + " km", strikes: strikes}); 
-                        
-                        setTimeout(() => {
-                            if(strikes >= 3) { 
-                                updateDoc(ref, {blockedList: arrayUnion(p)}); 
-                                alert('LOKASI TERLALU JAUH (3x Gagal). Sistem memblokir sementara.'); 
-                            } else {
-                                alert(`GAGAL: Lokasi Anda terdeteksi sejauh ${dist.toFixed(2)} km dari Station.\nWajib berada di lokasi (< 200m).\nSisa percobaan: ${3-strikes}`);
-                            }
-                        }, 500);
-
-                    } else {
-                        processReg(p, n, w, b);
-                    }
-                }, 
-                (err) => {
-                    btn.innerText = originalText;
-                    btn.disabled = false;
-                    btn.style.opacity = "1";
-                    alert("Gagal deteksi lokasi. Pastikan GPS aktif.");
-                },
-                geoOptions 
-            );
-        };
-
-        function processReg(plat,name,wa,bat) {
-            runTransaction(db, async(t)=>{
-                const d=(await t.get(ref)).data()||{}; 
-                if((d.blockedList||[]).includes(plat)) throw "BLOCKED";
-                let s=d.chargingSlots||[null,null,null], q=d.waitingQueue||[];
-                if(s.some(x=>x?.plat===plat)||q.some(x=>x?.plat===plat)) throw "Sudah terdaftar";
-                
-                const tar = calculateTargetLimit(q.length);
-                const dur = calculateDuration(bat, tar);
-                
-                const idx = s.findIndex(x=>x===null);
-                if(idx!==-1) { 
-                    s[idx]={plat, userName:name, wa, startBattery:bat, targetLimit:tar, durationMinutes:dur, startTime:null, readyTime: new Date()}; 
-                } else { 
-                    q.push({plat, userName:name, wa, startBattery:bat, targetLimit:100, durationMinutes:0, startTime:null}); 
-                }
-                t.set(ref, {chargingSlots:s, waitingQueue:q}, {merge:true});
-            }).then(()=>{ 
-                localStorage.setItem('myPlat',plat); 
-                log('USER_DAFTAR_MANDIRI', plat, {nama: name, bat: bat}); 
-                alert('Berhasil!'); 
-            }).catch(e=>alert(e));
-        }
-
-        window.miniManualAssign = () => {
-            const s=document.getElementById('miniSlotSelect').value;
-            const p=document.getElementById('miniPlatInput').value.toUpperCase();
-            const b=parseInt(document.getElementById('miniBatInput').value);
-            if(!p || isNaN(b)) return alert('Lengkapi Data');
-            const target = calculateTargetLimit(latestQueue.length); 
-            const dur = calculateDuration(b, target);
-            runTransaction(db, async(t)=>{
-                const d=(await t.get(ref)).data();
-                if(d.chargingSlots[s]) throw "Slot Penuh";
-                d.chargingSlots[s]={plat:p, userName:'ADMIN', wa:'-', startBattery:b, targetLimit:target, durationMinutes:dur, startTime:null, readyTime: new Date()}; 
-                t.update(ref,{chargingSlots:d.chargingSlots});
-            }).then(() => log('ADMIN_MANUAL_ASSIGN', p, {slot: s, bat: b})).catch(e=>alert(e));
-        };
-        
-        window.miniClearSlot = () => {
-            const s=document.getElementById('miniSlotSelect').value;
-            if(confirm('Clear Paksa?')) {
-                runTransaction(db, async(t)=>{
-                    const d = (await t.get(ref)).data();
-                    const q = d.waitingQueue || [];
-                    const oldP = d.chargingSlots[s]?.plat || 'Unknown';
-                    d.chargingSlots[s] = null;
-                    if(q.length > 0) {
-                        const next = q.shift();
-                        const tar = calculateTargetLimit(q.length); 
-                        const dur = calculateDuration(next.startBattery, tar);
-                        d.chargingSlots[s] = { ...next, startTime: null, readyTime: new Date(), targetLimit: tar, durationMinutes: dur }; 
-                    }
-                    t.update(ref, {chargingSlots:d.chargingSlots, waitingQueue:q});
-                    log('ADMIN_FORCE_CLEAR', oldP, {slot: s}); 
-                });
-            }
-        };
-        
-        window.miniRegQ = () => {
-            const p = document.getElementById('miniQPlat').value.toUpperCase().replace(/\s/g,'');
-            const n = document.getElementById('miniQName').value.trim() || 'ADMIN_INPUT';
-            const w = document.getElementById('miniQWA').value.trim() || '-';
-            const b = parseInt(document.getElementById('miniQBat').value);
-            if(!p || isNaN(b)) return alert('Plat dan Baterai Wajib Diisi!');
-            
-            runTransaction(db, async(t)=>{
-                const d=(await t.get(ref)).data(); const q=d.waitingQueue||[];
-                q.push({plat:p, userName:n, wa:w, startBattery:b, targetLimit:100, durationMinutes:0, startTime:null});
-                t.update(ref,{waitingQueue:q});
-            }).then(() => {
-                log('ADMIN_REGISTER_QUEUE', p, {nama: n, bat: b}); 
-                alert('Berhasil Daftar Antrian');
-            }).catch(e => alert(e));
-        };
-
-        window.miniMoveQ = () => {
-            const qi=document.getElementById('miniQIdx').value, si=document.getElementById('miniQTarget').value;
-            if(qi<0) return;
-            runTransaction(db, async(t)=>{
-                const d=(await t.get(ref)).data(); const q=d.waitingQueue; const s=d.chargingSlots;
-                if(s[si]) throw "Penuh";
-                const item=q.splice(qi,1)[0]; 
-                item.startTime=null; 
-                item.readyTime = new Date();
-                const tar = calculateTargetLimit(q.length); 
-                const dur = calculateDuration(item.startBattery, tar);
-                item.targetLimit = tar;
-                item.durationMinutes = dur;
-                s[si]=item;
-                t.update(ref,{chargingSlots:s, waitingQueue:q});
-            }).then(() => log('ADMIN_MOVE_QUEUE', 'Queue', {to_slot: si}));
-        };
-        window.miniSwapQueuePositions = () => {
-            const i1 = document.getElementById('miniQSwap1').value;
-            const i2 = document.getElementById('miniQSwap2').value;
-            if(i1 == i2 || i1 < 0 || i2 < 0) return alert('Pilih dua antrian berbeda');
+        // --- FUNGSI BARU: SILENT KILL (TANPA POPUP & PROTEKSI RACE CONDITION) ---
+        function silentKill(i, expectedPlat) {
             runTransaction(db, async(t)=>{
                 const d = (await t.get(ref)).data();
-                const q = d.waitingQueue || [];
-                if(!q[i1] || !q[i2]) throw "Data berubah";
-                [q[i1], q[i2]] = [q[i2], q[i1]];
-                t.update(ref, {waitingQueue: q});
-            }).then(()=> {
-                log('ADMIN_SWAP_QUEUE_POS', 'Queue', {pos1: i1, pos2: i2});
-                alert('Posisi Ditukar!');
-            }).catch(e=>alert(e));
-        };
-        window.miniSwap = () => {
-            const s1=document.getElementById('miniSwap1').value, s2=document.getElementById('miniSwap2').value;
-            if(s1==s2) return;
-            runTransaction(db, async(t)=>{
-                const d=(await t.get(ref)).data(); const s=d.chargingSlots;
-                [s[s1],s[s2]]=[s[s2],s[s1]]; t.update(ref,{chargingSlots:s});
-            }).then(() => log('ADMIN_SWAP_SLOT', 'Slots', {s1: s1, s2: s2}));
-        };
-        window.miniBlock = () => { 
-            const p=document.getElementById('miniBlockPlat').value.toUpperCase(); 
-            if(p) {
-                updateDoc(ref,{blockedList:arrayUnion(p)}); 
-                log('ADMIN_BLOCK_USER', p, null);
-            }
-        };
-        window.miniUnblock = () => { 
-            const p=document.getElementById('miniBlockPlat').value.toUpperCase(); 
-            if(p) {
-                updateDoc(ref,{blockedList:arrayRemove(p)}); 
-                log('ADMIN_UNBLOCK_USER', p, null);
-            }
-        };
-        window.miniStopAll = () => { 
-            if(confirm('STOP ALL?')) {
-                updateDoc(ref,{chargingSlots:[null,null,null]}); 
-                log('ADMIN_EMERGENCY_STOP', 'ALL', 'Stopped all slots');
-            }
-        };
-        window.miniReset = () => { 
-            if(confirm('RESET DB??')) {
-                setDoc(ref,{chargingSlots:[null,null,null],waitingQueue:[],blockedList:[]}); 
-                log('ADMIN_RESET_DB', 'ALL', 'Full Database Reset');
-            }
-        };
+                const slotNow = d.chargingSlots[i];
+                if(!slotNow || slotNow.plat !== expectedPlat) return;
 
-        function formatTime(m){ const s=Math.round(m*60); return `${Math.floor(s/60)}:${(s%60).toString().padStart(2,'0')}`; }
-        function checkDisplayMode() {
-            document.getElementById('loadingScreen').style.display='none';
-            const isAdmin = checkIsAdmin();
-            const myPlat = localStorage.getItem('myPlat');
+                const oldWA = slotNow.wa;
+                const oldName = slotNow.userName;
 
-            if(!myPlat && !isAdmin && !sessionStorage.getItem('modalClosed')) {
-                document.getElementById('choiceModal').style.display = 'flex';
-            } else {
-                document.getElementById('choiceModal').style.display = 'none';
-            }
-
-            if(myPlat || isAdmin) {
-                document.getElementById('registrationArea').style.display='none';
-                document.getElementById('statusArea').style.display='block';
-            } else {
-                document.getElementById('registrationArea').style.display='block';
-                document.getElementById('statusArea').style.display='none';
-            }
-            document.getElementById('miniAdminPanel').style.display = isAdmin ? 'block' : 'none';
+                d.chargingSlots[i] = null;
+                let pulled = 'None';
+                
+                if(d.waitingQueue.length > 0){
+                    const n = d.waitingQueue.shift();
+                    const tar = calculateTargetLimit(d.waitingQueue.length);
+                    const dur = calculateDuration(n.startBattery, tar);
+                    d.chargingSlots[i] = {...n, startTime:null, readyTime:new Date(), targetLimit:tar, durationMinutes:dur};
+                    pulled = n.plat;
+                }
+                
+                t.update(ref, d);
+                sendFonnteNotif(oldWA, expectedPlat, oldName);
+                log('SYSTEM_SILENT_KILL', expectedPlat, {pulled: pulled});
+            }).catch(e => console.log("Silent kill aborted/failed", e));
         }
-        
-        window.monitorMode = () => {
-            document.getElementById('registrationArea').style.display = 'none';
-            document.getElementById('statusArea').style.display = 'block';
-        };
-        
-        window.closeChoiceModal = () => {
-            document.getElementById('choiceModal').style.display = 'none';
-            sessionStorage.setItem('modalClosed', 'true');
-        };
 
-        window.cancelQ = (i) => {
-            if(confirm('Batalkan antrian?')) {
-                runTransaction(db, async(t)=>{
-                    const d = (await t.get(ref)).data();
-                    const cancelledItem = d.waitingQueue[i];
-                    d.waitingQueue.splice(i, 1);
-                    t.update(ref, {waitingQueue: d.waitingQueue});
-                    // LOG
-                    const actor = checkIsAdmin() ? 'ADMIN_CANCEL_QUEUE' : 'USER_BATAL_ANTRI';
-                    log(actor, cancelledItem?.plat || 'Unknown', {queue_index: i});
-                }).then(()=> {
-                    const isAdmin = checkIsAdmin();
-                    if(!isAdmin) {
-                        localStorage.removeItem('myPlat');
-                        location.reload();
-                    }
-                });
-            }
-        };
-        
         window.act = (i,t,p) => {
             if(t==='stop') if(confirm('Stop?')) runTransaction(db, async(tr)=>{ 
                 const d=(await tr.get(ref)).data(); 
@@ -792,7 +511,6 @@
                     d.chargingSlots[i]={...n, startTime:null, durationMinutes:calculateDuration(n.startBattery,100)};
                 } 
                 tr.update(ref,d);
-                // LOG
                 const actor = checkIsAdmin() ? 'ADMIN_STOP_SLOT' : 'USER_STOP_MANUAL';
                 log(actor, p, {slot: i+1}); 
             });
@@ -800,7 +518,6 @@
                 const d=(await tr.get(ref)).data(); 
                 d.chargingSlots[i].startTime=new Date(); 
                 tr.update(ref,d); 
-                // LOG
                 const actor = checkIsAdmin() ? 'ADMIN_START_SLOT' : 'USER_START_MANUAL';
                 log(actor, d.chargingSlots[i].plat, {slot: i+1}); 
             });
@@ -812,11 +529,9 @@
                 runTransaction(db, async(t)=>{ 
                     const d=(await t.get(ref)).data(); 
                     const oldDur = d.chargingSlots[i].durationMinutes;
-                    
                     d.chargingSlots[i].startTime = new Date(); 
                     d.chargingSlots[i].durationMinutes = parseInt(m);
                     d.chargingSlots[i].isManualTime = true; 
-                    
                     t.update(ref,d); 
                     log('ADMIN_SYNC_TIME', d.chargingSlots[i].plat, {manual_input: m});
                 });
@@ -825,69 +540,6 @@
 
         window.logoutUser = () => { localStorage.removeItem('myPlat'); localStorage.removeItem('isAdminLoggedIn'); localStorage.removeItem('superAdminAuth'); location.reload(); };
         window.onload = checkDisplayMode;
-        
-        // --- SAFE TIMER LOOP (DENGAN CHECK EXPIRED) ---
-        setInterval(()=>{
-            if(latestSlots) {
-                renderSlots(latestSlots);
-                
-                if(isProcessing) return;
-
-                latestSlots.forEach((m,i)=>{
-                    if(m && !m.startTime && m.readyTime) {
-                        const readyLimit = 5 * 60 * 1000; 
-                        const elapsed = new Date() - parseDate(m.readyTime);
-                        if(elapsed >= readyLimit) {
-                            isProcessing = true;
-                            runTransaction(db, async(t)=>{
-                                const d=(await t.get(ref)).data();
-                                if(d.chargingSlots[i] && !d.chargingSlots[i].startTime) {
-                                    d.chargingSlots[i].startTime = new Date();
-                                    t.update(ref, d);
-                                    log('AUTO_START_TIMER', d.chargingSlots[i].plat, 'User did not click start');
-                                }
-                            }).finally(()=>isProcessing=false);
-                        }
-                    }
-
-                    if(m && m.startTime) {
-                        const st = parseDate(m.startTime);
-                        
-                        const durationToUse = m.isManualTime ? m.durationMinutes : calculateDuration(m.startBattery, m.targetLimit || 100);
-                        const finishTime = new Date(st.getTime() + durationToUse*60000);
-                        const now = new Date();
-                        
-                        // AUTO CLEAR TRIGGER (1 Menit Setelah Finish)
-                        if(now > new Date(finishTime.getTime() + 60000)) { 
-                            isProcessing = true;
-                            runTransaction(db, async(t)=>{
-                                const d=(await t.get(ref)).data(); 
-                                const oldP = d.chargingSlots[i]?.plat || 'Unknown';
-                                const oldWA = d.chargingSlots[i]?.wa; 
-                                const oldName = d.chargingSlots[i]?.userName;
-
-                                d.chargingSlots[i]=null;
-                                let pulled = 'None';
-                                if(d.waitingQueue.length){
-                                    const n=d.waitingQueue.shift(); 
-                                    const tar = calculateTargetLimit(d.waitingQueue.length);
-                                    const dur = calculateDuration(n.startBattery, tar);
-                                    d.chargingSlots[i]={...n, startTime:null, readyTime:new Date(), targetLimit:tar, durationMinutes:dur}; 
-                                    pulled = n.plat;
-                                }
-                                t.update(ref,d);
-                                
-                                sendFonnteNotif(oldWA, oldP, oldName);
-                                
-                                log('SYSTEM_AUTO_FINISH', oldP, {pulled_next: pulled}); 
-                            }).finally(()=>{
-                                isProcessing = false;
-                            });
-                        }
-                    }
-                });
-            }
-        }, 5000); // Loop tiap 5 detik biar gak berat
     </script>
 </body>
 </html>
