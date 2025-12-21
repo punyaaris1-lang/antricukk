@@ -4,10 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>FC Kelapa Gading - Smart Charging</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&family=Syne:wght@700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        /* TEMA MAKA MOTORS */
-        :root { --volt-green: #D9FF00; --cyber-blue: #00F0FF; --bg-black: #050505; --text-main: #FFFFFF; --danger: #FF2A2A; }
+        :root { --volt-green: #D9FF00; --cyber-blue: #00F0FF; --bg-black: #050505; --text-main: #FFFFFF; --danger: #FF2A2A; --term-bg: #0C0C0C; --term-text: #00FF41; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { margin: 0; font-family: 'Inter', sans-serif; background: var(--bg-black); color: var(--text-main); min-height: 100vh; overflow-x: hidden; padding-bottom: 150px; }
         body::before { content: ''; position: fixed; inset: 0; background: url('1763947427555.jpg') center/cover; opacity: 0.25; z-index: -1; filter: grayscale(100%) contrast(1.2); }
@@ -52,34 +51,37 @@
         .queue-item-display { display: flex; justify-content: space-between; background: #111; padding: 12px; margin-bottom: 8px; border-radius: 6px; border-left: 3px solid #333; align-items: center; }
         .queue-item-display.is-mine { border-left: 3px solid var(--volt-green); background: #1a1a1a; border-top: 1px solid #333; border-right: 1px solid #333; border-bottom: 1px solid #333; }
         
-        /* MINI DASHBOARD ADMIN */
+        /* ADMIN & LOG */
         .mini-dashboard { display: none; background: transparent; margin-top: 20px; }
-        .admin-card { background: #000; border: 1px solid #333; border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 5px 20px rgba(0,0,0,0.5); }
+        .admin-card { background: #000; border: 1px solid #333; border-radius: 12px; padding: 20px; margin-bottom: 20px; }
         .admin-card.highlight { border: 1px solid var(--cyber-blue); background: #0a0a0a; } 
         .admin-card.danger { border: 1px solid #500; }
         .ac-header { font-size: 12px; font-weight: 900; color: #fff; text-transform: uppercase; border-bottom: 1px solid #333; padding-bottom: 10px; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
         .ac-header span { color: var(--volt-green); }
         .mini-row { display: flex; gap: 10px; margin-bottom: 10px; }
         .mini-btn { flex: 1; padding: 14px; border-radius: 6px; border: none; font-weight: 700; cursor: pointer; font-size: 11px; color: #fff; background: #222; border: 1px solid #444; transition: 0.2s; }
-        .mini-btn:active { transform: scale(0.98); }
         .mini-inp { flex: 1; background: #1a1a1a; border: 1px solid #444; color: #fff; padding: 12px; border-radius: 6px; font-size: 12px; width: 100%; outline: none; }
-        .mini-inp:focus { border-color: var(--cyber-blue); background: #000; }
         .btn-blue { background: rgba(0, 240, 255, 0.1); border-color: var(--cyber-blue); color: var(--cyber-blue); }
         .btn-green { background: var(--volt-green); border-color: var(--volt-green); color: #000; font-weight: 900; }
         .btn-red { background: rgba(255, 42, 42, 0.1); border-color: var(--danger); color: var(--danger); }
+        
+        /* TERMUX LOG STYLE */
+        #logModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.98); z-index: 99999; justify-content: center; align-items: flex-start; padding-top: 20px; }
+        .log-box { background: var(--term-bg); border: 1px solid #333; width: 95%; max-width: 600px; height: 90vh; display:flex; flex-direction: column; border-radius: 4px; box-shadow: 0 0 20px rgba(0,255,0,0.1); }
+        .log-header { background: #111; padding: 10px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; font-family: 'JetBrains Mono', monospace; color: #fff; font-size: 12px; font-weight: bold; }
+        .log-content { flex: 1; overflow-y: auto; padding: 15px; font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #aaa; line-height: 1.4; scroll-behavior: smooth; }
+        .log-line { margin-bottom: 4px; border-bottom: 1px solid #1a1a1a; padding-bottom: 2px; }
+        .log-ts { color: #555; margin-right: 5px; }
+        .l-err { color: #ff0000; font-weight: bold; }
+        .l-succ { color: #00ff00; font-weight: bold; }
+        .l-warn { color: #ffa500; }
+        .l-info { color: #00ffff; }
+        
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 9999; justify-content: center; align-items: center; }
         .modal-box { background: #111; border: 1px solid var(--cyber-blue); padding: 25px; border-radius: 8px; width: 85%; max-width: 320px; text-align: center; }
         #choiceModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.98); z-index: 99999; justify-content: center; align-items: center; }
         .choice-box { background: #050505; border: 1px solid var(--volt-green); padding: 40px 30px; border-radius: 12px; text-align: center; width: 85%; max-width: 350px; }
         .choice-btn { display: block; width: 100%; padding: 16px; margin-top: 15px; border-radius: 6px; font-weight: 800; cursor: pointer; border: none; font-size: 13px; }
-
-        /* LOG VIEWER STYLES */
-        #logModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 99999; justify-content: center; align-items: flex-start; padding-top: 50px; }
-        .log-box { background: #000; border: 1px solid var(--volt-green); width: 90%; max-width: 600px; max-height: 80vh; overflow-y: auto; border-radius: 8px; padding: 20px; font-family: monospace; }
-        .log-item { border-bottom: 1px solid #333; padding: 8px 0; font-size: 10px; color: #aaa; }
-        .log-time { color: var(--cyber-blue); font-weight: bold; margin-right: 5px; }
-        .log-action { color: #fff; font-weight: bold; }
-        .log-detail { color: var(--volt-green); display: block; margin-top: 2px; }
     </style>
 </head>
 <body>
@@ -87,11 +89,11 @@
     
     <div id="logModal">
         <div class="log-box">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;border-bottom:2px solid #333;padding-bottom:10px;">
-                <h3 style="margin:0;color:#fff;">📜 SYSTEM LOGS (LAST 20)</h3>
-                <button onclick="document.getElementById('logModal').style.display='none'" style="background:var(--danger);color:#fff;border:none;padding:5px 10px;cursor:pointer;font-weight:bold;">TUTUP</button>
+            <div class="log-header">
+                <span>>_ SYSTEM.LOG</span>
+                <span onclick="document.getElementById('logModal').style.display='none'" style="cursor:pointer;color:var(--danger);">[X] CLOSE</span>
             </div>
-            <div id="logContent">Memuat data log...</div>
+            <div id="logContent" class="log-content">Loading data...</div>
         </div>
     </div>
 
@@ -177,7 +179,7 @@
                 </div>
                 <button onclick="miniRegQ()" class="mini-btn btn-blue" style="width:100%">+ TAMBAH KE ANTRIAN</button>
             </div>
-            <button onclick="viewLogs()" class="mini-btn" style="width:100%;margin-bottom:20px;border:1px solid var(--volt-green);color:var(--volt-green);">📜 CEK RIWAYAT LOG (ERROR & AKTIVITAS)</button>
+            <button onclick="viewLogs()" class="mini-btn" style="width:100%;margin-bottom:20px;border:1px solid var(--volt-green);color:var(--volt-green);font-family:'JetBrains Mono';">>_ CEK SYSTEM LOGS</button>
 
             <div class="admin-card">
                 <div class="ac-header">🚀 <span>PENGATURAN ARUS</span></div>
@@ -278,31 +280,42 @@
             }).catch(e => console.error("Log Error:", e)); 
         }
 
-        // --- FITUR BARU: MONITOR LOG VIEWER ---
+        // --- TERMUX LOG VIEWER ---
         window.viewLogs = async () => {
             document.getElementById('logModal').style.display = 'flex';
             const logDiv = document.getElementById('logContent');
-            logDiv.innerHTML = 'Sedang mengambil data...';
+            logDiv.innerHTML = '<span style="color:#0f0;">> Fetching logs from db...</span>';
             
             try {
-                const q = query(logRef, orderBy("timestamp", "desc"), limit(30));
+                const q = query(logRef, orderBy("timestamp", "desc"), limit(50));
                 const querySnapshot = await getDocs(q);
                 let html = '';
                 querySnapshot.forEach((doc) => {
                     const data = doc.data();
-                    const time = data.timestamp ? new Date(data.timestamp.seconds * 1000).toLocaleTimeString() : '-';
-                    const det = JSON.stringify(data.details || {});
+                    const time = data.timestamp ? new Date(data.timestamp.seconds * 1000).toLocaleTimeString() : '00:00:00';
+                    const act = data.action || 'UNKNOWN';
+                    
+                    // Color Logic
+                    let colorClass = 'l-info';
+                    if(act.includes('ERROR') || act.includes('FAILED') || act.includes('REJECTED')) colorClass = 'l-err';
+                    else if(act.includes('SUCCESS') || act.includes('FINISH')) colorClass = 'l-succ';
+                    else if(act.includes('MANUAL') || act.includes('EDIT')) colorClass = 'l-warn';
+
+                    const detailStr = JSON.stringify(data.details || {}).replace(/"/g,'');
+
                     html += `
-                        <div class="log-item">
-                            <div><span class="log-time">[${time}]</span> <span class="log-action">${data.action}</span> (${data.user})</div>
-                            <div style="color:#fff;">Plat: ${data.plat}</div>
-                            <div class="log-detail">${det}</div>
+                        <div class="log-line">
+                            <span class="log-ts">[${time}]</span>
+                            <span class="${colorClass}">${act}</span>
+                            <span style="color:#888;">::</span>
+                            <span style="color:#fff;">${data.plat || '-'}</span>
+                            <div style="color:#666; margin-left:10px;">> ${detailStr}</div>
                         </div>
                     `;
                 });
-                logDiv.innerHTML = html || 'Belum ada log.';
+                logDiv.innerHTML = html || '<span style="color:#666;">> No logs found.</span>';
             } catch (e) {
-                logDiv.innerHTML = 'Gagal ambil log: ' + e.message;
+                logDiv.innerHTML = `<span class="l-err">> FATAL ERROR: ${e.message}</span>`;
             }
         };
 
@@ -331,7 +344,6 @@
                     headers: { 'Authorization': FONTE_TOKEN },
                     body: formData
                 });
-                // Log sukses WA
                 log('WA_SENT_SUCCESS', plat, {to: formattedWA});
             } catch(e) { 
                 console.error("WA Error", e); 
@@ -339,11 +351,9 @@
             }
         }
 
-        // --- KURVA AGAK LEBIH CEPAT (BUFFER 2-4 MENIT) ---
         const CHARGING_CURVE = [
             [100,0], [99,1], [95,4], 
-            [90,17], // 90% = 17m (Mesin 19m)
-            [89,18], [85,22], [81,25], [72,33], 
+            [90,17], [89,18], [85,22], [81,25], [72,33], 
             [61,45], [50,50], [20,68], [0,86]
         ];
 
@@ -414,7 +424,6 @@
                             dispBat = Math.min(Math.max(m.startBattery, dispBat), globalTarget);
                         }
                         
-                        // FIX TAMPILAN: TETAP TAMPIL PERSEN WALAU MANUAL
                         const targetDisplay = globalTarget + '%'; 
 
                         box.innerHTML = `<div style="font-size:9px;font-weight:700;color:var(--volt-green)">SLOT ${i+1}</div><div style="font-size:16px;font-weight:900;margin-top:2px;font-family:'Inter'">${m.plat}</div><div style="font-size:10px;color:#fff;">${m.userName.split(' ')[0]}</div><div style="font-family:'Inter';font-size:22px;font-weight:900;color:var(--volt-green);margin:2px 0;">${formatTime(rem)}</div><div class="bat-icon"><span class="bat-bolt">⚡</span><div class="bat-fill pulsating-fill" style="height:${dispBat}%"></div></div><div class="bat-stats"><div class="stat-row"><span class="c-start">Awal:</span> <span class="c-start">${m.startBattery}%</span></div><div class="stat-row"><span class="c-target">Target:</span> <span class="c-target">${targetDisplay}</span></div><div class="stat-row"><span class="c-now">Kini:</span> <span class="c-now">${dispBat}%</span></div></div><div>${isAdmin ? `<button onclick="editTimer(${i})" class="btn-slot btn-edit">EDIT</button>` : ''} ${canControl ? `<button onclick="act(${i},'stop','${m.plat}')" class="btn-slot btn-stop">STOP</button>` : ''}</div>`;
@@ -503,7 +512,6 @@
 
         function getDist(lat1,lon1,lat2,lon2){ const R=6371; const dLat=(lat2-lat1)*Math.PI/180; const dLon=(lon2-lon1)*Math.PI/180; const a=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)*Math.sin(dLon/2); return R*(2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a))); }
         
-        // --- FIX LOG ERROR: DELAY POPUP ---
         document.getElementById('btnDaftar').onclick = () => {
             const p = document.getElementById('userPlat').value.toUpperCase().replace(/\s/g,'');
             const n = document.getElementById('userName').value.trim();
@@ -804,6 +812,7 @@
         window.logoutUser = () => { localStorage.removeItem('myPlat'); localStorage.removeItem('isAdminLoggedIn'); localStorage.removeItem('superAdminAuth'); location.reload(); };
         window.onload = checkDisplayMode;
         
+        // --- MAIN LOOP ---
         setInterval(()=>{
             if(latestSlots) {
                 renderSlots(latestSlots);
@@ -834,7 +843,8 @@
                         const end = new Date(st.getTime() + durationToUse*60000);
                         const rem = (end - new Date())/60000;
                         
-                        if(rem <= -1) { // Trigger saat -1 menit (selesai)
+                        // AUTO KILL IF < -1 MINUTE
+                        if(rem <= -1) { 
                             isClearing[i]=true;
                             isProcessing = true;
                             runTransaction(db, async(t)=>{
@@ -854,6 +864,7 @@
                                 }
                                 t.update(ref,d);
                                 
+                                // SEND WA
                                 sendFonnteNotif(oldWA, oldP, oldName);
                                 
                                 log('SYSTEM_AUTO_FINISH', oldP, {pulled_next: pulled}); 
