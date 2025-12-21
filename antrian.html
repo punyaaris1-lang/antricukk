@@ -414,6 +414,7 @@
                             dispBat = Math.min(Math.max(m.startBattery, dispBat), globalTarget);
                         }
                         
+                        // FIX TAMPILAN: TETAP TAMPIL PERSEN WALAU MANUAL
                         const targetDisplay = globalTarget + '%'; 
 
                         box.innerHTML = `<div style="font-size:9px;font-weight:700;color:var(--volt-green)">SLOT ${i+1}</div><div style="font-size:16px;font-weight:900;margin-top:2px;font-family:'Inter'">${m.plat}</div><div style="font-size:10px;color:#fff;">${m.userName.split(' ')[0]}</div><div style="font-family:'Inter';font-size:22px;font-weight:900;color:var(--volt-green);margin:2px 0;">${formatTime(rem)}</div><div class="bat-icon"><span class="bat-bolt">⚡</span><div class="bat-fill pulsating-fill" style="height:${dispBat}%"></div></div><div class="bat-stats"><div class="stat-row"><span class="c-start">Awal:</span> <span class="c-start">${m.startBattery}%</span></div><div class="stat-row"><span class="c-target">Target:</span> <span class="c-target">${targetDisplay}</span></div><div class="stat-row"><span class="c-now">Kini:</span> <span class="c-now">${dispBat}%</span></div></div><div>${isAdmin ? `<button onclick="editTimer(${i})" class="btn-slot btn-edit">EDIT</button>` : ''} ${canControl ? `<button onclick="act(${i},'stop','${m.plat}')" class="btn-slot btn-stop">STOP</button>` : ''}</div>`;
@@ -502,6 +503,7 @@
 
         function getDist(lat1,lon1,lat2,lon2){ const R=6371; const dLat=(lat2-lat1)*Math.PI/180; const dLon=(lon2-lon1)*Math.PI/180; const a=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)*Math.sin(dLon/2); return R*(2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a))); }
         
+        // --- FIX LOG ERROR: DELAY POPUP ---
         document.getElementById('btnDaftar').onclick = () => {
             const p = document.getElementById('userPlat').value.toUpperCase().replace(/\s/g,'');
             const n = document.getElementById('userName').value.trim();
@@ -538,14 +540,20 @@
                     if(dist > MAX_DIST_KM && !isGpsBypassEnabled) {
                         strikes++; 
                         localStorage.setItem('gpsStrikes', strikes);
+                        
+                        // 1. KIRIM LOG DULUAN
                         log('GPS_REJECTED', p, {dist: dist.toFixed(3) + " km", strikes: strikes}); 
                         
-                        if(strikes >= 3) { 
-                            updateDoc(ref, {blockedList: arrayUnion(p)}); 
-                            alert('LOKASI TERLALU JAUH (3x Gagal). Sistem memblokir sementara.'); 
-                        } else {
-                            alert(`GAGAL: Lokasi Anda terdeteksi sejauh ${dist.toFixed(2)} km dari Station.\nWajib berada di lokasi (< 200m).\nSisa percobaan: ${3-strikes}`);
-                        }
+                        // 2. TAMPILKAN POPUP DENGAN JEDA (0.5 Detik)
+                        setTimeout(() => {
+                            if(strikes >= 3) { 
+                                updateDoc(ref, {blockedList: arrayUnion(p)}); 
+                                alert('LOKASI TERLALU JAUH (3x Gagal). Sistem memblokir sementara.'); 
+                            } else {
+                                alert(`GAGAL: Lokasi Anda terdeteksi sejauh ${dist.toFixed(2)} km dari Station.\nWajib berada di lokasi (< 200m).\nSisa percobaan: ${3-strikes}`);
+                            }
+                        }, 500);
+
                     } else {
                         processReg(p, n, w, b);
                     }
@@ -742,6 +750,7 @@
                     const cancelledItem = d.waitingQueue[i];
                     d.waitingQueue.splice(i, 1);
                     t.update(ref, {waitingQueue: d.waitingQueue});
+                    // LOG
                     const actor = checkIsAdmin() ? 'ADMIN_CANCEL_QUEUE' : 'USER_BATAL_ANTRI';
                     log(actor, cancelledItem?.plat || 'Unknown', {queue_index: i});
                 }).then(()=> {
@@ -825,7 +834,7 @@
                         const end = new Date(st.getTime() + durationToUse*60000);
                         const rem = (end - new Date())/60000;
                         
-                        if(rem <= 0) {
+                        if(rem <= -1) { // Trigger saat -1 menit (selesai)
                             isClearing[i]=true;
                             isProcessing = true;
                             runTransaction(db, async(t)=>{
