@@ -262,6 +262,25 @@
         let isGpsBypassEnabled = localStorage.getItem('gpsBypass') === 'true';
         let isProcessing = false;
         let isClearing = {}; 
+        let wakeLock = null;
+
+        // --- WAKE LOCK (Supaya layar tidak mati otomatis di admin) ---
+        async function requestWakeLock() {
+            try {
+                if ('wakeLock' in navigator) {
+                    wakeLock = await navigator.wakeLock.request('screen');
+                    console.log('Screen Wake Lock active');
+                }
+            } catch (err) {
+                console.log(`${err.name}, ${err.message}`);
+            }
+        }
+        document.addEventListener('visibilitychange', async () => {
+            if (wakeLock !== null && document.visibilityState === 'visible') {
+                requestWakeLock();
+            }
+        });
+        requestWakeLock(); // Request saat load
 
         setTimeout(() => {
             const ls = document.getElementById('loadingScreen');
@@ -436,15 +455,7 @@
             const d=s.data()||{}; latestSlots=d.chargingSlots||[null,null,null]; latestQueue=d.waitingQueue||[];
             checkDisplayMode();
             
-            latestSlots.forEach((m,i)=>{
-                if(m && m.startTime) {
-                    const duration = m.isManualTime ? m.durationMinutes : calculateDuration(m.startBattery, m.targetLimit||100);
-                    const finishTime = new Date(parseDate(m.startTime).getTime() + duration*60000);
-                    if(new Date() > new Date(finishTime.getTime() + 60000)) {
-                        silentKill(i, m.plat); 
-                    }
-                }
-            });
+            // Hapus check di onSnapshot, pindahkan semua ke setInterval agar konsisten
             
             const qc = document.getElementById('queueList'); qc.innerHTML = latestQueue.length ? '' : '<div style="text-align:center;color:#444;font-size:12px;margin-top:20px;">Antrian Kosong</div>';
             const qLen = latestQueue.length;
@@ -488,7 +499,7 @@
             runTransaction(db, async(t)=>{
                 const d = (await t.get(ref)).data();
                 const slotNow = d.chargingSlots[i];
-                if(!slotNow || slotNow.plat !== expectedPlat) return;
+                if(!slotNow || slotNow.plat !== expectedPlat) throw "Slot Changed";
 
                 const oldWA = slotNow.wa;
                 const oldName = slotNow.userName;
@@ -505,10 +516,18 @@
                 }
                 
                 t.update(ref, d);
-                sendFonnteNotif(oldWA, expectedPlat, oldName);
-                log('SYSTEM_SILENT_KILL', expectedPlat, {pulled_next: pulled});
+                return { oldWA, oldName, pulled }; // Return data untuk WA
             })
-            .catch(e => console.log("Silent kill aborted/failed", e))
+            .then((res) => {
+                // KIRIM WA SETELAH UPDATE DATABASE BERHASIL
+                if(res && res.oldWA) {
+                    sendFonnteNotif(res.oldWA, expectedPlat, res.oldName);
+                    log('SYSTEM_SILENT_KILL', expectedPlat, {pulled_next: res.pulled});
+                }
+            })
+            .catch(e => {
+                if(e !== "Slot Changed") console.log("Silent kill aborted/failed", e);
+            })
             .finally(() => {
                 setTimeout(() => { delete isClearing[i]; }, 2000); 
             });
@@ -840,8 +859,9 @@
                         const finishTime = new Date(st.getTime() + durationToUse*60000);
                         const now = new Date();
                         
-                        // AUTO KILL IF < -1 MINUTE
-                        if(now > new Date(finishTime.getTime() + 60000)) { 
+                        // FIX: Langsung trigger saat waktu sudah lewat batas (+1 detik toleransi)
+                        // Tidak lagi menunggu 1 menit (+60000)
+                        if(now >= new Date(finishTime.getTime() + 1000)) { 
                             silentKill(i, m.plat); 
                         }
                     }
