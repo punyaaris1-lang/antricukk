@@ -193,6 +193,13 @@
                     </div>
                     <button onclick="miniMoveQ()" class="mini-btn btn-green" style="width:100%">PINDAHKAN SEKARANG</button>
                 </div>
+                <div style="margin-bottom:15px; border-top:1px dashed #333; padding-top:10px;">
+                    <label style="margin-bottom:5px; display:block;">PINDAHKAN SLOT KE ANTRIAN</label>
+                    <div class="mini-row">
+                        <select id="miniSlotToQSelect" class="mini-inp" style="flex:2"></select>
+                    </div>
+                    <button onclick="miniSlotToQueue()" class="mini-btn btn-blue" style="width:100%">KEMBALIKAN KE ANTRIAN</button>
+                </div>
                 <div style="border-top:1px dashed #333; padding-top:15px;">
                     <label style="margin-bottom:5px; display:block;">TUKAR URUTAN ANTRIAN</label>
                     <div class="mini-row">
@@ -386,7 +393,15 @@
         }
         
         function calculateTargetLimit(len) { if(len >= 11) return 85; if(len >= 6) return 90; if(len >= 3) return 95; return 100; }
-        function parseDate(ts) { if(!ts) return null; if(ts.toDate) return ts.toDate(); if(ts instanceof Date) return ts; return new Date(ts); }
+        
+        // FIX: PARSE DATE YANG LEBIH KUAT
+        function parseDate(ts) { 
+            if(!ts) return null; 
+            if(ts.toDate) return ts.toDate(); // Firebase Timestamp
+            if(ts instanceof Date) return ts; // JS Date Object
+            if(typeof ts === 'object' && ts.seconds) return new Date(ts.seconds * 1000); // Manual Timestamp
+            return new Date(ts); // String/ISO
+        }
 
         function renderSlots(slots) {
             const c = document.getElementById('slotsContainer'); c.innerHTML='';
@@ -399,11 +414,16 @@
                 const isMine = myPlat === m?.plat;
                 const canControl = isAdmin || isMine;
                 if(isMine) box.classList.add('active');
+                
+                // SMART ADJUSTMENT VISUAL: Gunakan durasi yang TERSIMPAN di database (m.durationMinutes), bukan hitung ulang
+                // agar tampilan tidak lompat-lompat atau kick user.
                 const globalTarget = calculateTargetLimit(qLen); 
 
                 if(m && m.startTime) {
                     const st = parseDate(m.startTime);
-                    let durReal = m.isManualTime ? m.durationMinutes : calculateDuration(m.startBattery, globalTarget); 
+                    // GUNAKAN DURASI DARI DB (SMART ADJUSTMENT)
+                    let durReal = m.durationMinutes; 
+                    
                     const end = new Date(st.getTime() + durReal*60000);
                     const rem = (end - new Date())/60000;
                     
@@ -412,33 +432,31 @@
                         const diffSeconds = (new Date() - finishTime) / 1000; 
                         const timeLeftToClear = Math.max(0, Math.ceil(60 - diffSeconds));
                         const autoClearText = timeLeftToClear > 0 ? `AUTO CLEAR: ${timeLeftToClear}s` : 'CLEARING...';
-                        box.innerHTML = `<div style="font-weight:900;color:var(--danger);font-size:10px;">SLOT ${i+1}</div><div style="font-size:16px;font-weight:900;margin-top:5px;font-family:'Inter'">${m.plat}</div><div style="font-size:10px;color:#aaa;">${m.userName.split(' ')[0]}</div><div style="font-size:14px;color:var(--danger);font-weight:900;margin-top:5px;">SELESAI</div><div class="bat-icon" style="border-color:var(--volt-green)"><span class="bat-bolt">⚡</span><div class="bat-fill" style="height:100%;background:var(--volt-green)"></div></div><div style="color:var(--volt-green);font-weight:900;font-size:12px;margin-bottom:5px;">FULL 100%</div><div style="color:var(--danger);font-size:10px;font-weight:bold;animation:pulse 1s infinite;">${autoClearText}</div><div style="margin-top:auto">${canControl ? `<button onclick="silentKill(${i},'${m.plat}')" class="btn-slot btn-stop">KOSONGKAN</button>` : ''}</div>`;
+                        box.innerHTML = `<div style="font-weight:900;color:var(--danger);font-size:10px;">SLOT ${i+1}</div><div style="font-size:16px;font-weight:900;margin-top:5px;font-family:'Inter'">${m.plat}</div><div style="font-size:10px;color:#aaa;">${m.userName.split(' ')[0]}</div><div style="font-size:14px;color:var(--danger);font-weight:900;margin-top:5px;">SELESAI</div><div class="bat-icon" style="border-color:var(--volt-green)"><span class="bat-bolt">⚡</span><div class="bat-fill" style="height:100%;background:var(--volt-green)"></div></div><div style="color:var(--volt-green);font-weight:900;font-size:12px;margin-bottom:5px;">FULL ${m.targetLimit || 100}%</div><div style="color:var(--danger);font-size:10px;font-weight:bold;animation:pulse 1s infinite;">${autoClearText}</div><div style="margin-top:auto">${canControl ? `<button onclick="silentKill(${i},'${m.plat}')" class="btn-slot btn-stop">KOSONGKAN</button>` : ''}</div>`;
                     } else {
                         if(isMine && rem < 5) box.classList.add('pulsating');
-                        let dispBat;
-                        if(m.isManualTime) {
-                            dispBat = getBatteryFromRemTime(rem);
-                        } else {
-                            const timeToTarget = calculateDuration(globalTarget, 100); 
-                            const adjustedRem = rem + timeToTarget; 
-                            dispBat = getBatteryFromRemTime(adjustedRem); 
-                            dispBat = Math.min(Math.max(m.startBattery, dispBat), globalTarget);
-                        }
-                        const targetDisplay = globalTarget + '%'; 
+                        let dispBat = getBatteryFromRemTime(rem);
+                        // Clamp battery display
+                        dispBat = Math.min(Math.max(m.startBattery, dispBat), m.targetLimit || 100);
+                        
+                        const targetDisplay = (m.targetLimit || 100) + '%'; 
                         box.innerHTML = `<div style="font-size:9px;font-weight:700;color:var(--volt-green)">SLOT ${i+1}</div><div style="font-size:16px;font-weight:900;margin-top:2px;font-family:'Inter'">${m.plat}</div><div style="font-size:10px;color:#fff;">${m.userName.split(' ')[0]}</div><div style="font-family:'Inter';font-size:22px;font-weight:900;color:var(--volt-green);margin:2px 0;">${formatTime(rem)}</div><div class="bat-icon"><span class="bat-bolt">⚡</span><div class="bat-fill pulsating-fill" style="height:${dispBat}%"></div></div><div class="bat-stats"><div class="stat-row"><span class="c-start">Awal:</span> <span class="c-start">${m.startBattery}%</span></div><div class="stat-row"><span class="c-target">Target:</span> <span class="c-target">${targetDisplay}</span></div><div class="stat-row"><span class="c-now">Kini:</span> <span class="c-now">${dispBat}%</span></div></div><div>${isAdmin ? `<button onclick="editTimer(${i})" class="btn-slot btn-edit">EDIT</button>` : ''} ${canControl ? `<button onclick="act(${i},'stop','${m.plat}')" class="btn-slot btn-stop">STOP</button>` : ''}</div>`;
                     }
                 } else if(m) {
                     let autoStartMsg = "READY";
                     if(m.readyTime) {
                         const readyLimit = 5 * 60 * 1000; 
-                        const elapsed = new Date() - parseDate(m.readyTime);
-                        const remainingReady = readyLimit - elapsed;
-                        if(remainingReady > 0) {
-                            const min = Math.floor(remainingReady / 60000);
-                            const sec = Math.floor((remainingReady % 60000) / 1000);
-                            autoStartMsg = `AUTO START: ${min}:${sec.toString().padStart(2,'0')}`;
-                        } else {
-                            autoStartMsg = "STARTING...";
+                        const readyDate = parseDate(m.readyTime);
+                        if (readyDate) {
+                            const elapsed = new Date() - readyDate;
+                            const remainingReady = readyLimit - elapsed;
+                            if(remainingReady > 0) {
+                                const min = Math.floor(remainingReady / 60000);
+                                const sec = Math.floor((remainingReady % 60000) / 1000);
+                                autoStartMsg = `AUTO START: ${min}:${sec.toString().padStart(2,'0')}`;
+                            } else {
+                                autoStartMsg = "STARTING...";
+                            }
                         }
                     }
                     box.classList.add('active'); box.style.borderColor='var(--volt-green)';
@@ -484,6 +502,7 @@
                 document.getElementById('miniQTarget').innerHTML = sOpts;
                 document.getElementById('miniSwap1').innerHTML = sOpts;
                 document.getElementById('miniSwap2').innerHTML = sOpts;
+                document.getElementById('miniSlotToQSelect').innerHTML = sOpts; // Opsi untuk fitur baru
                 const qOpts = latestQueue.length ? latestQueue.map((x,i)=>`<option value="${i}">#${i+1} ${x.plat}</option>`).join('') : '<option value="-1">Kosong</option>';
                 document.getElementById('miniQIdx').innerHTML = qOpts;
                 document.getElementById('miniQSwap1').innerHTML = qOpts;
@@ -511,6 +530,7 @@
                     const n = d.waitingQueue.shift();
                     const tar = calculateTargetLimit(d.waitingQueue.length);
                     const dur = calculateDuration(n.startBattery, tar);
+                    // SMART ADJUSTMENT: Set target limit di slot
                     d.chargingSlots[i] = {...n, startTime:null, readyTime:new Date(), targetLimit:tar, durationMinutes:dur};
                     pulled = n.plat;
                 }
@@ -543,10 +563,27 @@
             runTransaction(db, async(t)=>{
                 const d=(await t.get(ref)).data(); const q=d.waitingQueue||[];
                 q.push({plat:p, userName:n, wa:w, startBattery:b, targetLimit:100, durationMinutes:0, startTime:null});
-                t.update(ref,{waitingQueue:q});
+                
+                // --- SMART ADJUSTMENT (ANTI-KICK) ---
+                const s = d.chargingSlots;
+                const newQCount = q.length + (s.includes(null) ? 0 : 1);
+                const newGlobalTarget = calculateTargetLimit(newQCount);
+                
+                // Cek semua slot aktif, update target & durasi di database
+                s.forEach((slot, i) => {
+                    if(slot && slot.startTime && !slot.isManualTime) {
+                        const newDur = calculateDuration(slot.startBattery, newGlobalTarget);
+                        // Hanya update jika durasi memendek, TAPI jangan sampai membuat timer jadi negatif (kick)
+                        // Kita simpan durasi baru di DB
+                        slot.targetLimit = newGlobalTarget;
+                        slot.durationMinutes = newDur;
+                    }
+                });
+
+                t.update(ref,{waitingQueue:q, chargingSlots:s});
             }).then(() => {
                 log('ADMIN_REGISTER_QUEUE', p, {nama: n, bat: b}); 
-                alert('Berhasil Daftar Antrian');
+                alert('Berhasil Daftar Antrian & Smart Adjustment Triggered');
             }).catch(e => alert(e));
         };
 
@@ -582,6 +619,38 @@
                     t.update(ref, {chargingSlots:d.chargingSlots, waitingQueue:q});
                     log('ADMIN_FORCE_CLEAR', oldP, {slot: s}); 
                 });
+            }
+        };
+
+        // --- FITUR BARU: PINDAHKAN SLOT KE ANTRIAN ---
+        window.miniSlotToQueue = () => {
+            const sIdx = document.getElementById('miniSlotToQSelect').value;
+            if(confirm('Kembalikan motor di slot ini ke daftar antrian?')) {
+                runTransaction(db, async(t)=>{
+                    const d = (await t.get(ref)).data();
+                    const slotData = d.chargingSlots[sIdx];
+                    
+                    if(!slotData) throw "Slot Kosong";
+                    
+                    // Reset data waktu agar bersih saat masuk antrian
+                    const itemToQueue = {
+                        plat: slotData.plat,
+                        userName: slotData.userName,
+                        wa: slotData.wa,
+                        startBattery: slotData.startBattery,
+                        targetLimit: 100, // Reset target
+                        durationMinutes: 0,
+                        startTime: null
+                    };
+                    
+                    // Masukkan ke antrian (paling belakang)
+                    d.waitingQueue.push(itemToQueue);
+                    // Kosongkan slot
+                    d.chargingSlots[sIdx] = null;
+                    
+                    t.update(ref, {chargingSlots: d.chargingSlots, waitingQueue: d.waitingQueue});
+                    log('ADMIN_SLOT_TO_QUEUE', slotData.plat, {from_slot: sIdx});
+                }).then(() => alert('Berhasil dipindahkan ke antrian')).catch(e => alert(e));
             }
         };
 
@@ -762,15 +831,30 @@
                 let s=d.chargingSlots||[null,null,null], q=d.waitingQueue||[];
                 if(s.some(x=>x?.plat===plat)||q.some(x=>x?.plat===plat)) throw "Sudah terdaftar";
                 
-                const tar = calculateTargetLimit(q.length);
-                const dur = calculateDuration(bat, tar);
+                // Hitung target baru berdasarkan antrian (+1 karena user ini akan masuk)
+                const newQCount = q.length + (s.includes(null) ? 0 : 1);
+                const globalTarget = calculateTargetLimit(newQCount);
+                
+                const dur = calculateDuration(bat, globalTarget);
                 
                 const idx = s.findIndex(x=>x===null);
                 if(idx!==-1) { 
-                    s[idx]={plat, userName:name, wa, startBattery:bat, targetLimit:tar, durationMinutes:dur, startTime:null, readyTime: new Date()}; 
+                    s[idx]={plat, userName:name, wa, startBattery:bat, targetLimit:globalTarget, durationMinutes:dur, startTime:null, readyTime: new Date()}; 
                 } else { 
                     q.push({plat, userName:name, wa, startBattery:bat, targetLimit:100, durationMinutes:0, startTime:null}); 
                 }
+
+                // --- SMART ADJUSTMENT (UPDATE SEMUA SLOT) ---
+                s.forEach((slot, i) => {
+                    if(slot && slot.startTime && !slot.isManualTime) {
+                        const newDur = calculateDuration(slot.startBattery, globalTarget);
+                        // Update durasi di DB hanya jika memendek (agar adil)
+                        // dan jangan lupa update targetLimitnya juga
+                        slot.targetLimit = globalTarget;
+                        slot.durationMinutes = newDur;
+                    }
+                });
+
                 t.set(ref, {chargingSlots:s, waitingQueue:q}, {merge:true});
             }).then(()=>{ 
                 localStorage.setItem('myPlat',plat); 
@@ -838,29 +922,35 @@
                 renderSlots(latestSlots);
                 if(isProcessing) return;
                 latestSlots.forEach((m,i)=>{
+                    // --- FIX AUTO START 5 MENIT ---
                     if(m && !m.startTime && m.readyTime) {
                         const readyLimit = 5 * 60 * 1000; 
-                        const elapsed = new Date() - parseDate(m.readyTime);
-                        if(elapsed >= readyLimit) {
-                            isProcessing = true;
-                            runTransaction(db, async(t)=>{
-                                const d=(await t.get(ref)).data();
-                                if(d.chargingSlots[i] && !d.chargingSlots[i].startTime) {
-                                    d.chargingSlots[i].startTime = new Date();
-                                    t.update(ref, d);
-                                    log('AUTO_START_TIMER', d.chargingSlots[i].plat, 'User did not click start');
-                                }
-                            }).finally(()=>isProcessing=false);
+                        const readyDate = parseDate(m.readyTime);
+                        
+                        if(readyDate) {
+                            const elapsed = new Date() - readyDate;
+                            if(elapsed >= readyLimit) {
+                                isProcessing = true;
+                                runTransaction(db, async(t)=>{
+                                    const d=(await t.get(ref)).data();
+                                    // Pastikan data masih valid sebelum update
+                                    if(d.chargingSlots[i] && d.chargingSlots[i].plat === m.plat && !d.chargingSlots[i].startTime) {
+                                        d.chargingSlots[i].startTime = new Date();
+                                        t.update(ref, d);
+                                        log('AUTO_START_TIMER', d.chargingSlots[i].plat, 'User did not click start');
+                                    }
+                                }).finally(()=>isProcessing=false);
+                            }
                         }
                     }
                     if(m && m.startTime && !isClearing[i]) {
                         const st = parseDate(m.startTime);
-                        const durationToUse = m.isManualTime ? m.durationMinutes : calculateDuration(m.startBattery, m.targetLimit || 100);
+                        // GUNAKAN DURASI DARI DB (SMART ADJUSTMENT)
+                        const durationToUse = m.isManualTime ? m.durationMinutes : m.durationMinutes; 
                         const finishTime = new Date(st.getTime() + durationToUse*60000);
                         const now = new Date();
                         
                         // FIX: Langsung trigger saat waktu sudah lewat batas (+1 detik toleransi)
-                        // Tidak lagi menunggu 1 menit (+60000)
                         if(now >= new Date(finishTime.getTime() + 1000)) { 
                             silentKill(i, m.plat); 
                         }
