@@ -358,39 +358,57 @@
             } catch(e) { console.error("WA Error", e); log('WA_SENT_FAILED', plat, {err: e.message}); }
         }
 
+                // --- UPDATED CHARGING CURVE (REAL DATA DARI FOTO MESIN) ---
+        // Data: 69%=41m, 51%=56m, 28%=66m
         const CHARGING_CURVE = [
-            [100,0], [99,2], [91,9], 
-            [82,25], [81,26], [79,30], [75,32], [72,35], 
-            [70,39], [59,49], [51,55], [50,56], [22,71], [20,72], [0,90]
+            [100, 0],
+            [95, 10], 
+            [90, 18], 
+            [80, 29],
+            [69, 41], // Sesuai Foto
+            [60, 48],
+            [51, 56], // Sesuai Foto
+            [40, 61],
+            [28, 66], // Sesuai Foto
+            [15, 75],
+            [0, 85]
         ];
 
-        function getBatteryFromRemTime(rem) {
-            if (rem <= 0) return 98; // MENTOK DI 98 SESUAI PERMINTAAN LOGIC
-            for (let i=0; i<CHARGING_CURVE.length-1; i++) {
-                const [p1, t1] = CHARGING_CURVE[i]; const [p2, t2] = CHARGING_CURVE[i+1];
-                if (rem >= t1 && rem <= t2) return Math.round(p1 - ((rem - t1) / (t2 - t1)) * (p1 - p2));
-            }
-            return 0;
-        }
+        function calculateTargetLimit(qLength) { return 98; } 
         
         function calculateDuration(start, target) {
-            if (start >= target) return 5;
-            let timeStart=90, timeTarget=0;
+            // 1. Hitung waktu seolah-olah targetnya selalu 100% (agar sama dengan layar mesin)
+            let timeStart = 90; 
+            let timeTarget = 0;
+            let machineTarget = 100; // Mesin selalu hitung sisa waktu sampai penuh
+
+            // Cari menit start (Sisa waktu saat baterai awal)
             for(let i=0; i<CHARGING_CURVE.length-1; i++){ 
-                if(start<=CHARGING_CURVE[i][0] && start>=CHARGING_CURVE[i+1][0]) { 
-                    const r=(CHARGING_CURVE[i][0]-start)/(CHARGING_CURVE[i][0]-CHARGING_CURVE[i+1][0]); 
-                    timeStart=CHARGING_CURVE[i][1]+r*(CHARGING_CURVE[i+1][1]-CHARGING_CURVE[i][1]); 
+                if(start <= CHARGING_CURVE[i][0] && start >= CHARGING_CURVE[i+1][0]) { 
+                    const r = (CHARGING_CURVE[i][0] - start) / (CHARGING_CURVE[i][0] - CHARGING_CURVE[i+1][0]); 
+                    timeStart = CHARGING_CURVE[i][1] + r * (CHARGING_CURVE[i+1][1] - CHARGING_CURVE[i][1]); 
                     break; 
                 }
             }
+
+            // Cari menit target (Sisa waktu saat 100%)
             for(let i=0; i<CHARGING_CURVE.length-1; i++){ 
-                if(target<=CHARGING_CURVE[i][0] && target>=CHARGING_CURVE[i+1][0]) { 
-                    const r=(CHARGING_CURVE[i][0]-target)/(CHARGING_CURVE[i][0]-CHARGING_CURVE[i+1][0]); 
-                    timeTarget=CHARGING_CURVE[i][1]+r*(CHARGING_CURVE[i+1][1]-CHARGING_CURVE[i][1]); 
+                if(machineTarget <= CHARGING_CURVE[i][0] && machineTarget >= CHARGING_CURVE[i+1][0]) { 
+                    const r = (CHARGING_CURVE[i][0] - machineTarget) / (CHARGING_CURVE[i][0] - CHARGING_CURVE[i+1][0]); 
+                    timeTarget = CHARGING_CURVE[i][1] + r * (CHARGING_CURVE[i+1][1] - CHARGING_CURVE[i][1]); 
                     break; 
                 }
             }
-            return Math.max(1, Math.ceil(timeStart - timeTarget));
+            
+            // Total durasi menurut mesin
+            let totalDur = Math.max(1, Math.ceil(timeStart - timeTarget));
+            
+            // 2. Karena sistem kita cut-off di 98%, kurangi sedikit durasinya
+            if(target < 100) {
+                totalDur -= 3; // Kurangi 3 menit untuk kompensasi 98% ke 100%
+            }
+
+            return Math.max(1, totalDur);
         }
         
         function calculateTargetLimit(len) { if(len >= 11) return 85; if(len >= 6) return 90; if(len >= 3) return 95; return 100; }
