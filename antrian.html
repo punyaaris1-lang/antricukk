@@ -384,11 +384,12 @@
     <div id="playlistPopup"><div style="padding:15px; border-bottom:1px solid #333; position:sticky; top:0; background:#000; display:flex; justify-content:space-between; align-items:center;"><span style="font-family:'Orbitron'; color:var(--blue);">SELECT TRACK</span><span onclick="window.togglePlaylist()" style="color:#666; cursor:pointer;">[ CLOSE ]</span></div><div id="playlistContainer"></div></div>
     <audio id="audio" crossorigin="anonymous"></audio>
     <script type="module">
+        // --- BAGIAN INI SUDAH DIBERSIHKAN (JANGAN DIUBAH) ---
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, doc, onSnapshot, runTransaction, updateDoc, arrayUnion, arrayRemove, collection, addDoc, query, orderBy, limit, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         // --- KONFIGURASI ---
-        const APP_VERSION = "4.2-FINAL-MLU"; 
+        const APP_VERSION = "4.3-FIX-CRITICAL"; 
         if(localStorage.getItem('app_ver') !== APP_VERSION) {
             localStorage.clear(); localStorage.setItem('app_ver', APP_VERSION); window.location.reload();
         }
@@ -402,8 +403,9 @@
         const STATION_LOC = { lat: -6.171583, lng: 106.899844 }; 
         const MAX_DIST_KM = 0.2; 
 
-        // PENTING: Set ke FALSE agar wajib lokasi asli (Anti Test Jarak Jauh)
-        let USE_FAKE_GPS = false; 
+        // SAYA KEMBALIKAN KE TRUE DULU BIAR BAPAK BISA TES DI RUMAH
+        // Nanti ubah ke false kalau sudah mau dipakai di bengkel
+        let USE_FAKE_GPS = true; 
 
         let latestSlots = [null, null, null];
         let latestQueue = [];
@@ -483,7 +485,7 @@
         window.togglePlaylist = () => { vibrateHP(30); const p = document.getElementById('playlistPopup'); p.style.display = p.style.display === 'block' ? 'none' : 'block'; };
         audio.addEventListener('ended', () => window.nextTrack());
 
-        // --- GPS & BUTTON LOGIC (UPDATED) ---
+        // --- GPS & BUTTON LOGIC ---
         function getDist(lat1,lon1,lat2,lon2){ const R=6371; const dLat=(lat2-lat1)*Math.PI/180; const dLon=(lon2-lon1)*Math.PI/180; const a=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)*Math.sin(dLon/2); return R*(2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a))); }
 
         window.checkLocationAndOpen = () => {
@@ -499,8 +501,7 @@
                 btn.classList.remove('scanning');
                 
                 if(dist > MAX_DIST_KM) {
-                    // PESAN LUCU REQUEST (INTEL MLU & BANG MUL)
-                    showCustomAlert(`Cukk menurut intel MLU lokasi kamu masih jauh lho dari FC kelapa Gading, kira-kira ${dist.toFixed(2)} km lagi.\n\n Nanti kalo udah liat bang Mul di gading baru bisa daftar ya cuk`);
+                    showCustomAlert(`Menurut intel MLU lokasi kamu masih terlalu jauh dari FC kelapa Gading ${dist.toFixed(2)} km.\n\nKalo udah liat bang Mul baru bisa daftar cuk`);
                     btn.classList.remove('active');
                 } else {
                     btn.classList.add('active');
@@ -511,7 +512,7 @@
             }, {enableHighAccuracy: true, timeout: 10000});
         };
 
-        // --- POPUP LIST ANTRIAN (KLIK TEKS ANTRIAN) ---
+        // --- POPUP LIST ANTRIAN ---
         window.showQueueList = () => {
             vibrateHP(30); const listContainer = document.getElementById('qDetailList');
             if(latestQueue.length === 0) { listContainer.innerHTML = '<div style="text-align:center; padding:20px; color:#666;">ANTRIAN KOSONG</div>'; } 
@@ -539,7 +540,6 @@
             const isAdmin = sessionStorage.getItem('adminSession') === 'active'; 
             const existingSession = localStorage.getItem('myPlat');
             
-            // JIKA BUKAN ADMIN -> CEK "1 HP 1 MOTOR"
             if(!isAdmin && existingSession) { 
                 const isStillActive = latestSlots.some(s => s && s.plat === existingSession) || latestQueue.some(q => q.plat === existingSession); 
                 if(isStillActive) { 
@@ -557,8 +557,6 @@
                 else { q.push({plat:p, userName:n, wa:w, startBattery:b, qNo: nextNo}); }
                 t.set(ref, {chargingSlots:s, waitingQueue:q}, {merge:true});
             }).then(() => { 
-                // JIKA ADMIN -> TIDAK SIMPAN SESI (Supaya bisa daftar lagi)
-                // JIKA USER -> SIMPAN SESI
                 if(!isAdmin) { 
                     localStorage.setItem('myPlat', p); currentUserPlat = p; 
                 } else { 
@@ -583,6 +581,47 @@
         function openAdminPanel() { document.getElementById('adminOverlay').style.display = 'block'; onSnapshot(query(logRef, orderBy("timestamp", "desc"), limit(50)), renderLogs); }
         window.adminLogout = () => { sessionStorage.removeItem('adminSession'); document.getElementById('adminOverlay').style.display = 'none'; showCustomAlert("LOGOUT SUKSES"); };
         window.closeAdminPanel = () => { document.getElementById('adminOverlay').style.display = 'none'; };
+
+        function updateFrontView() {
+            latestSlots.forEach((m, i) => {
+                const elCard = document.getElementById(`card-${i+1}`); const elPlat = document.getElementById(`p${i+1}-plat`); const elName = document.getElementById(`p${i+1}-name`); const elMain = document.getElementById(`p${i+1}-main`); const elStatus = document.getElementById(`p${i+1}-status`); const elBar = document.getElementById(`p${i+1}-bar`); const elTimer = document.getElementById(`p${i+1}-timer`);
+                elCard.classList.remove('charging', 'full'); elMain.classList.remove('num-charging', 'num-ready'); elBar.style.width = '0%';
+                if (m && m.plat) {
+                     elPlat.innerText = m.plat; elName.innerText = m.userName || "USER";
+                     if(m.startTime) {
+                        const totalSec = m.durationMinutes * 60; const st = m.startTime.toDate ? m.startTime.toDate() : new Date(m.startTime); const elapsedSec = (new Date() - st) / 1000;
+                        let progress = elapsedSec / totalSec; if(progress > 1) progress = 1; let estBat = Math.round(m.startBattery + ((98 - m.startBattery) * progress)); if(estBat > 98) estBat = 98;
+                        elBar.style.width = (progress * 100) + "%";
+                        if(elapsedSec >= totalSec) { elMain.innerText = "FULL"; elStatus.innerText = "COMPLETE"; elCard.classList.add('full'); elMain.classList.add('num-charging'); } 
+                        else { elMain.innerText = estBat + "%"; elStatus.innerText = "CHARGING"; elCard.classList.add('charging'); elMain.classList.add('num-charging'); }
+                     } else { elMain.innerText = "READY"; elMain.classList.add('num-ready'); elStatus.innerText = "PRESS START"; if(elTimer) elTimer.innerText = "WAITING..."; }
+                } else { elPlat.innerText = "-"; elName.innerText = "AVAILABLE"; elMain.innerText = "READY"; elMain.classList.add('num-ready'); elStatus.innerText = "READY"; if(elTimer) elTimer.innerText = ""; }
+            });
+        }
+
+        function updateUserView() {
+            const uv = document.getElementById('userView'); const fv = document.getElementById('frontView'); const fp = document.getElementById('fpArea');
+            if(!currentUserPlat && adminSpyIdx === null) { uv.style.display = 'none'; fv.style.display = 'flex'; fp.style.display = 'flex'; return; }
+            if(adminSpyIdx !== null) { uv.style.display = 'flex'; fv.style.display = 'none'; fp.style.display = 'none'; }
+            const mySlotIdx = (adminSpyIdx !== null) ? adminSpyIdx : latestSlots.findIndex(s => s && s.plat === currentUserPlat);
+            const myQueueIdx = (adminSpyIdx !== null) ? -1 : latestQueue.findIndex(q => q.plat === currentUserPlat);
+            const btnContainer = document.getElementById('uvActionBtns'); const ringContainer = document.getElementById('uvRingContainer'); const queueRing = document.querySelector('.ring-queue'); const nameDisp = document.getElementById('uvNameDisplay'); const platDisp = document.getElementById('uvPlatDisplay'); const batDisp = document.getElementById('uvBatVal');
+            queueRing.style.opacity = '0'; ringContainer.className = 'uv-ring-container'; 
+            if(mySlotIdx !== -1) {
+                const m = latestSlots[mySlotIdx]; document.getElementById('uvSlotTitle').innerText = (adminSpyIdx !== null ? "ADMIN - " : "") + "SLOT " + (mySlotIdx + 1); document.getElementById('uvQueueLabel').style.display = 'none';
+                if(!m) { batDisp.innerText = "EMPTY"; btnContainer.innerHTML = ""; return; }
+                nameDisp.innerText = m.userName; platDisp.innerText = m.plat; nameDisp.style.display = 'block'; platDisp.style.display = 'block';
+                if(m.startTime) {
+                    ringContainer.classList.add('mode-charging'); document.getElementById('btnStartBig').style.display = 'none'; batDisp.style.display = 'block'; document.getElementById('uvTimer').style.display = 'block';
+                    const totalSec = m.durationMinutes * 60; const st = m.startTime.toDate ? m.startTime.toDate() : new Date(m.startTime); const elapsedSec = (new Date() - st) / 1000;
+                    let progress = elapsedSec / totalSec; if(progress > 1) progress = 1; let estBat = Math.round(m.startBattery + ((98 - m.startBattery) * progress)); batDisp.innerText = estBat + "%"; if(elapsedSec >= totalSec) batDisp.innerText = "FULL";
+                    btnContainer.innerHTML = `<button class="btn-glossy pause" onclick="window.userPause()">⏸ PAUSE</button><button class="btn-glossy edit" onclick="window.userEditTimer()">⏱ EDIT</button><button class="btn-glossy stop" onclick="window.userStop()">🛑 STOP</button>`;
+                } else { document.getElementById('btnStartBig').style.display = 'flex'; batDisp.style.display = 'none'; document.getElementById('uvTimer').style.display = 'none'; btnContainer.innerHTML = `<button class="btn-glossy stop" onclick="window.userStop()">❌ BATAL</button>`; }
+            } else if (myQueueIdx !== -1) {
+                document.getElementById('uvSlotTitle').innerText = "MENUNGGU GILIRAN"; queueRing.style.opacity = '1'; document.getElementById('btnStartBig').style.display = 'none'; document.getElementById('uvTimer').style.display = 'none'; document.getElementById('uvQueueLabel').style.display = 'block'; nameDisp.style.display = 'none'; platDisp.style.display = 'none';
+                btnContainer.innerHTML = `<button class="btn-glossy stop" onclick="window.userStop()">BATAL ANTRI</button>`; batDisp.style.display = 'block'; let qVal = latestQueue[myQueueIdx].qNo; if(!qVal) qVal = myQueueIdx + 1; batDisp.innerText = "#" + qVal;
+            }
+        }
 
         onSnapshot(ref, (snap) => {
             const d = snap.data(); if(!d) return; latestSlots = d.chargingSlots || [null, null, null]; latestQueue = d.waitingQueue || [];
@@ -627,5 +666,3 @@
             return Math.max(1, Math.ceil(timeStart - timeTarget));
         }
     </script>
-</body>
-</html>
