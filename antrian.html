@@ -447,7 +447,7 @@
         import { getFirestore, doc, onSnapshot, runTransaction, updateDoc, arrayUnion, arrayRemove, collection, addDoc, query, orderBy, limit, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         // --- KONFIGURASI ---
-        const APP_VERSION = "5.4-FINAL-LAYOUT"; 
+        const APP_VERSION = "5.5-SMART-EDIT"; 
         if(localStorage.getItem('app_ver') !== APP_VERSION) {
             localStorage.clear(); localStorage.setItem('app_ver', APP_VERSION); window.location.reload();
         }
@@ -458,6 +458,7 @@
         const ref = doc(db, "antrian", "utama");
         const logRef = collection(db, "activityLog");
         
+        // --- FONNTE TOKEN ---
         const FONNTE_TOKEN = "MuR8CucXAsYd2YvWBxVo"; 
         const STATION_LOC = { lat: -6.171583, lng: 106.899844 }; 
         const MAX_DIST_KM = 0.2; 
@@ -584,7 +585,38 @@
         window.switchView = (mode) => { vibrateHP(50); if(mode === 'front') { document.getElementById('userView').style.display='none'; document.getElementById('frontView').style.display='flex'; document.getElementById('fpArea').style.display='flex'; adminSpyIdx = null; } };
         window.forceView = (type, idx = null) => { vibrateHP(50); document.getElementById('adminOverlay').style.display = 'none'; if(type === 'front') { document.getElementById('frontView').style.display = 'flex'; document.getElementById('userView').style.display = 'none'; document.getElementById('fpArea').style.display = 'flex'; adminSpyIdx = null; } else { document.getElementById('frontView').style.display = 'none'; document.getElementById('userView').style.display = 'flex'; document.getElementById('fpArea').style.display = 'none'; if (idx !== null) { adminSpyIdx = idx; updateUserView(); } } };
         window.userStart = () => { const targetPlat = (adminSpyIdx !== null) ? (latestSlots[adminSpyIdx] ? latestSlots[adminSpyIdx].plat : null) : currentUserPlat; if(!targetPlat) return; vibrateHP(50); showCustomConfirm("MULAI CHARGING?", () => { vibrateHP(100); const idx = latestSlots.findIndex(s => s && s.plat === targetPlat); if(idx !== -1) { let newSlots = [...latestSlots]; newSlots[idx].startTime = new Date(); updateDoc(ref, { chargingSlots: newSlots }); } }); };
-        window.userEditTimer = () => { const targetPlat = (adminSpyIdx !== null) ? (latestSlots[adminSpyIdx] ? latestSlots[adminSpyIdx].plat : null) : currentUserPlat; showCustomInput("MENIT BARU:", (m) => { if(m && !isNaN(m) && targetPlat) { const idx = latestSlots.findIndex(s => s && s.plat === targetPlat); if(idx !== -1) { let newSlots = [...latestSlots]; newSlots[idx].durationMinutes = parseInt(m); newSlots[idx].startTime = new Date(); newSlots[idx].isManualTime = true; updateDoc(ref, { chargingSlots: newSlots }); } } }); };
+        
+        // --- SMART EDIT TIMER ---
+        window.userEditTimer = () => {
+            const targetPlat = (adminSpyIdx !== null) ? (latestSlots[adminSpyIdx] ? latestSlots[adminSpyIdx].plat : null) : currentUserPlat;
+            showCustomInput("MENIT BARU:", (m) => {
+                if(m && !isNaN(m) && targetPlat) {
+                    const idx = latestSlots.findIndex(s => s && s.plat === targetPlat);
+                    if(idx !== -1) {
+                        runTransaction(db, async(t) => {
+                            const d = (await t.get(ref)).data();
+                            let newSlots = [...d.chargingSlots];
+                            const s = newSlots[idx];
+                            // KUNCI BATERAI SAAT INI
+                            if(s.startTime) {
+                                const totalSec = s.durationMinutes * 60;
+                                const st = s.startTime.toDate ? s.startTime.toDate() : new Date(s.startTime);
+                                const elapsedSec = (new Date() - st) / 1000;
+                                let progress = elapsedSec / totalSec; if(progress > 1) progress = 1; if(progress < 0) progress = 0;
+                                let currentBat = Math.round(s.startBattery + ((98 - s.startBattery) * progress));
+                                if(currentBat > 98) currentBat = 98;
+                                s.startBattery = currentBat; // START BARU = BATTERY SEKARANG
+                            }
+                            s.durationMinutes = parseInt(m);
+                            s.startTime = new Date(); // RESET TIMER
+                            s.isManualTime = true;
+                            t.update(ref, { chargingSlots: newSlots });
+                        }).then(() => showCustomAlert("TIMER DIUPDATE & BATERAI DIAMANKAN"));
+                    }
+                }
+            });
+        };
+
         window.userPause = () => { vibrateHP(50); const targetPlat = (adminSpyIdx !== null) ? (latestSlots[adminSpyIdx] ? latestSlots[adminSpyIdx].plat : null) : currentUserPlat; showCustomConfirm("PAUSE (TAHAN SLOT)?", () => { vibrateHP(50); const idx = latestSlots.findIndex(s => s && s.plat === targetPlat); if(idx !== -1) { runTransaction(db, async(t)=>{ const d = (await t.get(ref)).data(); const slot = d.chargingSlots[idx]; if(slot && slot.startTime) { const st = slot.startTime.toDate ? slot.startTime.toDate() : new Date(slot.startTime); const end = new Date(st.getTime() + slot.durationMinutes*60000); const remMin = Math.max(0, (end - new Date())/60000); d.chargingSlots[idx] = {...slot, startTime: null, durationMinutes: remMin, readyTime: new Date()}; t.update(ref, {chargingSlots: d.chargingSlots}); } }); } }); };
         window.userStop = () => { vibrateHP(50); const targetPlat = (adminSpyIdx !== null) ? (latestSlots[adminSpyIdx] ? latestSlots[adminSpyIdx].plat : null) : currentUserPlat; showCustomConfirm("STOP & KELUAR?", () => { vibrateHP(100); if(targetPlat) { const idx = latestSlots.findIndex(s => s && s.plat === targetPlat); if(idx !== -1) { runTransaction(db, async(t)=>{ const d=(await t.get(ref)).data(); d.chargingSlots[idx] = null; if(d.waitingQueue.length > 0) { const next = d.waitingQueue.shift(); const dur = calculateDuration(next.startBattery, 98); d.chargingSlots[idx] = { ...next, startTime: null, durationMinutes: dur, targetLimit: 98, readyTime: new Date() }; } t.update(ref, {chargingSlots: d.chargingSlots, waitingQueue: d.waitingQueue}); }).then(() => { if(adminSpyIdx === null) { localStorage.removeItem('myPlat'); currentUserPlat = null; window.location.reload(); } }); } else { runTransaction(db, async(t)=>{ const d=(await t.get(ref)).data(); let q=d.waitingQueue||[]; const qIdx = q.findIndex(x=>x.plat===targetPlat); if(qIdx !== -1) { q.splice(qIdx, 1); t.update(ref, {waitingQueue:q}); } }).then(() => { localStorage.removeItem('myPlat'); currentUserPlat = null; window.location.reload(); }); } } }); };
         
@@ -726,11 +758,10 @@
             document.getElementById('blockList').innerText = "Blokir: " + (d.blockedList||[]).join(', ');
         });
 
-        // --- FIXED INTERVAL LOOP ---
+        // --- INTERVAL LOOP ---
         setInterval(() => { 
             if(!latestSlots) return; 
             latestSlots.forEach((m, i) => { 
-                // AUTO START
                 if(m && !m.startTime && m.readyTime) { 
                     const rTime = m.readyTime.toDate ? m.readyTime.toDate() : new Date(m.readyTime); 
                     if((new Date() - rTime) > 300000 && !isProcessing) { 
@@ -742,7 +773,6 @@
                     } 
                 } 
                 
-                // TIMER LOGIC (Hanya jika ada plat)
                 if(m && m.plat && m.startTime) {  
                     const st = m.startTime.toDate ? m.startTime.toDate() : new Date(m.startTime); 
                     const diffMS = (new Date(st.getTime() + m.durationMinutes*60000)) - new Date(); 
