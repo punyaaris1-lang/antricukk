@@ -45,7 +45,16 @@
         .oc-big-num { font-family: 'Teko', sans-serif; font-weight: 500; color: #fff; line-height: 0.8; transition: 0.3s; }
         .num-charging { font-size: clamp(35px, 5vh, 60px); text-shadow: 0 0 20px var(--blue); } /* Timer Besar */
         .num-ready { font-size: clamp(24px, 4vh, 35px); letter-spacing: 2px; color: #fff; } 
-        .oc-bat-small { font-family: 'Orbitron'; font-size: 14px; color: var(--blue); margin-top: -5px; font-weight: bold; } /* Batre Kecil */
+        
+        /* POSISI BATRE DI FOOTER */
+        .oc-bat-small { 
+            font-family: 'Orbitron'; 
+            font-size: 16px; 
+            color: var(--blue); 
+            margin-top: 3px; /* Jarak dari tulisan Status */
+            font-weight: bold; 
+            text-shadow: 0 0 5px var(--blue);
+        }
         
         .oc-status { font-family: 'JetBrains Mono'; font-size: 9px; font-weight: 700; padding: 4px 8px; border-radius: 4px; display: inline-block; background: #222; color: #fff; margin-top: 5px; border: 1px solid #333; }
         .oc-progress-bg { position: absolute; bottom: 0; left: 0; width: 100%; height: 6px; background: #222; z-index: 5; }
@@ -207,9 +216,10 @@
                 </div>
                 <div class="oc-body">
                     <div class="oc-big-num num-ready" id="p1-main">READY</div>
-                    <div class="oc-bat-small" id="p1-bat-small"></div> 
                 </div>
-                <div class="oc-footer"><div class="oc-status" id="p1-status">READY</div></div>
+                <div class="oc-footer">
+                    <div class="oc-status" id="p1-status">READY</div>
+                    <div class="oc-bat-small" id="p1-bat-small"></div> </div>
                 <div class="oc-progress-bg"><div class="oc-progress-fill" id="p1-bar"></div></div>
             </div>
             <div class="slot-label">SLOT 1</div>
@@ -223,9 +233,11 @@
                 </div>
                 <div class="oc-body">
                     <div class="oc-big-num num-ready" id="p2-main">READY</div>
+                </div>
+                <div class="oc-footer">
+                    <div class="oc-status" id="p2-status">READY</div>
                     <div class="oc-bat-small" id="p2-bat-small"></div>
                 </div>
-                <div class="oc-footer"><div class="oc-status" id="p2-status">READY</div></div>
                 <div class="oc-progress-bg"><div class="oc-progress-fill" id="p2-bar"></div></div>
             </div>
             <div class="slot-label">SLOT 2</div>
@@ -239,9 +251,11 @@
                 </div>
                 <div class="oc-body">
                     <div class="oc-big-num num-ready" id="p3-main">READY</div>
+                </div>
+                <div class="oc-footer">
+                    <div class="oc-status" id="p3-status">READY</div>
                     <div class="oc-bat-small" id="p3-bat-small"></div>
                 </div>
-                <div class="oc-footer"><div class="oc-status" id="p3-status">READY</div></div>
                 <div class="oc-progress-bg"><div class="oc-progress-fill" id="p3-bar"></div></div>
             </div>
             <div class="slot-label">SLOT 3</div>
@@ -433,7 +447,7 @@
         import { getFirestore, doc, onSnapshot, runTransaction, updateDoc, arrayUnion, arrayRemove, collection, addDoc, query, orderBy, limit, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         // --- KONFIGURASI ---
-        const APP_VERSION = "5.3-STABLE-FIX"; 
+        const APP_VERSION = "5.4-FINAL-LAYOUT"; 
         if(localStorage.getItem('app_ver') !== APP_VERSION) {
             localStorage.clear(); localStorage.setItem('app_ver', APP_VERSION); window.location.reload();
         }
@@ -444,7 +458,6 @@
         const ref = doc(db, "antrian", "utama");
         const logRef = collection(db, "activityLog");
         
-        // --- FONNTE TOKEN ---
         const FONNTE_TOKEN = "MuR8CucXAsYd2YvWBxVo"; 
         const STATION_LOC = { lat: -6.171583, lng: 106.899844 }; 
         const MAX_DIST_KM = 0.2; 
@@ -475,7 +488,6 @@
         }
 
         // --- MUSIC PLAYER ---
-        const baseURL = ""; 
         let playlist = [];
         const defaultList = ["Ada Apa Denganmu.mp3", "anji-menunggu-kamu.mp3"]; 
         function parseTrack(item) {
@@ -508,7 +520,7 @@
         window.togglePlaylist = () => { vibrateHP(30); const p = document.getElementById('playlistPopup'); p.style.display = p.style.display === 'block' ? 'none' : 'block'; };
         audio.addEventListener('ended', () => window.nextTrack());
 
-        // --- RECOVERY & GPS ---
+        // --- CORE LOGIC ---
         window.cardClick = (idx) => {
             vibrateHP(50); const slot = latestSlots[idx];
             if(!slot) { showCustomAlert("SLOT KOSONG. SILAKAN DAFTAR."); return; }
@@ -538,7 +550,6 @@
 
         window.showQueueList = () => { vibrateHP(30); const listContainer = document.getElementById('qDetailList'); if(latestQueue.length === 0) { listContainer.innerHTML = '<div style="text-align:center; padding:20px; color:#666;">ANTRIAN KOSONG</div>'; } else { let html = ''; latestQueue.forEach((q, i) => { let qNum = q.qNo ? `#${q.qNo}` : `#${i+1}`; let tkt = q.ticket || '-'; html += `<div style="background:rgba(255,255,255,0.05); padding:10px; margin-bottom:5px; border-radius:5px; border-left:3px solid var(--accent); display:flex; justify-content:space-between; align-items:center;"><div><div style="font-family:'Teko'; font-size:18px; color:#fff;">${q.plat} <span style="font-size:10px; color:#aaa; margin-left:5px;">(${tkt})</span></div><div style="font-size:10px; color:#aaa;">${q.userName}</div></div><div style="font-family:'Orbitron'; font-weight:bold; color:var(--accent); font-size:14px;">${qNum}</div></div>`; }); listContainer.innerHTML = html; } document.getElementById('queueDetailModal').style.display = 'flex'; }
 
-        // --- SUBMIT REGISTRASI ---
         window.submitReg = () => {
             vibrateHP(50); const p = document.getElementById('regPlat').value.toUpperCase(); const n = document.getElementById('regName').value.toUpperCase(); const w = document.getElementById('regWA').value; const b = parseInt(document.getElementById('regBat').value);
             if(!p || !n || !w || isNaN(b)) { showCustomAlert("LENGKAPI DATA"); return; }
