@@ -227,7 +227,6 @@
         </div>
         <div class="uv-back-link" onclick="switchView('front')">[ KEMBALI KE DEPAN ]</div>
     </div>
-
     <div id="adminOverlay">
         <div class="adm-header-box">
             <h1 class="adm-h1">ADMIN CONSOLE</h1>
@@ -240,37 +239,87 @@
                 <button onclick="closeAdminPanel()" class="adm-btn" style="width:auto; padding:8px 10px; font-size:10px; background:#444; color:#fff;">TUTUP</button>
             </div>
         </div>
+        
         <div class="adm-card" style="margin-bottom:20px;">
-            <h2 class="adm-h2" style="color:var(--blue);">QUICK DASHBOARD (CEK TIKET DISINI)</h2>
+            <h2 class="adm-h2" style="color:var(--blue);">QUICK DASHBOARD (MONITORING)</h2>
             <div id="adminQuickDash"><div style="color:#666; font-size:12px;">Loading slots...</div></div>
         </div>
+
         <div class="adm-grid">
             <div>
                 <div class="adm-card">
-                    <h2 class="adm-h2">KONTROL LANJUTAN</h2>
-                    <select id="manSlot" class="adm-select"></select>
-                    <div class="adm-btn-group"><input id="manPlat" class="adm-input" placeholder="Plat" style="flex:2;"><input id="manBat" class="adm-input" type="number" placeholder="%" style="flex:1; text-align:center;"></div>
+                    <h2 class="adm-h2">MANAJEMEN SLOT</h2>
+                    <label style="font-size:10px; color:#aaa;">ISI SLOT MANUAL</label>
+                    <div class="adm-btn-group" style="margin-top:5px;">
+                        <select id="manSlot" class="adm-select" style="flex:1;"></select>
+                        <input id="manPlat" class="adm-input" placeholder="Plat" style="flex:2;">
+                        <input id="manBat" class="adm-input" type="number" placeholder="%" style="flex:1; text-align:center;">
+                    </div>
                     <button onclick="manualAssign()" class="adm-btn">ISI SLOT (PAKSA)</button>
+                    
                     <hr style="border:0; border-top:1px dashed #333; margin:15px 0;">
-                    <div class="adm-btn-group"><select id="sToQSelect" class="adm-select" style="flex:2"></select><button onclick="slotToQueue()" class="adm-btn blue">KEMBALIKAN KE ANTRIAN</button></div>
+                    
+                    <label style="font-size:10px; color:#aaa;">TUKAR POSISI SLOT (SWAP)</label>
+                    <div class="adm-btn-group" style="margin-top:5px;">
+                        <select id="swapA" class="adm-select"><option value="0">S1</option><option value="1">S2</option><option value="2">S3</option></select>
+                        <span style="display:flex; align-items:center; padding:0 5px;">⇄</span>
+                        <select id="swapB" class="adm-select"><option value="1">S2</option><option value="0">S1</option><option value="2">S3</option></select>
+                        <button onclick="swapSlots()" class="adm-btn blue" style="width:auto;">TUKAR</button>
+                    </div>
+
+                    <hr style="border:0; border-top:1px dashed #333; margin:15px 0;">
+                    
+                    <div class="adm-btn-group">
+                        <select id="sToQSelect" class="adm-select" style="flex:2"></select>
+                        <button onclick="slotToQueue()" class="adm-btn blue">KEMBALIKAN KE ANTRIAN</button>
+                    </div>
                 </div>
+
                 <div class="adm-card" style="margin-top:20px;">
-                    <h2 class="adm-h2">ANTRIAN MANUAL</h2>
-                    <input id="qPlat" class="adm-input" placeholder="Plat">
-                    <div class="adm-btn-group"><input id="qName" class="adm-input" placeholder="Nama" style="flex:2;"><input id="qBat" class="adm-input" type="number" placeholder="%" style="flex:1; text-align:center;"></div>
+                    <h2 class="adm-h2">MANAJEMEN ANTRIAN</h2>
+                    <label style="font-size:10px; color:#aaa;">TAMBAH ANTRIAN MANUAL</label>
+                    <input id="qPlat" class="adm-input" placeholder="Plat Nomor" style="margin-top:5px;">
+                    <div class="adm-btn-group">
+                        <input id="qName" class="adm-input" placeholder="Nama" style="flex:2;">
+                        <input id="qBat" class="adm-input" type="number" placeholder="%" style="flex:1; text-align:center;">
+                    </div>
                     <button onclick="regQueue()" class="adm-btn">DAFTAR ANTRIAN</button>
+                    
                     <hr style="border:0; border-top:1px dashed #333; margin:15px 0;">
-                    <div class="adm-btn-group"><select id="qIdx" class="adm-select" style="flex:2"></select><select id="qTarget" class="adm-select" style="flex:1"></select></div>
-                    <button onclick="moveQueue()" class="adm-btn">PINDAHKAN</button>
+                    
+                    <label style="font-size:10px; color:#aaa;">PINDAH POSISI ANTRIAN (REORDER)</label>
+                    <div class="adm-btn-group" style="margin-top:5px;">
+                        <select id="reorderSrc" class="adm-select" style="flex:2"></select>
+                        <span style="display:flex; align-items:center; padding:0 5px;">➔</span>
+                        <input id="reorderDest" class="adm-input" type="number" placeholder="No. Urut Baru" style="flex:1; text-align:center;">
+                        <button onclick="reorderQueue()" class="adm-btn blue" style="width:auto;">PINDAH</button>
+                    </div>
+
+                    <hr style="border:0; border-top:1px dashed #333; margin:15px 0;">
+
+                    <label style="font-size:10px; color:#aaa;">MASUKKAN ANTRIAN KE SLOT</label>
+                    <div class="adm-btn-group" style="margin-top:5px;">
+                        <select id="qIdx" class="adm-select" style="flex:2"></select>
+                        <select id="qTarget" class="adm-select" style="flex:1"></select>
+                    </div>
+                    <button onclick="moveQueue()" class="adm-btn">MASUKKAN KE SLOT</button>
                 </div>
+
                 <div class="adm-card" style="margin-top:20px;">
-                    <h2 class="adm-h2">SYSTEM</h2>
-                    <div class="adm-btn-group"><button onclick="doBlock()" class="adm-btn red">BLOKIR</button><input id="blockPlat" class="adm-input" placeholder="Plat" style="flex:2;"></div>
+                    <h2 class="adm-h2">SYSTEM CONTROL</h2>
+                    <div class="adm-btn-group">
+                        <button onclick="doBlock()" class="adm-btn red">BLOKIR PLAT</button>
+                        <input id="blockPlat" class="adm-input" placeholder="Plat Nomor" style="flex:2;">
+                    </div>
                     <div id="blockList" style="font-size:10px; color:var(--red); margin-top:5px;"></div>
                     <hr style="border:0; border-top:1px dashed #333; margin:15px 0;">
-                    <div class="adm-btn-group"><button onclick="stopAll()" class="adm-btn red">STOP ALL</button><button onclick="resetDB()" class="adm-btn red">RESET</button></div>
+                    <div class="adm-btn-group">
+                        <button onclick="stopAll()" class="adm-btn red">STOP SEMUA SLOT</button>
+                        <button onclick="resetDB()" class="adm-btn red">RESET DATABASE</button>
+                    </div>
                 </div>
             </div>
+
             <div class="adm-card">
                 <h2 class="adm-h2" style="color:var(--accent);">LOG AKTIVITAS</h2>
                 <div id="logContainer" class="log-container"><div style="text-align:center; color:#666; padding-top:50px;">Menunggu Data...</div></div>
@@ -278,7 +327,14 @@
         </div>
     </div>
 
-    <div id="queueDetailModal" class="modal"><div class="modal-box" style="border-color:var(--orange); max-width:400px;"><h3 style="color:var(--orange); margin-top:0; font-family:'Orbitron'; letter-spacing:2px;">DAFTAR ANTRIAN</h3><div id="qDetailList" style="max-height:300px; overflow-y:auto; margin:15px 0; color:#fff; text-align:left; padding:10px;"></div><button onclick="document.getElementById('queueDetailModal').style.display='none'" class="btn-glossy" style="width:100%;">TUTUP</button></div></div>
+    <div id="queueDetailModal" class="modal">
+        <div class="modal-box" style="border-color:var(--orange); max-width:400px;">
+            <h3 style="color:var(--orange); margin-top:0; font-family:'Orbitron'; letter-spacing:2px;">DAFTAR ANTRIAN</h3>
+            <div id="qDetailList" style="max-height:300px; overflow-y:auto; margin:15px 0; color:#fff; text-align:left; padding:10px;"></div>
+            <button onclick="document.getElementById('queueDetailModal').style.display='none'" class="btn-glossy" style="width:100%;">TUTUP</button>
+        </div>
+    </div>
+    
     <div id="regModal" class="modal">
         <div class="modal-box">
             <h2 style="font-family:'Orbitron'; color:var(--blue); margin-top:0; margin-bottom:30px; letter-spacing:2px; text-shadow:0 0 10px var(--blue);">REGISTRASI</h2>
@@ -290,6 +346,7 @@
             <button onclick="document.getElementById('regModal').style.display='none'" style="background:transparent; border:none; color:#666; cursor:pointer; margin-top:15px; font-size:12px;">[ BATAL ]</button>
         </div>
     </div>
+    
     <div id="inputModal" class="modal"><div class="modal-box" style="border-color:var(--accent);"><h3 id="inputTitle" style="color:var(--accent); margin-top:0;">INPUT</h3><input id="inputVal" class="reg-input" style="margin-bottom:20px;"><div style="display:flex; gap:10px;"><button id="btnInputOk" class="btn-glossy edit">OK</button><button onclick="document.getElementById('inputModal').style.display='none'" class="btn-glossy" style="background:transparent;">BATAL</button></div></div></div>
     <div id="alertModal" class="modal"><div class="modal-box" style="border-color:var(--blue);"><h3 style="color:#fff; margin-top:0; font-size:14px;" id="alertMsg">MESSAGE</h3><button onclick="document.getElementById('alertModal').style.display='none'" class="btn-glossy" style="width:100%; margin-top:20px; background:var(--blue); color:#000;">OK</button></div></div>
     <div id="confirmModal" class="modal"><div class="modal-box" style="border-color:var(--red);"><h3 style="color:#fff; margin-top:0; font-size:14px;" id="confirmMsg">ARE YOU SURE?</h3><div style="display:flex; gap:10px; margin-top:20px;"><button id="btnConfirmYes" class="btn-glossy stop">YES</button><button onclick="document.getElementById('confirmModal').style.display='none'" class="btn-glossy" style="background:transparent;">NO</button></div></div></div>
@@ -300,7 +357,7 @@
         import { getFirestore, doc, onSnapshot, runTransaction, updateDoc, arrayUnion, arrayRemove, collection, addDoc, query, orderBy, limit, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         // --- KONFIGURASI ---
-        const APP_VERSION = "4.8-TICKET-LOCK"; 
+        const APP_VERSION = "4.9-ADMIN-SWAP"; 
         if(localStorage.getItem('app_ver') !== APP_VERSION) {
             localStorage.clear(); localStorage.setItem('app_ver', APP_VERSION); window.location.reload();
         }
@@ -334,7 +391,7 @@
 
         // --- GENERATE TIKET KODE (3 DIGIT) ---
         function generateTicket() {
-            const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // Tanpa I, O, 1, 0 biar ga bingung
+            const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; 
             let result = '#';
             for (let i = 0; i < 3; i++) {
                 result += chars.charAt(Math.floor(Math.random() * chars.length));
@@ -403,7 +460,7 @@
 
         window.showQueueList = () => { vibrateHP(30); const listContainer = document.getElementById('qDetailList'); if(latestQueue.length === 0) { listContainer.innerHTML = '<div style="text-align:center; padding:20px; color:#666;">ANTRIAN KOSONG</div>'; } else { let html = ''; latestQueue.forEach((q, i) => { let qNum = q.qNo ? `#${q.qNo}` : `#${i+1}`; let tkt = q.ticket || '-'; html += `<div style="background:rgba(255,255,255,0.05); padding:10px; margin-bottom:5px; border-radius:5px; border-left:3px solid var(--accent); display:flex; justify-content:space-between; align-items:center;"><div><div style="font-family:'Teko'; font-size:18px; color:#fff;">${q.plat} <span style="font-size:10px; color:#aaa; margin-left:5px;">(${tkt})</span></div><div style="font-size:10px; color:#aaa;">${q.userName}</div></div><div style="font-family:'Orbitron'; font-weight:bold; color:var(--accent); font-size:14px;">${qNum}</div></div>`; }); listContainer.innerHTML = html; } document.getElementById('queueDetailModal').style.display = 'flex'; }
 
-        // --- SUBMIT REGISTRASI (DEVICE LOCK & TICKET) ---
+        // --- SUBMIT REGISTRASI ---
         window.submitReg = () => {
             vibrateHP(50); const p = document.getElementById('regPlat').value.toUpperCase(); const n = document.getElementById('regName').value.toUpperCase(); const w = document.getElementById('regWA').value; const b = parseInt(document.getElementById('regBat').value);
             if(!p || !n || !w || isNaN(b)) { showCustomAlert("LENGKAPI DATA"); return; }
@@ -413,7 +470,6 @@
             const existingSession = localStorage.getItem('myPlat');
             
             if(!isAdmin && existingSession) { 
-                // Cek jika sesi lama masih aktif di slot atau antrian
                 const isStillActive = latestSlots.some(s => s && s.plat === existingSession) || latestQueue.some(q => q.plat === existingSession); 
                 if(isStillActive) { 
                     showCustomAlert("1 HP = 1 MOTOR\nSelesaikan antrian lama (" + existingSession + ") dulu!"); return; 
@@ -513,9 +569,33 @@
             const d = snap.data(); if(!d) return; latestSlots = d.chargingSlots || [null, null, null]; latestQueue = d.waitingQueue || [];
             document.getElementById('qCountDisplay').innerText = "ANTRIAN: " + latestQueue.length;
             const dashBtn = document.getElementById('btnMyDash'); const qCountText = document.getElementById('qCountDisplay');
-            if(currentUserPlat) { const inSlot = latestSlots.some(s => s && s.plat === currentUserPlat); const inQueue = latestQueue.some(q => q.plat === currentUserPlat); if(inSlot || inQueue) { dashBtn.style.display = 'block'; qCountText.style.display = 'none'; } else { dashBtn.style.display = 'none'; qCountText.style.display = 'block'; localStorage.removeItem('myPlat'); currentUserPlat = null; } } else { dashBtn.style.display = 'none'; qCountText.style.display = 'block'; }
+            
+            // LOGIC FIXED: TAMPILKAN KEDUANYA (MY DASHBOARD & ANTRIAN) SAAT LOGIN
+            if(currentUserPlat) { 
+                const inSlot = latestSlots.some(s => s && s.plat === currentUserPlat); 
+                const inQueue = latestQueue.some(q => q.plat === currentUserPlat); 
+                if(inSlot || inQueue) { 
+                    dashBtn.style.display = 'block'; 
+                    // qCountText.style.display = 'none';  <-- HAPUS LINE INI AGAR ANTRIAN TETAP MUNCUL
+                } else { 
+                    dashBtn.style.display = 'none'; 
+                    localStorage.removeItem('myPlat'); currentUserPlat = null; 
+                } 
+            } else { 
+                dashBtn.style.display = 'none'; 
+            }
+            // PASTIKAN COUNTER ANTRIAN SELALU MUNCUL
+            qCountText.style.display = 'block'; 
+
             updateFrontView(); updateUserView(); renderAdminQuickDash();
-            const sOpt = latestSlots.map((_,i)=>`<option value="${i}">Slot ${i+1}</option>`).join(''); document.getElementById('manSlot').innerHTML = sOpt; document.getElementById('qTarget').innerHTML = sOpt; document.getElementById('sToQSelect').innerHTML = sOpt; const qOpt = latestQueue.length ? latestQueue.map((x,i)=>`<option value="${i}">#${x.qNo||'?'} ${x.plat}</option>`).join('') : '<option value="-1">Kosong</option>'; document.getElementById('qIdx').innerHTML = qOpt; document.getElementById('blockList').innerText = "Blokir: " + (d.blockedList||[]).join(', ');
+            const sOpt = latestSlots.map((_,i)=>`<option value="${i}">Slot ${i+1}</option>`).join(''); document.getElementById('manSlot').innerHTML = sOpt; document.getElementById('qTarget').innerHTML = sOpt; document.getElementById('sToQSelect').innerHTML = sOpt; 
+            
+            // ADMIN DROPDOWNS
+            const qOpt = latestQueue.length ? latestQueue.map((x,i)=>`<option value="${i}">#${x.qNo||'?'} ${x.plat}</option>`).join('') : '<option value="-1">Kosong</option>'; 
+            document.getElementById('qIdx').innerHTML = qOpt; 
+            document.getElementById('reorderSrc').innerHTML = qOpt; // Isi dropdown reorder
+
+            document.getElementById('blockList').innerText = "Blokir: " + (d.blockedList||[]).join(', ');
         });
 
         setInterval(() => { if(!latestSlots) return; latestSlots.forEach((m, i) => { if(m && !m.startTime && m.readyTime) { const rTime = m.readyTime.toDate ? m.readyTime.toDate() : new Date(m.readyTime); if((new Date() - rTime) > 300000 && !isProcessing) { isProcessing = true; runTransaction(db, async(t)=>{ const d=(await t.get(ref)).data(); if(d.chargingSlots[i] && !d.chargingSlots[i].startTime) { d.chargingSlots[i].startTime = new Date(); t.update(ref, d); } }).finally(()=>isProcessing=false); } } if(m && m.startTime) { const st = m.startTime.toDate ? m.startTime.toDate() : new Date(m.startTime); const diffMS = (new Date(st.getTime() + m.durationMinutes*60000)) - new Date(); const remSec = diffMS / 1000; if(remSec <= -300 && !isProcessing) { isProcessing = true; finishSlot(i, m); } let txt = "DONE"; if(remSec > 0) { const min = Math.floor(remSec / 60); const sec = Math.floor(remSec % 60); txt = `${min}:${sec < 10 ? '0'+sec : sec}`; } else { const graceLeft = 300 + remSec; if(graceLeft > 0) { const gm = Math.floor(graceLeft / 60); const gs = Math.floor(graceLeft % 60); txt = `SELESAI (${gm}:${gs < 10 ? '0'+gs : gs})`; } else { txt = "AUTO CLEAR..."; } } const elTimer = document.getElementById(`p${i+1}-timer`); if(elTimer) elTimer.innerText = txt; if((adminSpyIdx === i) || (currentUserPlat === m.plat && adminSpyIdx === null)) { const uvT = document.getElementById('uvTimer'); if(uvT) uvT.innerText = txt; if(remSec <= 0) { const btns = document.getElementById('uvActionBtns'); if(btns) btns.innerHTML = `<button class="btn-glossy stop" onclick="window.userStop()">${txt}</button>`; } } } }); }, 1000);
@@ -543,6 +623,45 @@
             c.innerHTML = h; 
         }
 
+        // --- NEW ADMIN FEATURES: SWAP & REORDER ---
+        window.swapSlots = () => {
+            const a = document.getElementById('swapA').value;
+            const b = document.getElementById('swapB').value;
+            if(a==b) return showCustomAlert("PILIH SLOT BERBEDA");
+            runTransaction(db, async(t) => {
+                const d = (await t.get(ref)).data();
+                const s = d.chargingSlots;
+                // Swap logic
+                const temp = s[a];
+                s[a] = s[b];
+                s[b] = temp;
+                t.update(ref, {chargingSlots: s});
+            }).then(()=>showCustomAlert("POSISI SLOT DITUKAR")).catch(e=>showCustomAlert(e));
+        }
+
+        window.reorderQueue = () => {
+            const srcIdx = document.getElementById('reorderSrc').value;
+            const destNo = parseInt(document.getElementById('reorderDest').value);
+            if(srcIdx < 0 || isNaN(destNo)) return showCustomAlert("DATA TIDAK VALID");
+            runTransaction(db, async(t) => {
+                const d = (await t.get(ref)).data();
+                let q = d.waitingQueue || [];
+                // Remove item from old position
+                const item = q.splice(srcIdx, 1)[0];
+                if(!item) throw "Item tidak ditemukan";
+                // Insert at new position (destNo is 1-based index)
+                const targetIdx = Math.max(0, Math.min(destNo - 1, q.length));
+                q.splice(targetIdx, 0, item);
+                // Re-assign Q Numbers for visual consistency
+                // Opsional: q = q.map((itm, idx) => ({...itm, qNo: idx + 1})); 
+                // Kita biarkan qNo asli agar tiket tetap valid, atau update urutan visual saja?
+                // Lebih baik update urutan visual saja di frontend, data qNo biarkan (sebagai ID unik). 
+                // Tapi user minta reorder antrian, biasanya user expect nomor urut berubah.
+                // Mari kita biarkan qNo apa adanya, tapi posisi di array berubah (artinya yang dipanggil duluan berubah).
+                t.update(ref, {waitingQueue: q});
+            }).then(()=>showCustomAlert("URUTAN ANTRIAN DIUBAH")).catch(e=>showCustomAlert(e));
+        }
+
         window.manualAssign = () => { const s=document.getElementById('manSlot').value, p=document.getElementById('manPlat').value.toUpperCase(), b=parseInt(document.getElementById('manBat').value); if(!p) return showCustomAlert('Isi Plat'); runTransaction(db, async(t)=>{ const d=(await t.get(ref)).data(); const dur = calculateDuration(b, 98); d.chargingSlots[s] = {plat:p, userName:'ADMIN', wa:'-', startBattery:b, durationMinutes:dur, startTime:new Date(), targetLimit:98, qNo:'ADM'}; t.update(ref, {chargingSlots:d.chargingSlots}); }); };
         window.clearSlot = () => { const s = document.getElementById('manSlot').value; showCustomConfirm('KOSONGKAN & TARIK?', () => { runTransaction(db, async(t)=>{ const d = (await t.get(ref)).data(); const q = d.waitingQueue || []; d.chargingSlots[s] = null; if(q.length > 0) { const next = q.shift(); const dur = calculateDuration(next.startBattery, 98); d.chargingSlots[s] = { ...next, startTime: null, readyTime: new Date(), durationMinutes: dur, targetLimit: 98 }; } t.update(ref, { chargingSlots: d.chargingSlots, waitingQueue: q }); }); }); };
         window.slotToQueue = () => { const sIdx = document.getElementById('sToQSelect').value; runTransaction(db, async(t)=>{ const d=(await t.get(ref)).data(); const s = d.chargingSlots[sIdx]; if(!s) throw "Slot Kosong"; d.waitingQueue.push({...s, startTime:null, durationMinutes:0}); d.chargingSlots[sIdx] = null; t.update(ref, {chargingSlots:d.chargingSlots, waitingQueue:d.waitingQueue}); }).then(()=>showCustomAlert('Sukses Pindah ke Antrian')); };
@@ -560,12 +679,32 @@
         window.showCustomConfirm = (msg, yesCallback) => { vibrateHP(50); document.getElementById('confirmMsg').innerText = msg; const btnYes = document.getElementById('btnConfirmYes'); const newBtn = btnYes.cloneNode(true); btnYes.parentNode.replaceChild(newBtn, btnYes); newBtn.onclick = () => { document.getElementById('confirmModal').style.display = 'none'; yesCallback(); }; document.getElementById('confirmModal').style.display = 'flex'; };
         window.showCustomInput = (title, callback) => { vibrateHP(50); document.getElementById('inputTitle').innerText = title; document.getElementById('inputVal').value = ""; const btnOk = document.getElementById('btnInputOk'); const newBtn = btnOk.cloneNode(true); btnOk.parentNode.replaceChild(newBtn, btnOk); newBtn.onclick = () => { if(document.getElementById('inputVal').value) { document.getElementById('inputModal').style.display = 'none'; callback(document.getElementById('inputVal').value); } }; document.getElementById('inputModal').style.display = 'flex'; document.getElementById('inputVal').focus(); };
 
+        // --- FIXED BATTERY CALCULATION FORMULA ---
         const CHARGING_CURVE = [ [100, 0], [91, 10], [81, 26], [75, 32], [72, 35], [70, 40], [69, 41], [61, 47], [59, 49], [56, 50], [54, 51], [51, 56], [48, 58], [42, 58], [28, 66], [22, 72], [0, 95] ];
         function calculateDuration(start, target) {
             if (start >= target) return 5;
             let timeStart = 95, timeTarget = 0;
-            for(let i=0; i<CHARGING_CURVE.length-1; i++){ if(start<=CHARGING_CURVE[i][0] && start>=CHARGING_CURVE[i+1][0]) { const r=(CHARGING_CURVE[i][0]-start)/(CHARGING_CURVE[i][0]-CHARGING_CURVE[i+1][0]); timeStart=CHARGING_CURVE[i][1]+r*(CHARGING_CURVE[i+1][1]-CHARGING_CURVE[i+1][1]); break; } }
-            for(let i=0; i<CHARGING_CURVE.length-1; i++){ if(target<=CHARGING_CURVE[i][0] && target>=CHARGING_CURVE[i+1][0]) { const r=(CHARGING_CURVE[i][0]-target)/(CHARGING_CURVE[i][0]-CHARGING_CURVE[i+1][0]); timeTarget=CHARGING_CURVE[i][1]+r*(CHARGING_CURVE[i+1][1]-CHARGING_CURVE[i+1][1]); break; } }
+            // FORMULA PERBAIKAN: Linear Interpolation yang Benar
+            for(let i=0; i<CHARGING_CURVE.length-1; i++){ 
+                if(start <= CHARGING_CURVE[i][0] && start >= CHARGING_CURVE[i+1][0]) { 
+                    const rangeBat = CHARGING_CURVE[i][0] - CHARGING_CURVE[i+1][0];
+                    const rangeTime = CHARGING_CURVE[i+1][1] - CHARGING_CURVE[i][1]; 
+                    const r = (CHARGING_CURVE[i][0] - start) / rangeBat;
+                    timeStart = CHARGING_CURVE[i][1] + (r * rangeTime); 
+                    break; 
+                } 
+            }
+            for(let i=0; i<CHARGING_CURVE.length-1; i++){ 
+                if(target <= CHARGING_CURVE[i][0] && target >= CHARGING_CURVE[i+1][0]) { 
+                    const rangeBat = CHARGING_CURVE[i][0] - CHARGING_CURVE[i+1][0];
+                    const rangeTime = CHARGING_CURVE[i+1][1] - CHARGING_CURVE[i][1]; 
+                    const r = (CHARGING_CURVE[i][0] - target) / rangeBat;
+                    timeTarget = CHARGING_CURVE[i][1] + (r * rangeTime); 
+                    break; 
+                } 
+            }
             return Math.max(1, Math.ceil(timeStart - timeTarget));
         }
     </script>
+    </body>
+</html>
