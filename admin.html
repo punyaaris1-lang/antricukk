@@ -26,7 +26,10 @@
         /* HEADER */
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 2px solid var(--accent); padding-bottom: 10px; }
         .h-title { font-family: 'Orbitron'; font-weight: 900; font-size: 20px; color: var(--accent); letter-spacing: 1px; }
-        .btn-logout { background: var(--danger); color: #fff; border: 1px solid #fff; padding: 5px 15px; font-weight: 900; cursor: pointer; font-size: 12px; }
+        .header-btns { display: flex; gap: 5px; }
+        .btn-head { border: 1px solid #fff; padding: 5px 10px; font-weight: 900; cursor: pointer; font-size: 10px; text-decoration: none; display: flex; align-items: center; justify-content: center;}
+        .btn-logout { background: var(--danger); color: #fff; }
+        .btn-view { background: var(--accent); color: #000; border-color: var(--accent); }
 
         /* MINI TV CLICKABLE */
         .mini-tv-label { font-family: 'Orbitron'; font-size: 10px; color: #aaa; margin-bottom: 5px; letter-spacing: 1px; }
@@ -61,6 +64,7 @@
         .btn-red { background: rgba(255, 0, 60, 0.2); border: 1px solid var(--danger); color: var(--danger); }
         .btn-green { background: rgba(57, 255, 20, 0.2); border: 1px solid var(--success); color: var(--success); }
         .btn-grey { background: #333; color: #ccc; border: 1px solid #555; }
+        .btn-warn { background: var(--warn); color: #000; border: none; }
 
         /* TOGGLE BUTTONS */
         .toggle-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 11px; font-family: 'JetBrains Mono'; font-weight: bold; }
@@ -109,7 +113,10 @@
     <div id="mainContent" style="display:none;">
         <div class="header">
             <div class="h-title">ADMIN PANEL</div>
-            <button onclick="logout()" class="btn-logout">LOGOUT</button>
+            <div class="header-btns">
+                <button onclick="window.location.href='index.html'" class="btn-head btn-view">LIHAT TV</button>
+                <button onclick="logout()" class="btn-head btn-logout">LOGOUT</button>
+            </div>
         </div>
 
         <div class="mini-tv-label">KLIK SLOT UNTUK KONTROL (USER VIEW)</div>
@@ -135,55 +142,54 @@
         </div>
 
         <div class="card">
-            <div class="c-title">TAMPILAN TV DEPAN</div>
-            <div class="toggle-row">
-                <span>POSISI TIMER</span>
-                <select id="timerPos" style="width:120px; padding:5px; font-size:10px;" onchange="updateSettings()">
-                    <option value="center">BESAR (TENGAH)</option>
-                    <option value="bottom">KECIL (BAWAH)</option>
-                </select>
-                <button id="btnTglTimer" class="tgl-btn" onclick="toggleSetting('showTimer')">ON</button>
+            <div class="c-title">TARIK ANTRIAN KE SLOT (MANUAL)</div>
+            
+            <label style="font-size:10px; color:#aaa;">PILIH ORANG DARI ANTRIAN, LALU PILIH SLOT:</label>
+            <div class="row-group">
+                <select id="qToSlotSrc" style="flex:2; font-weight:bold; color:var(--warn);"></select>
+                <span style="padding:10px; color:#fff;">➔</span>
+                <select id="qToSlotDest" style="flex:1; font-weight:bold; color:var(--accent);"></select>
             </div>
-            <div class="toggle-row">
-                <span>PERSEN BATRE</span>
-                <button id="btnTglBat" class="tgl-btn" onclick="toggleSetting('showBattery')">ON</button>
+            <div class="row-group">
+                <button onclick="moveQueueToSlot()" class="btn btn-green" style="flex:2;">MASUKKAN SEKARANG</button>
+                <button onclick="autoFill()" class="btn btn-blue" style="flex:1;">AUTO FILL (SEMUA)</button>
             </div>
-            <div class="toggle-row">
-                <span>INFO ANTRIAN (#)</span>
-                <button id="btnTglQ" class="tgl-btn" onclick="toggleSetting('showQInfo')">ON</button>
+
+            <div style="border-top:1px dashed #333; margin:15px 0;"></div>
+
+            <div class="c-title" style="color:#aaa; border:none; margin-bottom:5px;">MANAJEMEN DATABASE ANTRIAN</div>
+            <select id="reorderSrc" style="margin-bottom:5px;"></select>
+            
+            <div class="row-group">
+                <input id="reorderDest" type="number" placeholder="Pindah Ke No." style="flex:1; text-align:center;">
+                <button onclick="reorderQueue()" class="btn btn-blue" style="flex:2;">PINDAH POSISI</button>
+            </div>
+            
+            <div class="row-group">
+                <button onclick="editQNumber()" class="btn btn-warn" style="flex:1;">UBAH NOMOR</button>
+                <button onclick="deleteQueueItem()" class="btn btn-red" style="flex:1;">HAPUS DARI LIST</button>
             </div>
         </div>
 
         <div class="card">
-            <div class="c-title">ANTRIAN & SYSTEM</div>
-            
+            <div class="c-title">TAMBAH USER BARU (MANUAL)</div>
             <div class="row-group">
                 <input id="qPlat" placeholder="PLAT NOMOR" style="flex:2;">
                 <input id="qBat" type="number" placeholder="%" style="flex:1; text-align:center;">
             </div>
             <input id="qName" placeholder="NAMA (Opsional)" style="margin-bottom:5px;">
-            <button onclick="regQueue()" class="btn btn-blue">TAMBAH ANTRIAN</button>
-
-            <div style="border-top:1px solid #333; margin:15px 0;"></div>
-
-            <label style="font-size:10px; color:#666;">MANAJEMEN POSISI</label>
-            <div class="row-group">
-                <select id="reorderSrc" style="flex:3;"></select>
-                <input id="reorderDest" type="number" placeholder="No." style="flex:1; text-align:center;">
-            </div>
-            <div class="row-group">
-                <button onclick="reorderQueue()" class="btn btn-blue" style="flex:1;">PINDAH URUTAN</button>
-                <button onclick="editQNumber()" class="btn btn-warn" style="flex:1; background:var(--warn); color:#000;">UBAH NOMOR</button>
-            </div>
+            <button onclick="regQueue()" class="btn btn-blue">DAFTARKAN</button>
 
             <div style="margin-top:20px; display:flex; gap:5px;">
-                <button onclick="stopAll()" class="btn btn-red" style="flex:1;">STOP ALL</button>
-                <button onclick="resetDB()" class="btn btn-red" style="flex:1;">RESET DB</button>
+                <button onclick="stopAll()" class="btn btn-red" style="flex:1;">STOP SEMUA SLOT</button>
+                <button onclick="resetDB()" class="btn btn-red" style="flex:1;">RESET DB TOTAL</button>
             </div>
         </div>
 
         <div class="card">
-            <div class="c-title">MANUAL SLOT</div>
+            <div class="c-title">TOOLS LAINNYA</div>
+            
+            <label style="font-size:10px; color:#666;">PAKSA ISI SLOT (TANPA ANTRIAN)</label>
             <div class="row-group">
                 <select id="manSlot" style="flex:1;"><option value="0">SLOT 1</option><option value="1">SLOT 2</option><option value="2">SLOT 3</option></select>
                 <input id="manPlat" placeholder="PLAT" style="flex:2;">
@@ -193,18 +199,19 @@
             
             <div style="height:10px;"></div>
             
+            <label style="font-size:10px; color:#666;">SALAH MASUK? KEMBALIKAN KE ANTRIAN</label>
             <div class="row-group">
                 <select id="retSlot" style="flex:2;"><option value="0">SLOT 1</option><option value="1">SLOT 2</option><option value="2">SLOT 3</option></select>
-                <button onclick="returnToQueue()" class="btn btn-grey" style="flex:1;">KE ANTRIAN</button>
+                <button onclick="returnToQueue()" class="btn btn-grey" style="flex:1;">KEMBALIKAN</button>
             </div>
             
             <div style="height:10px;"></div>
 
+            <label style="font-size:10px; color:#666;">REMOTE LAYOUT</label>
             <div class="row-group">
-                <select id="swapA"><option value="0">S1</option><option value="1">S2</option><option value="2">S3</option></select>
-                <span style="padding:10px; color:var(--accent);">⇄</span>
-                <select id="swapB"><option value="1">S2</option><option value="0">S1</option><option value="2">S3</option></select>
-                <button onclick="swapSlots()" class="btn btn-blue" style="width:auto;">SWAP</button>
+                <button id="btnTglTimer" class="btn btn-grey" style="flex:1;" onclick="toggleSetting('showTimer')">TIMER</button>
+                <button id="btnTglBat" class="btn btn-grey" style="flex:1;" onclick="toggleSetting('showBattery')">BATRE</button>
+                <button id="btnTglQ" class="btn btn-grey" style="flex:1;" onclick="toggleSetting('showQInfo')">ANTRIAN</button>
             </div>
         </div>
 
@@ -227,7 +234,7 @@
         const logRef = collection(db, "activityLog");
 
         let latestSlots = [null,null,null];
-        let viewingSlotIdx = -1; // Slot yang sedang dibuka modalnya
+        let viewingSlotIdx = -1; 
 
         // --- AUTH ---
         window.checkPin = () => {
@@ -274,22 +281,24 @@
             // Update Modal Jika Sedang Terbuka
             if(viewingSlotIdx !== -1) renderSlotModal(viewingSlotIdx);
 
-            // Update Dropdown Antrian
+            // Update Dropdowns
             const q = d.waitingQueue || [];
-            const qOpt = q.length ? q.map((x,i)=>`<option value="${i}">#${x.qNo||i+1} ${x.plat}</option>`).join('') : '<option value="-1">ANTRIAN KOSONG</option>';
+            
+            // Dropdown Manajemen Antrian
+            const qOpt = q.length ? q.map((x,i)=>`<option value="${i}">#${x.qNo||i+1} ${x.plat}</option>`).join('') : '<option value="-1">KOSONG</option>';
             document.getElementById('reorderSrc').innerHTML = qOpt;
+            
+            // Dropdown Tarik ke Slot (Source)
+            document.getElementById('qToSlotSrc').innerHTML = qOpt;
+
+            // Dropdown Tarik ke Slot (Dest)
+            const sOpt = latestSlots.map((s, i) => `<option value="${i}">SLOT ${i+1} (${s ? 'ISI' : 'KOSONG'})</option>`).join('');
+            document.getElementById('qToSlotDest').innerHTML = sOpt;
         });
 
         // --- SLOT MODAL CONTROLLER (USER VIEW) ---
-        window.openSlotControl = (i) => {
-            viewingSlotIdx = i;
-            document.getElementById('slotModal').style.display = 'flex';
-            renderSlotModal(i);
-        };
-        window.closeSlotModal = () => {
-            document.getElementById('slotModal').style.display = 'none';
-            viewingSlotIdx = -1;
-        };
+        window.openSlotControl = (i) => { viewingSlotIdx = i; document.getElementById('slotModal').style.display = 'flex'; renderSlotModal(i); };
+        window.closeSlotModal = () => { document.getElementById('slotModal').style.display = 'none'; viewingSlotIdx = -1; };
 
         function renderSlotModal(i) {
             const s = latestSlots[i];
@@ -301,8 +310,7 @@
             title.innerText = `KONTROL SLOT ${i+1}`;
             
             if(!s || !s.plat) {
-                info.innerText = "SLOT KOSONG";
-                timer.innerText = "EMPTY";
+                info.innerText = "SLOT KOSONG"; timer.innerText = "EMPTY";
                 ctrls.innerHTML = `<button onclick="closeSlotModal()" class="btn btn-grey">TUTUP</button>`;
                 return;
             }
@@ -310,98 +318,105 @@
             info.innerText = `${s.plat} | ${s.userName || 'USER'}`;
             
             if(s.startTime) {
-                // Timer Logic
                 const st = s.startTime.toDate ? s.startTime.toDate() : new Date(s.startTime);
                 const diff = (new Date(st.getTime() + s.durationMinutes*60000)) - new Date();
                 const remSec = diff / 1000;
                 let txt = "DONE";
-                if(remSec > 0) {
-                    const m = Math.floor(remSec/60);
-                    const sc = Math.floor(remSec%60);
-                    txt = `${m}:${sc<10?'0'+sc:sc}`;
-                }
-                timer.innerText = txt;
-                timer.style.color = "var(--accent)";
-                
-                ctrls.innerHTML = `
-                    <button class="btn btn-blue" onclick="editTimer(${i})">EDIT TIMER</button>
-                    <button class="btn btn-warn" style="background:var(--warn); color:#000;" onclick="pauseSlot(${i})">PAUSE</button>
-                    <button class="btn btn-red" onclick="stopSlot(${i})">STOP & SELESAI</button>
-                `;
+                if(remSec > 0) { const m = Math.floor(remSec/60); const sc = Math.floor(remSec%60); txt = `${m}:${sc<10?'0'+sc:sc}`; }
+                timer.innerText = txt; timer.style.color = "var(--accent)";
+                ctrls.innerHTML = `<button class="btn btn-blue" onclick="editTimer(${i})">EDIT TIMER</button><button class="btn btn-warn" onclick="pauseSlot(${i})">PAUSE</button><button class="btn btn-red" onclick="stopSlot(${i})">STOP & SELESAI</button>`;
             } else {
-                timer.innerText = "READY";
-                timer.style.color = "#fff";
-                ctrls.innerHTML = `
-                    <button class="btn btn-green" onclick="startSlot(${i})">START</button>
-                    <button class="btn btn-red" onclick="kickSlot(${i})">HAPUS DARI SLOT</button>
-                `;
+                timer.innerText = "READY"; timer.style.color = "#fff";
+                ctrls.innerHTML = `<button class="btn btn-green" onclick="startSlot(${i})">START</button><button class="btn btn-red" onclick="kickSlot(${i})">HAPUS DARI SLOT</button>`;
             }
         }
 
         // --- ACTIONS DARI MODAL ---
-        window.startSlot = (i) => {
-            if(confirm("MULAI CHARGING?")) {
-                runTransaction(db, async(t)=>{
+        window.startSlot = (i) => { if(confirm("MULAI CHARGING?")) { runTransaction(db, async(t)=>{ const d = (await t.get(ref)).data(); d.chargingSlots[i].startTime = new Date(); t.update(ref, {chargingSlots:d.chargingSlots}); addLog('START', `Slot ${i+1}`); }); } };
+        window.stopSlot = (i) => { if(confirm("STOP & SELESAI?")) { runTransaction(db, async(t)=>{ const d=(await t.get(ref)).data(); d.chargingSlots[i] = null; if(d.waitingQueue.length > 0) { const next = d.waitingQueue.shift(); d.waitingQueue.forEach((x,idx)=>x.qNo=idx+1); const dur = calcDur(next.startBattery, 98); d.chargingSlots[i] = {...next, startTime:null, durationMinutes:dur, targetLimit:98, readyTime:new Date(), qNo:null}; } t.update(ref, {chargingSlots:d.chargingSlots, waitingQueue:d.waitingQueue}); addLog('STOP', `Slot ${i+1}`); }); } };
+        window.editTimer = (i) => { const m = prompt("Menit Baru:"); if(m && !isNaN(m)) { runTransaction(db, async(t)=>{ const d=(await t.get(ref)).data(); d.chargingSlots[i].durationMinutes = parseInt(m); d.chargingSlots[i].startTime = new Date(); d.chargingSlots[i].isManualTime = true; t.update(ref, {chargingSlots:d.chargingSlots}); addLog('EDIT TIMER', `Slot ${i+1} -> ${m} min`); }); } };
+        window.pauseSlot = (i) => { if(confirm("PAUSE SLOT?")) { runTransaction(db, async(t)=>{ const d=(await t.get(ref)).data(); const s = d.chargingSlots[i]; if(s.startTime) { const st = s.startTime.toDate ? s.startTime.toDate() : new Date(s.startTime); const end = new Date(st.getTime() + s.durationMinutes*60000); const rem = Math.max(0, (end - new Date())/60000); d.chargingSlots[i] = {...s, startTime:null, durationMinutes:rem}; t.update(ref, {chargingSlots:d.chargingSlots}); addLog('PAUSE', `Slot ${i+1}`); } }); } };
+        window.kickSlot = (i) => { if(confirm("HAPUS DARI SLOT?")) { runTransaction(db, async(t)=>{ const d=(await t.get(ref)).data(); d.chargingSlots[i] = null; t.update(ref, {chargingSlots:d.chargingSlots}); addLog('KICK', `Slot ${i+1}`); }); } };
+
+        // --- NEW: MOVE QUEUE TO SLOT (TARIK PAKSA) ---
+        window.moveQueueToSlot = () => {
+            const qIdx = document.getElementById('qToSlotSrc').value;
+            const sIdx = document.getElementById('qToSlotDest').value;
+            if(qIdx < 0) return alert("Pilih Antrian!");
+            if(latestSlots[sIdx] !== null && !confirm("Slot ini sudah ada isinya. Timpa?")) return;
+
+            runTransaction(db, async(t) => {
+                const d = (await t.get(ref)).data();
+                let q = d.waitingQueue || [];
+                
+                // Ambil data antrian
+                const item = q.splice(qIdx, 1)[0];
+                
+                // Rapikan sisa antrian
+                q.forEach((x, i) => x.qNo = i + 1);
+                
+                // Siapkan data slot
+                const dur = calcDur(item.startBattery, 98);
+                item.startTime = null; 
+                item.durationMinutes = dur;
+                item.readyTime = new Date();
+                item.targetLimit = 98;
+                item.qNo = null;
+
+                // Masukkan ke slot
+                d.chargingSlots[sIdx] = item;
+                
+                t.update(ref, { chargingSlots: d.chargingSlots, waitingQueue: q });
+                addLog('MOVE', `Memindahkan ${item.plat} ke Slot ${parseInt(sIdx)+1}`);
+            });
+        };
+
+        // --- NEW: AUTO FILL (ISI OTOMATIS) ---
+        window.autoFill = () => {
+            if(!confirm("Isi semua slot kosong dengan antrian teratas?")) return;
+            
+            runTransaction(db, async(t) => {
+                const d = (await t.get(ref)).data();
+                let q = d.waitingQueue || [];
+                let s = d.chargingSlots || [null, null, null];
+                let moved = 0;
+
+                for (let i = 0; i < 3; i++) {
+                    if (s[i] === null && q.length > 0) {
+                        const item = q.shift();
+                        const dur = calcDur(item.startBattery, 98);
+                        item.startTime = null;
+                        item.durationMinutes = dur;
+                        item.readyTime = new Date();
+                        item.qNo = null;
+                        s[i] = item;
+                        moved++;
+                    }
+                }
+
+                if (moved > 0) {
+                    q.forEach((x, i) => x.qNo = i + 1); // Renumber remaining
+                    t.update(ref, { chargingSlots: s, waitingQueue: q });
+                    addLog('AUTOFILL', `Mengisi ${moved} slot otomatis`);
+                } else {
+                    alert("Tidak ada slot kosong atau antrian habis.");
+                }
+            });
+        };
+
+        // --- NEW: DELETE QUEUE ITEM (HAPUS ANTRIAN) ---
+        window.deleteQueueItem = () => {
+            const srcIdx = document.getElementById('reorderSrc').value;
+            if(srcIdx < 0) return alert("Pilih antrian dulu dari list!");
+            
+            if(confirm("Yakin hapus antrian ini?")) {
+                runTransaction(db, async(t) => {
                     const d = (await t.get(ref)).data();
-                    d.chargingSlots[i].startTime = new Date();
-                    t.update(ref, {chargingSlots:d.chargingSlots});
-                    addLog('START', `Slot ${i+1}`);
-                });
-            }
-        };
-        window.stopSlot = (i) => {
-            if(confirm("STOP & SELESAI?")) {
-                runTransaction(db, async(t)=>{
-                    const d=(await t.get(ref)).data();
-                    d.chargingSlots[i] = null;
-                    // Auto pull next
-                    if(d.waitingQueue.length > 0) {
-                        const next = d.waitingQueue.shift();
-                        d.waitingQueue.forEach((x,idx)=>x.qNo=idx+1);
-                        const dur = calcDur(next.startBattery, 98);
-                        d.chargingSlots[i] = {...next, startTime:null, durationMinutes:dur, targetLimit:98, readyTime:new Date(), qNo:null};
-                    }
-                    t.update(ref, {chargingSlots:d.chargingSlots, waitingQueue:d.waitingQueue});
-                    addLog('STOP', `Slot ${i+1}`);
-                });
-            }
-        };
-        window.editTimer = (i) => {
-            const m = prompt("Menit Baru:");
-            if(m && !isNaN(m)) {
-                runTransaction(db, async(t)=>{
-                    const d=(await t.get(ref)).data();
-                    d.chargingSlots[i].durationMinutes = parseInt(m);
-                    d.chargingSlots[i].startTime = new Date(); // Reset time base
-                    d.chargingSlots[i].isManualTime = true;
-                    t.update(ref, {chargingSlots:d.chargingSlots});
-                    addLog('EDIT TIMER', `Slot ${i+1} -> ${m} min`);
-                });
-            }
-        };
-        window.pauseSlot = (i) => {
-            if(confirm("PAUSE SLOT?")) {
-                runTransaction(db, async(t)=>{
-                    const d=(await t.get(ref)).data();
-                    const s = d.chargingSlots[i];
-                    if(s.startTime) {
-                        const st = s.startTime.toDate ? s.startTime.toDate() : new Date(s.startTime);
-                        const end = new Date(st.getTime() + s.durationMinutes*60000);
-                        const rem = Math.max(0, (end - new Date())/60000);
-                        d.chargingSlots[i] = {...s, startTime:null, durationMinutes:rem};
-                        t.update(ref, {chargingSlots:d.chargingSlots});
-                        addLog('PAUSE', `Slot ${i+1}`);
-                    }
-                });
-            }
-        };
-        window.kickSlot = (i) => {
-            if(confirm("HAPUS DARI SLOT?")) {
-                runTransaction(db, async(t)=>{
-                    const d=(await t.get(ref)).data();
-                    d.chargingSlots[i] = null;
-                    t.update(ref, {chargingSlots:d.chargingSlots});
-                    addLog('KICK', `Slot ${i+1}`);
+                    let q = d.waitingQueue || [];
+                    const removed = q.splice(srcIdx, 1)[0]; 
+                    q.forEach((item, index) => { item.qNo = index + 1; });
+                    t.update(ref, {waitingQueue: q});
+                    addLog('DELETE', `Menghapus antrian ${removed.plat}`);
                 });
             }
         };
@@ -410,16 +425,11 @@
         window.editQNumber = () => {
             const srcIdx = document.getElementById('reorderSrc').value;
             if(srcIdx < 0) return alert("Pilih antrian dulu!");
-            
             const newNo = prompt("Masukkan Nomor Antrian Baru:");
             if(!newNo || isNaN(newNo)) return;
-
             runTransaction(db, async(t) => {
                 const d = (await t.get(ref)).data();
                 let q = d.waitingQueue || [];
-                // Update nomor visual saja, atau reorder? 
-                // Kita update qNo-nya saja, tapi urutan array tetap (karena Firestore array ordered by index)
-                // Tapi user minta "Edit Nomor".
                 if(q[srcIdx]) {
                     q[srcIdx].qNo = parseInt(newNo);
                     t.update(ref, {waitingQueue: q});
@@ -428,7 +438,6 @@
             });
         };
 
-        // --- FITUR STANDAR LAINNYA ---
         window.regQueue = () => {
             const p=document.getElementById('qPlat').value.toUpperCase(), n=document.getElementById('qName').value.toUpperCase()||"ADMIN", b=parseInt(document.getElementById('qBat').value)||0;
             if(!p) return alert("Plat Kosong!");
@@ -505,15 +514,11 @@
             snap.forEach(doc=>{
                 const d=doc.data();
                 const tm = d.timestamp ? d.timestamp.toDate().toLocaleTimeString('en-GB') : '-';
-                
-                // PARSE DETAILS IF OBJECT
                 let detailText = d.details;
                 if(typeof d.details === 'object') {
-                    // Coba ambil properti yang masuk akal
                     if(d.details.reason) detailText = `Info: ${d.details.reason}`;
                     else detailText = JSON.stringify(d.details); 
                 }
-
                 h+=`<div class="log-row"><span class="l-time">[${tm}]</span><span class="l-act">${d.action}</span><span class="l-msg">${detailText}</span></div>`;
             });
             document.getElementById('termuxLog').innerHTML=h;
@@ -525,9 +530,8 @@
         onSnapshot(settingsRef, (snap) => {
             const s = snap.data() || {};
             setTgl('btnTglTimer', s.showTimer); setTgl('btnTglBat', s.showBattery); setTgl('btnTglQ', s.showQInfo);
-            document.getElementById('timerPos').value = s.timerPosition || 'center';
         });
-        function setTgl(id, v) { const b=document.getElementById(id); if(v){b.classList.add('on'); b.innerText='ON';} else {b.classList.remove('on'); b.innerText='OFF';} }
+        function setTgl(id, v) { const b=document.getElementById(id); if(v){b.classList.add('on'); b.innerText='ON';b.style.background='var(--success)';b.style.color='#000';} else {b.classList.remove('on'); b.innerText='OFF';b.style.background='#333';b.style.color='#777';} }
         window.toggleSetting = (k) => { runTransaction(db, async(t)=>{ const d=(await t.get(settingsRef)).data(); t.update(settingsRef, {[k]:!d[k]}); }); };
         window.updateSettings = () => { updateDoc(settingsRef, { timerPosition: document.getElementById('timerPos').value }); };
 
@@ -543,7 +547,6 @@
                         const m = Math.floor(remSec/60);
                         const sc = Math.floor(remSec%60);
                         txt = `${m}:${sc<10?'0'+sc:sc}`;
-                        // Update batre visual
                         const tot = s.durationMinutes * 60;
                         const elap = (new Date() - st)/1000;
                         let p = elap/tot; if(p>1)p=1;
