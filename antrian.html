@@ -6,106 +6,140 @@
     <title>FC KELAPA GADING - DISPLAY</title>
     <link href="https://fonts.googleapis.com/css2?family=Teko:wght@300;500;700&family=Orbitron:wght@400;700;900&family=JetBrains+Mono:wght@400;700;800&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        :root { --bg: #000000; --card-bg: #0a0a0a; --accent: #CCFF00; --blue: #00F0FF; --red: #ff003c; --orange: #ffaa00; --grey-btn: #333333; --success: #00ff44; --warn: #FFCC00; }
+        /* --- PALET WARNA (HANYA BIRU & KUNING) --- */
+        :root { 
+            --bg: #000000; 
+            --accent: #CCFF00; /* Kuning Stabilo */
+            --blue: #00F0FF; /* Cyan/Biru Neon */
+            --blue-dim: rgba(0, 240, 255, 0.4); 
+            --blue-dark-btn: rgba(0, 240, 255, 0.1); 
+            /* URL BACKGROUND UNTUK KOTAK (SPANNING) - Menggunakan gambar yang sama agar terlihat tembus */
+            --span-bg-url: url('1763947427555.jpg');
+        }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
         
         body { 
             font-family: 'Inter', sans-serif; 
-            background: linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)), url('1763947427555.jpg') no-repeat center center fixed;
+            /* Background Utama */
+            background: linear-gradient(rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.9)), url('1763947427555.jpg') no-repeat center center fixed;
             background-size: cover; color: #fff; margin: 0; overflow: hidden; width: 100vw; height: 100dvh; display: flex; flex-direction: column; 
         }
         
         /* HEADER */
         .top-nav { height: 12vh; min-height: 60px; display: flex; flex-direction: column; justify-content: center; text-align: center; z-index: 10; position: relative; flex-shrink: 0; }
         .main-title { font-family: 'Teko', sans-serif; font-size: clamp(30px, 5vh, 45px); font-weight: 700; line-height: 0.9; color: #fff; position: relative; display: inline-block; margin: 0; text-shadow: 0 0 5px rgba(0, 240, 255, 0.3); cursor: pointer; user-select: none; }
-        .main-title:active { transform: scale(0.95); }
-        .brand-sub { font-size: clamp(10px, 1.5vh, 12px); color: var(--accent); letter-spacing: 5px; font-weight: 700; margin-top: 5px; }
+        
+        /* SUB TITLE DENGAN EFEK GLITCH (RUSAK) */
+        .brand-sub { 
+            font-size: clamp(10px, 1.5vh, 12px); 
+            color: var(--accent); 
+            letter-spacing: 5px; 
+            font-weight: 700; 
+            margin-top: 5px; 
+            position: relative;
+            animation: glitch-anim 5s infinite; /* Efek rusak setiap 5 detik */
+        }
+
+        @keyframes glitch-anim {
+            0% { transform: skew(0deg); opacity: 1; text-shadow: none; }
+            92% { transform: skew(0deg); opacity: 1; text-shadow: none; }
+            93% { transform: skew(10deg); opacity: 0.8; text-shadow: 2px 0 var(--blue); }
+            94% { transform: skew(-10deg); opacity: 0.8; text-shadow: -2px 0 var(--red); }
+            95% { transform: skew(0deg); opacity: 1; text-shadow: none; }
+            96% { transform: skew(5deg); opacity: 0.9; }
+            100% { transform: skew(0deg); opacity: 1; }
+        }
 
         /* FRONT VIEW CARD DESIGN */
         #frontView { flex: 1; display: flex; justify-content: center; align-items: center; gap: 10px; position: relative; width: 100%; padding: 0 10px; }
         .slot-group { width: 31%; height: 90%; max-height: 300px; display: flex; flex-direction: column; align-items: center; position: relative; transition: 0.3s; }
         
         .onyx-card { 
-            position: relative; width: 100%; height: 90%; background: rgba(10, 10, 10, 0.9); border-radius: 15px; 
+            position: relative; width: 100%; height: 90%; 
+            background: transparent; 
+            border-radius: 15px; 
             display: flex; flex-direction: column; align-items: center; justify-content: space-between; 
-            padding: 10px 5px; border: 2px solid var(--blue); 
-            box-shadow: 0 0 15px rgba(0, 240, 255, 0.1); overflow: hidden; transition: 0.3s; backdrop-filter: blur(5px); 
+            padding: 10px 5px; 
+            border: none; /* BORDER DIHAPUS BIAR KEREN */
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.05); overflow: hidden; transition: 0.3s; 
+            backdrop-filter: blur(5px);
+        }
+
+        /* --- BACKGROUND TEMBUS (SPANNING) --- */
+        .card-span-layer {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-image: var(--span-bg-url);
+            background-attachment: fixed; 
+            background-position: center center; background-size: cover;
+            opacity: 0.2; /* Opacity rendah agar tidak ganggu font */
+            z-index: 0; 
+            filter: grayscale(100%) sepia(100%) hue-rotate(170deg) saturate(400%); 
+            pointer-events: none;
         }
         
-        /* ISI KARTU AGAR DI ATAS EFEK BORDER */
-        .onyx-card > div { position: relative; z-index: 2; }
+        .onyx-card > div:not(.card-span-layer) { position: relative; z-index: 2; }
 
         .slot-group:nth-child(2) { transform: translateY(-10px) scale(1.05); z-index: 5; }
-        .slot-group:nth-child(2) .onyx-card { box-shadow: 0 0 30px rgba(0,240,255,0.2); }
         .slot-label { font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: clamp(10px, 1.5vh, 14px); margin-top: 10px; color: var(--blue); text-shadow: 0 0 10px var(--blue); letter-spacing: 2px; }
 
-        /* --- TAMBAHAN EFEK ULAR (SNAKE BORDER) --- */
+        /* --- VISUAL STATUS --- */
         @keyframes borderRotate { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         
-        /* Saat Charging: Border Ular Kuning */
-        .onyx-card.charging::before {
-            content: ''; position: absolute; width: 200%; height: 200%;
-            top: -50%; left: -50%; z-index: 0;
-            background: conic-gradient(transparent, transparent, transparent, var(--warn)); 
-            animation: borderRotate 4s linear infinite;
-        }
-        .onyx-card.charging::after {
-            content: ''; position: absolute; inset: 3px; 
-            background: var(--card-bg); border-radius: 13px; z-index: 0;
-        }
+        /* CHARGING: ULAR KUNING */
+        /* Border dikembalikan khusus saat charging untuk efek ular, tapi base border tetap none */
+        .onyx-card.charging::before { content: ''; position: absolute; width: 200%; height: 200%; top: -50%; left: -50%; z-index: 1; background: conic-gradient(transparent, transparent, transparent, var(--accent)); animation: borderRotate 4s linear infinite; }
+        .onyx-card.charging::after { content: ''; position: absolute; inset: 3px; background: rgba(0,0,0,0.8); border-radius: 13px; z-index: 1; }
         .onyx-card.charging .oc-plat { color: var(--blue); text-shadow: 0 0 10px var(--blue); }
-        .onyx-card.charging .oc-timer-small { color: var(--warn); }
+        .onyx-card.charging .oc-timer-small { color: var(--accent); }
 
-        /* Saat Preparing (5 Menit Awal): Border Orange Kedip */
-        .onyx-card.prep { border-color: var(--orange); }
-        .onyx-card.prep .oc-timer-small { color: var(--orange); animation: blinkerFast 1s infinite; }
-        
-        /* Saat Full/Done: Border Putih */
-        .onyx-card.full { border-color: #fff; box-shadow: 0 0 20px rgba(255,255,255,0.3); }
-        .onyx-card.full .oc-big-num { color: #fff; animation: blinker 1s infinite; }
+        /* PREPARING: KUNING KEDIP */
+        .onyx-card.prep { box-shadow: 0 0 15px rgba(204, 255, 0, 0.3); border: 1px solid rgba(204, 255, 0, 0.3); }
+        .onyx-card.prep .oc-timer-small { color: var(--accent); animation: blinkerFast 1s infinite; }
+        .onyx-card.prep .oc-big-num { color: var(--blue-dim); }
+
+        /* FULL: PUTIH */
+        .onyx-card.full { border: 1px solid rgba(255,255,255,0.5); box-shadow: 0 0 20px rgba(255,255,255,0.5); }
+        .onyx-card.full .oc-big-num { color: #fff; animation: blinker 1s infinite; text-shadow: 0 0 20px #fff; }
         .onyx-card.full .oc-plat { color: #fff; }
         .onyx-card.full .oc-timer-small { color: #fff; }
         
         @keyframes blinker { 50% { opacity: 0.5; } }
+        @keyframes blinkerFast { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
 
-        /* LAYOUT ELEMEN */
-        .oc-name { font-family: 'JetBrains Mono'; font-weight: 800; font-size: 10px; color: #aaa; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; width: 100%; text-align: center; }
-        .oc-plat { font-family:'Teko'; font-weight: 700; font-size: clamp(12px, 3vh, 20px); color: #fff; line-height: 1; letter-spacing: 1px; text-transform: uppercase; white-space: nowrap; border-bottom: 1px dashed #333; padding-bottom: 5px; width: 100%; text-align: center; margin-bottom: 2px; }
-        .oc-timer-small { font-family: 'Orbitron'; font-size: 11px; color: var(--blue); font-weight: bold; width: 100%; text-align: center; min-height: 15px; }
+        /* LAYOUT & FONT */
+        .oc-name { font-family: 'JetBrains Mono'; font-weight: 800; font-size: 10px; color: var(--blue); text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; width: 100%; text-align: center; opacity: 0.8; }
+        .oc-plat { font-family:'Teko'; font-weight: 700; font-size: clamp(16px, 2.5vh, 24px); color: #fff; line-height: 1; letter-spacing: 0px; text-transform: uppercase; white-space: nowrap; border-bottom: 1px dashed var(--blue-dim); padding-bottom: 5px; width: 95%; text-align: center; margin-bottom: 2px; }
+        .oc-timer-small { font-family: 'Orbitron'; font-size: 11px; color: var(--blue-dim); font-weight: bold; width: 100%; text-align: center; min-height: 15px; }
         .oc-body { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; }
-        .oc-big-num { font-family: 'Orbitron'; font-weight: 900; color: var(--accent); font-size: clamp(60px, 6vh, 80px); text-shadow: 0 0 15px var(--accent); letter-spacing: -2px; line-height: 1; }
-        .num-ready { color: #333; text-shadow: none; font-size: 20px; letter-spacing: 2px; }
-        .oc-ticket-label { font-size: 8px; color: #666; font-family: 'Inter'; letter-spacing: 2px; margin-top: -5px; }
-        .oc-bat-info { font-family: 'Orbitron'; font-size: 12px; color: #fff; border-top: 1px dashed #333; padding-top: 5px; width: 100%; text-align: center; }
+        .oc-big-num { font-family: 'Orbitron'; font-weight: 900; color: var(--accent); font-size: clamp(60px, 8vh, 90px); text-shadow: 0 0 15px var(--accent); letter-spacing: -2px; line-height: 1; }
+        .num-ready { color: var(--blue-dim); text-shadow: none; font-size: 20px; letter-spacing: 2px; font-weight: bold; }
+        .oc-ticket-label { font-size: 8px; color: var(--blue-dim); font-family: 'Inter'; letter-spacing: 2px; margin-top: -5px; }
+        .oc-bat-info { font-family: 'Orbitron'; font-size: 12px; color: #fff; border-top: 1px dashed var(--blue-dim); padding-top: 5px; width: 100%; text-align: center; }
         .oc-progress-bg { position: absolute; bottom: 0; left: 0; width: 100%; height: 3px; background: rgba(255,255,255,0.1); z-index: 5; }
         .oc-progress-fill { height: 100%; background: var(--blue); width: 0%; transition: width 1s linear; }
 
         /* USER VIEW */
         #userView { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 500; flex-direction: column; align-items: center; padding-top: 20px; backdrop-filter: blur(15px); }
         .uv-ring-container { position: relative; width: 280px; height: 280px; display: flex; align-items: center; justify-content: center; margin: 20px 0; }
-        .ring-blue { position: absolute; width: 100%; height: 100%; border-radius: 50%; border: 8px solid var(--blue); border-radius: 45% 55% 40% 60% / 55% 45% 60% 40%; box-shadow: 0 0 20px var(--blue), inset 0 0 20px var(--blue); opacity: 0.3; transition: 0.5s; }
-        .ring-yellow { position: absolute; width: 90%; height: 90%; border-radius: 50%; border: 3px solid var(--accent); border-radius: 55% 45% 60% 40% / 45% 55% 40% 60%; box-shadow: 0 0 15px var(--accent); opacity: 0; transition: 0.5s; }
-        .ring-queue { position: absolute; width: 100%; height: 100%; border-radius: 50%; border: 5px dashed var(--orange); opacity: 0; transition: 0.5s; box-shadow: 0 0 25px var(--orange); animation: partyMode 2s infinite ease-in-out; }
-        @keyframes partyMode { 0% { transform: scale(0.95) rotate(0deg); border-color: var(--orange); filter: hue-rotate(0deg); } 25% { transform: scale(1.02) rotate(90deg); border-color: var(--red); } 50% { transform: scale(1.1) rotate(180deg); border-color: var(--accent); box-shadow: 0 0 40px var(--accent); filter: hue-rotate(90deg); } 75% { transform: scale(1.02) rotate(270deg); border-color: var(--blue); } 100% { transform: scale(0.95) rotate(360deg); border-color: var(--orange); filter: hue-rotate(0deg); } }
-        .mode-charging .ring-blue { opacity: 1; box-shadow: 0 0 40px var(--blue); } .mode-charging .ring-yellow { opacity: 1; animation: wobbleSpin 4s linear infinite; }
-        @keyframes wobbleSpin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } } 
-        
-        .uv-center-content { position: absolute; z-index: 10; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 200px; height: 200px; }
-        .btn-start-circle { width: 130px; height: 130px; border-radius: 50%; background: rgba(0,0,0,0.8); border: 3px solid var(--accent); color: var(--accent); font-family: 'Orbitron'; font-weight: 900; font-size: 22px; cursor: pointer; box-shadow: 0 0 30px var(--accent), inset 0 0 20px var(--accent); display: flex; align-items: center; justify-content: center; text-align: center; animation: pulseBtn 2s infinite; text-transform: uppercase; }
-        
+        .ring-blue { position: absolute; width: 100%; height: 100%; border-radius: 50%; border: 8px solid var(--blue); opacity: 0.3; }
+        .ring-queue { position: absolute; width: 100%; height: 100%; border-radius: 50%; border: 5px dashed var(--accent); opacity: 0; transition: 0.5s; box-shadow: 0 0 25px var(--accent); animation: partyMode 2s infinite ease-in-out; }
+        @keyframes partyMode { 0%, 100% { transform: scale(0.95) rotate(0deg); border-color: var(--accent); filter: hue-rotate(0deg); } 50% { transform: scale(1.1) rotate(180deg); border-color: var(--blue); box-shadow: 0 0 40px var(--blue); } }
+
+        .uv-center-content { position: absolute; z-index: 10; text-align: center; }
+        .btn-start-circle { width: 130px; height: 130px; border-radius: 50%; background: rgba(0,0,0,0.8); border: 3px solid var(--accent); color: var(--accent); font-family: 'Orbitron'; font-weight: 900; font-size: 22px; cursor: pointer; box-shadow: 0 0 30px var(--accent); }
         .uv-timer-big { font-family: 'Orbitron'; font-size: 45px; font-weight: 900; color: #fff; text-shadow: 0 0 20px #fff; line-height: 1; }
         .uv-status-text { font-family: 'JetBrains Mono'; font-size: 12px; color: var(--accent); margin-top: 5px; font-weight: bold; letter-spacing: 1px; }
         .uv-header-info { text-align: center; margin-bottom: 10px; }
         .uv-plat { font-family: 'Teko'; font-size: 30px; color: var(--blue); line-height: 1; }
-        .uv-name { font-family: 'JetBrains Mono'; font-size: 12px; color: #aaa; text-transform: uppercase; }
+        .uv-name { font-family: 'JetBrains Mono'; font-size: 12px; color: var(--blue-dim); text-transform: uppercase; }
         .uv-controls { display: flex; gap: 15px; margin-top: 20px; width: 80%; justify-content: center; }
-        .uv-back-link { position: absolute; bottom: 30px; color: var(--blue); font-size: 12px; cursor: pointer; text-decoration: none; font-weight: 900; letter-spacing: 1px; text-shadow: 0 0 5px var(--blue); }
+        .uv-back-link { position: absolute; bottom: 85px; color: var(--blue); font-size: 12px; cursor: pointer; text-decoration: none; font-weight: 900; letter-spacing: 1px; text-shadow: 0 0 5px var(--blue); }
 
-        /* CONTROL AREA & MODALS */
+        /* CONTROL & MUSIC PLAYER */
         .control-area { height: 35vh; min-height: 200px; width: 100%; background: linear-gradient(to top, #000 20%, transparent 100%); display: flex; flex-direction: column; align-items: center; justify-content: flex-end; z-index: 50; padding-bottom: 20px; flex-shrink: 0; }
         .fp-text { font-family:'Orbitron'; font-size:10px; color:#fff; margin-bottom: 5px; letter-spacing: 2px; font-weight:bold; }
         .fp-container { position: relative; width: 80px; height: 80px; display: flex; justify-content: center; align-items: center; }
-        .fp-btn { width: 65px; height: 65px; background: var(--grey-btn); border: 3px solid var(--accent); border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; box-shadow: 0 0 15px var(--accent); transition: 0.3s; }
+        .fp-btn { width: 65px; height: 65px; background: var(--blue-dark-btn); border: 3px solid var(--accent); border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; box-shadow: 0 0 15px var(--accent); transition: 0.3s; }
         .fp-btn.dash-mode { border-color: var(--blue); background: #000; box-shadow: 0 0 25px var(--blue); }
         .fp-btn.dash-mode .fp-svg { fill: var(--blue); opacity: 1; }
         .fp-btn:active { transform: scale(0.95); background: #000; border-color: var(--blue); box-shadow: 0 0 25px var(--blue); }
@@ -113,48 +147,44 @@
         .fp-btn.scanning { animation: pulseScan 1s infinite; }
         @keyframes pulseScan { 0% { box-shadow: 0 0 15px var(--accent); } 50% { box-shadow: 0 0 35px var(--accent); border-color:#fff; } 100% { box-shadow: 0 0 15px var(--accent); } }
 
-        .antrian-text { font-family: 'Orbitron'; font-size: 16px; font-weight: 900; color: var(--accent); text-shadow: 0 0 10px var(--accent); cursor: pointer; padding: 5px 15px; border-radius: 20px; border: 1px solid transparent; transition: 0.3s; margin-bottom: 25px; pointer-events: auto; }
+        .antrian-text { font-family: 'Orbitron'; font-size: 16px; font-weight: 900; color: var(--accent); text-shadow: 0 0 10px var(--accent); cursor: pointer; padding: 5px 15px; border-radius: 20px; border: 1px solid transparent; transition: 0.3s; margin-bottom: 10px; pointer-events: auto; }
         .blink-fast { animation: blinkerFast 0.6s ease-in-out infinite alternate; } 
-        @keyframes blinkerFast { 0% { opacity: 1; text-shadow: 0 0 15px var(--accent); } 100% { opacity: 0.4; text-shadow: none; } }
         .info-row { width: 100%; text-align: center; margin-top: 5px; height: 30px; display: flex; align-items: center; justify-content: center; flex-direction:column; gap:5px; }
+
+        /* MUSIC PLAYER */
+        .music-wrapper { width: auto; min-width: 280px; height: 50px; display: flex; align-items: center; justify-content: center; gap: 15px; margin-top: 15px; padding: 5px 15px; background: var(--blue-dark-btn); border: 1px solid var(--blue-dim); border-radius: 10px; backdrop-filter: blur(5px); pointer-events: auto; }
+        .m-btn { background:none; border:none; color:var(--blue); font-size:18px; cursor: pointer; text-shadow: 0 0 5px var(--blue); }
+        .track-info { font-family:'JetBrains Mono'; font-size:10px; font-weight:bold; color:#fff; width: 120px; text-align: center; white-space: nowrap; overflow: hidden; cursor: pointer; }
+        .track-info:hover { color: var(--blue); }
         
-        .music-wrapper { width: auto; min-width: 280px; height: 50px; display: flex; align-items: center; justify-content: center; gap: 15px; margin-top: 5px; padding: 5px 15px; background: rgba(255,255,255,0.05); border-radius: 10px; backdrop-filter: blur(5px); }
-        .m-btn { background:none; border:none; color:#fff; font-size:18px; cursor: pointer; }
-        .track-info { font-family:'JetBrains Mono'; font-size:10px; font-weight:bold; color:#fff; width: 120px; text-align: center; white-space: nowrap; overflow: hidden; }
-        
+        /* MODALS */
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 10000; justify-content: center; align-items: center; backdrop-filter: blur(10px); }
-        .modal-box { background: #111; border: 2px solid var(--blue); padding: 30px; border-radius: 20px; width: 85%; max-width: 350px; text-align: center; position:relative; }
-        .input-group { position: relative; margin-bottom: 25px; width: 100%; }
-        .reg-input { width: 100%; padding: 15px 10px; background: transparent; border: none; border-bottom: 2px solid #555; color: #fff; text-align: center; font-size: 24px; font-weight: bold; font-family: 'Teko', sans-serif; letter-spacing: 1px; }
-        .reg-input:focus { border-bottom-color: var(--blue); }
-        .reg-input:focus ~ .reg-label, .reg-input:valid ~ .reg-label { top: -25px; font-size: 12px; color: var(--blue); }
-        .reg-label { position: absolute; top: 15px; left: 0; width: 100%; text-align: center; color: #aaa; pointer-events: none; transition: 0.3s; font-family: 'Orbitron'; font-size: 14px; font-weight: bold; }
-        .btn-glossy { padding: 12px 0; border-radius: 50px; font-family: 'Orbitron'; font-weight: 900; font-size: 14px; color: #fff; cursor: pointer; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); width:100%; transition: 0.3s; }
-        .btn-glossy.stop { border-color: var(--red); color: var(--red); box-shadow: 0 0 15px rgba(255,0,60,0.3); }
+        .modal-box { background: #050a10; border: 2px solid var(--blue); padding: 30px; border-radius: 20px; width: 85%; max-width: 350px; text-align: center; position:relative; box-shadow: 0 0 30px rgba(0, 240, 255, 0.2); }
+        .reg-input { width: 100%; padding: 15px 10px; background: transparent; border: none; border-bottom: 2px solid var(--blue-dim); color: #fff; text-align: center; font-size: 24px; font-weight: bold; font-family: 'Teko', sans-serif; letter-spacing: 1px; }
+        .btn-glossy { padding: 12px 0; border-radius: 50px; font-family: 'Orbitron'; font-weight: 900; font-size: 14px; color: #fff; cursor: pointer; background: var(--blue-dark-btn); border: 1px solid var(--blue); width:100%; margin-top:10px; box-shadow: 0 0 10px rgba(0, 240, 255, 0.1); }
         
-        #playlistPopup { display: none; position: fixed; bottom: 85px; left: 0; width: 100%; background: #111; border-top: 2px solid var(--blue); height: 50vh; overflow-y: auto; z-index: 2500; padding: 10px; }
-        .track-item { padding: 15px; border-bottom: 1px solid #333; color: #aaa; font-size: 12px; cursor: pointer; }
-        .track-item.active { color: var(--accent); font-weight: bold; }
+        #playlistPopup { display: none; position: fixed; bottom: 85px; left: 0; width: 100%; background: #050a10; border-top: 2px solid var(--blue); height: 50vh; overflow-y: auto; z-index: 2500; padding: 10px; }
+        .track-item { padding: 15px; border-bottom: 1px solid var(--blue-dim); color: var(--blue-dim); font-size: 12px; cursor: pointer; }
+        .track-item.active { color: var(--accent); }
         
         @media screen and (max-width: 400px) {
             #frontView { gap: 5px; padding-top: 30px; }
-            .onyx-card { height: 240px; }
-            .slot-group:nth-child(2) { transform: translateY(-15px) scale(1.03); }
-            .oc-big-num { font-size: 60px; } 
-            .control-area { height: 40vh; }
+            .onyx-card { height: 250px; }
+            .oc-big-num { font-size: 55px; } 
         }
     </style>
 </head>
 <body onclick="firstInteraction()">
 
     <div class="top-nav">
-        <div class="main-title" data-text="FC KELAPA GADING" ondblclick="window.location.href='admin.html'">FC KELAPA GADING</div>
+        <div class="main-title" ondblclick="window.location.href='admin.html'">FC KELAPA GADING</div>
         <div class="brand-sub">SELAMAT DATANG DI RUMAH MLU</div>
     </div>
 
     <div id="frontView">
         <div class="slot-group">
             <div class="onyx-card" id="card-1" onclick="cardClick(0)">
+                <div class="card-span-layer"></div>
                 <div class="oc-name" id="p1-name">AVAILABLE</div>
                 <div class="oc-plat" id="p1-plat">-</div>
                 <div class="oc-timer-small" id="p1-timer"></div>
@@ -169,6 +199,7 @@
         </div>
         <div class="slot-group">
             <div class="onyx-card" id="card-2" onclick="cardClick(1)">
+                <div class="card-span-layer"></div>
                 <div class="oc-name" id="p2-name">AVAILABLE</div>
                 <div class="oc-plat" id="p2-plat">-</div>
                 <div class="oc-timer-small" id="p2-timer"></div>
@@ -183,6 +214,7 @@
         </div>
         <div class="slot-group">
             <div class="onyx-card" id="card-3" onclick="cardClick(2)">
+                <div class="card-span-layer"></div>
                 <div class="oc-name" id="p3-name">AVAILABLE</div>
                 <div class="oc-plat" id="p3-plat">-</div>
                 <div class="oc-timer-small" id="p3-timer"></div>
@@ -206,7 +238,7 @@
         </div>
         <div class="uv-slot-title" id="uvSlotTitle" style="margin-top:10px; font-family:'Orbitron'; color:var(--blue); font-weight:900;">SLOT -</div>
         <div class="uv-ring-container" id="uvRingContainer">
-            <div class="ring-blue"></div><div class="ring-yellow"></div><div class="ring-queue"></div> 
+            <div class="ring-blue"></div><div class="ring-queue"></div>
             <div class="uv-center-content">
                 <button class="btn-start-circle" id="btnStartBig" onclick="window.userStart()">START</button>
                 <div id="uvInfoDisplay" style="display:none;">
@@ -215,31 +247,32 @@
                 </div>
             </div>
         </div>
-        <div class="uv-controls" id="uvActionBtns"></div>
-        <div class="uv-footer-music">
+        <div class="uv-controls" id="uvActionBtns" style="display:flex; gap:15px; margin-top:20px; width:80%; justify-content:center;"></div>
+        <div class="uv-back-link" onclick="manualBackToFront()">[ KEMBALI KE DEPAN ]</div>
+        <div class="music-wrapper" style="margin-bottom:20px;">
             <button class="m-btn" onclick="prevTrack()">⏮</button>
-            <div class="track-info" id="uv-track-name">SELECT MUSIC</div>
-            <button class="m-btn" onclick="togglePlay()" id="uvPlayBtn">⏯</button>
+            <div class="track-info" id="uv-track-name-dash" onclick="window.togglePlaylist()">SELECT MUSIC ≡</div>
+            <button class="m-btn" onclick="togglePlay()" id="uvPlayBtnDash">⏯</button>
             <button class="m-btn" onclick="nextTrack()">⏭</button>
         </div>
-        <div class="uv-back-link" onclick="manualBackToFront()">[ KEMBALI KE DEPAN ]</div>
     </div>
 
     <div class="control-area" id="fpArea">
-        <div class="info-row" style="margin-bottom: 10px;">
-            <div id="qCountDisplay" class="antrian-text blink-fast" onclick="window.showQueueList()" style="cursor:pointer; z-index:500;">JUMLAH ANTRIAN : 0</div>
+        <div class="info-row">
+            <div id="qCountDisplay" class="antrian-text blink-fast" onclick="window.showQueueList()">ANTRIAN : 0</div>
         </div>
         
-        <div class="fp-text" id="fp-label">DAFTAR</div>
+        <div class="fp-text" id="fp-label">DAFTAR CHARGING</div>
         <div class="fp-container">
             <div class="fp-btn" id="fp-trigger" onclick="checkLocationAndOpen()">
                 <svg class="fp-svg" id="fp-icon-svg" viewBox="0 0 24 24"><path d="M17.81 4.47c-.08 0-.16-.02-.23-.06C15.66 3.42 14 3 12.01 3c-1.98 0-3.86.47-5.57 1.41-.24.13-.54.04-.68-.2-.13-.24-.04-.55.2-.68C7.82 2.52 9.86 2 12.01 2c2.13 0 3.99.47 6.03 1.52.25.13.34.43.21.67-.09.18-.26.28-.44.28zM3.5 9.72c-.1 0-.2-.03-.29-.09-.23-.16-.28-.47-.12-.7.99-1.4 2.25-2.5 3.75-3.27C9.98 4.04 14 4.03 17.15 5.65c1.5.77 2.76 1.86 3.75 3.25.16.22.11.54-.12.7-.23.16-.54.11-.7-.12-.9-1.26-2.04-2.25-3.39-2.94-2.87-1.47-6.54-1.47-9.4.01-1.36.7-2.5 1.7-3.4 2.96-.08.14-.23.21-.39.21zm6.25 12.07c-.13 0-.26-.05-.35-.15-.87-.87-1.34-1.43-2.01-2.64-.69-1.23-1.05-2.73-1.05-4.34 0-2.97 2.54-5.39 5.66-5.39s5.66 2.42 5.66 5.39c0 .28-.22.5-.5.5s-.5-.22-.5-.5c0-2.42-2.09-4.39-4.66-4.39-2.57 0-4.66 1.97-4.66 4.39 0 1.44.32 2.77.93 3.85.64 1.15 1.08 1.64 1.85 2.42.19.2.19.51 0 .71-.11.1-.24.15-.37.15zm7.17-1.85c-1.19 0-2.24-.3-3.1-.89-1.49-1.01-2.38-2.65-2.38-4.39 0-.28.22-.5.5s.5.22.5.5c0 1.41.72 2.74 1.94 3.56.71.48 1.54.71 2.54.71.24 0 .64-.03 1.04-.1.27-.05.53.13.58.41.05.27-.13.53-.41.58-.57.11-1.07.12-1.21.12zM14.91 22c-.04 0-.09-.01-.13-.02-1.59-.44-2.63-1.03-3.72-2.1-1.4-1.39-2.17-3.24-2.17-5.22 0-1.62 1.38-2.94 3.08-2.94 1.7 0 3.08 1.32 3.08 2.94 0 1.07.93 1.94 2.08 1.94s2.08-.87 2.08-1.94c0-3.77-3.25-6.83-7.25-6.83-2.84 0-5.44 1.58-6.45 3.94-.11.25-.41.37-.67.26-.25-.11-.37-.41-.26-.67 1.13-2.62 4.07-4.39 7.38-4.39 4.53 0 8.25 3.42 8.25 7.69 0 1.62-1.38 2.94-3.08 2.94s-3.08-1.32-3.08-2.94c0-1.07-.93-1.94-2.08-1.94s-2.08.87-2.08 1.94c0 1.71.66 3.31 1.87 4.51.95.94 1.86 1.46 3.27 1.85.27.07.42.35.35.61-.05.23-.26.38-.47.38z"/></svg>
             </div>
         </div>
+        
         <div class="music-wrapper">
             <button class="m-btn" onclick="prevTrack()">⏮</button>
-            <div class="track-info" id="uv-track-name">SELECT MUSIC</div>
-            <button class="m-btn" onclick="togglePlay()" id="uvPlayBtn" style="font-size:30px; color:var(--blue);">⏯</button>
+            <div class="track-info" id="uv-track-name" onclick="window.togglePlaylist()">SELECT MUSIC ≡</div>
+            <button class="m-btn" onclick="togglePlay()" id="uvPlayBtn">⏯</button>
             <button class="m-btn" onclick="nextTrack()">⏭</button>
         </div>
     </div>
@@ -257,42 +290,28 @@
     </div>
 
     <div id="queueDetailModal" class="modal">
-        <div class="modal-box" style="border-color:var(--orange); max-width:400px;">
-            <h3 style="color:var(--orange); margin-top:0; font-family:'Orbitron'; letter-spacing:2px;">DAFTAR ANTRIAN</h3>
+        <div class="modal-box" style="border-color:var(--accent); max-width:400px;">
+            <h3 style="color:var(--accent); margin-top:0; font-family:'Orbitron'; letter-spacing:2px;">DAFTAR ANTRIAN</h3>
             <div id="qDetailList" style="max-height:300px; overflow-y:auto; margin:15px 0; color:#fff; text-align:left; padding:10px;"></div>
             <button onclick="document.getElementById('queueDetailModal').style.display='none'" class="btn-glossy">TUTUP</button>
         </div>
     </div>
 
-    <div id="alertModal" class="modal">
-        <div class="modal-box" style="border-color:var(--blue);">
-            <h3 style="color:#fff; margin-top:0; font-size:14px;" id="alertMsg">MESSAGE</h3>
-            <button onclick="document.getElementById('alertModal').style.display='none'" class="btn-glossy" style="background:var(--blue); color:#000; margin-top:20px;">OK</button>
-        </div>
-    </div>
+    <div id="alertModal" class="modal"><div class="modal-box"><h3 id="alertMsg" style="color:#fff;">MSG</h3><button onclick="document.getElementById('alertModal').style.display='none'" class="btn-glossy">OK</button></div></div>
+    <div id="confirmModal" class="modal"><div class="modal-box" style="border-color:var(--red);"><h3 id="confirmMsg" style="color:#fff;">CONFIRM</h3><div style="display:flex; gap:10px;"><button id="btnConfirmYes" class="btn-glossy" style="background:var(--red);">YA</button><button onclick="document.getElementById('confirmModal').style.display='none'" class="btn-glossy">TIDAK</button></div></div></div>
 
-    <div id="confirmModal" class="modal">
-        <div class="modal-box" style="border-color:var(--red);">
-            <h3 style="color:#fff; margin-top:0; font-size:14px;" id="confirmMsg">CONFIRMATION</h3>
-            <div style="display:flex; gap:10px; margin-top:20px;">
-                <button id="btnConfirmYes" class="btn-glossy" style="background:var(--red); color:#fff;">YA</button>
-                <button onclick="document.getElementById('confirmModal').style.display='none'" class="btn-glossy">TIDAK</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="playlistPopup"><div style="padding:15px; border-bottom:1px solid #333; position:sticky; top:0; background:#000; display:flex; justify-content:space-between; align-items:center;"><span style="font-family:'Orbitron'; color:var(--blue);">SELECT TRACK</span><span onclick="window.togglePlaylist()" style="color:#666; cursor:pointer;">[ CLOSE ]</span></div><div id="playlistContainer"></div></div>
+    <div id="playlistPopup"><div style="padding:15px; border-bottom:1px solid #333; position:sticky; top:0; background:#050a10; display:flex; justify-content:space-between; align-items:center;"><span style="font-family:'Orbitron'; color:var(--blue);">SELECT TRACK</span><span onclick="window.togglePlaylist()" style="color:#666; cursor:pointer;">[ CLOSE ]</span></div><div id="playlistContainer"></div></div>
     <audio id="audio" crossorigin="anonymous"></audio>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, doc, onSnapshot, runTransaction, updateDoc, arrayUnion, collection, addDoc, query, orderBy, limit, setDoc, getDocs, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, doc, onSnapshot, runTransaction, updateDoc, collection, query, orderBy, limit, getDocs, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         // --- KONFIGURASI ---
         const firebaseConfig = { apiKey: "AIzaSyALIlkIDALIk83K8s1htalvW6rmNNw02Go", authDomain: "sistem-antrian-b1c39.firebaseapp.com", projectId: "sistem-antrian-b1c39", storageBucket: "sistem-antrian-b1c39.firebasestorage.app", messagingSenderId: "454124587608", appId: "1:454124587608:web:34fbb0f5211067a67f982d" };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const ref = doc(db, "antrian", "utama");
-        const settingsRef = doc(db, "antrian", "settings");
         const historyRef = collection(db, "riwayatCharging");
 
         let latestSlots = [null, null, null];
@@ -303,11 +322,13 @@
         let currentUserPlat = localStorage.getItem('myPlat') || null;
         let manualClosed = false;
         
+        // LOCK SYSTEM
+        let processingSlots = [false, false, false];
+
         // --- UTILS ---
         function vibrateHP(ms = 50) { if (navigator.vibrate) navigator.vibrate(ms); }
         window.limitBat = (el) => { if(el.value > 100) el.value = 100; if(el.value < 0) el.value = 0; }
         window.formatPlatInput = (el) => {
-            // Remove spaces from input
             let val = el.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
             el.value = val;
         };
@@ -341,9 +362,16 @@
         const audio = document.getElementById('audio'); let currentTrackIdx = 0; let audioUnlocked = false;
         function initPlayer() { const plContainer = document.getElementById('playlistContainer'); plContainer.innerHTML = ''; playlist.forEach((song, idx) => { const el = document.createElement('div'); el.className = 'track-item'; el.innerText = `${idx + 1}. ${song.title}`; el.onclick = (e) => { e.stopPropagation(); window.playTrack(idx); }; plContainer.appendChild(el); }); }
         window.firstInteraction = () => { if (audioUnlocked) return; const silent = new Audio("data:audio/wav;base64,UklGRigAAABXQVZFAmZtdCAQAAAAAQABAIAAAIAAAIABAABhZGF0YQAAAAA="); silent.play().then(() => { audioUnlocked = true; }).catch(e => console.log("Audio locked")); };
-        window.playTrack = (idx) => { audioUnlocked = true; currentTrackIdx = idx; if(!playlist[idx]) return; audio.src = playlist[idx].url; document.getElementById('uv-track-name').innerText = playlist[idx].title; document.getElementById('playlistPopup').style.display = 'none'; audio.play().then(() => updatePlayBtnIcons("⏸")).catch(e => updatePlayBtnIcons("⏯")); };
+        window.playTrack = (idx) => { 
+            audioUnlocked = true; currentTrackIdx = idx; if(!playlist[idx]) return; 
+            audio.src = playlist[idx].url; 
+            document.getElementById('uv-track-name').innerText = playlist[idx].title + " ≡"; 
+            document.getElementById('uv-track-name-dash').innerText = playlist[idx].title + " ≡";
+            document.getElementById('playlistPopup').style.display = 'none'; 
+            audio.play().then(() => updatePlayBtnIcons("⏸")).catch(e => updatePlayBtnIcons("⏯")); 
+        };
         window.togglePlay = () => { if(audio.paused) { audio.play(); updatePlayBtnIcons("⏸"); } else { audio.pause(); updatePlayBtnIcons("⏯"); } };
-        function updatePlayBtnIcons(icon) { document.getElementById('uvPlayBtn').innerText = icon; }
+        function updatePlayBtnIcons(icon) { document.getElementById('uvPlayBtn').innerText = icon; document.getElementById('uvPlayBtnDash').innerText = icon; }
         window.nextTrack = () => { currentTrackIdx = (currentTrackIdx + 1) % playlist.length; window.playTrack(currentTrackIdx); }
         window.prevTrack = () => { currentTrackIdx = (currentTrackIdx - 1 + playlist.length) % playlist.length; window.playTrack(currentTrackIdx); }
         window.togglePlaylist = () => { const p = document.getElementById('playlistPopup'); p.style.display = p.style.display === 'block' ? 'none' : 'block'; };
@@ -386,9 +414,43 @@
             navigator.geolocation.getCurrentPosition((pos) => {
                 const dist = getDist(pos.coords.latitude, pos.coords.longitude, STATION_LOC.lat, STATION_LOC.lng);
                 btn.classList.remove('scanning');
-                if(dist > MAX_DIST_KM) { showCustomAlert(`Terpantau oleh radar MLU jarak kamu masih terlalu jauh dari FC Kelapa Gading, sekitar: ${dist.toFixed(2)} KM`); } 
+                if(dist > MAX_DIST_KM) { showCustomAlert(`Terpantau oleh radae MLU jarak kamu masih terlalu dari FC Kelapa Gading, sekitar: ${dist.toFixed(2)} KM`); } 
                 else { document.getElementById('regModal').style.display = 'flex'; }
             }, (err) => { btn.classList.remove('scanning'); showCustomAlert("GPS ERROR"); }, {enableHighAccuracy: true, timeout: 10000});
+        };
+
+        // --- SAFE TRANSACTIONS ---
+        window.triggerAutoStart = (idx) => {
+            if(processingSlots[idx]) return; 
+            processingSlots[idx] = true;
+            runTransaction(db, async(t)=>{
+                const d = (await t.get(ref)).data();
+                if(d.chargingSlots[idx] && d.chargingSlots[idx].status === 'PREPARING') {
+                    d.chargingSlots[idx].startTime = new Date();
+                    d.chargingSlots[idx].status = 'CHARGING';
+                    t.update(ref, {chargingSlots:d.chargingSlots});
+                }
+            }).finally(() => processingSlots[idx] = false);
+        };
+
+        window.autoClearAndPull = (idx) => {
+            if(processingSlots[idx]) return;
+            processingSlots[idx] = true;
+            runTransaction(db, async(t) => {
+                const d = (await t.get(ref)).data();
+                const q = d.waitingQueue || [];
+                const s = d.chargingSlots[idx];
+                if (!s || !s.startTime) return;
+
+                d.chargingSlots[idx] = null; 
+
+                if(q.length > 0) { 
+                    const next = q.shift();
+                    const dur = calculateDuration(next.startBattery, 98);
+                    d.chargingSlots[idx] = { ...next, startTime: null, durationMinutes: dur, targetLimit: 98, qNo:next.qNo, status: 'PREPARING', entryTime: new Date() };
+                }
+                t.update(ref, {chargingSlots: d.chargingSlots, waitingQueue: q});
+            }).catch(e => console.log(e)).finally(() => processingSlots[idx] = false);
         };
 
         window.submitReg = () => {
@@ -399,29 +461,35 @@
             if(!p || !n || !w || isNaN(b)) { showCustomAlert("LENGKAPI DATA"); return; }
             
             runTransaction(db, async(t)=>{
-                const d=(await t.get(ref)).data()||{}; if((d.blockedList||[]).includes(p)) throw "PLAT DIBLOKIR";
-                let s=d.chargingSlots||[null,null,null], q=d.waitingQueue||[];
+                const d = (await t.get(ref)).data() || {};
+                let s = d.chargingSlots || [null,null,null];
+                let q = d.waitingQueue || [];
+                
                 if(s.some(x=>x&&x.plat===p) || q.some(x=>x.plat===p)) throw "PLAT SUDAH ADA";
-                
-                // LOGIC FIXED TICKET: NOMOR TERUS BERTAMBAH
-                const allUsers = [...s.filter(x=>x!==null), ...q];
-                let maxNo = 0;
-                allUsers.forEach(u => { if(u.qNo && u.qNo > maxNo) maxNo = u.qNo; });
-                let nextNo = maxNo + 1;
-                
-                const dur = calculateDuration(b, 98); const emptyIdx = s.findIndex(x=>x===null);
+
+                let dbLast = d.lastTicket || 0;
+                let maxInList = 0;
+                [...s, ...q].forEach(item => {
+                    if(item && item.qNo && typeof item.qNo === 'number') {
+                        if(item.qNo > maxInList) maxInList = item.qNo;
+                    }
+                });
+                let nextNo = Math.max(dbLast, maxInList) + 1;
+
+                const dur = calculateDuration(b, 98); 
+                const emptyIdx = s.findIndex(x=>x===null);
                 const ticketCode = generateTicket();
 
-                // TAMBAH STATUS KE USERDATA (PREPARING/CHARGING)
-                const userData = {plat:p, userName:n, wa:w, startBattery:b, startTime:null, durationMinutes:dur, targetLimit:98, qNo: nextNo, ticket: ticketCode, status: 'CHARGING'};
+                const userData = {plat:p, userName:n, wa:w, startBattery:b, qNo: nextNo, durationMinutes:dur, targetLimit:98, startTime:null, status: 'CHARGING', ticket: ticketCode};
 
                 if(emptyIdx !== -1) { 
-                    userData.status = 'READY'; // Jika daftar manual lgsg slot, status Ready (nunggu tap)
+                    userData.startTime = null; 
+                    userData.status = 'READY'; 
                     s[emptyIdx] = userData; 
                 } else { 
                     q.push(userData); 
                 }
-                t.set(ref, {chargingSlots:s, waitingQueue:q}, {merge:true});
+                t.set(ref, {chargingSlots:s, waitingQueue:q, lastTicket: nextNo}, {merge:true});
             }).then(() => { 
                 document.getElementById('regModal').style.display='none'; 
                 localStorage.setItem('myPlat', p); currentUserPlat = p;
@@ -431,83 +499,64 @@
             }).catch(e => showCustomAlert(e));
         };
 
-        window.showQueueList = () => { 
-            vibrateHP(50);
-            const listContainer = document.getElementById('qDetailList'); 
-            if(latestQueue.length === 0) { listContainer.innerHTML = '<div style="text-align:center; padding:20px; color:#666;">ANTRIAN KOSONG</div>'; } 
-            else { 
-                let html = ''; 
-                latestQueue.forEach((q, i) => { 
-                    let qNum = q.qNo ? `#${q.qNo}` : `#?`;
-                    html += `<div style="background:rgba(255,255,255,0.05); padding:10px; margin-bottom:5px; border-radius:5px; border-left:3px solid var(--accent); display:flex; justify-content:space-between; align-items:center;"><div><div style="font-family:'Teko'; font-size:18px; color:#fff;">${q.plat}</div><div style="font-size:10px; color:#aaa;">${q.userName}</div></div><div style="font-family:'Orbitron'; font-weight:bold; color:var(--accent); font-size:14px;">${qNum}</div></div>`; 
-                }); 
-                listContainer.innerHTML = html; 
-            } 
-            document.getElementById('queueDetailModal').style.display = 'flex'; 
-        };
-
         window.userStart = () => { 
             showCustomConfirm("MULAI CHARGING?", () => { 
-                const idx = latestSlots.findIndex(s => s && s.plat === currentUserPlat); 
-                if(idx !== -1) { 
-                    // Update Status to Charging
-                    runTransaction(db, async(t)=>{
-                        const d = (await t.get(ref)).data();
-                        d.chargingSlots[idx].startTime = new Date();
-                        d.chargingSlots[idx].status = 'CHARGING';
-                        t.update(ref, {chargingSlots:d.chargingSlots});
-                    });
-                } 
+                runTransaction(db, async(t)=>{
+                    const d = (await t.get(ref)).data();
+                    const s = d.chargingSlots;
+                    const idx = s.findIndex(x => x && x.plat === currentUserPlat);
+                    if(idx !== -1) {
+                        s[idx].startTime = new Date();
+                        s[idx].status = 'CHARGING';
+                        t.update(ref, {chargingSlots:s});
+                    }
+                });
             }); 
         };
-        
+
         window.userStop = () => { 
             showCustomConfirm("STOP & KELUAR?", () => { 
-                if(latestSlots.some(s=>s&&s.plat===currentUserPlat)) {
-                    const idx = latestSlots.findIndex(s => s && s.plat === currentUserPlat);
-                    runTransaction(db, async(t)=>{ 
-                        const d=(await t.get(ref)).data(); d.chargingSlots[idx] = null; 
-                        
-                        // LOGIKA TARIK ANTRIAN OTOMATIS (Jika ada)
-                        if(d.waitingQueue.length > 0) { 
-                            const next = d.waitingQueue.shift(); 
-                            const dur = calculateDuration(next.startBattery, 98); 
-                            // Masukkan ke slot dengan status PREPARING (5 Menit)
-                            d.chargingSlots[idx] = { ...next, startTime: null, durationMinutes: dur, targetLimit: 98, qNo:next.qNo, status: 'PREPARING', entryTime: new Date() }; 
-                        } 
-                        t.update(ref, {chargingSlots: d.chargingSlots, waitingQueue: d.waitingQueue}); 
-                    }).then(() => { localStorage.removeItem('myPlat'); currentUserPlat = null; manualClosed = false; window.location.reload(); });
-                } else {
-                    runTransaction(db, async(t)=>{ 
-                        const d=(await t.get(ref)).data(); let q=d.waitingQueue||[]; 
-                        const qIdx = q.findIndex(x=>x.plat===currentUserPlat); 
+                runTransaction(db, async(t)=>{ 
+                    const d = (await t.get(ref)).data(); 
+                    let s = d.chargingSlots; let q = d.waitingQueue;
+                    const idx = s.findIndex(x => x && x.plat === currentUserPlat);
+                    
+                    if(idx !== -1) {
+                        s[idx] = null; 
+                        if(q.length > 0) {
+                            const next = q.shift(); 
+                            const dur = calculateDuration(next.startBattery, 98);
+                            s[idx] = { ...next, startTime: null, durationMinutes: dur, status: 'PREPARING', entryTime: new Date() };
+                        }
+                        t.update(ref, {chargingSlots: s, waitingQueue: q}); 
+                    } else {
+                        const qIdx = q.findIndex(x=>x.plat===currentUserPlat);
                         if(qIdx !== -1) { 
                             q.splice(qIdx, 1); 
                             t.update(ref, {waitingQueue:q}); 
-                        } 
-                    }).then(() => { localStorage.removeItem('myPlat'); currentUserPlat = null; manualClosed = false; window.location.reload(); }); 
-                }
+                        }
+                    }
+                }).then(() => { cleanupUser(); });
             }); 
         };
-        
-        window.switchView = (mode) => { if(mode === 'front') { document.getElementById('userView').style.display='none'; document.getElementById('frontView').style.display='flex'; document.getElementById('fpArea').style.display='flex'; } };
-        window.forceView = (type) => { 
-            if(type === 'front') { document.getElementById('frontView').style.display = 'flex'; document.getElementById('userView').style.display = 'none'; document.getElementById('fpArea').style.display = 'flex'; } 
-            else { document.getElementById('frontView').style.display = 'none'; document.getElementById('userView').style.display = 'flex'; document.getElementById('fpArea').style.display = 'none'; } 
-        };
-        window.cardClick = (idx) => { const slot = latestSlots[idx]; if(!slot) { showCustomAlert("SLOT KOSONG. SILAKAN DAFTAR."); return; } if(currentUserPlat && currentUserPlat === slot.plat) { forceView('user'); return; } showCustomInput("MASUKKAN PLAT ANDA:", (val) => { const inputPlat = val.toUpperCase().replace(/[^A-Z0-9]/g, ''); const slotPlatClean = slot.plat.replace(/[^A-Z0-9]/g, ''); if(inputPlat === slotPlatClean) { localStorage.setItem('myPlat', slot.plat); currentUserPlat = slot.plat; manualClosed = false; showCustomAlert("DASHBOARD DIPULIHKAN."); forceView('user'); } else { showCustomAlert("PLAT TIDAK COCOK!"); } }); };
-        window.showCustomInput = (title, callback) => { const p = prompt(title); if(p) callback(p); };
-        window.manualBackToFront = () => { manualClosed = true; switchView('front'); };
+
+        function cleanupUser() { localStorage.removeItem('myPlat'); currentUserPlat = null; manualClosed = false; window.location.reload(); }
+        window.forceView = (type) => { if(type === 'front') { document.getElementById('frontView').style.display = 'flex'; document.getElementById('userView').style.display = 'none'; document.getElementById('fpArea').style.display = 'flex'; } else { document.getElementById('frontView').style.display = 'none'; document.getElementById('userView').style.display = 'flex'; document.getElementById('fpArea').style.display = 'none'; } };
+        window.cardClick = (idx) => { const slot = latestSlots[idx]; if(!slot) return; if(currentUserPlat && currentUserPlat === slot.plat) { forceView('user'); return; } showCustomInput("INPUT PLAT:", (val) => { if(val.toUpperCase().replace(/[^A-Z0-9]/g,'') === slot.plat.replace(/[^A-Z0-9]/g,'')) { localStorage.setItem('myPlat', slot.plat); currentUserPlat = slot.plat; manualClosed = false; forceView('user'); } else { showCustomAlert("SALAH"); } }); };
+        window.manualBackToFront = () => { manualClosed = true; forceView('front'); };
+        window.showQueueList = () => { const list = document.getElementById('qDetailList'); list.innerHTML = latestQueue.length ? latestQueue.map(q => `<div style="padding:10px; border-bottom:1px solid var(--blue-dim); display:flex; justify-content:space-between; color:var(--blue-dim);"><span>${q.plat} (${q.userName})</span><span style="color:var(--accent); font-weight:bold;">#${q.qNo}</span></div>`).join('') : 'KOSONG'; document.getElementById('queueDetailModal').style.display='flex'; };
+        window.showCustomInput = (t,cb) => { const p=prompt(t); if(p)cb(p); };
+        window.checkLocationAndOpen = () => { if(currentUserPlat) { forceView('user'); return; } document.getElementById('regModal').style.display = 'flex'; };
 
         // --- UPDATE FRONT VIEW LOGIC ---
         function updateFrontView() {
             latestSlots.forEach((m, i) => {
+                const elCard = document.getElementById(`card-${i+1}`);
                 const elName = document.getElementById(`p${i+1}-name`);
                 const elPlat = document.getElementById(`p${i+1}-plat`);
                 const elTimer = document.getElementById(`p${i+1}-timer`);
                 const elMainNum = document.getElementById(`p${i+1}-main`);
                 const elBat = document.getElementById(`p${i+1}-bat`);
-                const elCard = document.getElementById(`card-${i+1}`);
                 const elBar = document.getElementById(`p${i+1}-bar`); 
                 
                 elCard.classList.remove('charging', 'full', 'prep'); 
@@ -522,47 +571,34 @@
                      elMainNum.className = "oc-big-num";
                      elBat.innerText = m.startBattery + "%";
 
-                     // 1. CEK PREPARING (5 MENIT)
                      if(m.status === 'PREPARING') {
                         elCard.classList.add('prep');
                         if(m.entryTime) {
                             const et = m.entryTime.toDate ? m.entryTime.toDate() : new Date(m.entryTime);
                             const diff = (new Date() - et) / 1000;
-                            const limit = 5 * 60; // 5 Menit
+                            const limit = 5 * 60; 
                             const left = Math.max(0, limit - diff);
                             const lm = Math.floor(left/60); const ls = Math.floor(left%60);
-                            
                             elTimer.innerText = `AUTO START (${lm}:${ls<10?'0'+ls:ls})`;
-                            // AUTO START TRIGGER
-                            if(left <= 0) {
-                                runTransaction(db, async(t)=>{
-                                    const d = (await t.get(ref)).data();
-                                    if(d.chargingSlots[i] && d.chargingSlots[i].status === 'PREPARING') {
-                                        d.chargingSlots[i].startTime = new Date();
-                                        d.chargingSlots[i].status = 'CHARGING';
-                                        t.update(ref, {chargingSlots:d.chargingSlots});
-                                    }
-                                });
-                            }
+                            if(left <= 0) triggerAutoStart(i);
+                        } else {
+                            elTimer.innerText = "PREPARING...";
                         }
-                     }
-                     // 2. CEK CHARGING
+                     } 
                      else if(m.startTime) {
                         const st = m.startTime.toDate ? m.startTime.toDate() : new Date(m.startTime);
                         const diff = (new Date(st.getTime() + m.durationMinutes*60000)) - new Date();
                         const remSec = diff / 1000;
                         if(remSec > 0) {
                             const mm = Math.floor(remSec/60); const ss = Math.floor(remSec%60);
-                            elTimer.innerText = `${mm}:${ss<10?'0'+ss:ss}`; 
+                            elTimer.innerText = `ETA: ${mm}:${ss<10?'0'+ss:ss}`; 
                             elCard.classList.add('charging');
                             const tot = m.durationMinutes * 60; const elap = (new Date() - st)/1000;
                             let p = elap/tot; if(p>1)p=1; elBar.style.width = (p*100)+"%";
-                        } else { 
-                            // 3. CEK DONE -> AUTO CLEAR (5 MENIT)
+                        } else {
                             const overdue = Math.abs(remSec);
                             const graceLimit = 5 * 60; 
-                            
-                            if(overdue < graceLimit) {
+                            if (overdue < graceLimit) {
                                 const left = graceLimit - overdue;
                                 const lm = Math.floor(left/60); const ls = Math.floor(left%60);
                                 elTimer.innerText = `SELESAI (${lm}:${ls<10?'0'+ls:ls})`; 
@@ -570,52 +606,37 @@
                                 elBar.style.width = "100%"; 
                             } else {
                                 elTimer.innerText = "AUTO CLEAR...";
-                                // TRIGGER AUTO CLEAR & PULL NEXT
-                                runTransaction(db, async(t)=>{
-                                    const d = (await t.get(ref)).data();
-                                    // Kosongkan
-                                    d.chargingSlots[i] = null;
-                                    // Tarik Antrian
-                                    if(d.waitingQueue.length > 0) {
-                                        const next = d.waitingQueue.shift();
-                                        const dur = calculateDuration(next.startBattery, 98);
-                                        d.chargingSlots[i] = { ...next, startTime: null, durationMinutes: dur, targetLimit: 98, qNo:next.qNo, status: 'PREPARING', entryTime: new Date() };
-                                    }
-                                    t.update(ref, {chargingSlots: d.chargingSlots, waitingQueue: d.waitingQueue});
-                                });
+                                autoClearAndPull(i);
                             }
                         }
-                     } else { 
+                    } else { 
                          elTimer.innerText = "READY"; 
                          elMainNum.className = "oc-big-num num-ready"; 
                      }
                 } else { 
-                    elName.innerText = "AVAILABLE"; 
-                    elPlat.innerText = "-"; 
-                    elTimer.innerText = "";
-                    elMainNum.innerText = "READY"; 
+                    elName.innerText = "AVAILABLE"; elPlat.innerText = "-"; 
+                    elTimer.innerText = ""; elMainNum.innerText = "READY"; 
                     elMainNum.className = "oc-big-num num-ready"; 
                     elBat.innerText = "--%";
                 }
             });
         }
 
+        const CHARGING_CURVE = [ [100, 0], [91, 10], [81, 26], [75, 32], [72, 35], [70, 40], [69, 41], [61, 47], [59, 49], [56, 50], [54, 51], [51, 56], [48, 58], [42, 58], [28, 66], [22, 72], [0, 95] ];
+        function calculateDuration(start, target) {
+            let s=95, t=0;
+            for(let i=0; i<CHARGING_CURVE.length-1; i++){ if(start<=CHARGING_CURVE[i][0] && start>=CHARGING_CURVE[i+1][0]) { const r=(CHARGING_CURVE[i][0]-start)/(CHARGING_CURVE[i][0]-CHARGING_CURVE[i+1][0]); s=CHARGING_CURVE[i][1]+r*(CHARGING_CURVE[i+1][1]-CHARGING_CURVE[i+1][1]); break; } }
+            for(let i=0; i<CHARGING_CURVE.length-1; i++){ if(target<=CHARGING_CURVE[i][0] && target>=CHARGING_CURVE[i+1][0]) { const r=(CHARGING_CURVE[i][0]-target)/(CHARGING_CURVE[i][0]-CHARGING_CURVE[i+1][0]); t=CHARGING_CURVE[i][1]+r*(CHARGING_CURVE[i+1][1]-CHARGING_CURVE[i+1][1]); break; } }
+            return Math.max(1, Math.ceil(s - t));
+        }
         function updateUserView() {
-            if(!currentUserPlat) { document.getElementById('userView').style.display='none'; document.getElementById('frontView').style.display='flex'; document.getElementById('fpArea').style.display='flex'; return; }
-            if(manualClosed) return;
-
-            document.getElementById('userView').style.display='flex'; document.getElementById('frontView').style.display='none'; document.getElementById('fpArea').style.display='none';
+            if(!currentUserPlat || manualClosed) return;
             const sIdx = latestSlots.findIndex(s=>s&&s.plat===currentUserPlat);
             const qIdx = latestQueue.findIndex(q=>q.plat===currentUserPlat);
-            const rRing = document.getElementById('uvRingContainer');
-            const uInfo = document.getElementById('uvInfoDisplay');
-            const uTimer = document.getElementById('uvTimerBig');
-            const uStat = document.getElementById('uvStatusText');
-            const uBtn = document.getElementById('btnStartBig');
-            const uAct = document.getElementById('uvActionBtns');
-            
+            if(sIdx===-1 && qIdx===-1) return;
+            document.getElementById('userView').style.display='flex'; document.getElementById('frontView').style.display='none'; document.getElementById('fpArea').style.display='none';
+            const uInfo = document.getElementById('uvInfoDisplay'); const uBtn = document.getElementById('btnStartBig'); const uAct = document.getElementById('uvActionBtns');
             document.getElementById('uvPlatDisplay').innerText = currentUserPlat;
-            
             if(sIdx !== -1) {
                 const s = latestSlots[sIdx];
                 document.getElementById('uvNameDisplay').innerText = s.userName;
@@ -648,15 +669,7 @@
                 uAct.innerHTML = `<button class="btn-glossy" style="border-color:var(--red); color:var(--red);" onclick="window.userStop()">BATAL ANTRI & KELUAR</button>`;
             }
         }
-
-        const CHARGING_CURVE = [ [100, 0], [91, 10], [81, 26], [75, 32], [72, 35], [70, 40], [69, 41], [61, 47], [59, 49], [56, 50], [54, 51], [51, 56], [48, 58], [42, 58], [28, 66], [22, 72], [0, 95] ];
-        function calculateDuration(start, target) {
-            let s=95, t=0;
-            for(let i=0; i<CHARGING_CURVE.length-1; i++){ if(start<=CHARGING_CURVE[i][0] && start>=CHARGING_CURVE[i+1][0]) { const r=(CHARGING_CURVE[i][0]-start)/(CHARGING_CURVE[i][0]-CHARGING_CURVE[i+1][0]); s=CHARGING_CURVE[i][1]+r*(CHARGING_CURVE[i+1][1]-CHARGING_CURVE[i+1][1]); break; } }
-            for(let i=0; i<CHARGING_CURVE.length-1; i++){ if(target<=CHARGING_CURVE[i][0] && target>=CHARGING_CURVE[i+1][0]) { const r=(CHARGING_CURVE[i][0]-target)/(CHARGING_CURVE[i][0]-CHARGING_CURVE[i+1][0]); t=CHARGING_CURVE[i][1]+r*(CHARGING_CURVE[i+1][1]-CHARGING_CURVE[i+1][1]); break; } }
-            return Math.max(1, Math.ceil(s - t));
-        }
-
+        window.firstInteraction=()=>{}; 
         setInterval(() => { updateFrontView(); updateUserView(); }, 1000);
     </script>
 </body>
