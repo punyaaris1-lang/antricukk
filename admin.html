@@ -131,7 +131,7 @@
         <div class="card">
             <div class="c-title">REMOTE HALAMAN DEPAN</div>
             <div class="toggle-row">
-                <span>POSISI TIMER</span>
+                <span>POSISI TIMER (BESAR/KECIL)</span>
                 <select id="timerPos" style="width:120px; padding:5px; font-size:10px;" onchange="updateSettings()">
                     <option value="center">BESAR (TENGAH)</option>
                     <option value="bottom">KECIL (BAWAH)</option>
@@ -142,11 +142,7 @@
                 <span>PERSEN BATRE</span>
                 <button id="btnTglBat" class="tgl-btn" onclick="toggleSetting('showBattery')">ON</button>
             </div>
-            <div class="toggle-row">
-                <span>INFO ANTRIAN (#)</span>
-                <button id="btnTglQ" class="tgl-btn" onclick="toggleSetting('showQInfo')">ON</button>
             </div>
-        </div>
 
         <div class="mini-tv-label">MONITORING SLOT (KLIK UNTUK DETAIL)</div>
         <div class="mini-tv-container">
@@ -244,8 +240,8 @@
         </div>
 
         <div class="card">
-            <div class="c-title">SYSTEM LOG</div>
-            <div id="termuxLog" class="log-box"><div class="log-row">Loading...</div></div>
+            <div class="c-title">SYSTEM LOG (SUPER DETAIL)</div>
+            <div id="termuxLog" class="log-box"><div class="log-row">Waiting events...</div></div>
         </div>
     </div>
 
@@ -271,13 +267,20 @@
                 document.getElementById('pinOverlay').style.display = 'none';
                 document.getElementById('mainContent').style.display = 'block';
                 localStorage.setItem('adm_ok', '1');
-            } else alert("PIN SALAH!");
+                addLog('LOGIN', 'Admin Login Success');
+            } else {
+                alert("PIN SALAH!");
+                addLog('LOGIN_FAIL', 'Wrong PIN Attempt');
+            }
         };
         if(localStorage.getItem('adm_ok')) {
             document.getElementById('pinOverlay').style.display = 'none';
             document.getElementById('mainContent').style.display = 'block';
         }
-        window.logout = () => { localStorage.removeItem('adm_ok'); location.reload(); };
+        window.logout = () => { 
+            addLog('LOGOUT', 'Admin Logout');
+            localStorage.removeItem('adm_ok'); location.reload(); 
+        };
 
         // --- HISTORY CHECK (AUTO FILL) ---
         window.checkHistory = async (el) => {
@@ -288,13 +291,11 @@
                 const snap = await getDocs(q);
                 if(!snap.empty) {
                     const d = snap.docs[0].data();
-                    // Auto fill nama user jika history ada
                     if(document.getElementById('qName')) document.getElementById('qName').value = d.userName || '';
                 }
             }
         };
-
-        // --- REALTIME MONITORING ---
+        // --- REALTIME MONITORING (LANJUTAN) ---
         onSnapshot(ref, (snap) => {
             const d = snap.data(); if(!d) return;
             latestSlots = d.chargingSlots || [null,null,null];
@@ -325,7 +326,8 @@
             if(viewingSlotIdx !== -1) renderSlotModal(viewingSlotIdx);
 
             // UPDATE QUEUE LIST & DROPDOWNS
-            const q = d.waitingQueue || [];
+            // Sort agar admin melihat urutan yang benar (Sticky Number)
+            const q = (d.waitingQueue || []).sort((a,b) => a.qNo - b.qNo);
             updateQueueVisuals(q, latestSlots);
         });
 
@@ -343,7 +345,7 @@
                                 <span class="q-name">${item.userName}</span>
                             </div>
                             <div class="q-actions">
-                                <button class="btn-sm btn-del" onclick="deleteQ(${i})">HAPUS</button>
+                                <button class="btn-sm btn-del" onclick="window.deleteQ(${i})">HAPUS</button>
                             </div>
                         </div>
                     `;
@@ -352,7 +354,7 @@
             }
 
             // 2. Dropdowns
-            const qOpt = q.length ? q.map((x,i)=>`<option value="${i}">#${x.qNo||i+1} ${x.plat}</option>`).join('') : '<option value="-1">KOSONG</option>';
+            const qOpt = q.length ? q.map((x,i)=>`<option value="${i}">#${x.qNo} ${x.plat}</option>`).join('') : '<option value="-1">KOSONG</option>';
             document.getElementById('reorderSrc').innerHTML = qOpt;
             document.getElementById('qToSlotSrc').innerHTML = qOpt;
 
@@ -360,17 +362,22 @@
             document.getElementById('qToSlotDest').innerHTML = sOpt;
         }
 
-        // --- REMOTE SETTINGS (FIXED) ---
+        // --- REMOTE SETTINGS (PERBAIKAN FITUR ON/OFF) ---
+        // Listener Settings
         onSnapshot(settingsRef, (snap) => {
-            const s = snap.data() || { showTimer:false, showBattery:false, showQInfo:false };
+            const s = snap.data() || { showTimer:true, showBattery:true }; // Default True
             setTgl('btnTglTimer', s.showTimer); 
             setTgl('btnTglBat', s.showBattery); 
-            setTgl('btnTglQ', s.showQInfo);
-            document.getElementById('timerPos').value = s.timerPosition || 'center';
+            // setTgl('btnTglQ', s.showQInfo); // Removed as requested
+            
+            if(document.getElementById('timerPos')) {
+                document.getElementById('timerPos').value = s.timerPosition || 'center';
+            }
         });
 
         function setTgl(id, v) { 
             const b = document.getElementById(id); 
+            if(!b) return;
             if(v){
                 b.classList.add('on'); 
                 b.innerText='ON';
@@ -387,19 +394,23 @@
         window.toggleSetting = (k) => { 
             runTransaction(db, async(t) => { 
                 const docSnap = await t.get(settingsRef);
-                if(!docSnap.exists()) {
-                    // Jika setting belum ada/hilang, buat baru dengan default false
-                    t.set(settingsRef, { [k]: true });
-                } else {
+                let newVal = true;
+                if(docSnap.exists()) {
                     const d = docSnap.data();
-                    t.update(settingsRef, {[k]: !d[k]}); 
+                    newVal = !d[k];
                 }
+                t.set(settingsRef, { [k]: newVal }, {merge:true}); 
+                addLog('SETTING', `Toggle ${k} to ${newVal ? 'ON' : 'OFF'}`);
             }); 
         };
         
-        window.updateSettings = () => { updateDoc(settingsRef, { timerPosition: document.getElementById('timerPos').value }); };
+        window.updateSettings = () => { 
+            const val = document.getElementById('timerPos').value;
+            updateDoc(settingsRef, { timerPosition: val }); 
+            addLog('SETTING', `Timer Pos -> ${val}`);
+        };
 
-        // --- ACTIONS ---
+        // --- ACTIONS & LOGGING ---
         window.openSlotControl = (i) => { viewingSlotIdx = i; document.getElementById('slotModal').style.display = 'flex'; renderSlotModal(i); };
         window.closeSlotModal = () => { document.getElementById('slotModal').style.display = 'none'; viewingSlotIdx = -1; };
 
@@ -424,50 +435,88 @@
                 let txt = "DONE";
                 if(remSec > 0) { const m = Math.floor(remSec/60); const sc = Math.floor(remSec%60); txt = `${m}:${sc<10?'0'+sc:sc}`; }
                 timer.innerText = txt; timer.style.color = "var(--accent)";
-                ctrls.innerHTML = `<button class="btn btn-blue" onclick="editTimer(${i})">EDIT TIMER</button><button class="btn btn-warn" onclick="pauseSlot(${i})">PAUSE</button><button class="btn btn-red" onclick="stopSlot(${i})">STOP & SELESAI</button>`;
+                ctrls.innerHTML = `<button class="btn btn-blue" onclick="window.editTimer(${i})">EDIT TIMER</button><button class="btn btn-warn" onclick="window.pauseSlot(${i})">PAUSE</button><button class="btn btn-red" onclick="window.stopSlot(${i})">STOP & SELESAI</button>`;
             } else {
                 timer.innerText = "READY"; timer.style.color = "#fff";
-                ctrls.innerHTML = `<button class="btn btn-green" onclick="startSlot(${i})">START</button><button class="btn btn-red" onclick="kickSlot(${i})">HAPUS DARI SLOT</button>`;
+                ctrls.innerHTML = `<button class="btn btn-green" onclick="window.startSlot(${i})">START</button><button class="btn btn-red" onclick="window.kickSlot(${i})">HAPUS DARI SLOT</button>`;
             }
         }
 
-        window.startSlot = (i) => { if(confirm("Start?")) { runTransaction(db, async(t)=>{ const d = (await t.get(ref)).data(); d.chargingSlots[i].startTime = new Date(); t.update(ref, {chargingSlots:d.chargingSlots}); addLog('START', `Slot ${i+1}`); }); } };
-        window.stopSlot = (i) => { if(confirm("Stop?")) { runTransaction(db, async(t)=>{ const d=(await t.get(ref)).data(); d.chargingSlots[i] = null; if(d.waitingQueue.length > 0) { const next = d.waitingQueue.shift(); const dur = calcDur(next.startBattery, 98); d.chargingSlots[i] = {...next, startTime:null, durationMinutes:dur, targetLimit:98, readyTime:new Date(), qNo:next.qNo}; } t.update(ref, {chargingSlots:d.chargingSlots, waitingQueue:d.waitingQueue}); addLog('STOP', `Slot ${i+1}`); }); } };
-        window.editTimer = (i) => { const m = prompt("Menit:"); if(m) { runTransaction(db, async(t)=>{ const d=(await t.get(ref)).data(); d.chargingSlots[i].durationMinutes = parseInt(m); d.chargingSlots[i].startTime = new Date(); t.update(ref, {chargingSlots:d.chargingSlots}); addLog('EDIT', `S${i+1} -> ${m}m`); }); } };
-        window.pauseSlot = (i) => { if(confirm("Pause?")) { runTransaction(db, async(t)=>{ const d=(await t.get(ref)).data(); const s = d.chargingSlots[i]; if(s.startTime) { const st = s.startTime.toDate(); const rem = Math.max(0, (new Date(st.getTime() + s.durationMinutes*60000) - new Date())/60000); d.chargingSlots[i] = {...s, startTime:null, durationMinutes:rem}; t.update(ref, {chargingSlots:d.chargingSlots}); addLog('PAUSE', `S${i+1}`); } }); } };
-        window.kickSlot = (i) => { if(confirm("Kick?")) { runTransaction(db, async(t)=>{ const d=(await t.get(ref)).data(); d.chargingSlots[i] = null; t.update(ref, {chargingSlots:d.chargingSlots}); addLog('KICK', `S${i+1}`); }); } };
+        // Action Functions attached to window for HTML access
+        window.startSlot = (i) => { if(confirm("Start Charging?")) { runTransaction(db, async(t)=>{ const d = (await t.get(ref)).data(); d.chargingSlots[i].startTime = new Date(); t.update(ref, {chargingSlots:d.chargingSlots}); addLog('START', `Slot ${i+1} started manually`); }); } };
+        
+        window.stopSlot = (i) => { 
+            if(confirm("Stop & Clear Slot?")) { 
+                runTransaction(db, async(t)=>{ 
+                    const d=(await t.get(ref)).data(); 
+                    const oldPlat = d.chargingSlots[i].plat;
+                    d.chargingSlots[i] = null; 
+                    
+                    // Logic Auto Pull dari Antrian (Jika ada)
+                    if(d.waitingQueue.length > 0) { 
+                        // SORTING DULU BIAR YG NAIK YG NOMOR KECIL
+                        d.waitingQueue.sort((a,b) => a.qNo - b.qNo);
+                        const next = d.waitingQueue.shift(); 
+                        const dur = calcDur(next.startBattery, 98); 
+                        d.chargingSlots[i] = {...next, startTime:null, durationMinutes:dur, targetLimit:98, readyTime:new Date(), qNo:next.qNo}; 
+                        addLog('AUTO_PULL', `Queue #${next.qNo} moved to Slot ${i+1}`);
+                    }
+                    
+                    t.update(ref, {chargingSlots:d.chargingSlots, waitingQueue:d.waitingQueue}); 
+                    addLog('STOP', `Slot ${i+1} (${oldPlat}) stopped by Admin`); 
+                }); 
+            } 
+        };
+
+        window.editTimer = (i) => { const m = prompt("Masukkan menit baru:"); if(m) { runTransaction(db, async(t)=>{ const d=(await t.get(ref)).data(); d.chargingSlots[i].durationMinutes = parseInt(m); d.chargingSlots[i].startTime = new Date(); t.update(ref, {chargingSlots:d.chargingSlots}); addLog('EDIT_TIMER', `Slot ${i+1} set to ${m} mins`); }); } };
+        
+        window.pauseSlot = (i) => { if(confirm("Pause Timer?")) { runTransaction(db, async(t)=>{ const d=(await t.get(ref)).data(); const s = d.chargingSlots[i]; if(s.startTime) { const st = s.startTime.toDate(); const rem = Math.max(0, (new Date(st.getTime() + s.durationMinutes*60000) - new Date())/60000); d.chargingSlots[i] = {...s, startTime:null, durationMinutes:rem, status: 'PAUSED'}; t.update(ref, {chargingSlots:d.chargingSlots}); addLog('PAUSE', `Slot ${i+1} paused at ${rem.toFixed(1)}m`); } }); } };
+        
+        window.kickSlot = (i) => { if(confirm("Kick user (Hapus Paksa)?")) { runTransaction(db, async(t)=>{ const d=(await t.get(ref)).data(); const p = d.chargingSlots[i].plat; d.chargingSlots[i] = null; t.update(ref, {chargingSlots:d.chargingSlots}); addLog('KICK', `Removed ${p} from Slot ${i+1}`); }); } };
 
         window.deleteQ = (idx) => {
-            if(confirm("Hapus antrian ini? (Nomor TIDAK Mundur)")) {
-                runTransaction(db, async(t)=>{
-                    const d = (await t.get(ref)).data();
-                    let q = d.waitingQueue || [];
-                    const rem = q.splice(idx, 1)[0];
+            // Need to fetch fresh data to ensure index is correct after sort
+            runTransaction(db, async(t)=>{
+                const d = (await t.get(ref)).data();
+                let q = d.waitingQueue || [];
+                q.sort((a,b) => a.qNo - b.qNo); // Pastikan urutan sama dengan tampilan
+                
+                const rem = q[idx];
+                if(confirm(`Hapus antrian #${rem.qNo} (${rem.plat})?`)) {
+                    q.splice(idx, 1);
                     t.update(ref, {waitingQueue:q});
-                    addLog('DEL Q', `${rem.plat}`);
-                });
-            }
+                    addLog('DEL_QUEUE', `Removed #${rem.qNo} ${rem.plat}`);
+                }
+            });
         };
 
         window.moveQueueToSlot = () => {
             const qIdx = document.getElementById('qToSlotSrc').value;
             const sIdx = document.getElementById('qToSlotDest').value;
             if(qIdx < 0) return alert("Pilih Antrian!");
-            if(latestSlots[sIdx]!==null && !confirm("Slot isi. Timpa?")) return;
+            
             runTransaction(db, async(t)=>{
-                const d=(await t.get(ref)).data(); let q=d.waitingQueue||[];
+                const d=(await t.get(ref)).data(); 
+                let q=d.waitingQueue||[];
+                q.sort((a,b) => a.qNo - b.qNo); // Sync sort
+
+                if(d.chargingSlots[sIdx]!==null && !confirm(`Slot ${parseInt(sIdx)+1} terisi. Timpa?`)) return;
+
                 const item=q.splice(qIdx,1)[0];
                 const dur = calcDur(item.startBattery, 98);
-                d.chargingSlots[sIdx] = {...item, startTime:null, durationMinutes:dur, readyTime:new Date(), qNo:item.qNo}; // Keep Number
+                d.chargingSlots[sIdx] = {...item, startTime:null, durationMinutes:dur, readyTime:new Date(), qNo:item.qNo}; 
+                
                 t.update(ref, {chargingSlots:d.chargingSlots, waitingQueue:q});
-                addLog('MOVE', `${item.plat} -> S${parseInt(sIdx)+1}`);
+                addLog('FORCE_MOVE', `${item.plat} moved to Slot ${parseInt(sIdx)+1}`);
             });
         };
 
         window.autoFill = () => {
-            if(!confirm("Auto fill?")) return;
+            if(!confirm("Auto fill semua slot kosong dari antrian?")) return;
             runTransaction(db, async(t)=>{
                 const d=(await t.get(ref)).data(); let q=d.waitingQueue||[]; let s=d.chargingSlots;
+                q.sort((a,b) => a.qNo - b.qNo); // Priority by Number
+
                 let moved=0;
                 for(let i=0;i<3;i++) {
                     if(s[i]===null && q.length>0) {
@@ -475,17 +524,16 @@
                         const dur=calcDur(item.startBattery, 98);
                         s[i] = {...item, startTime:null, durationMinutes:dur, readyTime:new Date(), qNo:item.qNo};
                         moved++;
+                        addLog('AUTO_FILL', `${item.plat} -> Slot ${i+1}`);
                     }
                 }
-                if(moved>0) {
-                    t.update(ref, {chargingSlots:s, waitingQueue:q});
-                    addLog('AUTOFILL', `${moved} items`);
-                } else alert("Tidak ada yang dipindah");
+                if(moved>0) t.update(ref, {chargingSlots:s, waitingQueue:q});
+                else alert("Tidak ada yang dipindah (Slot penuh atau antrian kosong)");
             });
         };
 
         window.regQueue = () => {
-            const p=document.getElementById('qPlat').value.toUpperCase(), n=document.getElementById('qName').value.toUpperCase()||"ADMIN", b=parseInt(document.getElementById('qBat').value)||0;
+            const p=document.getElementById('qPlat').value.toUpperCase(), n=document.getElementById('qName').value.toUpperCase()||"ADMIN", b=parseInt(document.getElementById('qBat').value)||50;
             if(!p) return alert("Plat Kosong!");
             runTransaction(db, async(t)=>{
                 const d=(await t.get(ref)).data();
@@ -495,43 +543,33 @@
                 
                 q.push({plat:p, userName:n, wa:'-', startBattery:b, qNo:newNo});
                 t.update(ref, {waitingQueue:q, lastTicket: newNo});
-                addLog('REG', `${p} #${newNo}`);
+                addLog('MANUAL_REG', `Admin added ${p} to Queue (#${newNo})`);
             });
         };
 
-        // --- FITUR BARU: DAFTAR LANGSUNG ---
         window.directAssign = () => {
             const sIdx = document.getElementById('dirSlot').value;
             const p = document.getElementById('dirPlat').value.toUpperCase();
             const b = parseInt(document.getElementById('dirBat').value) || 50;
             
             if(!p) return alert("PLAT KOSONG!");
-            if(latestSlots[sIdx] !== null) return alert("SLOT SUDAH TERISI! STOP DULU ATAU PILIH SLOT LAIN.");
+            
+            runTransaction(db, async(t) => {
+                const d = (await t.get(ref)).data();
+                if(d.chargingSlots[sIdx] !== null && !confirm("Slot isi. Timpa?")) return;
 
-            if(confirm(`Masukan ${p} ke Slot ${parseInt(sIdx)+1}?`)) {
-                runTransaction(db, async(t) => {
-                    const d = (await t.get(ref)).data();
-                    const dur = calcDur(b, 98);
-                    
-                    // Generate Nomor Baru meskipun bypass
-                    let last = d.lastTicket || 0;
-                    let newNo = last + 1;
+                const dur = calcDur(b, 98);
+                let last = d.lastTicket || 0;
+                let newNo = last + 1; // Direct assign tetap ambil nomor tiket baru
 
-                    d.chargingSlots[sIdx] = {
-                        plat: p,
-                        userName: 'DIRECT ADMIN',
-                        wa: '-',
-                        startBattery: b,
-                        durationMinutes: dur,
-                        startTime: null, 
-                        targetLimit: 98,
-                        qNo: newNo
-                    };
-                    
-                    t.update(ref, { chargingSlots: d.chargingSlots, lastTicket: newNo });
-                    addLog('DIRECT', `${p} -> S${parseInt(sIdx)+1}`);
-                });
-            }
+                d.chargingSlots[sIdx] = {
+                    plat: p, userName: 'DIRECT ADMIN', wa: '-', startBattery: b,
+                    durationMinutes: dur, startTime: null, targetLimit: 98, qNo: newNo
+                };
+                
+                t.update(ref, { chargingSlots: d.chargingSlots, lastTicket: newNo });
+                addLog('DIRECT_IN', `Admin put ${p} directly to Slot ${parseInt(sIdx)+1}`);
+            });
         };
 
         window.returnToQueue = () => {
@@ -544,15 +582,15 @@
                 q.push({...item, startTime:null}); 
                 d.chargingSlots[s]=null;
                 t.update(ref, {chargingSlots:d.chargingSlots, waitingQueue:q});
-                addLog('RET', `${item.plat} -> Q`);
+                addLog('RETURN_Q', `Returned ${item.plat} from Slot ${parseInt(s)+1} to Queue`);
             });
         };
 
-        window.stopAll = () => { if(confirm("Stop All?")) { updateDoc(ref, {chargingSlots:[null,null,null]}); addLog('STOP ALL','-'); } };
-        window.resetDB = () => { if(confirm("RESET DB?")) { setDoc(ref, {chargingSlots:[null,null,null], waitingQueue:[], blockedList:[], lastTicket: 0}); addLog('RESET','-'); } };
+        window.stopAll = () => { if(confirm("BAHAYA: Stop Semua Slot?")) { updateDoc(ref, {chargingSlots:[null,null,null]}); addLog('EMERGENCY', 'STOP ALL SLOTS TRIGGERED'); } };
+        window.resetDB = () => { if(confirm("BAHAYA: Hapus Semua Data Antrian & Slot?")) { setDoc(ref, {chargingSlots:[null,null,null], waitingQueue:[], blockedList:[], lastTicket: 0}); addLog('SYSTEM', 'DATABASE RESET'); } };
 
-        // LOG
-        onSnapshot(query(logRef, orderBy("timestamp", "desc"), limit(20)), (snap)=>{
+        // --- LOGGER ---
+        onSnapshot(query(logRef, orderBy("timestamp", "desc"), limit(50)), (snap)=>{
             let h=''; 
             snap.forEach(doc=>{
                 const d=doc.data();
@@ -563,6 +601,7 @@
         });
         function addLog(a,d){ addDoc(logRef, {timestamp:new Date(), action:a, details:d}); }
 
+        // Calc Duration Logic
         const CHARGING_CURVE = [ [100, 0], [91, 10], [81, 26], [75, 32], [72, 35], [70, 40], [69, 41], [61, 47], [59, 49], [56, 50], [54, 51], [51, 56], [48, 58], [42, 58], [28, 66], [22, 72], [0, 95] ];
         function calcDur(start, target) {
             let s=95, t=0;
@@ -583,7 +622,7 @@
                         const m = Math.floor(remSec/60);
                         const sc = Math.floor(remSec%60);
                         txt = `${m}:${sc<10?'0'+sc:sc}`;
-                        // Update batre visual
+                        // Visual update batre mini
                         const tot = s.durationMinutes * 60;
                         const elap = (new Date() - st)/1000;
                         let p = elap/tot; if(p>1)p=1;
