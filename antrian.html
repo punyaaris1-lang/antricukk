@@ -6,11 +6,11 @@
     <title>FC KELAPA GADING - DISPLAY</title>
     <link href="https://fonts.googleapis.com/css2?family=Teko:wght@300;500;700&family=Orbitron:wght@400;700;900&family=JetBrains+Mono:wght@400;700;800&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        /* --- PALET WARNA (HANYA BIRU & KUNING) --- */
+        /* --- PALET WARNA --- */
         :root { 
             --bg: #000000; 
-            --accent: #CCFF00; /* Kuning Stabilo */
-            --blue: #00F0FF; /* Cyan/Biru Neon */
+            --accent: #CCFF00; /* KUNING STABILO */
+            --blue: #00F0FF; /* BIRU CYAN */
             --blue-dim: rgba(0, 240, 255, 0.4); 
             --blue-dark-btn: rgba(0, 240, 255, 0.1); 
             --span-bg-url: url('1763947427555.jpg');
@@ -22,83 +22,121 @@
             background: linear-gradient(rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.9)), url('1763947427555.jpg') no-repeat center center fixed;
             background-size: cover; color: #fff; margin: 0; overflow: hidden; width: 100vw; height: 100dvh; display: flex; flex-direction: column; 
         }
-        
+
         /* HEADER */
         .top-nav { height: 12vh; min-height: 60px; display: flex; flex-direction: column; justify-content: center; text-align: center; z-index: 10; position: relative; flex-shrink: 0; }
-        .main-title { font-family: 'Teko', sans-serif; font-size: clamp(30px, 5vh, 45px); font-weight: 700; line-height: 0.9; color: #fff; position: relative; display: inline-block; margin: 0; text-shadow: 0 0 5px rgba(0, 240, 255, 0.3); cursor: pointer; user-select: none; }
+        .main-title { font-family: 'Teko', sans-serif; font-size: clamp(30px, 5vh, 45px); font-weight: 700; line-height: 0.9; color: #fff; text-shadow: 0 0 5px rgba(0, 240, 255, 0.3); cursor: pointer; user-select: none; }
+        
+        /* SUB TITLE GLITCH */
         .brand-sub { 
             font-size: clamp(10px, 1.5vh, 12px); color: var(--accent); letter-spacing: 5px; font-weight: 700; margin-top: 5px; position: relative;
             animation: glitch-anim 5s infinite; 
         }
-        @keyframes glitch-anim {
-            0%, 92%, 95%, 100% { transform: skew(0deg); opacity: 1; text-shadow: none; }
-            93% { transform: skew(10deg); opacity: 0.8; text-shadow: 2px 0 var(--blue); }
-            94% { transform: skew(-10deg); opacity: 0.8; text-shadow: -2px 0 var(--red); }
-            96% { transform: skew(5deg); opacity: 0.9; }
-        }
-
-        /* FRONT VIEW CARD DESIGN */
+        
+        /* --- CARD DESIGN --- */
         #frontView { flex: 1; display: flex; justify-content: center; align-items: center; gap: 10px; position: relative; width: 100%; padding: 0 10px; }
         .slot-group { width: 31%; height: 90%; max-height: 300px; display: flex; flex-direction: column; align-items: center; position: relative; transition: 0.3s; }
         
         .onyx-card { 
-            position: relative; width: 100%; height: 90%; background: transparent; border-radius: 15px; 
+            position: relative; width: 100%; height: 90%; 
+            background: transparent; 
+            border-radius: 15px; 
             display: flex; flex-direction: column; align-items: center; justify-content: space-between; 
-            padding: 10px 5px; border: none; 
+            padding: 10px 5px; 
+            border: none; /* REQUEST: TANPA BORDER NORMAL */
             box-shadow: 0 0 20px rgba(0, 240, 255, 0.05); overflow: hidden; transition: 0.3s; 
             backdrop-filter: blur(5px);
         }
 
+        /* BACKGROUND SPANNING */
         .card-span-layer {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background-image: var(--span-bg-url); background-attachment: fixed; 
             background-position: center center; background-size: cover;
             opacity: 0.2; z-index: 0; 
-            filter: grayscale(100%) sepia(100%) hue-rotate(170deg) saturate(400%); pointer-events: none;
+            filter: grayscale(100%) sepia(100%) hue-rotate(170deg) saturate(400%); 
+            pointer-events: none;
         }
         
         .onyx-card > div:not(.card-span-layer) { position: relative; z-index: 2; }
         .slot-group:nth-child(2) { transform: translateY(-10px) scale(1.05); z-index: 5; }
         .slot-label { font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: clamp(10px, 1.5vh, 14px); margin-top: 10px; color: var(--blue); text-shadow: 0 0 10px var(--blue); letter-spacing: 2px; }
 
-        /* STATUS STYLES */
+        /* --- SNAKE BORDER ANIMATION (HANYA SAAT CHARGING) --- */
         @keyframes borderRotate { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         
-        .onyx-card.charging::before { content: ''; position: absolute; width: 200%; height: 200%; top: -50%; left: -50%; z-index: 1; background: conic-gradient(transparent, transparent, transparent, var(--accent)); animation: borderRotate 4s linear infinite; }
-        .onyx-card.charging::after { content: ''; position: absolute; inset: 3px; background: rgba(0,0,0,0.8); border-radius: 13px; z-index: 1; }
+        .onyx-card.charging::before { 
+            content: ''; position: absolute; width: 250%; height: 250%; 
+            top: -75%; left: -75%; z-index: 1; 
+            background: conic-gradient(transparent, transparent, transparent, var(--accent)); /* Ekor Ular Kuning */
+            animation: borderRotate 4s linear infinite; 
+        }
+        .onyx-card.charging::after { 
+            content: ''; position: absolute; inset: 2px; /* Jarak border */
+            background: rgba(0,0,0,0.9); /* Tutup tengahnya */
+            border-radius: 13px; z-index: 1; 
+        }
         .onyx-card.charging .oc-plat { color: var(--blue); text-shadow: 0 0 10px var(--blue); }
         .onyx-card.charging .oc-timer-small { color: var(--accent); }
 
-        .onyx-card.prep { box-shadow: 0 0 15px rgba(204, 255, 0, 0.3); border: 1px solid rgba(204, 255, 0, 0.3); }
-        .onyx-card.prep .oc-timer-small { color: var(--accent); animation: blinkerFast 1s infinite; }
-        .onyx-card.prep .oc-big-num { color: var(--blue-dim); }
-
-        .onyx-card.full { border: 1px solid rgba(255,255,255,0.5); box-shadow: 0 0 20px rgba(255,255,255,0.5); }
-        .onyx-card.full .oc-big-num { color: #fff; animation: blinker 1s infinite; text-shadow: 0 0 20px #fff; }
+        /* --- STATUS LAIN --- */
+        .onyx-card.prep { border: 1px solid var(--accent); box-shadow: 0 0 15px rgba(204, 255, 0, 0.2); }
+        .onyx-card.prep .oc-timer-small { color: var(--accent); animation: blinker 1s infinite; }
+        
+        .onyx-card.full { border: 1px solid #fff; box-shadow: 0 0 20px rgba(255,255,255,0.5); }
+        .onyx-card.full .oc-big-num { color: #fff; animation: blinker 1s infinite; }
         .onyx-card.full .oc-plat { color: #fff; }
         .onyx-card.full .oc-timer-small { color: #fff; }
-        
-        @keyframes blinker { 50% { opacity: 0.5; } }
-        @keyframes blinkerFast { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
 
-        /* COMPONENTS */
+        /* --- FONT STYLES --- */
         .oc-name { font-family: 'JetBrains Mono'; font-weight: 800; font-size: 10px; color: var(--blue); opacity: 0.8; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; text-align: center; }
+        
+        /* PLAT NOMOR RAPAT */
         .oc-plat { font-family:'Teko'; font-weight: 700; font-size: clamp(16px, 2.5vh, 24px); color: #fff; line-height: 1; letter-spacing: 0px; text-transform: uppercase; white-space: nowrap; border-bottom: 1px dashed var(--blue-dim); padding-bottom: 5px; width: 95%; text-align: center; margin-bottom: 2px; }
+        
         .oc-timer-small { font-family: 'Orbitron'; font-size: 11px; color: var(--blue-dim); font-weight: bold; width: 100%; text-align: center; min-height: 15px; }
         .oc-body { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; }
-        .oc-big-num { font-family: 'Orbitron'; font-weight: 900; color: var(--accent); font-size: clamp(60px, 8vh, 90px); text-shadow: 0 0 15px var(--accent); letter-spacing: -2px; line-height: 1; }
-        .num-ready { color: var(--blue-dim); text-shadow: none; font-size: 20px; letter-spacing: 2px; font-weight: bold; }
+        
+        /* NOMOR ANTRIAN AKTIF: BESAR & MEMANJANG (TEKO FONT) */
+        .oc-big-num { 
+            font-family: 'Teko', sans-serif; /* Pake Teko biar memanjang */
+            font-weight: 700; 
+            color: var(--accent); /* Warna Kuning Stabilo */
+            font-size: clamp(80px, 12vh, 130px); /* SANGAT BESAR TAPI FIT */
+            text-shadow: 0 0 20px var(--accent); 
+            line-height: 0.8; 
+            transform: scaleY(1.1); /* Sedikit ditarik ke atas */
+        }
+        
+        /* TEKS GLITCH GREY (M-L-U) */
+        .num-ready { 
+            color: #444; /* Grey */
+            font-family: 'Orbitron'; font-weight: 900; font-size: 50px; 
+            text-shadow: none; animation: text-glitch 3s infinite alternate; opacity: 0.5;
+        }
         .oc-ticket-label { font-size: 8px; color: var(--blue-dim); font-family: 'Inter'; letter-spacing: 2px; margin-top: -5px; }
         .oc-bat-info { font-family: 'Orbitron'; font-size: 12px; color: #fff; border-top: 1px dashed var(--blue-dim); padding-top: 5px; width: 100%; text-align: center; }
         .oc-progress-bg { position: absolute; bottom: 0; left: 0; width: 100%; height: 3px; background: rgba(255,255,255,0.1); z-index: 5; }
         .oc-progress-fill { height: 100%; background: var(--blue); width: 0%; transition: width 1s linear; }
 
-        /* USER VIEW */
+        /* ANIMASI GLITCH */
+        @keyframes text-glitch {
+            0% { opacity: 0.5; transform: skew(0deg); }
+            95% { opacity: 0.5; transform: skew(0deg); }
+            96% { opacity: 0.8; transform: skew(10deg); color: #666; }
+            97% { opacity: 0.8; transform: skew(-10deg); color: #333; }
+            98% { opacity: 0.5; transform: skew(0deg); }
+            100% { opacity: 0.5; transform: skew(0deg); }
+        }
+        @keyframes blinker { 50% { opacity: 0.5; } }
+        @keyframes blinkerFast { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+
+        /* USER VIEW & MODALS */
         #userView { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 500; flex-direction: column; align-items: center; padding-top: 20px; backdrop-filter: blur(15px); }
         .uv-ring-container { position: relative; width: 280px; height: 280px; display: flex; align-items: center; justify-content: center; margin: 20px 0; }
         .ring-blue { position: absolute; width: 100%; height: 100%; border-radius: 50%; border: 8px solid var(--blue); opacity: 0.3; }
-        .ring-queue { position: absolute; width: 100%; height: 100%; border-radius: 50%; border: 5px dashed var(--accent); opacity: 0; transition: 0.5s; box-shadow: 0 0 25px var(--accent); animation: partyMode 2s infinite ease-in-out; }
-        @keyframes partyMode { 0%, 100% { transform: scale(0.95) rotate(0deg); border-color: var(--accent); filter: hue-rotate(0deg); } 50% { transform: scale(1.1) rotate(180deg); border-color: var(--blue); box-shadow: 0 0 40px var(--blue); } }
+        .ring-queue { position: absolute; width: 100%; height: 100%; border-radius: 50%; border: 5px dashed var(--accent); opacity: 0; transition: 0.5s; box-shadow: 0 0 25px var(--accent); animation: spin 4s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         
         .uv-center-content { position: absolute; z-index: 10; text-align: center; }
         .btn-start-circle { width: 130px; height: 130px; border-radius: 50%; background: rgba(0,0,0,0.8); border: 3px solid var(--accent); color: var(--accent); font-family: 'Orbitron'; font-weight: 900; font-size: 22px; cursor: pointer; box-shadow: 0 0 30px var(--accent); }
@@ -137,9 +175,6 @@
         .reg-input { width: 100%; padding: 15px 10px; background: transparent; border: none; border-bottom: 2px solid var(--blue-dim); color: #fff; text-align: center; font-size: 24px; font-weight: bold; font-family: 'Teko', sans-serif; letter-spacing: 1px; }
         .btn-glossy { padding: 12px 0; border-radius: 50px; font-family: 'Orbitron'; font-weight: 900; font-size: 14px; color: #fff; cursor: pointer; background: var(--blue-dark-btn); border: 1px solid var(--blue); width:100%; margin-top:10px; box-shadow: 0 0 10px rgba(0, 240, 255, 0.1); }
         
-        /* DISABLE STYLE FOR BUTTON */
-        .btn-glossy:disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(1); }
-
         #playlistPopup { display: none; position: fixed; bottom: 85px; left: 0; width: 100%; background: #050a10; border-top: 2px solid var(--blue); height: 50vh; overflow-y: auto; z-index: 2500; padding: 10px; }
         .track-item { padding: 15px; border-bottom: 1px solid var(--blue-dim); color: var(--blue-dim); font-size: 12px; cursor: pointer; }
         .track-item.active { color: var(--accent); }
@@ -147,7 +182,7 @@
         @media screen and (max-width: 400px) {
             #frontView { gap: 5px; padding-top: 30px; }
             .onyx-card { height: 250px; }
-            .oc-big-num { font-size: 55px; } 
+            .oc-big-num { font-size: 100px; } /* Besar di HP Kecil */
         }
     </style>
 </head>
@@ -166,7 +201,7 @@
                 <div class="oc-plat" id="p1-plat">-</div>
                 <div class="oc-timer-small" id="p1-timer"></div>
                 <div class="oc-body">
-                    <div class="oc-big-num num-ready" id="p1-main">READY</div>
+                    <div class="oc-big-num num-ready" id="p1-main">M</div>
                     <div class="oc-ticket-label">QUEUE NO</div>
                 </div>
                 <div class="oc-bat-info" id="p1-bat">--%</div>
@@ -181,7 +216,7 @@
                 <div class="oc-plat" id="p2-plat">-</div>
                 <div class="oc-timer-small" id="p2-timer"></div>
                 <div class="oc-body">
-                    <div class="oc-big-num num-ready" id="p2-main">READY</div>
+                    <div class="oc-big-num num-ready" id="p2-main">L</div>
                     <div class="oc-ticket-label">QUEUE NO</div>
                 </div>
                 <div class="oc-bat-info" id="p2-bat">--%</div>
@@ -196,7 +231,7 @@
                 <div class="oc-plat" id="p3-plat">-</div>
                 <div class="oc-timer-small" id="p3-timer"></div>
                 <div class="oc-body">
-                    <div class="oc-big-num num-ready" id="p3-main">READY</div>
+                    <div class="oc-big-num num-ready" id="p3-main">U</div>
                     <div class="oc-ticket-label">QUEUE NO</div>
                 </div>
                 <div class="oc-bat-info" id="p3-bat">--%</div>
@@ -282,9 +317,8 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, doc, onSnapshot, runTransaction, updateDoc, collection, query, orderBy, limit, getDocs, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, doc, onSnapshot, runTransaction, updateDoc, collection, query, orderBy, limit, getDocs, where, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // --- KONFIGURASI ---
         const firebaseConfig = { apiKey: "AIzaSyALIlkIDALIk83K8s1htalvW6rmNNw02Go", authDomain: "sistem-antrian-b1c39.firebaseapp.com", projectId: "sistem-antrian-b1c39", storageBucket: "sistem-antrian-b1c39.firebasestorage.app", messagingSenderId: "454124587608", appId: "1:454124587608:web:34fbb0f5211067a67f982d" };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
@@ -293,13 +327,10 @@
 
         let latestSlots = [null, null, null];
         let latestQueue = [];
-        const STATION_LOC = { lat: -6.171583, lng: 106.899844 }; 
-        const MAX_DIST_KM = 0.2; 
-        let USE_FAKE_GPS = false;
         let currentUserPlat = localStorage.getItem('myPlat') || null;
         let manualClosed = false;
+        let isProcessing = false;
         let processingSlots = [false, false, false];
-        let isProcessing = false; // Global lock for button
 
         // --- UTILS ---
         function vibrateHP(ms = 50) { if (navigator.vibrate) navigator.vibrate(ms); }
@@ -313,11 +344,12 @@
         };
         function generateTicket() { const c = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; let r = '#'; for(let i=0;i<3;i++) r += c.charAt(Math.floor(Math.random()*c.length)); return r; }
 
-        // --- SMART REGISTRATION ---
+        // --- SMART LOGIN (HISTORY CHECK) ---
         window.checkHistory = async (el) => {
             window.formatPlatInput(el);
             const val = el.value;
             if(val.length > 3) {
+                // Cek data terakhir dari plat ini
                 const q = query(historyRef, where("plat", "==", val), orderBy("timestamp", "desc"), limit(1));
                 const snap = await getDocs(q);
                 if(!snap.empty) {
@@ -355,8 +387,6 @@
             updateFrontView(); updateUserView();
         });
 
-        // --- LOGIC FINGERPRINT ---
-        function getDist(lat1,lon1,lat2,lon2){ const R=6371; const dLat=(lat2-lat1)*Math.PI/180; const dLon=(lon2-lon1)*Math.PI/180; const a=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)*Math.sin(dLon/2); return R*(2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a))); }
         window.checkLocationAndOpen = () => {
             const btn = document.getElementById('fp-trigger');
             if(btn.classList.contains('dash-mode')) { forceView('user'); return; }
@@ -365,49 +395,14 @@
             navigator.geolocation.getCurrentPosition((pos) => {
                 const dist = getDist(pos.coords.latitude, pos.coords.longitude, STATION_LOC.lat, STATION_LOC.lng);
                 btn.classList.remove('scanning');
-                if(dist > MAX_DIST_KM) { showCustomAlert(`Terpantau oleh radar MLU jarak kamu masih terlalu jauh dari FC Kelapa Gading, sekitar: ${dist.toFixed(2)} KM`); } 
+                if(dist > MAX_DIST_KM) { showCustomAlert(`Anda terdeteksi masih ${dist.toFixed(2)} KM dari FC Kelapa Gading. Anda baru bisa mendaftar setelah berjarak minila 200 meter dari FC`); } 
                 else { document.getElementById('regModal').style.display = 'flex'; }
             }, (err) => { btn.classList.remove('scanning'); showCustomAlert("GPS ERROR"); }, {enableHighAccuracy: true, timeout: 10000});
         };
 
-        // --- SAFE TRANSACTIONS ---
-        window.triggerAutoStart = (idx) => {
-            if(processingSlots[idx]) return; 
-            processingSlots[idx] = true;
-            runTransaction(db, async(t)=>{
-                const d = (await t.get(ref)).data();
-                if(d.chargingSlots[idx] && d.chargingSlots[idx].status === 'PREPARING') {
-                    d.chargingSlots[idx].startTime = new Date();
-                    d.chargingSlots[idx].status = 'CHARGING';
-                    t.update(ref, {chargingSlots:d.chargingSlots});
-                }
-            }).finally(() => processingSlots[idx] = false);
-        };
-
-        window.autoClearAndPull = (idx) => {
-            if(processingSlots[idx]) return;
-            processingSlots[idx] = true;
-            runTransaction(db, async(t) => {
-                const d = (await t.get(ref)).data();
-                const q = d.waitingQueue || [];
-                const s = d.chargingSlots[idx];
-                if (!s || !s.startTime) return;
-
-                d.chargingSlots[idx] = null; 
-
-                if(q.length > 0) { 
-                    const next = q.shift();
-                    const dur = calculateDuration(next.startBattery, 98);
-                    d.chargingSlots[idx] = { ...next, startTime: null, durationMinutes: dur, targetLimit: 98, qNo:next.qNo, status: 'PREPARING', entryTime: new Date() };
-                }
-                t.update(ref, {chargingSlots: d.chargingSlots, waitingQueue: q});
-            }).catch(e => console.log(e)).finally(() => processingSlots[idx] = false);
-        };
-
-        // --- UPDATED SUBMIT REGISTRATION (ANTI DOUBLE CLICK + SMART INFO) ---
+        // --- SUBMIT REGISTRATION (AUTO RESET #1) ---
         window.submitReg = () => {
-            if(isProcessing) return; // Prevent double click
-            
+            if(isProcessing) return;
             const btn = document.getElementById('btnSubmitReg');
             const p = document.getElementById('regPlat').value.toUpperCase().replace(/\s/g, ''); 
             const n = document.getElementById('regName').value.toUpperCase(); 
@@ -416,32 +411,41 @@
 
             if(!p || !n || !w || isNaN(b)) { showCustomAlert("LENGKAPI DATA"); return; }
             
-            // LOCK BUTTON
-            isProcessing = true;
-            btn.disabled = true;
-            btn.innerText = "MEMPROSES...";
+            isProcessing = true; btn.disabled = true; btn.innerText = "MEMPROSES...";
             vibrateHP(50);
 
             runTransaction(db, async(t)=>{
-                const docSnap = await t.get(ref);
-                if(!docSnap.exists()) throw "DATABASE OFFLINE/HILANG";
-                const d = docSnap.data();
-                
+                const d = (await t.get(ref)).data() || {};
                 let s = d.chargingSlots || [null,null,null];
                 let q = d.waitingQueue || [];
                 
-                if(s.some(x=>x&&x.plat===p) || q.some(x=>x.plat===p)) throw "PLAT SUDAH TERDAFTAR!";
+                if(s.some(x=>x&&x.plat===p) || q.some(x=>x.plat===p)) throw "PLAT SUDAH ADA";
 
-                let dbLast = d.lastTicket || 0;
-                let maxInList = 0;
-                [...s, ...q].forEach(item => { if(item && item.qNo) { if(item.qNo > maxInList) maxInList = item.qNo; } });
-                let nextNo = Math.max(dbLast, maxInList) + 1;
+                // LOGIC: RESET JIKA KOSONG
+                const isSystemEmpty = s.every(slot => slot === null) && q.length === 0;
+                
+                let nextNo;
+                if (isSystemEmpty) {
+                    nextNo = 1; // Reset ke 1
+                } else {
+                    let dbLast = d.lastTicket || 0;
+                    let maxInList = 0;
+                    [...s, ...q].forEach(item => { 
+                        if(item && item.qNo) { 
+                            if(item.qNo > maxInList) maxInList = item.qNo; 
+                        } 
+                    });
+                    nextNo = Math.max(dbLast, maxInList) + 1;
+                }
 
                 const dur = calculateDuration(b, 98); 
                 const emptyIdx = s.findIndex(x=>x===null);
                 const ticketCode = generateTicket();
 
                 const userData = {plat:p, userName:n, wa:w, startBattery:b, qNo: nextNo, durationMinutes:dur, targetLimit:98, startTime:null, status: 'CHARGING', ticket: ticketCode};
+
+                // SIMPAN KE HISTORY UTK SMART LOGIN
+                addDoc(historyRef, { plat: p, userName: n, wa: w, timestamp: serverTimestamp() });
 
                 if(emptyIdx !== -1) { 
                     userData.startTime = null; 
@@ -450,95 +454,31 @@
                 } else { 
                     q.push(userData); 
                 }
-                t.set(ref, {chargingSlots:s, waitingQueue:q, lastTicket: nextNo}, {merge:true});
                 
-                // Return data for the next .then() block to use
+                t.set(ref, {chargingSlots:s, waitingQueue:q, lastTicket: nextNo}, {merge:true});
                 return { slotIndex: emptyIdx, newNo: nextNo }; 
-            }).then((result) => { 
+            }).then((res) => { 
                 document.getElementById('regModal').style.display='none'; 
                 localStorage.setItem('myPlat', p); currentUserPlat = p;
                 manualClosed = false; 
                 
-                // --- SMART INFO MESSAGE ---
-                if(result.slotIndex !== -1) {
-                    showCustomAlert(`BERHASIL!\nANDA MASUK KE SLOT ${result.slotIndex + 1}`);
+                // POP UP KONFIRMASI DETAIL
+                if(res.slotIndex !== -1) {
+                    showCustomAlert(`ANDA SUDAH BERHASIL MENDAFTAR\nSILAHKAN CHARGE MOTOR ANDA DI SLOT ${res.slotIndex + 1}`);
                 } else {
-                    // Cek siapa yang sedang dilayani (sedang di slot)
                     let activeSlots = latestSlots.filter(x => x && x.qNo).map(x => "#" + x.qNo).join(", ");
                     if(!activeSlots) activeSlots = "-";
-                    showCustomAlert(`BERHASIL DAFTAR.\nKARENA SLOT PENUH, ANDA MASUK ANTRIAN NO #${result.newNo}.\n\nSAAT INI SLOT SEDANG MELAYANI: ${activeSlots}`);
+                    showCustomAlert(`ANDA SUDAH BERHASIL MENDAFTAR\nMOHON MAAF SAAT INI SLOT SEDANG PENUH ANDA MENDAPAT ANTRIAN NO #${res.newNo}.\n\nSAAT INI SLOT SEDANG MELAYANI ANTRIAN: ${activeSlots}`);
                 }
 
                 forceView('user');
-            }).catch(e => {
-                showCustomAlert("GAGAL: " + e);
-            }).finally(() => {
-                // UNLOCK BUTTON
-                isProcessing = false;
-                btn.disabled = false;
-                btn.innerText = "DAPATKAN SLOT";
-            });
+            }).catch(e => showCustomAlert(e)).finally(() => { isProcessing = false; btn.disabled = false; btn.innerText = "DAPATKAN SLOT"; });
         };
 
-        window.userStart = () => { 
-            if(isProcessing) return;
-            showCustomConfirm("MULAI CHARGING?", () => { 
-                isProcessing = true;
-                runTransaction(db, async(t)=>{
-                    const docSnap = await t.get(ref);
-                    if(!docSnap.exists()) throw "DATA TIDAK DITEMUKAN";
-                    const d = docSnap.data();
-                    const s = d.chargingSlots;
-                    const idx = s.findIndex(x => x && x.plat === currentUserPlat);
-                    if(idx !== -1) {
-                        s[idx].startTime = new Date();
-                        s[idx].status = 'CHARGING';
-                        t.update(ref, {chargingSlots:s});
-                    }
-                }).catch(e=>console.log(e)).finally(()=>isProcessing=false);
-            }); 
-        };
-
-        window.userStop = () => { 
-            if(isProcessing) return;
-            showCustomConfirm("STOP & KELUAR?", () => { 
-                isProcessing = true;
-                runTransaction(db, async(t)=>{ 
-                    const docSnap = await t.get(ref);
-                    if(!docSnap.exists()) throw "DATA TIDAK DITEMUKAN";
-                    const d = docSnap.data(); 
-                    let s = d.chargingSlots; let q = d.waitingQueue;
-                    const idx = s.findIndex(x => x && x.plat === currentUserPlat);
-                    
-                    if(idx !== -1) {
-                        s[idx] = null; 
-                        if(q.length > 0) {
-                            const next = q.shift(); 
-                            const dur = calculateDuration(next.startBattery, 98);
-                            s[idx] = { ...next, startTime: null, durationMinutes: dur, status: 'PREPARING', entryTime: new Date() };
-                        }
-                        t.update(ref, {chargingSlots: s, waitingQueue: q}); 
-                    } else {
-                        const qIdx = q.findIndex(x=>x.plat===currentUserPlat);
-                        if(qIdx !== -1) { 
-                            q.splice(qIdx, 1); 
-                            t.update(ref, {waitingQueue:q}); 
-                        }
-                    }
-                }).then(() => { cleanupUser(); }).catch(e=>console.log(e)).finally(()=>isProcessing=false);
-            }); 
-        };
-
-        function cleanupUser() { localStorage.removeItem('myPlat'); currentUserPlat = null; manualClosed = false; window.location.reload(); }
-        window.forceView = (type) => { if(type === 'front') { document.getElementById('frontView').style.display = 'flex'; document.getElementById('userView').style.display = 'none'; document.getElementById('fpArea').style.display = 'flex'; } else { document.getElementById('frontView').style.display = 'none'; document.getElementById('userView').style.display = 'flex'; document.getElementById('fpArea').style.display = 'none'; } };
-        window.cardClick = (idx) => { const slot = latestSlots[idx]; if(!slot) return; if(currentUserPlat && currentUserPlat === slot.plat) { forceView('user'); return; } showCustomInput("INPUT PLAT:", (val) => { if(val.toUpperCase().replace(/[^A-Z0-9]/g,'') === slot.plat.replace(/[^A-Z0-9]/g,'')) { localStorage.setItem('myPlat', slot.plat); currentUserPlat = slot.plat; manualClosed = false; forceView('user'); } else { showCustomAlert("SALAH"); } }); };
-        window.manualBackToFront = () => { manualClosed = true; forceView('front'); };
-        window.showQueueList = () => { const list = document.getElementById('qDetailList'); list.innerHTML = latestQueue.length ? latestQueue.map(q => `<div style="padding:10px; border-bottom:1px solid var(--blue-dim); display:flex; justify-content:space-between; color:var(--blue-dim);"><span>${q.plat} (${q.userName})</span><span style="color:var(--accent); font-weight:bold;">#${q.qNo}</span></div>`).join('') : 'KOSONG'; document.getElementById('queueDetailModal').style.display='flex'; };
-        window.showCustomInput = (t,cb) => { const p=prompt(t); if(p)cb(p); };
-        window.checkLocationAndOpen = () => { if(currentUserPlat) { forceView('user'); return; } document.getElementById('regModal').style.display = 'flex'; };
-
-        // --- UPDATE FRONT VIEW LOGIC ---
+        // --- UPDATE FRONT VIEW LOGIC (M-L-U) ---
         function updateFrontView() {
+            const letterMap = ["M", "L", "U"]; // ARRAY HURUF M-L-U
+
             latestSlots.forEach((m, i) => {
                 const elCard = document.getElementById(`card-${i+1}`);
                 const elName = document.getElementById(`p${i+1}-name`);
@@ -546,41 +486,39 @@
                 const elTimer = document.getElementById(`p${i+1}-timer`);
                 const elMainNum = document.getElementById(`p${i+1}-main`);
                 const elBat = document.getElementById(`p${i+1}-bat`);
-                const elBar = document.getElementById(`p${i+1}-bar`); 
-                
-                elCard.classList.remove('charging', 'full', 'prep'); 
-                elBar.style.width = '0%';
-                
-                if (m && m.plat) { 
-                     elName.innerText = m.userName;
-                     elPlat.innerText = m.plat;
-                     
-                     let qDisplay = m.qNo ? (m.qNo < 10 ? '0'+m.qNo : m.qNo) : '--';
-                     elMainNum.innerText = qDisplay; 
-                     elMainNum.className = "oc-big-num";
-                     elBat.innerText = m.startBattery + "%";
+                const elBar = document.getElementById(`p${i+1}-bar`);
 
-                     if(m.status === 'PREPARING') {
+                elCard.classList.remove('charging', 'full', 'prep');
+                elBar.style.width = '0%';
+
+                if (m && m.plat) {
+                    elName.innerText = m.userName;
+                    elPlat.innerText = m.plat.replace(/\s/g, ''); 
+                    
+                    let qDisplay = m.qNo ? (m.qNo < 10 ? '0'+m.qNo : m.qNo) : '--';
+                    elMainNum.innerText = qDisplay; 
+                    elMainNum.className = "oc-big-num"; // KUNING BESAR
+                    elBat.innerText = m.startBattery + "%";
+
+                    if(m.status === 'PREPARING') {
                         elCard.classList.add('prep');
                         if(m.entryTime) {
                             const et = m.entryTime.toDate ? m.entryTime.toDate() : new Date(m.entryTime);
                             const diff = (new Date() - et) / 1000;
-                            const limit = 5 * 60; 
+                            const limit = 5 * 60; // 5 Menit
                             const left = Math.max(0, limit - diff);
                             const lm = Math.floor(left/60); const ls = Math.floor(left%60);
                             elTimer.innerText = `AUTO START (${lm}:${ls<10?'0'+ls:ls})`;
                             if(left <= 0) triggerAutoStart(i);
-                        } else {
-                            elTimer.innerText = "PREPARING...";
-                        }
-                     } 
-                     else if(m.startTime) {
+                        } else { elTimer.innerText = "PREPARING..."; }
+                    } 
+                    else if(m.startTime) {
                         const st = m.startTime.toDate ? m.startTime.toDate() : new Date(m.startTime);
                         const diff = (new Date(st.getTime() + m.durationMinutes*60000)) - new Date();
                         const remSec = diff / 1000;
                         if(remSec > 0) {
                             const mm = Math.floor(remSec/60); const ss = Math.floor(remSec%60);
-                            elTimer.innerText = ` ${mm}:${ss<10?'0'+ss:ss}`; 
+                            elTimer.innerText = `${mm}:${ss<10?'0'+ss:ss}`; // HAPUS KATA "ETA"
                             elCard.classList.add('charging');
                             const tot = m.durationMinutes * 60; const elap = (new Date() - st)/1000;
                             let p = elap/tot; if(p>1)p=1; elBar.style.width = (p*100)+"%";
@@ -590,22 +528,24 @@
                             if (overdue < graceLimit) {
                                 const left = graceLimit - overdue;
                                 const lm = Math.floor(left/60); const ls = Math.floor(left%60);
-                                elTimer.innerText = `SELESAI (${lm}:${ls<10?'0'+ls:ls})`; 
+                                elTimer.innerText = `SELESAI (${lm}:${ls<10?'0'+ls:ls})`;
                                 elCard.classList.add('full'); 
-                                elBar.style.width = "100%"; 
+                                elBar.style.width = "100%";
                             } else {
                                 elTimer.innerText = "AUTO CLEAR...";
                                 autoClearAndPull(i);
                             }
                         }
                     } else { 
-                         elTimer.innerText = "READY"; 
-                         elMainNum.className = "oc-big-num num-ready"; 
-                     }
-                } else { 
-                    elName.innerText = "AVAILABLE"; elPlat.innerText = "-"; 
-                    elTimer.innerText = ""; elMainNum.innerText = "READY"; 
-                    elMainNum.className = "oc-big-num num-ready"; 
+                        elTimer.innerText = "READY"; 
+                        elMainNum.className = "oc-big-num num-ready"; // GREY
+                    }
+                } else {
+                    // SLOT KOSONG: M - L - U
+                    elName.innerText = "AVAILABLE"; elPlat.innerText = "-";
+                    elTimer.innerText = ""; 
+                    elMainNum.innerText = letterMap[i]; // GANTI READY JADI M / L / U
+                    elMainNum.className = "oc-big-num num-ready"; // Class Grey Glitch
                     elBat.innerText = "--%";
                 }
             });
@@ -618,47 +558,7 @@
             for(let i=0; i<CHARGING_CURVE.length-1; i++){ if(target<=CHARGING_CURVE[i][0] && target>=CHARGING_CURVE[i+1][0]) { const r=(CHARGING_CURVE[i][0]-target)/(CHARGING_CURVE[i][0]-CHARGING_CURVE[i+1][0]); t=CHARGING_CURVE[i][1]+r*(CHARGING_CURVE[i+1][1]-CHARGING_CURVE[i+1][1]); break; } }
             return Math.max(1, Math.ceil(s - t));
         }
-        function updateUserView() {
-            if(!currentUserPlat || manualClosed) return;
-            const sIdx = latestSlots.findIndex(s=>s&&s.plat===currentUserPlat);
-            const qIdx = latestQueue.findIndex(q=>q.plat===currentUserPlat);
-            if(sIdx===-1 && qIdx===-1) return;
-            document.getElementById('userView').style.display='flex'; document.getElementById('frontView').style.display='none'; document.getElementById('fpArea').style.display='none';
-            const uInfo = document.getElementById('uvInfoDisplay'); const uBtn = document.getElementById('btnStartBig'); const uAct = document.getElementById('uvActionBtns');
-            document.getElementById('uvPlatDisplay').innerText = currentUserPlat;
-            if(sIdx !== -1) {
-                const s = latestSlots[sIdx];
-                document.getElementById('uvNameDisplay').innerText = s.userName;
-                document.getElementById('uvSlotTitle').innerText = "SLOT " + (sIdx+1);
-                
-                if(s.status === 'PREPARING') {
-                     uBtn.style.display='none'; uInfo.style.display='block';
-                     document.getElementById('uvTimerBig').innerText = "PREP";
-                     document.getElementById('uvStatusText').innerText = "AUTO START SOON";
-                     uAct.innerHTML = ``;
-                } else if(s.startTime) {
-                    uBtn.style.display='none'; uInfo.style.display='block';
-                    uAct.innerHTML = `<button class="btn-glossy" style="border-color:var(--red); color:var(--red);" onclick="window.userStop()">STOP</button>`;
-                    const st = s.startTime.toDate ? s.startTime.toDate() : new Date(s.startTime);
-                    const diff = (new Date(st.getTime() + s.durationMinutes*60000)) - new Date();
-                    const remSec = diff / 1000;
-                    if(remSec > 0) { const mm = Math.floor(remSec/60); const ss = Math.floor(remSec%60); document.getElementById('uvTimerBig').innerText = `${mm}:${ss<10?'0'+ss:ss}`; }
-                    else { document.getElementById('uvTimerBig').innerText = "FULL"; }
-                } else {
-                    uBtn.style.display='flex'; uInfo.style.display='none';
-                    uAct.innerHTML = `<button class="btn-glossy" style="border-color:var(--red); color:var(--red);" onclick="window.userStop()">BATAL</button>`;
-                }
-            } else if(qIdx !== -1) {
-                const q = latestQueue[qIdx];
-                document.getElementById('uvNameDisplay').innerText = q.userName;
-                document.getElementById('uvSlotTitle').innerText = "MENUNGGU...";
-                uBtn.style.display='none'; uInfo.style.display='block';
-                document.getElementById('uvTimerBig').innerText = "#" + q.qNo;
-                document.getElementById('uvStatusText').innerText = "NOMOR ANTRIAN";
-                uAct.innerHTML = `<button class="btn-glossy" style="border-color:var(--red); color:var(--red);" onclick="window.userStop()">BATAL ANTRI & KELUAR</button>`;
-            }
-        }
-        
+
         // --- MUSIC ---
         let playlist = []; const defaultList = ["Ada Apa Denganmu.mp3"]; 
         function parseTrack(item) { let url = "", title = ""; if (typeof item === 'object' && item.url) { url = item.url; title = item.title || "Track"; } else if (typeof item === 'string') { url = item; title = "Track"; } return { title: title, url: url }; }
@@ -681,6 +581,63 @@
         window.togglePlaylist = () => { const p = document.getElementById('playlistPopup'); p.style.display = p.style.display === 'block' ? 'none' : 'block'; };
         audio.addEventListener('ended', () => window.nextTrack());
 
+        // --- SAFE TRANSACTIONS ---
+        window.triggerAutoStart = (idx) => {
+            if(processingSlots[idx]) return; processingSlots[idx] = true;
+            runTransaction(db, async(t)=>{
+                const d = (await t.get(ref)).data();
+                if(d.chargingSlots[idx] && d.chargingSlots[idx].status === 'PREPARING') {
+                    d.chargingSlots[idx].startTime = new Date();
+                    d.chargingSlots[idx].status = 'CHARGING';
+                    t.update(ref, {chargingSlots:d.chargingSlots});
+                }
+            }).finally(() => processingSlots[idx] = false);
+        };
+
+        window.autoClearAndPull = (idx) => {
+            if(processingSlots[idx]) return; processingSlots[idx] = true;
+            runTransaction(db, async(t) => {
+                const d = (await t.get(ref)).data();
+                const q = d.waitingQueue || [];
+                if (!d.chargingSlots[idx] || !d.chargingSlots[idx].startTime) return; 
+                d.chargingSlots[idx] = null; 
+                if(q.length > 0) {
+                    const next = q.shift();
+                    const dur = calculateDuration(next.startBattery, 98);
+                    d.chargingSlots[idx] = { ...next, startTime: null, durationMinutes: dur, targetLimit: 98, qNo:next.qNo, status: 'PREPARING', entryTime: new Date() };
+                }
+                t.update(ref, {chargingSlots: d.chargingSlots, waitingQueue: q});
+            }).catch(e => console.log(e)).finally(() => processingSlots[idx] = false);
+        };
+
+        function getDist(lat1,lon1,lat2,lon2){ const R=6371; const dLat=(lat2-lat1)*Math.PI/180; const dLon=(lon2-lon1)*Math.PI/180; const a=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)*Math.sin(dLon/2); return R*(2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a))); }
+        window.checkLocationAndOpen = () => {
+            const btn = document.getElementById('fp-trigger');
+            if(btn.classList.contains('dash-mode')) { forceView('user'); return; }
+            vibrateHP(50); btn.classList.add('scanning');
+            if(USE_FAKE_GPS) { setTimeout(() => { btn.classList.remove('scanning'); document.getElementById('regModal').style.display = 'flex'; }, 800); return; }
+            navigator.geolocation.getCurrentPosition((pos) => {
+                const dist = getDist(pos.coords.latitude, pos.coords.longitude, STATION_LOC.lat, STATION_LOC.lng);
+                btn.classList.remove('scanning');
+                if(dist > MAX_DIST_KM) { showCustomAlert(`JAUH: ${dist.toFixed(2)} KM`); } 
+                else { document.getElementById('regModal').style.display = 'flex'; }
+            }, (err) => { btn.classList.remove('scanning'); showCustomAlert("GPS ERROR"); }, {enableHighAccuracy: true, timeout: 10000});
+        };
+
+        window.userStart = () => { showCustomConfirm("MULAI CHARGING?", () => { const idx = latestSlots.findIndex(s => s && s.plat === currentUserPlat); if(idx !== -1) { runTransaction(db, async(t)=>{ const d = (await t.get(ref)).data(); d.chargingSlots[idx].startTime = new Date(); d.chargingSlots[idx].status = 'CHARGING'; t.update(ref, {chargingSlots:d.chargingSlots}); }); } }); };
+        window.userStop = () => { showCustomConfirm("STOP & KELUAR?", () => { const idx = latestSlots.findIndex(s => s && s.plat === currentUserPlat); if (idx !== -1) { runTransaction(db, async(t)=>{ const d = (await t.get(ref)).data(); let s = d.chargingSlots; let q = d.waitingQueue; s[idx] = null; if(q.length > 0) { const next = q.shift(); const dur = calculateDuration(next.startBattery, 98); s[idx] = { ...next, startTime: null, durationMinutes: dur, status: 'PREPARING', entryTime: new Date() }; } t.update(ref, {chargingSlots: s, waitingQueue: q}); }).then(() => cleanupUser()); } else { runTransaction(db, async(t)=>{ const d = (await t.get(ref)).data(); let q = d.waitingQueue; const qIdx = q.findIndex(x=>x.plat===currentUserPlat); if(qIdx !== -1) { q.splice(qIdx, 1); t.update(ref, {waitingQueue:q}); } }).then(() => cleanupUser()); } }); };
+        
+        // Placeholder
+        window.userPause = () => showCustomAlert("Fitur PAUSE via Admin");
+        window.userEdit = () => showCustomAlert("Fitur EDIT via Admin");
+
+        function cleanupUser() { localStorage.removeItem('myPlat'); currentUserPlat = null; manualClosed = false; window.location.reload(); }
+        window.forceView = (type) => { if(type === 'front') { document.getElementById('frontView').style.display = 'flex'; document.getElementById('userView').style.display = 'none'; document.getElementById('fpArea').style.display = 'flex'; } else { document.getElementById('frontView').style.display = 'none'; document.getElementById('userView').style.display = 'flex'; document.getElementById('fpArea').style.display = 'none'; } };
+        window.cardClick = (idx) => { const slot = latestSlots[idx]; if(!slot) return; if(currentUserPlat && currentUserPlat === slot.plat) { forceView('user'); return; } showCustomInput("INPUT PLAT:", (val) => { if(val.toUpperCase().replace(/[^A-Z0-9]/g,'') === slot.plat.replace(/[^A-Z0-9]/g,'')) { localStorage.setItem('myPlat', slot.plat); currentUserPlat = slot.plat; manualClosed = false; forceView('user'); } else { showCustomAlert("SALAH"); } }); };
+        window.manualBackToFront = () => { manualClosed = true; forceView('front'); };
+        window.showQueueList = () => { const list = document.getElementById('qDetailList'); list.innerHTML = latestQueue.length ? latestQueue.map(q => `<div style="padding:10px; border-bottom:1px solid var(--blue-dim); display:flex; justify-content:space-between;"><span>${q.plat} (${q.userName})</span><span style="color:var(--accent); font-weight:bold;">#${q.qNo}</span></div>`).join('') : 'KOSONG'; document.getElementById('queueDetailModal').style.display='flex'; };
+        window.showCustomInput = (t,cb) => { const p=prompt(t); if(p)cb(p); };
+        
         setInterval(() => { updateFrontView(); updateUserView(); }, 1000);
     </script>
 </body>
