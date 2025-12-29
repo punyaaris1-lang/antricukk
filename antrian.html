@@ -16,18 +16,18 @@
             width: 100vw; height: 100dvh; 
             display: flex; flex-direction: column; 
         }
-        /* Overlay gelap transparan agar teks terbaca */
-        body::before { content: ''; position: absolute; inset: 0; background: rgba(0,0,0,0.7); z-index: 0; }
+        body::before { content: ''; position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(0,0,0,0.8), #000); z-index: 0; }
 
-        .top-nav { height: 15vh; display: flex; flex-direction: column; justify-content: center; text-align: center; z-index: 10; position: relative; }
+        /* PERBAIKAN NAVIGASI AGAR TIDAK TERTUTUP */
+        .top-nav { height: 15vh; display: flex; flex-direction: column; justify-content: center; text-align: center; z-index: 50; position: relative; }
         .main-title { font-size: 40px; font-weight: 700; line-height: 1; text-shadow: 0 0 15px rgba(0, 240, 255, 0.5); cursor: pointer; }
         .sub-title { font-size: 12px; color: var(--accent); letter-spacing: 2px; }
         
         .tut-btn {
-            background: rgba(0, 240, 255, 0.15); border: 1px solid var(--cyan); color: var(--cyan);
-            font-family: 'JetBrains Mono'; font-size: 10px; padding: 6px 15px; border-radius: 20px;
+            background: rgba(0, 240, 255, 0.1); border: 1px solid var(--cyan); color: var(--cyan);
+            font-family: 'JetBrains Mono'; font-size: 10px; padding: 5px 15px; border-radius: 20px;
             margin-top: 5px; cursor: pointer; width: fit-content; align-self: center;
-            position: relative; z-index: 9999; /* Z-INDEX TINGGI AGAR BISA DIKLIK */
+            position: relative; pointer-events: auto; /* MASTIKAN BISA DIKLIK */
         }
 
         #logo-area { flex: 1; display: flex; justify-content: center; align-items: flex-start; position: relative; z-index: 5; }
@@ -36,31 +36,31 @@
         .screen { position: absolute; inset: 0; top: 15vh; bottom: 0; display: none; flex-direction: column; z-index: 10; justify-content: center; align-items: center; }
         .screen.active { display: flex; }
 
-        /* SLOT CARD - FIX BACKGROUND & FONT */
+        /* PERBAIKAN TAMPILAN KARTU (Background lebih gelap agar tidak tabrakan) */
         #screen-slots { flex-direction: row; gap: 8px; padding: 0 10px; align-items: center; }
         .slot-container { width: 32%; height: 40vh; max-height: 350px; position: relative; }
         .slot-container:nth-child(2) { margin-top: -30px; }
         
         .onyx-card { 
             width: 100%; height: 100%; 
-            background: rgba(0, 0, 0, 0.5); /* TRANSPARAN */
-            border: 1px solid rgba(255,255,255,0.15); 
+            background: rgba(0, 0, 0, 0.85); /* Dibuat lebih gelap */
+            border: 1px solid rgba(255,255,255,0.2); 
             border-radius: 10px; 
             display: flex; flex-direction: column; 
-            backdrop-filter: blur(4px); /* EFEK GLASS */
+            backdrop-filter: blur(10px); 
             overflow: hidden;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
         
         .cc-top { padding: 10px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); height: 60px; display: flex; flex-direction: column; justify-content: center; }
-        .oc-name { font-size: 16px; font-weight: bold; color: #fff; line-height: 1; }
+        .oc-name { font-size: 16px; font-weight: bold; color: #fff; line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .oc-plat { font-family: 'JetBrains Mono'; font-size: 10px; color: var(--accent); margin-top: 2px; }
         
-        .cc-center { flex: 1; display: flex; align-items: center; justify-content: center; }
-        /* FONT NOMOR DIPERKECIL */
-        .oc-num { font-weight: 700; font-size: 60px; line-height: 1; margin-top: -10px; } 
+        /* PERBAIKAN POSISI NOMOR ANTRIAN */
+        .cc-center { flex: 1; display: flex; align-items: center; justify-content: center; padding-bottom: 15px; }
+        .oc-num { font-weight: 700; font-size: 55px; line-height: 1; margin-top: -10px; } 
         .filled .oc-num { color: var(--cyan); text-shadow: 0 0 15px rgba(0, 240, 255, 0.4); }
-        .empty .oc-num { color: rgba(255,255,255,0.2); }
+        .empty .oc-num { color: rgba(255,255,255,0.15); }
 
         .cc-bottom { padding: 10px; }
         .btn-select { width: 100%; padding: 8px; border: 1px solid var(--accent); background: rgba(204, 255, 0, 0.1); color: var(--accent); font-family: 'Teko'; font-weight: bold; font-size: 16px; cursor: pointer; display: none; }
@@ -76,52 +76,55 @@
         .stat-line { width: 1px; height: 40px; background: #555; }
 
         .fp-wrapper { display: flex; flex-direction: column; align-items: center; }
-        .fp-text { font-size: 20px; font-weight: bold; margin-bottom: 5px; color: #fff; text-shadow: 0 0 10px var(--cyan); }
+        .fp-text { font-size: 20px; font-weight: bold; margin-bottom: 5px; color: #fff; text-shadow: 0 0 10px var(--cyan); letter-spacing: 1px; }
         .fp-btn { 
             width: 70px; height: 70px; border: 1px solid var(--cyan); border-radius: 50%; 
             display: flex; justify-content: center; align-items: center; 
             background: rgba(0,0,0,0.5); cursor: pointer; 
-            box-shadow: 0 0 20px rgba(0,240,255,0.3); animation: pulse 2s infinite; transition: 0.3s;
+            box-shadow: 0 0 20px rgba(0,240,255,0.3); animation: pulse 2s infinite;
+            transition: all 0.3s ease;
         }
-        /* Mode tombol kembali ke dashboard */
-        .fp-btn.dash-mode { border-color: var(--accent); animation: none; box-shadow: 0 0 20px rgba(204, 255, 0, 0.4); }
-        .fp-btn.dash-mode .fp-svg { fill: var(--accent); }
-
+        .fp-btn:active { transform: scale(0.9); }
         .fp-svg { width: 35px; height: 35px; fill: #fff; }
         @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(0, 240, 255, 0.4); } 70% { box-shadow: 0 0 0 15px rgba(0, 240, 255, 0); } 100% { box-shadow: 0 0 0 0 rgba(0, 240, 255, 0); } }
 
-        /* DASHBOARD (ACTIVE CHARGING) */
-        .ad-container { text-align: center; padding-top: 20px; position: relative; width:100%; height:100%; }
+        /* DASHBOARD */
+        .ad-container { text-align: center; padding-top: 20px; position: relative; width: 100%; }
+        
         .btn-minimize { 
-            position: absolute; top: 10px; right: 10px; 
+            position: absolute; top: 0px; right: 20px; 
             background: rgba(255,255,255,0.1); border: 1px solid #555; 
-            color: #ccc; font-size: 10px; padding: 5px 10px; 
+            color: #ccc; font-size: 12px; padding: 5px 15px; 
             border-radius: 15px; cursor: pointer; z-index: 50; 
         }
-        .ad-big { font-size: 140px; font-weight: bold; color: var(--cyan); line-height: 0.8; margin-top: -10px; margin-bottom: 10px; }
-        .ad-btn { width: 80%; padding: 15px; background: var(--red); color: #fff; border: none; border-radius: 10px; font-size: 24px; font-family: 'Teko'; margin-top: 10px; }
+
+        .ad-big { 
+            font-size: 140px; font-weight: bold; color: var(--cyan); line-height: 0.8; 
+            margin-top: 10px; margin-bottom: 20px; 
+            text-shadow: 0 0 30px rgba(0,240,255,0.3);
+        }
+        .ad-btn { width: 80%; padding: 15px; background: var(--red); color: #fff; border: none; border-radius: 10px; font-size: 24px; font-family: 'Teko'; margin-top: 10px; cursor: pointer; }
 
         /* LOGIN */
-        #screen-login { justify-content: flex-start; padding-top: 50px; }
-        .login-box { width: 80%; background: rgba(0,0,0,0.9); border: 1px solid var(--cyan); padding: 20px; border-radius: 10px; }
-        .inp { width: 100%; background: none; border: none; border-bottom: 1px solid #555; color: var(--cyan); font-family: 'JetBrains Mono'; font-size: 18px; margin-bottom: 20px; padding: 5px; text-transform: uppercase; }
+        #screen-login { justify-content: flex-start; padding-top: 50px; background: rgba(0,0,0,0.95); z-index: 60; }
+        .login-box { width: 80%; background: #111; border: 1px solid var(--cyan); padding: 25px; border-radius: 15px; box-shadow: 0 0 30px rgba(0,240,255,0.1); }
+        .inp { width: 100%; background: none; border: none; border-bottom: 1px solid #555; color: var(--cyan); font-family: 'JetBrains Mono'; font-size: 18px; margin-bottom: 25px; padding: 5px; text-transform: uppercase; }
         
         /* TUTORIAL OVERLAY */
         #tutOverlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 10000; justify-content: center; align-items: center; flex-direction: column; }
-        .tut-text { color: #fff; font-size: 20px; margin-bottom: 20px; text-align: center; padding: 20px; border: 1px solid var(--accent); border-radius: 10px; background: #111; width: 80%; }
-        .tut-next { padding: 10px 30px; background: var(--cyan); border: none; font-weight: bold; border-radius: 20px; cursor: pointer; }
+        .tut-text { color: #fff; font-size: 24px; margin-bottom: 30px; text-align: center; padding: 20px; border: 1px solid var(--accent); border-radius: 10px; background: #111; width: 80%; box-shadow: 0 0 30px var(--accent); }
+        .tut-next { padding: 15px 40px; background: var(--cyan); border: none; font-weight: bold; font-size: 18px; border-radius: 30px; cursor: pointer; color: #000; }
         .highlight { border: 2px solid #fff !important; box-shadow: 0 0 30px #fff !important; z-index: 10001 !important; position: relative; background: #000 !important; }
 
         /* MUSIC PLAYER */
-        .music-player { pointer-events: auto; width: 220px; height: 35px; background: rgba(255,255,255,0.05); border-radius: 20px; display: flex; align-items: center; justify-content: space-between; padding: 0 15px; backdrop-filter: blur(5px); border: 1px solid rgba(255,255,255,0.1); margin-top: 20px; }
-        .mp-btn { background: none; border: none; color: var(--cyan); cursor: pointer; font-size: 16px; }
+        .music-player { pointer-events: auto; width: 240px; height: 40px; background: rgba(255,255,255,0.05); border-radius: 20px; display: flex; align-items: center; justify-content: space-between; padding: 0 15px; backdrop-filter: blur(5px); border: 1px solid rgba(255,255,255,0.1); margin-top: 20px; }
+        .mp-btn { background: none; border: none; color: var(--cyan); cursor: pointer; font-size: 18px; padding: 0 5px; }
         .mp-info { font-family: 'JetBrains Mono'; font-size: 12px; color: #aaa; white-space: nowrap; overflow: hidden; width: 120px; text-align: center; }
-        
-        /* QUEUE LIST MODAL */
-        #queueModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 5000; justify-content: center; align-items: center; backdrop-filter: blur(8px); }
     </style>
 </head>
 <body>
+
+    <audio id="audio" hidden></audio>
 
     <div class="top-nav">
         <div class="main-title" ondblclick="adm()">FC KELAPA GADING</div>
@@ -157,22 +160,22 @@
 
     <div id="screen-login" class="screen">
         <div class="login-box">
-            <div style="color:#888; margin-bottom:10px;">MASUKKAN DATA:</div>
-            <input id="inpPlat" class="inp" placeholder="PLAT NOMOR (B 1234 XX)">
-            <input id="inpName" class="inp" placeholder="NAMA ANDA">
-            <input id="inpWa" class="inp" placeholder="NO WHATSAPP">
+            <div style="color:#888; margin-bottom:10px; font-size: 14px; text-align: center;">MASUKKAN DATA UNTUK MENDAFTAR</div>
+            <input id="inpPlat" class="inp" placeholder="PLAT NOMOR (CONTOH: B 1234 XX)">
+            <input id="inpName" class="inp" placeholder="NAMA PANGGILAN">
+            <input id="inpWa" class="inp" placeholder="NO WHATSAPP (OPSIONAL)" type="tel">
             <div style="display:flex; gap:10px;">
-                <button onclick="doReg()" class="tut-btn" style="flex:1; background:var(--cyan); color:#000;">DAFTAR</button>
-                <button onclick="cancelReg()" class="tut-btn" style="flex:1; background:#333; border-color:#555; color:#fff;">BATAL</button>
+                <button onclick="doReg()" class="tut-btn" style="flex:1; background:var(--cyan); color:#000; font-weight:bold; font-size:14px; padding:10px;">DAFTAR</button>
+                <button onclick="cancelReg()" class="tut-btn" style="flex:1; background:#333; border-color:#555; color:#fff; font-size:14px; padding:10px;">BATAL</button>
             </div>
         </div>
     </div>
 
-    <div id="screen-dash" class="screen" style="background:rgba(0,0,0,0.9);">
+    <div id="screen-dash" class="screen" style="background:rgba(0,0,0,0.95);">
         <div class="ad-container">
-            <button class="btn-minimize" onclick="toggleDash()">▼ LIHAT ANTRIAN</button>
-            <div style="font-size:24px; color:var(--accent); margin-top:20px;">ANDA SEDANG MENGISI</div>
-            <div id="ad-slot" style="font-size:40px; font-weight:bold;">SLOT 1</div>
+            <button class="btn-minimize" onclick="toggleDash()">▼ LIHAT SLOT LAIN</button>
+            <div style="font-size:24px; color:var(--accent); margin-top:40px;">ANDA SEDANG MENGISI</div>
+            <div id="ad-slot" style="font-size:40px; font-weight:bold; color: #fff;">SLOT 1</div>
             <div id="ad-plat" style="font-family:'JetBrains Mono'; color:#aaa; margin-bottom:10px;">B 1234 XYZ</div>
             <div id="ad-no" class="ad-big">#12</div>
             <button class="ad-btn" onclick="stopSelf()">SELESAI CHARGING</button>
@@ -183,13 +186,13 @@
         <div class="stats-wrapper">
             <div class="stat-box"><div class="stat-num" id="slotVal">0</div><div class="stat-label">TERSEDIA</div></div>
             <div class="stat-line"></div>
-            <div class="stat-box clickable" id="qBox" onclick="showQueueList()"><div class="stat-num" id="qVal">0</div><div class="stat-label">ANTRIAN ⓘ</div></div>
+            <div class="stat-box" id="qBox" onclick="showQ()"><div class="stat-num" id="qVal">0</div><div class="stat-label">ANTRIAN ⓘ</div></div>
         </div>
         <div class="fp-wrapper">
             <div class="fp-text" id="fpText">DAFTAR</div>
             <div class="fp-container">
                 <div class="fp-btn" id="fpBtn" onclick="mainAction()">
-                    <svg class="fp-svg" viewBox="0 0 24 24"><path d="M17.81 4.47c-.08 0-.16-.02-.23-.06C15.66 3.42 14 3 12.01 3c-1.98 0-3.86.47-5.57 1.41-.24.13-.54.04-.68-.2-.13-.24-.04-.55.2-.68C7.82 2.52 9.86 2 12.01 2c2.13 0 3.99.47 6.03 1.52.25.13.34.43.21.67-.09.18-.26.28-.44.28zM3.5 9.72c-.1 0-.2-.03-.29-.09-.23-.16-.28-.47-.12-.7.99-1.4 2.25-2.5 3.75-3.27C9.98 4.04 14 4.03 17.15 5.65c1.5.77 2.76 1.86 3.75 3.25.16.22.11.54-.12.7-.23.16-.54.11-.7-.12-.9-1.26-2.04-2.25-3.39-2.94-2.87-1.47-6.54-1.47-9.4.01-1.36.7-2.5 1.7-3.4 2.96-.08.14-.23.21-.39.21zm6.25 12.07c-.13 0-.26-.05-.35-.15-.87-.87-1.34-1.43-2.01-2.64-.69-1.23-1.05-2.73-1.05-4.34 0-2.97 2.54-5.39 5.66-5.39s5.66 2.42 5.66 5.39c0 .28-.22.5-.5.5s-.5-.22-.5-.5c0-2.42-2.09-4.39-4.66-4.39-2.57 0-4.66 1.97-4.66 4.39 0 1.44.32 2.77.93 3.85.64 1.15 1.08 1.64 1.85 2.42.19.2.19.51 0 .71-.11.1-.24.15-.37.15zm7.17-1.85c-1.19 0-2.24-.3-3.1-.89-1.49-1.01-2.38-2.65-2.38-4.39 0-.28.22-.5.5s.5.22.5.5c0 1.41.72 2.74 1.94 3.56.71.48 1.54.71 2.54.71.24 0 .64-.03 1.04-.1.27-.05.53.13.58.41.05.27-.13.53-.41.58-.57.11-1.07.12-1.21.12zM14.91 22c-.04 0-.09-.01-.13-.02-1.59-.44-2.63-1.03-3.72-2.1-1.4-1.39-2.17-3.24-2.17-5.22 0-1.62 1.38-2.94 3.08-2.94 1.7 0 3.08 1.32 3.08 2.94 0 1.07.93 1.94 2.08 1.94s2.08-.87 2.08-1.94c0-3.77-3.25-6.83-7.25-6.83-2.84 0-5.44 1.58-6.45 3.94-.11.25-.41.37-.67.26-.25-.11-.37-.41-.26-.67 1.13-2.62 4.07-4.39 7.38-4.39 4.53 0 8.25 3.42 8.25 7.69 0 1.62-1.38 2.94-3.08 2.94s-3.08-1.32-3.08-2.94c0-1.07-.93-1.94-2.08-1.94s-2.08.87-2.08 1.94c0 1.71.66 3.31 1.87 4.51.95.94 1.86 1.46 3.27 1.85.27.07.42.35.35.61-.05.23-.26.38-.47.38z"/></svg>
+                    <svg class="fp-svg" id="fpSvg" viewBox="0 0 24 24"><path d="M17.81 4.47c-.08 0-.16-.02-.23-.06C15.66 3.42 14 3 12.01 3c-1.98 0-3.86.47-5.57 1.41-.24.13-.54.04-.68-.2-.13-.24-.04-.55.2-.68C7.82 2.52 9.86 2 12.01 2c2.13 0 3.99.47 6.03 1.52.25.13.34.43.21.67-.09.18-.26.28-.44.28zM3.5 9.72c-.1 0-.2-.03-.29-.09-.23-.16-.28-.47-.12-.7.99-1.4 2.25-2.5 3.75-3.27C9.98 4.04 14 4.03 17.15 5.65c1.5.77 2.76 1.86 3.75 3.25.16.22.11.54-.12.7-.23.16-.54.11-.7-.12-.9-1.26-2.04-2.25-3.39-2.94-2.87-1.47-6.54-1.47-9.4.01-1.36.7-2.5 1.7-3.4 2.96-.08.14-.23.21-.39.21zm6.25 12.07c-.13 0-.26-.05-.35-.15-.87-.87-1.34-1.43-2.01-2.64-.69-1.23-1.05-2.73-1.05-4.34 0-2.97 2.54-5.39 5.66-5.39s5.66 2.42 5.66 5.39c0 .28-.22.5-.5.5s-.5-.22-.5-.5c0-2.42-2.09-4.39-4.66-4.39-2.57 0-4.66 1.97-4.66 4.39 0 1.44.32 2.77.93 3.85.64 1.15 1.08 1.64 1.85 2.42.19.2.19.51 0 .71-.11.1-.24.15-.37.15zm7.17-1.85c-1.19 0-2.24-.3-3.1-.89-1.49-1.01-2.38-2.65-2.38-4.39 0-.28.22-.5.5s.5.22.5.5c0 1.41.72 2.74 1.94 3.56.71.48 1.54.71 2.54.71.24 0 .64-.03 1.04-.1.27-.05.53.13.58.41.05.27-.13.53-.41.58-.57.11-1.07.12-1.21.12zM14.91 22c-.04 0-.09-.01-.13-.02-1.59-.44-2.63-1.03-3.72-2.1-1.4-1.39-2.17-3.24-2.17-5.22 0-1.62 1.38-2.94 3.08-2.94 1.7 0 3.08 1.32 3.08 2.94 0 1.07.93 1.94 2.08 1.94s2.08-.87 2.08-1.94c0-3.77-3.25-6.83-7.25-6.83-2.84 0-5.44 1.58-6.45 3.94-.11.25-.41.37-.67.26-.25-.11-.37-.41-.26-.67 1.13-2.62 4.07-4.39 7.38-4.39 4.53 0 8.25 3.42 8.25 7.69 0 1.62-1.38 2.94-3.08 2.94s-3.08-1.32-3.08-2.94c0-1.07-.93-1.94-2.08-1.94s-2.08.87-2.08 1.94c0 1.71.66 3.31 1.87 4.51.95.94 1.86 1.46 3.27 1.85.27.07.42.35.35.61-.05.23-.26.38-.47.38z"/></svg>
                 </div>
             </div>
         </div>
@@ -197,7 +200,7 @@
         <div class="music-player">
             <button class="mp-btn" onclick="prevTrack()">⏮</button>
             <div class="mp-info" id="mpTitle">MUSIC PLAYER</div>
-            <button class="mp-btn" onclick="togglePlay()" id="mpPlayBtn">⏯</button>
+            <button class="mp-btn" onclick="togglePlay()" id="mpPlayBtn">▶</button>
             <button class="mp-btn" onclick="nextTrack()">⏭</button>
         </div>
     </div>
@@ -207,13 +210,9 @@
         <button class="tut-next" onclick="nextTut()">LANJUT</button>
     </div>
 
-    <div id="queueModal" class="modal"><div class="modal-box"><h3 style="color:var(--cyan);">LIST ANTRIAN</h3><div id="queueListDetail" style="max-height:200px; overflow-y:auto; text-align:left; color:#888; font-size:14px; font-family:'JetBrains Mono'; margin-bottom:15px;"></div><button onclick="document.getElementById('queueModal').style.display='none'" class="btn-g">TUTUP</button></div></div>
-
-    <audio id="audio" crossorigin="anonymous"></audio>
-
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, doc, onSnapshot, runTransaction, collection, addDoc, query, where, getDocs, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, doc, onSnapshot, runTransaction, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const app = initializeApp({ apiKey: "AIzaSyALIlkIDALIk83K8s1htalvW6rmNNw02Go", authDomain: "sistem-antrian-b1c39.firebaseapp.com", projectId: "sistem-antrian-b1c39" });
         const db = getFirestore(app);
@@ -224,27 +223,80 @@
         let slots = [null,null,null]; let queue = [];
         let mySlot = -1; let dashMin = false;
 
-        // PLAYLIST EMBEDDED
+        // PLAYLIST UPDATED (DATA DARI USER)
         const playlist = [
           { title: "Ada Apa Denganmu", url: "https://mlump3player.netlify.app/Ada%20Apa%20Denganmu.mp3" },
           { title: "Anji - Menunggu Kamu", url: "https://mlump3player.netlify.app/anji-menunggu-kamu.mp3" },
           { title: "Anugerah Terindah", url: "https://mlump3player.netlify.app/Anugerah%20Terindah%20Yang%20Pernah%20Kumiliki.mp3" },
-          { title: "Asalkan Kau Bahagia", url: "https://mlump3player.netlify.app/armada_asalkan_kau_bahagia.mp3" },
-          { title: "Harusnya Aku", url: "https://mlump3player.netlify.app/armada_harusnya_aku.mp3" },
+          { title: "Armada - Asalkan Kau Bahagia", url: "https://mlump3player.netlify.app/armada_asalkan_kau_bahagia.mp3" },
+          { title: "Armada - Harusnya Aku", url: "https://mlump3player.netlify.app/armada_harusnya_aku.mp3" },
+          { title: "Cokelat - Bendera", url: "https://mlump3player.netlify.app/Bendera%20-%20Cokelat%20-%202003.mp3" },
           { title: "Bintang Di Surga", url: "https://mlump3player.netlify.app/Bintang%20Di%20Surga.mp3" },
           { title: "Bon Jovi - Always", url: "https://mlump3player.netlify.app/Bon%20Jovi%20-%20Always%20.MP3" },
+          { title: "Bon Jovi - Be There For You", url: "https://mlump3player.netlify.app/Bon%20Jovi%20-%20I'll%20Be%20There%20For%20You%20.MP3" },
           { title: "Bon Jovi - It's My Life", url: "https://mlump3player.netlify.app/Bon%20Jovi%20-%20Its%20My%20Life%20.mp3" },
-          { title: "Mungkin Nanti", url: "https://mlump3player.netlify.app/Mungkin%20Nanti.mp3" },
+          { title: "Bon Jovi - Lay Your Hands", url: "https://mlump3player.netlify.app/Bon%20Jovi%20-%20Lay%20Your%20Hands%20On%20Me.MP3" },
+          { title: "Bon Jovi - Livin On A Prayer", url: "https://mlump3player.netlify.app/Bon%20Jovi%20-%20Livin'%20On%20A%20Prayer%20.MP3" },
+          { title: "Bon Jovi - House Not For Sale", url: "https://mlump3player.netlify.app/Bon%20Jovi%20-%20This%20house%20is%20not%20for%20sale.mp3" },
+          { title: "Bon Jovi - Who Says", url: "https://mlump3player.netlify.app/Bon%20Jovi%20-%20Who%20Says%20You%20Can't%20Go%20Home%20%5BDuet%5D.mp3" },
+          { title: "Bon Jovi - You Give Love", url: "https://mlump3player.netlify.app/Bon%20Jovi%20-%20You%20Give%20Love%20A%20Bad%20Name.mp3" },
+          { title: "Potret - Bunda", url: "https://mlump3player.netlify.app/Bunda%20-%20Potret%20-%201997.mp3" },
+          { title: "Dewa 19 - Siti Nurbaya", url: "https://mlump3player.netlify.app/Cukup%20Siti%20Nurbaya%20-%20Dewa%2019%20-%201995.mp3" },
+          { title: "SO7 - Dan", url: "https://mlump3player.netlify.app/Dan%20-%20Sheila%20On%207%20-%201999.mp3" },
+          { title: "Fourtwnty - Mangu", url: "https://mlump3player.netlify.app/Fourtwnty%20-%20Mangu%20(Official%20Lyric%20Visualizer).mp3" },
+          { title: "Iwan Fals - Galang Rambu", url: "https://mlump3player.netlify.app/Galang%20Rambu%20Anarki%20-%20Iwan%20Fals%20-%201982.mp3" },
+          { title: "Iwan Fals - Oemar Bakri", url: "https://mlump3player.netlify.app/Guru%20Oemar%20Bakri%20-%20Iwan%20Fals%20-%201981.mp3" },
+          { title: "Gigi - Janji", url: "https://mlump3player.netlify.app/Janji%20-%20Gigi%20-%201995.mp3" },
+          { title: "Judika - Bagaimana Kalau", url: "https://mlump3player.netlify.app/Judika%20-%20Bagaimana%20Kalau%20Aku%20Tidak%20Baik%20-%20Baik%20Saja.mp3" },
+          { title: "Judika - Putus atau Terus", url: "https://mlump3player.netlify.app/Judika%20-%20Putus%20atau%20Terus%20(Official%20Music%20Video).mp3" },
+          { title: "Padi - Mahadewi", url: "https://mlump3player.netlify.app/Mahadewi%20-%20Padi%20-%201999.mp3" },
+          { title: "SO7 - Melompat Lebih Tinggi", url: "https://mlump3player.netlify.app/Melompat%20Lebih%20Tinggi%20-%20Sheila%20on%207%20-%202003.mp3" },
+          { title: "Anggun - Mimpi", url: "https://mlump3player.netlify.app/Mimpi%20-%20Anggun%20C.%20Sasmi%20-%201990.mp3" },
+          { title: "Mix Lagu Pop Indo", url: "https://mlump3player.netlify.app/Mix%20Lagu%20Pop%20Indonesia.mp3" },
+          { title: "Peterpan - Mungkin Nanti", url: "https://mlump3player.netlify.app/Mungkin%20Nanti.mp3" },
+          { title: "No Doubt - Don't Speak", url: "https://mlump3player.netlify.app/No%20Doubt%20-%20Don't%20Speak.mp3" },
           { title: "Padi - Kasih Tak Sampai", url: "https://mlump3player.netlify.app/PADI%20-%20Kasih%20Tak%20Sampai.mp3" },
-          { title: "Sheila On 7 - Dan", url: "https://mlump3player.netlify.app/Dan%20-%20Sheila%20On%207%20-%201999.mp3" }
+          { title: "Padi - Semua Tak Sama", url: "https://mlump3player.netlify.app/PADI%20-%20Semua%20Tak%20Sama.mp3" },
+          { title: "Jamrud - Pelangi Di Matamu", url: "https://mlump3player.netlify.app/Pelangi%20Di%20Matamu.mp3" },
+          { title: "Iwan Fals - Pesawat Tempurku", url: "https://mlump3player.netlify.app/Pesawat%20Tempurku%20-%20Iwan%20Fals%20-%201987.mp3" },
+          { title: "Iwan Fals - Sarjana Muda", url: "https://mlump3player.netlify.app/Sarjana%20Muda%20-%20Iwan%20Fals%20-%201981.mp3" },
+          { title: "SO7 - Saat Lanjut Usia", url: "https://mlump3player.netlify.app/Sheila%20On%207%20-%20Saat%20Aku%20Lanjut%20Usia%20(Official%20Music%20Video)%20(320).mp3" },
+          { title: "Slank - Terlalu Manis", url: "https://mlump3player.netlify.app/Slank%20-%20Terlalu%20Manis.mp3" },
+          { title: "Padi - Sobat", url: "https://mlump3player.netlify.app/Sobat%20-%20Padi%20-%201999.mp3" },
+          { title: "Iwan Fals - Sore Tugu Pancoran", url: "https://mlump3player.netlify.app/Sore%20Tugu%20Pancoran.mp3" },
+          { title: "Stevie B - Dream About You", url: "https://mlump3player.netlify.app/Stevie%20B-Dream%20About%20You.mp3" },
+          { title: "Stinky - Mungkinkah", url: "https://mlump3player.netlify.app/Stinky%20-%20Mungkinkah%20(Official%20Lyric%20Video).mp3" },
+          { title: "Iwan Fals - Wakil Rakyat", url: "https://mlump3player.netlify.app/Surat%20Buat%20Wakil%20Rakyat.mp3" },
+          { title: "Jamrud - Surti Tejo", url: "https://mlump3player.netlify.app/Surti%20Tejo%20(Acoustic).mp3" },
+          { title: "Gigi - Terbang", url: "https://mlump3player.netlify.app/Terbang%20-%20Gigi%20-%201997.mp3" },
+          { title: "Slank - Terbunuh Sepi", url: "https://mlump3player.netlify.app/Terbunuh%20Sepi%20-%20Slank%20-%201994.mp3" },
+          { title: "Sheila On 7 - Terima Kasih", url: "https://mlump3player.netlify.app/Terima%20Kasih.mp3" },
+          { title: "Iwan Fals - Ujung Aspal", url: "https://mlump3player.netlify.app/Ujung%20Aspal%20Pondok%20Gede.mp3" },
+          { title: "Virgoun - Surat Cinta", url: "https://mlump3player.netlify.app/Virgoun%20-%20Surat%20Cinta%20Untuk%20Starla.mp3" }
         ];
         
-        const audio = $('audio'); let curTrk = 0;
+        let curTrk = 0;
         function $(id) { return document.getElementById(id); }
+        const audio = $('audio'); // SEKARANG ELEMEN INI ADA DI BODY
 
         // AUDIO CONTROLS
-        window.playTrack = (i) => { curTrk=i; audio.src=playlist[i].url; $('mpTitle').innerText=playlist[i].title; audio.play(); $('mpPlayBtn').innerText="⏸"; };
-        window.togglePlay = () => { if(audio.paused) { if(!audio.src) window.playTrack(0); else audio.play(); $('mpPlayBtn').innerText="⏸"; } else { audio.pause(); $('mpPlayBtn').innerText="⏯"; } };
+        window.playTrack = (i) => { 
+            curTrk=i; 
+            audio.src=playlist[i].url; 
+            $('mpTitle').innerText=playlist[i].title; 
+            audio.play().catch(e=>console.log("Audio Error:",e)); 
+            $('mpPlayBtn').innerText="⏸"; 
+        };
+        window.togglePlay = () => { 
+            if(audio.paused) { 
+                if(!audio.src) window.playTrack(0); 
+                else audio.play(); 
+                $('mpPlayBtn').innerText="⏸"; 
+            } else { 
+                audio.pause(); 
+                $('mpPlayBtn').innerText="▶"; 
+            } 
+        };
         window.nextTrack = () => { curTrk=(curTrk+1)%playlist.length; window.playTrack(curTrk); };
         window.prevTrack = () => { curTrk=(curTrk-1+playlist.length)%playlist.length; window.playTrack(curTrk); };
         audio.addEventListener('ended', window.nextTrack);
@@ -256,30 +308,26 @@
         function showTut() {
             document.querySelectorAll('.highlight').forEach(e=>e.classList.remove('highlight'));
             const txt = $('tutText');
-            // Pastikan layer terlihat
-            if(tutStep===0) { 
-                txt.innerText="1. DAFTAR: Klik Tombol Sidik Jari ini."; 
-                $('fpBtn').classList.add('highlight'); 
-            }
-            else if(tutStep===1) { 
-                txt.innerText="2. PILIH SLOT: Jika kotak kosong, klik untuk cas."; 
-                $('card-0').classList.add('highlight'); 
-                // Paksa tampilkan slot
-                if(mySlot!==-1 && !dashMin) toggleDash(); 
-            }
-            else if(tutStep===2) { 
-                txt.innerText="3. ANTRIAN: Cek jumlah antrian di sini."; 
-                $('qBox').classList.add('highlight'); 
-            }
+            if(tutStep===0) { txt.innerText="1. DAFTAR: Klik Tombol Sidik Jari di tengah bawah untuk mendaftar antrian."; $('fpBtn').classList.add('highlight'); }
+            else if(tutStep===1) { txt.innerText="2. PILIH SLOT: Jika kotak kosong (warna gelap), klik untuk mulai mengecas."; $('card-0').classList.add('highlight'); }
+            else if(tutStep===2) { txt.innerText="3. MONITORING: Jika sudah mengisi, layar akan berubah menjadi Dashboard Status Anda."; $('screen-slots').classList.add('highlight'); }
+            else if(tutStep===3) { txt.innerText="4. ANTRIAN: Cek berapa orang yang sedang menunggu di sini."; $('qBox').classList.add('highlight'); }
             else { $('tutOverlay').style.display='none'; }
         }
 
         // LOGIC
         window.adm = () => { if(prompt("PIN:")==="8080") { localStorage.setItem('admin_acc','1'); window.location.href='admin.html'; } };
-        window.mainAction = () => { if(mySlot !== -1 && dashMin) { window.toggleDash(); } else { checkLoc(); } };
+        window.mainAction = () => { 
+            // REQUEST: BUTTON UNTUK BALIK KE DASHBOARD
+            if(mySlot !== -1 && dashMin) { 
+                window.toggleDash(); 
+            } else { 
+                checkLoc(); 
+            } 
+        };
         window.checkLoc = () => {
             if(localStorage.getItem('admin_acc')) { showLogin(); return; }
-            if(navigator.geolocation) navigator.geolocation.getCurrentPosition(()=>showLogin(), ()=>alert("GPS Wajib!"));
+            if(navigator.geolocation) navigator.geolocation.getCurrentPosition(()=>showLogin(), ()=>alert("GPS Wajib Aktif!"));
         };
         function showLogin() {
             document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
@@ -290,10 +338,10 @@
             const p=$('inpPlat').value.toUpperCase();
             const n=$('inpName').value.toUpperCase();
             const w=$('inpWa').value;
-            if(!p) return alert("Plat Wajib!");
+            if(!p) return alert("Plat Wajib Diisi!");
             runTransaction(db, async(t)=>{
                 const d=(await t.get(mainRef)).data();
-                if([...d.chargingSlots, ...d.waitingQueue].some(u=>u&&u.plat===p)) throw "Plat Exist";
+                if([...d.chargingSlots, ...d.waitingQueue].some(u=>u&&u.plat===p)) throw "Plat Sudah Terdaftar!";
                 let no=(d.lastTicket||0)+1;
                 const u={plat:p, userName:n, wa:w, qNo:no, entryTime:Date.now()};
                 d.waitingQueue.push(u);
@@ -301,7 +349,7 @@
                 return no;
             }).then(no=>{
                 localStorage.setItem('myPlat', p); myPlat=p;
-                alert(`Terdaftar Antrian #${no}`); location.reload();
+                alert(`BERHASIL! Antrian #${no}`); location.reload();
             }).catch(e=>alert(e));
         };
 
@@ -319,7 +367,7 @@
                 const c = $(`card-${i}`);
                 if(s) {
                     c.classList.remove('empty'); c.classList.add('filled');
-                    $(`n-${i}`).innerText = s.userName;
+                    $(`n-${i}`).innerText = s.userName || "USER";
                     $(`p-${i}`).innerText = s.plat;
                     $(`no-${i}`).innerText = "#" + s.qNo;
                     if(s.plat === myPlat) { mySlot = i; updateDash(s); }
@@ -333,10 +381,28 @@
 
             const txt = $('fpText');
             const btn = $('fpBtn');
-            if(mySlot !== -1 && dashMin) {
-                txt.innerText = "DASHBOARD"; txt.style.color="var(--accent)"; btn.classList.add('dash-mode');
+            const svg = $('fpSvg');
+
+            // UPDATE LOGIKA TOMBOL TENGAH
+            if(mySlot !== -1) {
+                if(dashMin) {
+                    // Kalo user minimize dashboard, tombol jadi "KE DASHBOARD"
+                    txt.innerText = "KE DASHBOARD";
+                    txt.style.color = "var(--accent)";
+                    btn.style.borderColor = "var(--accent)";
+                    btn.style.background = "rgba(204, 255, 0, 0.2)";
+                } else {
+                    // Kalo user lagi di dashboard
+                    txt.innerText = "STATUS AKTIF";
+                    txt.style.color = "var(--cyan)";
+                    btn.style.borderColor = "var(--cyan)";
+                    btn.style.background = "rgba(0,0,0,0.5)";
+                }
             } else {
-                txt.innerText = "DAFTAR"; txt.style.color="#fff"; btn.classList.remove('dash-mode');
+                txt.innerText = "DAFTAR";
+                txt.style.color = "#fff";
+                btn.style.borderColor = "var(--cyan)";
+                btn.style.background = "rgba(0,0,0,0.5)";
             }
 
             if(mySlot !== -1 && !dashMin) {
@@ -346,16 +412,17 @@
         }
 
         window.clickSlot = (i) => {
-            if(!myPlat) return alert("DAFTAR DULU");
+            if(!myPlat) return alert("SILAKAN DAFTAR DULU (KLIK TOMBOL BAWAH)");
             if(slots[i]) return;
             const qIdx = queue.findIndex(x=>x.plat===myPlat);
-            if(qIdx > 0) return alert("TUNGGU GILIRAN");
+            if(qIdx > 0) return alert(`ANDA ANTRIAN KE-${qIdx+1}. HARAP MENUNGGU GILIRAN.`);
             
-            if(confirm(`PILIH SLOT ${i+1}?`)) {
+            if(confirm(`GUNAKAN SLOT ${i+1}?`)) {
                 runTransaction(db, async(t)=>{
                     const d=(await t.get(mainRef)).data();
-                    if(d.chargingSlots[i]) throw "Diambil";
+                    if(d.chargingSlots[i]) throw "Slot baru saja diambil orang lain!";
                     const idx=d.waitingQueue.findIndex(x=>x.plat===myPlat);
+                    if(idx === -1) throw "Data antrian tidak ditemukan, coba refresh.";
                     const u=d.waitingQueue.splice(idx,1)[0];
                     u.startTime=Date.now(); d.chargingSlots[i]=u;
                     t.update(mainRef, {chargingSlots:d.chargingSlots, waitingQueue:d.waitingQueue});
@@ -378,24 +445,15 @@
         }
 
         window.stopSelf = () => {
-            if(confirm("SELESAI?")) {
+            if(confirm("YAKIN SUDAH SELESAI CHARGING?")) {
                 runTransaction(db, async(t)=>{
                     const d=(await t.get(mainRef)).data();
-                    const u=d.chargingSlots[mySlot]; d.chargingSlots[mySlot]=null;
-                    addDoc(histRef, {...u, finishTime:new Date()});
+                    const u=d.chargingSlots[mySlot]; 
+                    d.chargingSlots[mySlot]=null;
+                    if(u) addDoc(histRef, {...u, finishTime:new Date()});
                     t.update(mainRef, {chargingSlots:d.chargingSlots});
                 }).then(()=>{ localStorage.removeItem('myPlat'); location.reload(); });
             }
-        };
-
-        // QUEUE LIST DISPLAY
-        window.showQueueList = () => {
-            const el=$('queueListDetail'); el.innerHTML='';
-            if(queue.length===0) el.innerHTML='<div style="padding:10px;text-align:center;">KOSONG</div>';
-            else queue.forEach(q=>{
-                el.innerHTML+=`<div style="padding:10px;border-bottom:1px solid #333;display:flex;justify-content:space-between;"><span style="color:var(--cyan);font-weight:bold;">#${q.qNo}</span><span>${q.plat}</span></div>`;
-            });
-            $('queueModal').style.display='flex';
         };
     </script>
 </body>
