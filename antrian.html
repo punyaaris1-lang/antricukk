@@ -8,86 +8,201 @@
     <style>
         :root { --bg: #050505; --accent: #CCFF00; --cyan: #00F0FF; --red: #FF003C; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; user-select: none; }
-        body { font-family: 'Teko', sans-serif; background: #000 url('1763947427555.jpg') no-repeat center center fixed; background-size: cover; color: #fff; margin: 0; overflow: hidden; width: 100vw; height: 100dvh; display: flex; flex-direction: column; font-size: 20px; letter-spacing: 1px; }
+        body { 
+            font-family: 'Teko', sans-serif; 
+            background: #000 url('1763947427555.jpg') no-repeat center center fixed;
+            background-size: cover; 
+            color: #fff; margin: 0; overflow: hidden; 
+            width: 100vw; height: 100dvh; 
+            display: flex; flex-direction: column; 
+            font-size: 20px; 
+            letter-spacing: 1px;
+        }
         body::before { content: ''; position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(0,0,0,0.85), #000); z-index: 0; }
-        
-        /* HEADER FIX */
-        .top-nav { height: 18vh; min-height: 120px; display: flex; flex-direction: column; justify-content: center; text-align: center; z-index: 10; position: relative; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); flex-shrink: 0; padding-bottom: 10px; }
-        .main-title { font-size: clamp(40px, 6vh, 60px); font-weight: 700; line-height: 0.9; text-shadow: 0 0 15px rgba(0, 240, 255, 0.5); cursor: pointer; }
+
+        #dust { position: fixed; inset: 0; pointer-events: none; z-index: 9999; }
+
+        /* HEADER */
+        .top-nav { 
+            height: 18vh; min-height: 120px; display: flex; flex-direction: column; 
+            justify-content: center; text-align: center; z-index: 10; position: relative; 
+            background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); flex-shrink: 0;
+            padding-bottom: 10px;
+        }
+        .main-title { 
+            font-size: clamp(40px, 6vh, 60px); font-weight: 700; line-height: 0.9; 
+            color: #fff; text-shadow: 0 0 15px rgba(0, 240, 255, 0.5); cursor: pointer; 
+        }
         .sub-title { font-size: 14px; color: var(--accent); letter-spacing: 4px; font-weight: 600; margin-top: 0px; text-transform: uppercase; }
 
-        /* TOMBOL TUTORIAL (FIXED Z-INDEX & HIT AREA) */
         .tut-btn {
             background: rgba(0, 240, 255, 0.1); border: 1px solid var(--cyan); color: var(--cyan);
-            font-family: 'JetBrains Mono'; font-size: 12px; padding: 8px 25px; border-radius: 20px;
+            font-family: 'JetBrains Mono'; font-size: 10px; padding: 6px 20px; border-radius: 20px;
             margin-top: 15px; cursor: pointer; width: fit-content; align-self: center;
             display: flex; align-items: center; gap: 8px; transition: 0.3s; font-weight: bold; letter-spacing: 1px;
-            position: relative; z-index: 5000; /* SUPER HIGH Z-INDEX */
+            position: relative; z-index: 50; /* Memastikan bisa diklik */
         }
-        .tut-btn:active { background: var(--cyan); color: #000; }
+        .tut-btn:hover { background: var(--cyan); color: #000; box-shadow: 0 0 15px var(--cyan); }
 
-        #logo-area { flex: 1; display: flex; justify-content: center; align-items: flex-start; padding-top: 20px; position: relative; z-index: 5; }
-        .big-logo { width: 70%; max-width: 250px; height: auto; border-radius: 20px; box-shadow: 0 0 50px rgba(0,0,0,0.8); border: 1px solid rgba(255,255,255,0.1); animation: floatLogo 4s ease-in-out infinite; }
+        #logo-area {
+            flex: 1; display: flex; justify-content: center; align-items: flex-start; padding-top: 20px; 
+            position: relative; z-index: 5; transition: opacity 0.5s;
+        }
+        .big-logo {
+            width: 70%; max-width: 250px; height: auto; border-radius: 20px;
+            box-shadow: 0 0 50px rgba(0,0,0,0.8); border: 1px solid rgba(255,255,255,0.1);
+            animation: floatLogo 4s ease-in-out infinite;
+        }
         @keyframes floatLogo { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-10px);} }
 
-        /* LAYOUTS */
-        .screen { position: absolute; inset: 0; top: 12vh; bottom: 0; display: none; flex-direction: column; z-index: 10; justify-content: center; align-items: center; }
+        body.login-mode #logo-area { opacity: 0.1; pointer-events: none; }
+        body.login-mode .bottom-panel { display: none !important; }
+
+        /* SCREENS */
+        .screen {
+            position: absolute; inset: 0; top: 12vh; bottom: 0; display: none; flex-direction: column; 
+            z-index: 10; transition: opacity 0.5s; justify-content: center; align-items: center;
+        }
         .screen.active { display: flex; animation: fadeIn 0.5s forwards; }
+        #screen-login { justify-content: flex-start; padding-top: 20px; }
+        #screen-login .onyx-panel { margin: 0 auto; }
         @keyframes fadeIn { from{opacity:0; transform:scale(0.95);} to{opacity:1; transform:scale(1);} }
 
-        /* SLOTS */
+        /* LOGIN PANEL */
+        .onyx-panel {
+            width: 90%; max-width: 400px; background: rgba(10, 10, 10, 0.95);
+            border: 1px solid rgba(0, 240, 255, 0.3); border-radius: 15px; padding: 25px;
+            box-shadow: 0 0 30px rgba(0,0,0,0.8); position: relative; overflow: hidden; margin: auto; 
+        }
+        .term-line { margin-bottom: 15px; font-family: 'JetBrains Mono', monospace; font-size: 14px; color: #ccc; display: flex; align-items: center; flex-wrap: wrap; }
+        .term-input { 
+            background: none; border: none; outline: none; color: var(--cyan); 
+            font-family: 'JetBrains Mono', monospace; font-size: 16px; width: 50%; 
+            font-weight: bold; text-transform: uppercase; caret-color: var(--cyan); 
+        }
+        .term-enter-btn {
+            background: var(--cyan); color: #000; border: none; padding: 2px 8px;
+            font-family: 'JetBrains Mono'; font-weight: bold; cursor: pointer;
+            margin-left: auto; font-size: 12px; border-radius: 4px;
+            animation: pulseBtn 1.5s infinite;
+        }
+        @keyframes pulseBtn { 0%{opacity:1;} 50%{opacity:0.7;} 100%{opacity:1;} }
+        .locked { color: var(--accent); cursor: pointer; border-bottom: 1px dashed #555; } 
+
+        /* SLOT VIEW */
         #screen-slots { flex-direction: row; align-items: center; justify-content: center; gap: 10px; padding: 0 15px; }
-        .slot-container { width: 32%; height: 45vh; max-height: 380px; position: relative; transition: all 0.8s; }
-        .slot-container:nth-child(2) { margin-top: -40px; }
-        .onyx-card { width: 100%; height: 100%; background: rgba(10, 10, 10, 0.9); border: 1px solid rgba(255,255,255,0.1); border-radius: 15px; display: flex; flex-direction: column; position: relative; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
+        .slot-container { width: 32%; height: 45vh; max-height: 380px; position: relative; transition: all 0.8s cubic-bezier(0.25, 1, 0.5, 1); }
+        .slot-container:nth-child(2) { margin-top: -40px; } 
+
+        .onyx-card { 
+            width: 100%; height: 100%; 
+            background: rgba(0, 0, 0, 0.5); /* Semi transparan */
+            border: 1px solid rgba(255,255,255,0.1); 
+            border-radius: 15px; display: flex; flex-direction: column; 
+            position: relative; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.8); cursor: pointer; z-index: 2; 
+            backdrop-filter: blur(5px);
+        }
+        .card-bg-layer { position: absolute; inset: 0; background-image: url('1763947427555.jpg'); background-size: cover; opacity: 0.25; z-index: 0; filter: grayscale(100%) contrast(120%); }
+        .card-content { position: relative; z-index: 5; width: 100%; height: 100%; display: flex; flex-direction: column; padding: 15px; }
+        .cc-top { flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; min-height: 60px; justify-content: center; }
+        .oc-name { font-weight: 600; font-size: clamp(16px, 2vh, 22px); color: #fff; text-shadow: 0 0 10px rgba(255,255,255,0.3); text-align: center; }
+        .oc-plat { font-family: 'JetBrains Mono'; font-weight: 700; font-size: clamp(10px, 1.5vh, 14px); color: var(--accent); margin-top: 5px; }
         .cc-center { flex: 1; display: flex; align-items: center; justify-content: center; }
-        .oc-num { font-weight: 700; font-size: clamp(90px, 15vw, 150px); line-height: 0.8; }
-        .filled .oc-num { color: var(--cyan); text-shadow: 0 0 20px rgba(0, 240, 255, 0.4); }
-        .empty .oc-num { color: #333; }
-        .cc-top { padding: 10px; text-align: center; border-bottom: 1px solid #333; }
-        .oc-name { font-size: 18px; font-weight: bold; }
-        .oc-plat { font-family: 'JetBrains Mono'; font-size: 12px; color: var(--accent); }
+        
+        /* Font Nomor diperkecil agar tidak overlap */
+        .oc-num { font-weight: 700; font-size: clamp(60px, 12vw, 100px); line-height: 0.8; transition:0.3s; }
+        
+        .filled .oc-num { color: var(--cyan); text-shadow: 0 0 20px rgba(0, 240, 255, 0.4); animation:none; }
+        .empty .oc-num { color: rgba(255,255,255,0.2); text-shadow: none; }
+        
+        .cc-bottom { flex: 0 0 auto; width: 100%; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+        .btn-select { background: rgba(204, 255, 0, 0.1); border: 1px solid var(--accent); color: var(--accent); animation: pulse 2s infinite; display:none; width: 100%; padding: 8px 0; border-radius: 5px; font-family: 'Teko'; font-weight: bold; font-size: 18px; text-align: center; }
+        .onyx-card.empty .btn-select { display: block; }
+
+        /* ACTIVE DASHBOARD */
+        #screen-active-dashboard { z-index: 200; background: rgba(0,0,0,0.9); backdrop-filter: blur(10px); }
+        .ad-container { width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: space-between; align-items: center; padding: 20px; padding-bottom: 25vh; }
+        .limit-hud { width: 90%; max-width: 350px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--accent); border-radius: 8px; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; box-shadow: 0 0 15px rgba(204, 255, 0, 0.1); }
+        .hud-item { text-align: center; }
+        .hud-label { font-size: 10px; color: #888; letter-spacing: 1px; }
+        .hud-val { font-size: 20px; color: #fff; font-weight: bold; line-height: 1; text-shadow: 0 0 5px #fff; }
+        .hud-val.warn { color: var(--red); text-shadow: 0 0 10px var(--red); }
+        .hud-line { width: 1px; height: 30px; background: #333; }
+        .btn-minimize { background: transparent; border: 1px solid #555; color: #888; font-size: 10px; padding: 5px 10px; border-radius: 20px; position: absolute; top: 15px; right: 15px; cursor: pointer; }
+        .ad-info { text-align: center; margin-top: 10px; }
+        .ad-slot-label { font-size: 24px; color: var(--accent); font-weight: 700; letter-spacing: 2px; text-shadow: 0 0 10px var(--accent); margin-bottom: 5px; }
+        .ad-name { font-size: clamp(30px, 4vw, 50px); color: #fff; font-weight: 700; text-shadow: 0 0 20px rgba(255,255,255,0.3); line-height: 1; }
+        .ad-plat { font-family: 'JetBrains Mono'; font-size: clamp(16px, 2vw, 24px); color: #aaa; letter-spacing: 2px; margin-top: 10px; background: rgba(255,255,255,0.1); padding: 5px 15px; border-radius: 5px; display: inline-block; }
+        .ad-main { flex: 1; display: flex; align-items: center; justify-content: center; width: 100%; }
+        .ad-big-num { font-size: clamp(100px, 30vw, 200px); line-height: 0.8; font-weight: 700; color: var(--cyan); text-shadow: 0 0 50px var(--cyan), 0 0 10px #fff; animation: breathe 3s infinite ease-in-out; }
+        .ad-bottom { width: 100%; display: flex; justify-content: center; }
+        .btn-luxury { width: 90%; max-width: 350px; padding: 15px 0; background: linear-gradient(135deg, #ff0000 0%, #990000 100%); color: #fff; font-family: 'Teko'; font-size: 30px; font-weight: 700; letter-spacing: 2px; border: 2px solid #ff5e5e; border-radius: 15px; cursor: pointer; box-shadow: 0 0 30px rgba(255, 0, 60, 0.6), inset 0 0 10px rgba(0,0,0,0.5); text-shadow: 0 2px 5px rgba(0,0,0,0.5); transition: all 0.3s; position: relative; overflow: hidden; }
+        .btn-luxury::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: linear-gradient(to right, transparent, rgba(255,255,255,0.4), transparent); transform: rotate(45deg); animation: shine 3s infinite; }
+        .btn-luxury:active { transform: scale(0.95); box-shadow: 0 0 10px rgba(255, 0, 60, 0.8); }
+        @keyframes shine { 0% { transform: translateX(-100%) rotate(45deg); } 100% { transform: translateX(100%) rotate(45deg); } }
+        @keyframes breathe { 0%,100%{transform:scale(1); opacity:1;} 50%{transform:scale(1.05); opacity:0.9;} }
 
         /* FOOTER & FINGERPRINT */
         .bottom-panel { height: 35vh; min-height: 250px; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; z-index: 20; position: fixed; bottom: 0; width: 100%; background: linear-gradient(to top, #000 90%, transparent); padding-bottom: 20px; }
         
-        .stats-wrapper { display: grid; grid-template-columns: 1fr 2px 1fr; align-items: center; justify-items: center; width: 100%; max-width: 400px; margin-bottom: 15px; pointer-events: auto; }
+        .stats-wrapper { 
+            display: grid; 
+            grid-template-columns: 1fr 2px 1fr;
+            align-items: center; 
+            justify-items: center; 
+            width: 100%; max-width: 400px;
+            margin-bottom: 15px; 
+            pointer-events: auto; 
+        }
+        
         .stat-box { display: flex; flex-direction: column; align-items: center; text-align: center; width: 100%; }
+        .stat-box.clickable { cursor: pointer; transition: 0.3s; }
+        .stat-box.clickable:active { transform: scale(0.95); opacity: 0.8; }
         .stat-num { font-size: 70px; line-height: 0.8; color: #fff; font-weight: bold; text-shadow: 0 0 20px rgba(204,255,0,0.4); }
-        .stat-label { font-size: 14px; color: var(--accent); letter-spacing: 2px; margin-top: 5px; opacity: 0.8; }
-        .stat-line { width: 1px; height: 50px; background: linear-gradient(to bottom, transparent, var(--cyan), transparent); box-shadow: 0 0 10px var(--cyan); }
+        .stat-label { font-size: 14px; color: var(--accent); letter-spacing: 2px; margin-top: 5px; opacity: 0.8; display: flex; align-items: center; gap: 5px; }
+        .info-mark { font-family: 'JetBrains Mono'; font-size: 12px; color: var(--cyan); animation: pulse 2s infinite; }
+        .stat-line { width: 1px; height: 50px; background: linear-gradient(to bottom, transparent, var(--cyan), transparent); box-shadow: 0 0 10px var(--cyan); margin: 0 20px; }
         
         .fp-wrapper { display: flex; flex-direction: column; align-items: center; position: relative; width:100%; justify-content:center; }
         .fp-text { font-family: 'Teko'; font-size: 24px; color: #fff; font-weight: 700; margin-bottom: 5px; text-shadow: 0 0 10px var(--cyan); letter-spacing: 1px; animation: textGlow 2s infinite alternate; }
         @keyframes textGlow { from{text-shadow: 0 0 5px var(--cyan);} to{text-shadow: 0 0 20px var(--cyan), 0 0 10px #fff;} }
 
-        .fp-container { position: relative; width: 80px; height: 80px; display: flex; justify-content: center; align-items: center; margin-bottom: 10px; pointer-events: auto; z-index: 5001; }
-        .fp-btn { width: 70px; height: 70px; background: rgba(0,0,0,0.5); border: 1px solid var(--cyan); border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; box-shadow: 0 0 20px rgba(0,240,255,0.3); animation: pulse 2s infinite; }
+        .fp-container { position: relative; width: 80px; height: 80px; display: flex; justify-content: center; align-items: center; margin-bottom: 10px; pointer-events: auto; }
+        .fp-btn { width: 70px; height: 70px; background: rgba(0,0,0,0.5); border: 1px solid var(--cyan); border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; box-shadow: 0 0 20px rgba(0,240,255,0.3); animation: pulse 2s infinite; transition: 0.3s; }
+        .fp-btn.back-mode { border-color: var(--accent); animation: none; box-shadow: 0 0 20px rgba(204, 255, 0, 0.4); }
+        .fp-btn.back-mode .fp-svg { fill: var(--accent); }
         .fp-svg { width: 35px; height: 35px; fill: #fff; opacity: 0.9; }
+        .fp-btn.disabled { border-color: #333; opacity: 0.3; cursor: not-allowed; animation: none; }
+        .fp-btn.disabled .fp-svg { fill: #333; }
         @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(0, 240, 255, 0.4); } 70% { box-shadow: 0 0 0 15px rgba(0, 240, 255, 0); } 100% { box-shadow: 0 0 0 0 rgba(0, 240, 255, 0); } }
 
-        /* TUTORIAL OVERLAY (FIXED) */
-        #tutorialOverlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 6000; justify-content: center; align-items: center; flex-direction: column; backdrop-filter: blur(5px); }
-        .tut-text-box { width: 80%; text-align: center; color: #fff; margin-bottom: 30px; background: rgba(0,20,20,0.9); padding: 20px; border-radius: 15px; border: 1px solid var(--cyan); box-shadow: 0 0 30px rgba(0,240,255,0.2); }
+        .music-player { pointer-events: auto; width: 220px; height: 35px; background: rgba(255,255,255,0.05); border-radius: 20px; display: flex; align-items: center; justify-content: space-between; padding: 0 15px; backdrop-filter: blur(5px); border: 1px solid rgba(255,255,255,0.1); }
+        .mp-btn { background: none; border: none; color: var(--cyan); cursor: pointer; font-size: 16px; }
+        .mp-info { font-family: 'JetBrains Mono'; font-size: 12px; color: #aaa; white-space: nowrap; overflow: hidden; width: 120px; text-align: center; }
+
+        /* MODAL ALERTS */
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 5000; justify-content: center; align-items: center; backdrop-filter: blur(8px); }
+        .modal-box { background: #0a0a0a; border: 1px solid var(--cyan); padding: 30px; border-radius: 20px; width: 85%; max-width: 320px; text-align: center; box-shadow: 0 0 50px rgba(0,240,255,0.2); }
+        .btn-g { width: 100%; padding: 12px; background: var(--cyan); color: #000; font-family: 'Teko'; font-size: 20px; font-weight: 700; border: none; border-radius: 50px; cursor: pointer; margin-top: 10px; }
+        .btn-cancel { width: 100%; padding: 10px; border: 1px solid #555; background: transparent; color: #888; font-family: 'Teko'; font-size: 18px; border-radius: 50px; margin-top: 5px; cursor: pointer; }
+
+        /* TUTORIAL OVERLAY */
+        #tutorialOverlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 6000; justify-content: center; align-items: center; flex-direction: column; backdrop-filter: blur(5px); }
+        .tut-text-box { width: 80%; text-align: center; color: #fff; margin-bottom: 30px; opacity: 0; transform: translateY(20px); transition: 0.5s; background: rgba(0,0,0,0.8); padding: 20px; border-radius: 15px; border: 1px solid var(--cyan); box-shadow: 0 0 30px rgba(0,240,255,0.2); }
         .tut-title { font-family: 'Teko'; font-size: 30px; color: var(--cyan); margin-bottom: 5px; text-shadow: 0 0 10px var(--cyan); }
         .tut-desc { font-family: 'JetBrains Mono'; font-size: 14px; color: #ccc; line-height: 1.5; }
-        .tut-next-btn { padding: 10px 40px; border: 2px solid var(--accent); background: rgba(204,255,0,0.1); color: var(--accent); font-family: 'Teko'; font-size: 24px; border-radius: 50px; cursor: pointer; }
-        .tut-highlight { position: relative; z-index: 6001 !important; box-shadow: 0 0 50px 20px rgba(255, 255, 255, 0.3) !important; background: rgba(0,0,0,0.8); border-radius: 10px; border: 2px solid #fff; }
+        .tut-next-btn { padding: 10px 40px; border: 2px solid var(--accent); background: rgba(204,255,0,0.1); color: var(--accent); font-family: 'Teko'; font-size: 24px; border-radius: 50px; cursor: pointer; opacity: 0; transition: 0.5s; }
+        .tut-highlight { position: relative; z-index: 6001; box-shadow: 0 0 50px 20px rgba(255, 255, 255, 0.2) !important; transform: scale(1.05); transition: 0.5s; background: rgba(0,0,0,0.8); border-radius: 10px; }
 
-        /* LOGIN SCREEN */
-        .onyx-panel { width: 90%; max-width: 400px; background: rgba(10, 10, 10, 0.95); border: 1px solid rgba(0, 240, 255, 0.3); border-radius: 15px; padding: 25px; margin: auto; }
-        .term-input { background: none; border: none; outline: none; color: var(--cyan); font-family: 'JetBrains Mono'; font-size: 16px; width: 60%; font-weight: bold; text-transform: uppercase; }
-        .term-enter-btn { background: var(--cyan); color: #000; border: none; padding: 2px 8px; font-family: 'JetBrains Mono'; font-weight: bold; cursor: pointer; margin-left: auto; font-size: 12px; border-radius: 4px; animation: pulseBtn 1.5s infinite; }
-        @keyframes pulseBtn { 0%{opacity:1;} 50%{opacity:0.7;} 100%{opacity:1;} }
+        #stream-container .loading-bar, #stream-container .loading-fill { height: 2px; }
         
-        /* DASHBOARD */
-        .limit-hud { width: 90%; max-width: 350px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--accent); border-radius: 8px; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; margin-top: 40px; }
-        .hud-val { font-size: 24px; color: #fff; font-weight: bold; }
-        .btn-minimize { background: transparent; border: 1px solid #555; color: #888; font-family: 'JetBrains Mono'; font-size: 10px; padding: 5px 15px; border-radius: 20px; position: absolute; top: 15px; right: 15px; cursor: pointer; z-index:300; }
-        .btn-luxury { width: 90%; padding: 15px 0; background: linear-gradient(135deg, #ff0000 0%, #990000 100%); color: #fff; font-family: 'Teko'; font-size: 30px; border: none; border-radius: 15px; margin-top:20px; }
+        /* QUEUE LIST MODAL */
+        #queueModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 5000; justify-content: center; align-items: center; backdrop-filter: blur(8px); }
     </style>
 </head>
 <body>
+
+    <canvas id="dust"></canvas>
 
     <div class="top-nav">
         <div class="main-title" ondblclick="toggleAdmin()">FC KELAPA GADING</div>
@@ -95,276 +210,682 @@
         <button class="tut-btn" onclick="startTutorial()">▶ TUTORIAL PEMAKAIAN</button>
     </div>
 
-    <div id="logo-area"><img src="1763947427555.jpg" class="big-logo"></div>
-
-    <div id="screen-slots" class="screen active" style="flex-direction:row; gap:10px; padding:0 20px;">
-        <div class="slot-container" id="cont-0"><div class="onyx-card empty" id="card-0" onclick="handleSlotClick(0)"><div class="card-content"><div class="cc-top"><div class="oc-name" id="n-0">SLOT 1</div><div class="oc-plat" id="p-0"></div></div><div class="cc-center"><div class="oc-num" id="no-0">M</div></div><div class="cc-bottom"><button class="btn-action btn-select">PILIH</button></div></div></div></div>
-        <div class="slot-container" id="cont-1"><div class="onyx-card empty" id="card-1" onclick="handleSlotClick(1)"><div class="card-content"><div class="cc-top"><div class="oc-name" id="n-1">SLOT 2</div><div class="oc-plat" id="p-1"></div></div><div class="cc-center"><div class="oc-num" id="no-1">L</div></div><div class="cc-bottom"><button class="btn-action btn-select">PILIH</button></div></div></div></div>
-        <div class="slot-container" id="cont-2"><div class="onyx-card empty" id="card-2" onclick="handleSlotClick(2)"><div class="card-content"><div class="cc-top"><div class="oc-name" id="n-2">SLOT 3</div><div class="oc-plat" id="p-2"></div></div><div class="cc-center"><div class="oc-num" id="no-2">U</div></div><div class="cc-bottom"><button class="btn-action btn-select">PILIH</button></div></div></div></div>
+    <div id="logo-area">
+        <img src="1763947427555.jpg" class="big-logo">
     </div>
+
+    <div id="screen-start" class="screen active"></div>
 
     <div id="screen-login" class="screen">
         <div class="onyx-panel" id="terminal-box"></div>
-        <div style="text-align:center; margin-top:10px;"><button onclick="location.reload()" style="background:none; border:none; color:#666;">BATAL</button></div>
-    </div>
-
-    <div id="screen-active-dashboard" class="screen">
-        <button class="btn-minimize" onclick="toggleDashboard(false)">LIHAT ANTRIAN</button>
-        <div class="ad-container">
-            <div class="limit-hud">
-                <div><div style="font-size:10px; color:#888;">ANTRIAN</div><div class="hud-val" id="hud-q">0</div></div>
-                <div style="width:1px; height:30px; background:#333;"></div>
-                <div><div style="font-size:10px; color:#888;">MAX CHARGE</div><div class="hud-val" id="hud-max">100%</div></div>
-            </div>
-            <div style="text-align:center;">
-                <div style="font-size:24px; color:var(--accent); font-weight:bold;" id="ad-slot-val">SLOT 1</div>
-                <div style="font-size:40px; font-weight:bold;" id="ad-name-val">NAMA</div>
-                <div style="font-family:'JetBrains Mono'; color:#aaa;" id="ad-plat-val">PLAT</div>
-            </div>
-            <div style="font-size:150px; font-weight:bold; color:var(--cyan); line-height:0.8;" id="ad-no-val">#12</div>
-            <button class="btn-luxury" onclick="stopCharging(activeSlotIdx)">SELESAI</button>
+        <div style="text-align:center; margin-top:10px;">
+            <button onclick="goToLogin()" class="btn-cancel" style="width:auto; border:none; color:#666;">BATAL / ULANGI</button>
         </div>
     </div>
 
-    <div class="bottom-panel">
-        <div class="stats-wrapper">
-            <div class="stat-box"><div class="stat-num" id="slotCountVal">0</div><div class="stat-label">SLOT TERSEDIA</div></div>
-            <div class="stat-line"></div>
-            <div class="stat-box clickable" id="qBox" onclick="showQueueList()"><div class="stat-num" id="qCountVal">0</div><div class="stat-label">ANTRIAN</div></div>
+    <div id="screen-queue" class="screen">
+        <div class="onyx-panel" style="text-align:center;">
+            <div style="font-family:'Teko'; font-size: 30px; color:var(--cyan); margin-bottom:10px;">SINKRONISASI DATA</div>
+            <div class="stream-container" id="stream"></div>
+            <div class="loading-bar"><div class="loading-fill" id="qBar"></div></div>
+            <div style="margin-top:10px; font-family:'JetBrains Mono'; font-size:12px; color:#666;">MENGHUBUNGKAN KE SERVER...</div>
         </div>
-        <div class="fp-wrapper">
-            <div class="fp-text" id="mainBtnText">DAFTAR</div>
-            <div class="fp-container" id="fpCont" onclick="handleMainAction()">
-                <div class="fp-btn" id="fpBtn">
-                    <svg class="fp-svg" viewBox="0 0 24 24"><path d="M17.81 4.47c-.08 0-.16-.02-.23-.06C15.66 3.42 14 3 12.01 3c-1.98 0-3.86.47-5.57 1.41-.24.13-.54.04-.68-.2-.13-.24-.04-.55.2-.68C7.82 2.52 9.86 2 12.01 2c2.13 0 3.99.47 6.03 1.52.25.13.34.43.21.67-.09.18-.26.28-.44.28zM3.5 9.72c-.1 0-.2-.03-.29-.09-.23-.16-.28-.47-.12-.7.99-1.4 2.25-2.5 3.75-3.27C9.98 4.04 14 4.03 17.15 5.65c1.5.77 2.76 1.86 3.75 3.25.16.22.11.54-.12.7-.23.16-.54.11-.7-.12-.9-1.26-2.04-2.25-3.39-2.94-2.87-1.47-6.54-1.47-9.4.01-1.36.7-2.5 1.7-3.4 2.96-.08.14-.23.21-.39.21zm6.25 12.07c-.13 0-.26-.05-.35-.15-.87-.87-1.34-1.43-2.01-2.64-.69-1.23-1.05-2.73-1.05-4.34 0-2.97 2.54-5.39 5.66-5.39s5.66 2.42 5.66 5.39c0 .28-.22.5-.5.5s-.5-.22-.5-.5c0-2.42-2.09-4.39-4.66-4.39-2.57 0-4.66 1.97-4.66 4.39 0 1.44.32 2.77.93 3.85.64 1.15 1.08 1.64 1.85 2.42.19.2.19.51 0 .71-.11.1-.24.15-.37.15zm7.17-1.85c-1.19 0-2.24-.3-3.1-.89-1.49-1.01-2.38-2.65-2.38-4.39 0-.28.22-.5.5s.5.22.5.5c0 1.41.72 2.74 1.94 3.56.71.48 1.54.71 2.54.71.24 0 .64-.03 1.04-.1.27-.05.53.13.58.41.05.27-.13.53-.41.58-.57.11-1.07.12-1.21.12zM14.91 22c-.04 0-.09-.01-.13-.02-1.59-.44-2.63-1.03-3.72-2.1-1.4-1.39-2.17-3.24-2.17-5.22 0-1.62 1.38-2.94 3.08-2.94 1.7 0 3.08 1.32 3.08 2.94 0 1.07.93 1.94 2.08 1.94s2.08-.87 2.08-1.94c0-3.77-3.25-6.83-7.25-6.83-2.84 0-5.44 1.58-6.45 3.94-.11.25-.41.37-.67.26-.25-.11-.37-.41-.26-.67 1.13-2.62 4.07-4.39 7.38-4.39 4.53 0 8.25 3.42 8.25 7.69 0 1.62-1.38 2.94-3.08 2.94s-3.08-1.32-3.08-2.94c0-1.07-.93-1.94-2.08-1.94s-2.08.87-2.08 1.94c0 1.71.66 3.31 1.87 4.51.95.94 1.86 1.46 3.27 1.85.27.07.42.35.35.61-.05.23-.26.38-.47.38z"/></svg>
+    </div>
+
+    <div id="screen-slots" class="screen" style="flex-direction:row; gap:10px; padding:0 20px;">
+        <div class="slot-container" id="cont-0">
+            <div class="onyx-card empty" id="card-0" onclick="handleSlotClick(0)">
+                <div class="card-bg-layer"></div> <div class="snake-border"></div> <div class="inner-bg"></div> 
+                <div class="card-content">
+                    <div class="cc-top"><div class="oc-name" id="n-0">SLOT 1</div><div class="oc-plat" id="p-0"></div></div>
+                    <div class="cc-center"><div class="oc-num" id="no-0">M</div></div>
+                    <div class="cc-bottom"><button class="btn-action btn-select">PILIH SLOT</button></div>
+                </div>
+            </div>
+        </div>
+        <div class="slot-container" id="cont-1">
+            <div class="onyx-card empty" id="card-1" onclick="handleSlotClick(1)">
+                <div class="card-bg-layer"></div> <div class="snake-border"></div> <div class="inner-bg"></div>
+                <div class="card-content">
+                    <div class="cc-top"><div class="oc-name" id="n-1">SLOT 2</div><div class="oc-plat" id="p-1"></div></div>
+                    <div class="cc-center"><div class="oc-num" id="no-1">L</div></div>
+                    <div class="cc-bottom"><button class="btn-action btn-select">PILIH SLOT</button></div>
+                </div>
+            </div>
+        </div>
+        <div class="slot-container" id="cont-2">
+            <div class="onyx-card empty" id="card-2" onclick="handleSlotClick(2)">
+                <div class="card-bg-layer"></div> <div class="snake-border"></div> <div class="inner-bg"></div>
+                <div class="card-content">
+                    <div class="cc-top"><div class="oc-name" id="n-2">SLOT 3</div><div class="oc-plat" id="p-2"></div></div>
+                    <div class="cc-center"><div class="oc-num" id="no-2">U</div></div>
+                    <div class="cc-bottom"><button class="btn-action btn-select">PILIH SLOT</button></div>
                 </div>
             </div>
         </div>
     </div>
 
+    <div id="screen-active-dashboard" class="screen">
+        <button class="btn-minimize" onclick="toggleDashboard(false)">LIHAT ANTRIAN</button>
+        <div class="ad-container">
+            
+            <div class="limit-hud">
+                <div class="hud-item">
+                    <div class="hud-label">ANTRIAN</div>
+                    <div class="hud-val" id="hud-q">0</div>
+                </div>
+                <div class="hud-line"></div>
+                <div class="hud-item">
+                    <div class="hud-label">MAX CHARGE</div>
+                    <div class="hud-val" id="hud-max">100%</div>
+                </div>
+            </div>
+
+            <div class="ad-info">
+                <div class="ad-slot-label" id="ad-slot-val">SLOT 1</div>
+                <div class="ad-name" id="ad-name-val">NAMA USER</div>
+                <div class="ad-plat" id="ad-plat-val">B 1234 XYZ</div>
+            </div>
+            <div class="ad-main">
+                <div class="ad-big-num" id="ad-no-val">#12</div>
+            </div>
+            <div class="ad-bottom">
+                <button class="btn-luxury" onclick="stopCharging(activeSlotIdx)">SELESAI</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="waitingDashboard">
+        <div class="q-visual-list" id="queue-visual-list"></div>
+        <div style="margin-top:30px; text-align:center;">
+             <button onclick="cancelQueue()" class="btn-action" style="width:auto; padding:12px 40px; border:2px solid var(--accent); background:rgba(204,255,0,0.1); color:var(--accent); font-size:22px; font-weight:700;">BATAL ANTRIAN</button>
+             <div style="margin-top:20px; font-size:14px; color:#555; cursor:pointer; letter-spacing:1px;" onclick="document.getElementById('waitingDashboard').style.display='none'">[ SEMBUNYIKAN ]</div>
+        </div>
+    </div>
+
+    <div class="bottom-panel">
+        
+        <div class="stats-wrapper">
+            <div class="stat-box">
+                <div class="stat-num" id="slotCountVal">0</div>
+                <div class="stat-label">SLOT TERSEDIA</div>
+            </div>
+            <div class="stat-line"></div>
+            <div class="stat-box clickable" id="qBox" onclick="showQueueList()">
+                <div class="stat-num" id="qCountVal">0</div>
+                <div class="stat-label">
+                    TOTAL ANTRIAN <span class="info-mark">ⓘ</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="fp-wrapper">
+            <div class="fp-text" id="mainBtnText">DAFTAR</div>
+            <div class="fp-container" id="fpCont" onclick="handleMainAction()" style="pointer-events: auto;">
+                <div class="fp-btn" id="fpBtn">
+                    <svg class="fp-svg" id="fpSvg" viewBox="0 0 24 24"><path d="M17.81 4.47c-.08 0-.16-.02-.23-.06C15.66 3.42 14 3 12.01 3c-1.98 0-3.86.47-5.57 1.41-.24.13-.54.04-.68-.2-.13-.24-.04-.55.2-.68C7.82 2.52 9.86 2 12.01 2c2.13 0 3.99.47 6.03 1.52.25.13.34.43.21.67-.09.18-.26.28-.44.28zM3.5 9.72c-.1 0-.2-.03-.29-.09-.23-.16-.28-.47-.12-.7.99-1.4 2.25-2.5 3.75-3.27C9.98 4.04 14 4.03 17.15 5.65c1.5.77 2.76 1.86 3.75 3.25.16.22.11.54-.12.7-.23.16-.54.11-.7-.12-.9-1.26-2.04-2.25-3.39-2.94-2.87-1.47-6.54-1.47-9.4.01-1.36.7-2.5 1.7-3.4 2.96-.08.14-.23.21-.39.21zm6.25 12.07c-.13 0-.26-.05-.35-.15-.87-.87-1.34-1.43-2.01-2.64-.69-1.23-1.05-2.73-1.05-4.34 0-2.97 2.54-5.39 5.66-5.39s5.66 2.42 5.66 5.39c0 .28-.22.5-.5.5s-.5-.22-.5-.5c0-2.42-2.09-4.39-4.66-4.39-2.57 0-4.66 1.97-4.66 4.39 0 1.44.32 2.77.93 3.85.64 1.15 1.08 1.64 1.85 2.42.19.2.19.51 0 .71-.11.1-.24.15-.37.15zm7.17-1.85c-1.19 0-2.24-.3-3.1-.89-1.49-1.01-2.38-2.65-2.38-4.39 0-.28.22-.5.5s.5.22.5.5c0 1.41.72 2.74 1.94 3.56.71.48 1.54.71 2.54.71.24 0 .64-.03 1.04-.1.27-.05.53.13.58.41.05.27-.13.53-.41.58-.57.11-1.07.12-1.21.12zM14.91 22c-.04 0-.09-.01-.13-.02-1.59-.44-2.63-1.03-3.72-2.1-1.4-1.39-2.17-3.24-2.17-5.22 0-1.62 1.38-2.94 3.08-2.94 1.7 0 3.08 1.32 3.08 2.94 0 1.07.93 1.94 2.08 1.94s2.08-.87 2.08-1.94c0-3.77-3.25-6.83-7.25-6.83-2.84 0-5.44 1.58-6.45 3.94-.11.25-.41.37-.67.26-.25-.11-.37-.41-.26-.67 1.13-2.62 4.07-4.39 7.38-4.39 4.53 0 8.25 3.42 8.25 7.69 0 1.62-1.38 2.94-3.08 2.94s-3.08-1.32-3.08-2.94c0-1.07-.93-1.94-2.08-1.94s-2.08.87-2.08 1.94c0 1.71.66 3.31 1.87 4.51.95.94 1.86 1.46 3.27 1.85.27.07.42.35.35.61-.05.23-.26.38-.47.38z"/></svg>
+                </div>
+            </div>
+        </div>
+
+        <div class="music-player">
+            <button class="mp-btn" onclick="prevTrack()">⏮</button>
+            <div class="mp-info" id="mpTitle">MUSIC PLAYER</div>
+            <button class="mp-btn" onclick="togglePlay()" id="mpPlayBtn">⏯</button>
+            <button class="mp-btn" onclick="nextTrack()">⏭</button>
+        </div>
+    </div>
+
     <div id="tutorialOverlay">
         <div class="tut-text-box">
-            <div class="tut-title" id="tutTitle">TUTORIAL</div>
-            <div class="tut-desc" id="tutDesc">Penjelasan...</div>
+            <div class="tut-title" id="tutTitle">SELAMAT DATANG</div>
+            <div class="tut-desc" id="tutDesc">Mari belajar cara menggunakan aplikasi ini dengan cepat.</div>
         </div>
-        <button class="tut-next-btn" onclick="nextTutorialStep()">LANJUT ></button>
+        <button class="tut-next-btn" id="tutNextBtn" onclick="nextTutorialStep()">LANJUT ></button>
     </div>
+
+    <div id="msgModal" class="modal"><div class="modal-box"><h3 id="msgTitle" style="color:var(--accent);">INFO</h3><div id="msgBody" style="color:#fff; margin-bottom:20px;"></div><button onclick="document.getElementById('msgModal').style.display='none'" class="btn-g">OK</button></div></div>
+    <div id="confirmModal" class="modal"><div class="modal-box" style="border-color:var(--red);"><h3 style="color:#fff;">KONFIRMASI</h3><p id="confirmText" style="color:#ccc;">Yakin?</p><div style="display:flex; gap:10px;"><button id="btnConfirmYes" class="btn-g" style="background:var(--red); color:#fff;">YA</button><button onclick="closeConfirmModal()" class="btn-g" style="background:#333; color:#fff;">TIDAK</button></div></div></div>
+    
+    <div id="queueModal" class="modal"><div class="modal-box"><h3 style="color:var(--cyan);">LIST ANTRIAN</h3><div id="queueListDetail" style="max-height:200px; overflow-y:auto; text-align:left; color:#888; font-size:14px; font-family:'JetBrains Mono'; margin-bottom:15px;"></div><button onclick="document.getElementById('queueModal').style.display='none'" class="btn-g">TUTUP</button></div></div>
+
+    <audio id="audio" crossorigin="anonymous"></audio>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, doc, onSnapshot, runTransaction, collection, addDoc, query, where, getDocs, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        const app = initializeApp({ apiKey: "AIzaSyALIlkIDALIk83K8s1htalvW6rmNNw02Go", authDomain: "sistem-antrian-b1c39.firebaseapp.com", projectId: "sistem-antrian-b1c39" });
+        const firebaseConfig = { apiKey: "AIzaSyALIlkIDALIk83K8s1htalvW6rmNNw02Go", authDomain: "sistem-antrian-b1c39.firebaseapp.com", projectId: "sistem-antrian-b1c39", storageBucket: "sistem-antrian-b1c39.firebasestorage.app", messagingSenderId: "454124587608", appId: "1:454124587608:web:34fbb0f5211067a67f982d" };
+        const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        
         const mainRef = doc(db, "antrian", "utama");
         const historyRef = collection(db, "riwayatCharging");
 
-        let localSlots = [null,null,null]; let localQueue = []; let myPlat = localStorage.getItem('myPlat'); let myIP = "";
-        window.activeSlotIdx = -1; let isDashboardMinimized = false;
-        let tempUserData = {}; let currentStep = 0;
-        const steps = [ {q: "PLAT NOMOR", k: "plat"}, {q: "NAMA LENGKAP", k: "name"}, {q: "NOMOR WHATSAPP", k: "wa"} ];
+        let localSlots = [null, null, null];
+        let localQueue = [];
+        let myPlat = localStorage.getItem('myPlat');
+        let myIP = "";
+        window.activeSlotIdx = -1;
+        let isDashboardMinimized = false;
 
-        // --- TUTORIAL LOGIC (FIXED) ---
+        fetch('https://api.ipify.org?format=json').then(res => res.json()).then(data => myIP = data.ip).catch(e => console.log("IP Check Skip"));
+
+        const STATION_LAT = -6.171583; const STATION_LNG = 106.899844; const MAX_DIST_KM = 1.0; 
+        const $ = (id) => document.getElementById(id);
+        const vibrate = () => { if(navigator.vibrate) navigator.vibrate(50); };
+        function showMsg(title, body) { $('msgTitle').innerText=title; $('msgBody').innerText=body; $('msgModal').style.display='flex'; }
+        function showConfirm(text, cb) { $('confirmText').innerText = text; $('confirmModal').style.display='flex'; $('btnConfirmYes').onclick = () => { $('confirmModal').style.display='none'; cb(); }; }
+        function getDist(lat1,lon1,lat2,lon2) { const R=6371; const dLat=(lat2-lat1)*Math.PI/180; const dLon=(lon2-lon1)*Math.PI/180; const a=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)*Math.sin(dLon/2); return R*(2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a))); }
+
+        // --- QUEUE LIST FIX ---
+        window.showQueueList = () => {
+            const el = document.getElementById('queueListDetail');
+            el.innerHTML = '';
+            if(localQueue.length === 0) {
+                el.innerHTML = '<div style="padding:10px; text-align:center;">ANTRIAN KOSONG</div>';
+            } else {
+                localQueue.forEach(q => {
+                    el.innerHTML += `<div style="padding:10px; border-bottom:1px solid #333; display:flex; justify-content:space-between;">
+                        <span style="color:var(--cyan); font-weight:bold;">#${q.qNo}</span>
+                        <span>${q.plat}</span>
+                    </div>`;
+                });
+            }
+            document.getElementById('queueModal').style.display = 'flex';
+        };
+
+        const canvas = document.getElementById("dust");
+        const ctx = canvas.getContext("2d");
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        window.addEventListener('resize', () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; });
+
+        // --- TUTORIAL LOGIC ---
         let tutStep = 0;
         window.startTutorial = () => {
-            document.getElementById('tutorialOverlay').style.display = 'flex';
-            tutStep = 0; showTutStep();
+            $('tutorialOverlay').style.display = 'flex';
+            tutStep = 0;
+            showTutStep();
         }
-        window.nextTutorialStep = () => { tutStep++; showTutStep(); }
+        window.nextTutorialStep = () => {
+            tutStep++;
+            showTutStep();
+        }
         function showTutStep() {
             document.querySelectorAll('.tut-highlight').forEach(el => el.classList.remove('tut-highlight'));
-            const t = document.getElementById('tutTitle');
-            const d = document.getElementById('tutDesc');
+            const title = $('tutTitle');
+            const desc = $('tutDesc');
+            const btn = $('tutNextBtn');
             
-            // RESET SCREENS TO MAIN FOR TUTORIAL
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            document.getElementById('screen-slots').classList.add('active');
-
-            if(tutStep === 0) {
-                t.innerText = "1. DAFTAR"; d.innerText = "Klik Tombol Sidik Jari untuk daftar lalu isi data.";
-                document.getElementById('fpBtn').classList.add('tut-highlight');
-            } else if(tutStep === 1) {
-                t.innerText = "2. PILIH SLOT"; d.innerText = "Jika slot kosong, klik kotak slot untuk mulai cas. SETELAH CAS SELESAI WAJIB KLIK TOMBOL SELESAI";
-                document.getElementById('card-0').classList.add('tut-highlight');
-            } else if(tutStep === 2) {
-                t.innerText = "3. CEK ANTRIAN"; d.innerText = "Jika slot penuh, anda akan mendapat nomer antrian, dan tunggu giliran anda. Saat tiba giliran akan ada pilihan slot";
-                document.getElementById('qBox').classList.add('tut-highlight');
-            } else {
-                document.getElementById('tutorialOverlay').style.display = 'none';
-            }
+            // Animation Reset
+            title.style.opacity = 0; desc.style.opacity = 0; btn.style.opacity = 0;
+            
+            setTimeout(() => {
+                if(tutStep === 0) {
+                    title.innerText = "1. TOMBOL DAFTAR";
+                    desc.innerText = "Klik tombol Sidik Jari di bawah untuk mendaftar antrian. Pastikan GPS aktif.";
+                    $('fpBtn').classList.add('tut-highlight');
+                } else if(tutStep === 1) {
+                    title.innerText = "2. PILIH SLOT";
+                    desc.innerText = "Jika kotak slot kosong, klik untuk langsung mulai mengecas.";
+                    // Force View to Slots for context
+                    switchScreen('screen-slots');
+                    $('card-0').classList.add('tut-highlight'); 
+                } else if(tutStep === 2) {
+                    title.innerText = "3. INFO ANTRIAN";
+                    desc.innerText = "Lihat jumlah antrian di sini. Klik untuk melihat detail siapa saja yang menunggu.";
+                    $('qBox').classList.add('tut-highlight');
+                } else {
+                    $('tutorialOverlay').style.display = 'none';
+                    return;
+                }
+                
+                title.style.opacity = 1; 
+                desc.style.opacity = 1; 
+                btn.style.opacity = 1;
+                title.style.transform = "translateY(0)";
+            }, 300);
         }
 
+        // --- DATA VARIABLES ---
+        let tempUserData = {};
+        let currentStep = 0;
+        const steps = [ {q: "PLAT NOMOR", k: "plat"}, {q: "NAMA LENGKAP", k: "name"}, {q: "NOMOR WHATSAPP", k: "wa"} ];
+
+        function switchScreen(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            
+            if(id === 'screen-login' || id === 'screen-queue') document.body.classList.add('login-mode');
+            else document.body.classList.remove('login-mode');
+        }
+
+        // --- ADMIN TRIGGER ---
         window.toggleAdmin = () => {
-             if(prompt("PIN ADMIN:") === "8080") { 
-                 localStorage.setItem('adm_ok','1'); localStorage.setItem('admin_acc','1'); 
-                 window.location.href='admin.html'; 
+             const pass = prompt("MASUKKAN KODE ADMIN:");
+             
+             if(pass === "8080") { 
+                 localStorage.setItem('adm_ok', '1'); 
+                 localStorage.setItem('admin_acc', '1'); 
+                 alert("LOGIN SUKSES! MENUJU ADMIN PANEL...");
+                 window.location.href = 'admin.html'; 
+             } else {
+                 if(pass) alert("KODE SALAH!");
              }
         }
 
+        // --- NEW ACTION HANDLER ---
         window.handleMainAction = () => {
-            if(window.activeSlotIdx !== -1 && isDashboardMinimized) window.toggleDashboard(true);
-            else window.checkLocAndRegister();
+            if(window.activeSlotIdx !== -1 && isDashboardMinimized) {
+                window.toggleDashboard(true);
+            } else {
+                window.checkLocAndRegister();
+            }
         };
 
         window.toggleDashboard = (show) => {
-            isDashboardMinimized = !show;
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            if(show) document.getElementById('screen-active-dashboard').classList.add('active');
-            else document.getElementById('screen-slots').classList.add('active');
-            updateMainButtonState();
+            if(show) {
+                isDashboardMinimized = false;
+                switchScreen('screen-active-dashboard');
+            } else {
+                isDashboardMinimized = true;
+                switchScreen('screen-slots');
+                updateMainButtonState();
+            }
         }
 
         function updateMainButtonState() {
-            const txt = document.getElementById('mainBtnText');
-            const btn = document.getElementById('fpBtn');
+            const btn = $('fpBtn');
+            const txt = $('mainBtnText');
             if(window.activeSlotIdx !== -1 && isDashboardMinimized) {
-                txt.innerText = "DASHBOARD"; txt.style.color = "var(--accent)"; btn.classList.add('back-mode');
+                txt.innerText = "DASHBOARD";
+                txt.style.color = "var(--accent)";
+                btn.classList.add('back-mode');
             } else {
-                txt.innerText = "DAFTAR"; txt.style.color = "#fff"; btn.classList.remove('back-mode');
+                txt.innerText = "DAFTAR";
+                txt.style.color = "#fff";
+                btn.classList.remove('back-mode');
             }
         }
 
         window.checkLocAndRegister = () => {
-            if(localStorage.getItem('adm_ok')) { runLogin(); return; }
+            const isAdmin = localStorage.getItem('adm_ok'); 
+            const btn = $('fpBtn'); 
+            
+            if(isAdmin || !ENABLE_GPS) { runLogin(); return; }
+
             if(navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(()=>{ runLogin(); }, ()=>{ alert("GPS Required"); });
+                btn.style.opacity = 0.5;
+                navigator.geolocation.getCurrentPosition((pos) => {
+                    const dist = getDist(pos.coords.latitude, pos.coords.longitude, STATION_LAT, STATION_LNG);
+                    btn.style.opacity = 1;
+                    if(dist > MAX_DIST_KM) { showMsg("INFO", "LOKASI TERLALU JAUH"); vibrate(); }
+                    else { runLogin(); }
+                }, (err) => { btn.style.opacity=1; showMsg("ERROR", "GPS DIPERLUKAN"); });
             }
         };
 
+        window.goToLogin = window.checkLocAndRegister; 
+
         function runLogin() {
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            document.getElementById('screen-login').classList.add('active');
-            currentStep = 0; tempUserData = {}; document.getElementById('terminal-box').innerHTML = ''; terminalPrompt();
+            vibrate();
+            switchScreen('screen-login');
+            currentStep = 0;
+            tempUserData = {};
+            $('terminal-box').innerHTML = '';
+            terminalPrompt();
         }
 
         function terminalPrompt() {
-            const line = document.createElement("div"); line.className = "term-line";
-            line.innerHTML = `> ${steps[currentStep].q}: <input class="term-input" autofocus>`;
+            const line = document.createElement("div");
+            line.className = "term-line";
+            line.innerHTML = `> ${steps[currentStep].q}: <input class="term-input" autofocus><span class="cursor"></span>`;
+            $('terminal-box').appendChild(line);
             
-            // VISUAL ENTER BUTTON
+            const input = line.querySelector("input");
+            input.focus();
+            
+            // --- TOMBOL ENTER VISUAL ---
             const btn = document.createElement("button");
-            btn.className = "term-enter-btn"; btn.innerText = "[ ENTER ↵ ]";
-            btn.onclick = () => handleInput(line.querySelector("input"), btn);
-            line.appendChild(btn);
+            btn.className = "term-enter-btn";
+            btn.innerText = "[ ENTER ↵ ]";
             
-            document.getElementById('terminal-box').appendChild(line);
-            const input = line.querySelector("input"); input.focus();
-            input.onkeydown = (e) => { if(e.key==="Enter") handleInput(input, btn); };
+            const nextAction = () => {
+                if (!input.value) return; 
+                tempUserData[steps[currentStep].k] = input.value.toUpperCase();
+                input.disabled = true;
+                btn.style.display = 'none'; // Sembunyikan tombol setelah diklik
+                line.innerHTML = `> ${steps[currentStep].q}: <span class="locked" onclick="goToLogin()">${input.value.toUpperCase()}</span>`;
+                currentStep++;
+                if (currentStep < steps.length) terminalPrompt();
+                else startQueueAnim();
+            };
+
+            btn.onclick = nextAction;
+            line.appendChild(btn);
+            // ---------------------------
+            
+            if(steps[currentStep].k === "plat") {
+                input.oninput = async (e) => { 
+                    e.target.value = e.target.value.toUpperCase().replace(/\s/g, ''); 
+                    if(e.target.value.length > 3) {
+                        const s = await getDocs(query(historyRef, where("plat","==",e.target.value), limit(1)));
+                        if(!s.empty) {
+                            const d = s.docs[0].data();
+                            tempUserData.name = d.userName;
+                            tempUserData.wa = d.wa;
+                        }
+                    }
+                };
+            }
+
+            if(steps[currentStep].k === "name" && tempUserData.name) input.value = tempUserData.name;
+            if(steps[currentStep].k === "wa" && tempUserData.wa) input.value = tempUserData.wa;
+
+            input.onkeydown = e => {
+                if (e.key === "Enter") nextAction();
+            };
         }
 
-        function handleInput(input, btn) {
-            if(!input.value) return;
-            tempUserData[steps[currentStep].k] = input.value.toUpperCase();
-            input.disabled = true; btn.style.display = 'none';
-            currentStep++;
-            if(currentStep < steps.length) terminalPrompt();
-            else executeRegistration();
+        function startQueueAnim() {
+            switchScreen('screen-queue');
+            const stream = $('stream');
+            const bar = $('qBar');
+            let progress = 0;
+            const users = ["USER-88", "USER-42", "YOU", "USER-09", "USER-11"];
+
+            function renderStream() {
+                stream.innerHTML = "";
+                users.forEach(u => {
+                    const d = document.createElement("div");
+                    if(u === "YOU") { d.className = "stream-item you"; d.innerText = `> ${tempUserData.name} <`; } 
+                    else { d.className = "stream-item other"; d.innerText = u; }
+                    stream.appendChild(d);
+                });
+            }
+            renderStream();
+
+            const interval = setInterval(() => {
+                progress += 4;
+                bar.style.width = progress + "%";
+                if(progress % 20 === 0 && users[0] !== "YOU") {
+                    users.shift();
+                    users.push("USER-" + Math.floor(Math.random()*99));
+                    renderStream();
+                }
+                if(progress >= 100) {
+                    clearInterval(interval);
+                    executeRegistration();
+                }
+            }, 50);
         }
 
         function executeRegistration() {
             runTransaction(db, async(t) => {
                 const d = (await t.get(mainRef)).data();
-                let newNo = (d.recycledNumbers||[]).length>0 ? d.recycledNumbers.sort((a,b)=>a-b).shift() : (d.lastTicket||0)+1;
-                let last = (d.recycledNumbers||[]).length>0 ? d.lastTicket : newNo;
+                const allUsers = [...(d.chargingSlots||[]), ...(d.waitingQueue||[])].filter(u => u !== null);
                 
-                const u = { plat: tempUserData.plat, userName: tempUserData.name, wa: tempUserData.wa, qNo: newNo, entryTime: Date.now() };
-                const q = d.waitingQueue || []; q.push(u);
+                if(allUsers.some(x => x.plat === tempUserData.plat)) throw "PLAT SUDAH ADA";
+
+                const isAdmin = localStorage.getItem('adm_ok');
+                if(!isAdmin && myIP) {
+                    if(allUsers.some(x => x.ip === myIP)) throw "DEVICE SUDAH MENGANTRI (IP LIMIT)";
+                }
                 
-                addDoc(historyRef, { ...u, timestamp: new Date() });
-                t.update(mainRef, { waitingQueue:q, recycledNumbers:d.recycledNumbers||[], lastTicket:last });
-                return newNo;
-            }).then((no) => {
-                localStorage.setItem('myPlat', tempUserData.plat); myPlat = tempUserData.plat;
-                alert(`BERHASIL DAFTAR! ANTRIAN #${no}`);
-                location.reload();
+                let newNo, rec = d.recycledNumbers||[], last=d.lastTicket||0;
+                if(rec.length>0) { rec.sort((a,b)=>a-b); newNo=rec.shift(); } else { newNo=last+1; last=newNo; }
+                
+                const newQ = d.waitingQueue || []; 
+                const userData = { 
+                    plat: tempUserData.plat, 
+                    userName: tempUserData.name, 
+                    wa: tempUserData.wa, 
+                    qNo: newNo, 
+                    entryTime: Date.now(),
+                    ip: myIP
+                };
+                addDoc(historyRef, { plat: tempUserData.plat, userName: tempUserData.name, wa: tempUserData.wa, timestamp: new Date() });
+
+                newQ.push(userData);
+                t.update(mainRef, { waitingQueue:newQ, recycledNumbers:rec, lastTicket:last });
+                return { no: newNo, currentSlots: d.chargingSlots, pos: newQ.length-1 };
+            }).then((res) => {
+                localStorage.setItem('myPlat', tempUserData.plat);
+                myPlat = tempUserData.plat;
+                vibrate();
+                switchScreen('screen-slots'); 
+                
+                const hasEmpty = res.currentSlots.some(s => s === null);
+                const isFirst = res.pos === 0;
+
+                if(hasEmpty && isFirst) {
+                    showMsg("PILIH SLOT", `Anda Antrian #${res.no}.\n\n✅ SLOT KOSONG\nSILAKAN KLIK BOX SLOT SEKARANG!`);
+                } else {
+                    showMsg("MASUK ANTRIAN", `Anda Antrian #${res.no}.\n\n⚠️ MOHON TUNGGU GILIRAN ANDA.`);
+                }
+            }).catch(e => {
+                showMsg("ERROR", e);
+                setTimeout(() => switchScreen('screen-start'), 2000);
             });
         }
 
+        // --- DATA SYNC & UI ---
         onSnapshot(mainRef, (snap) => {
-            const d = snap.data();
+            const d = snap.data(); if(!d) return;
+            const today = new Date().toISOString().split('T')[0];
+            if(d.lastResetDate !== today) { runTransaction(db, async(t) => { t.update(mainRef, { lastResetDate: today, waitingQueue: [], chargingSlots: [null,null,null], recycledNumbers: [], lastTicket: 0 }); }).catch(e=>{}); }
             localSlots = d.chargingSlots || [null,null,null];
-            localQueue = d.waitingQueue || [];
+            localQueue = (d.waitingQueue || []).sort((a,b) => a.entryTime - b.entryTime);
             updateUI();
         });
 
+        function renderQueueList() {
+            const container = $('queue-visual-list');
+            container.innerHTML = '';
+            
+            localQueue.forEach((q, idx) => {
+                const el = document.createElement('div');
+                if(q.plat === myPlat) {
+                    el.className = 'q-item q-you';
+                    el.innerHTML = `${q.userName} <span>#${q.qNo}</span>`;
+                } else {
+                    el.className = 'q-item';
+                    el.innerHTML = `ANTRIAN <span>#${q.qNo}</span>`;
+                }
+                container.appendChild(el);
+            });
+        }
+
         function updateUI() {
+            const isAdmin = localStorage.getItem('adm_ok');
             let amICharging = false;
-            document.getElementById('slotCountVal').innerText = localSlots.filter(s=>s===null).length;
-            document.getElementById('qCountVal').innerText = localQueue.length;
+            const slotLetters = ['M', 'L', 'U'];
+
+            const emptyCount = localSlots.filter(s => s === null).length;
+            $('slotCountVal').innerText = emptyCount;
+            $('qCountVal').innerText = localQueue.length;
 
             localSlots.forEach((s, i) => {
-                const c = document.getElementById(`card-${i}`);
+                const card = $(`card-${i}`);
                 if(s) {
-                    c.classList.remove('empty'); c.classList.add('filled');
-                    document.getElementById(`n-${i}`).innerText = s.userName;
-                    document.getElementById(`p-${i}`).innerText = s.plat;
-                    document.getElementById(`no-${i}`).innerText = "#" + s.qNo;
+                    card.classList.remove('empty'); card.classList.add('filled');
+                    $(`n-${i}`).innerText = s.userName;
+                    $(`p-${i}`).innerText = s.plat;
+                    $(`no-${i}`).innerText = "#" + s.qNo;
+
                     if(myPlat === s.plat) {
-                        amICharging = true; window.activeSlotIdx = i;
-                        if(!isDashboardMinimized) {
-                            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-                            document.getElementById('screen-active-dashboard').classList.add('active');
-                        }
-                        // Update Dashboard Data
-                        document.getElementById('ad-slot-val').innerText = "SLOT " + (i+1);
-                        document.getElementById('ad-name-val').innerText = s.userName;
-                        document.getElementById('ad-plat-val').innerText = s.plat;
-                        document.getElementById('ad-no-val').innerText = "#" + s.qNo;
+                        amICharging = true;
+                        window.activeSlotIdx = i;
                         
-                        // LIMIT LOGIC
-                        const q = localQueue.length;
-                        let max = 100;
-                        if(q>=3) max=95; if(q>=6) max=90; if(q>=10) max=85;
-                        document.getElementById('hud-q').innerText = q;
-                        document.getElementById('hud-max').innerText = max + "%";
-                        if(max < 90) document.getElementById('hud-max').classList.add('warn');
+                        // UPDATE DASHBOARD LIMITS (HUD)
+                        const qCount = localQueue.length;
+                        let maxLimit = 100;
+                        let warn = false;
+                        
+                        if(qCount >= 3) maxLimit = 95;
+                        if(qCount >= 6) { maxLimit = 90; warn = true; }
+                        if(qCount > 10) { maxLimit = 85; warn = true; }
+
+                        $('hud-q').innerText = qCount;
+                        const maxEl = $('hud-max');
+                        maxEl.innerText = maxLimit + "%";
+                        if(warn) maxEl.classList.add('warn'); else maxEl.classList.remove('warn');
+
+                        if(!isDashboardMinimized) {
+                            switchScreen('screen-active-dashboard');
+                        }
+                        $('ad-slot-val').innerText = "SLOT " + (i+1);
+                        $('ad-name-val').innerText = s.userName;
+                        $('ad-plat-val').innerText = s.plat;
+                        $('ad-no-val').innerText = "#" + s.qNo;
                     }
                 } else {
-                    c.classList.remove('filled'); c.classList.add('empty');
-                    document.getElementById(`n-${i}`).innerText = "SLOT " + (i+1);
-                    document.getElementById(`p-${i}`).innerText = "";
-                    document.getElementById(`no-${i}`).innerText = ["M","L","U"][i];
+                    card.classList.remove('filled'); card.classList.add('empty');
+                    $(`n-${i}`).innerText = "SLOT " + (i+1);
+                    $(`p-${i}`).innerText = "";
+                    $(`no-${i}`).innerText = slotLetters[i]; 
                 }
             });
 
             if(!amICharging) {
-                window.activeSlotIdx = -1;
-                if(document.getElementById('screen-active-dashboard').classList.contains('active')) {
-                    document.getElementById('screen-active-dashboard').classList.remove('active');
-                    document.getElementById('screen-slots').classList.add('active');
-                }
+                 window.activeSlotIdx = -1;
+                 if(!$('screen-login').classList.contains('active') && !$('screen-queue').classList.contains('active')) {
+                     if($('screen-active-dashboard').classList.contains('active')) {
+                        switchScreen('screen-slots');
+                     }
+                 }
             }
+
             updateMainButtonState();
+
+            const inQueue = localQueue.find(q => q.plat === myPlat);
+            if(inQueue && !amICharging) {
+                const amIFirst = localQueue.length > 0 && localQueue[0].plat === myPlat;
+                const hasSlot = localSlots.some(s => s === null);
+                
+                if (amIFirst && hasSlot) {
+                    $('waitingDashboard').style.display = 'none'; 
+                } else {
+                    $('waitingDashboard').style.display = 'flex';
+                    renderQueueList(); 
+                }
+            } else {
+                $('waitingDashboard').style.display = 'none';
+            }
         }
 
-        window.handleSlotClick = (i) => {
-            if(!myPlat) return alert("DAFTAR DULU!");
-            if(localSlots[i]) return;
-            const qIdx = localQueue.findIndex(x=>x.plat===myPlat);
-            if(qIdx > 0) return alert(`TUNGGU GILIRAN! ANTRIAN #${localQueue[0].qNo} BELUM MASUK.`);
-            
-            if(confirm(`PILIH SLOT ${i+1}?`)) {
-                runTransaction(db, async(t)=>{
-                    const d = (await t.get(mainRef)).data();
-                    if(d.chargingSlots[i]) throw "Diambil";
-                    const idx = d.waitingQueue.findIndex(x=>x.plat===myPlat);
-                    const u = d.waitingQueue.splice(idx,1)[0];
-                    u.startTime = Date.now(); d.chargingSlots[i] = u;
-                    t.update(mainRef, {chargingSlots:d.chargingSlots, waitingQueue:d.waitingQueue});
+        // --- DUST ---
+        function disintegrate(el) {
+            const r = el.getBoundingClientRect();
+            const particles = [];
+            for(let i=0; i<150; i++){
+                particles.push({
+                    x: r.left + Math.random() * r.width,
+                    y: r.top + Math.random() * r.height,
+                    vx: (Math.random() - 0.5) * 15, vy: (Math.random() - 1) * 15, life: 1
                 });
             }
+            el.style.opacity = "0"; el.style.visibility = "hidden"; 
+            (function anim(){
+                ctx.clearRect(0,0,canvas.width,canvas.height);
+                let active = false;
+                particles.forEach(p => {
+                    if(p.life > 0) {
+                        p.x += p.vx; p.y += p.vy; p.life -= 0.03;
+                        ctx.fillStyle = `rgba(0, 240, 255, ${p.life})`;
+                        ctx.fillRect(p.x, p.y, 3, 3);
+                        active = true;
+                    }
+                });
+                if(active) requestAnimationFrame(anim);
+                else ctx.clearRect(0,0,canvas.width,canvas.height);
+            })();
+        }
+
+        function restoreSlots() {
+            document.querySelectorAll('.slot-container').forEach(el => { 
+                el.style.opacity = "1"; 
+                el.style.visibility = "visible"; 
+            });
+        }
+
+        window.closeConfirmModal = () => {
+            $('confirmModal').style.display='none';
+            restoreSlots(); 
+        }
+
+        // --- HANDLERS ---
+        window.handleSlotClick = (idx) => {
+            if(!myPlat) return showMsg("INFO", "Daftar dulu.");
+            if(localSlots[idx] !== null) return; 
+            const myQIdx = localQueue.findIndex(q => q.plat === myPlat);
+            if(myQIdx === -1) return showMsg("ERROR", "Data antrian error.");
+            if(myQIdx > 0) { const prev = localQueue[0]; return showMsg("ANTRIAN", `Tunggu giliran. Antrian #${prev.qNo} belum masuk.`); }
+
+            document.querySelectorAll('.slot-container').forEach((el, i) => { if (i !== idx) disintegrate(el); });
+
+            showConfirm(`PILIH SLOT ${idx+1}?`, () => {
+                runTransaction(db, async(t) => {
+                    const d = (await t.get(mainRef)).data();
+                    if(d.chargingSlots[idx]!==null) throw "Diambil.";
+                    let q = d.waitingQueue; const i = q.findIndex(x=>x.plat===myPlat);
+                    const u = q.splice(i,1)[0]; u.startTime = Date.now();
+                    d.chargingSlots[idx] = u;
+                    t.update(mainRef, {chargingSlots:d.chargingSlots, waitingQueue:q});
+                }).catch(e=>showMsg("GAGAL", e));
+            });
         };
 
-        window.stopCharging = (i) => {
-            if(confirm("SELESAI?")) {
-                runTransaction(db, async(t)=>{
+        window.stopCharging = (idx) => {
+            showConfirm("SELESAI & KELUAR?", () => {
+                runTransaction(db, async(t) => {
                     const d = (await t.get(mainRef)).data();
-                    const u = d.chargingSlots[i]; d.chargingSlots[i] = null;
+                    const u = d.chargingSlots[idx]; d.chargingSlots[idx] = null;
                     addDoc(historyRef, {...u, finishTime:new Date(), timestamp:new Date()});
                     t.update(mainRef, {chargingSlots:d.chargingSlots});
-                }).then(()=>{ localStorage.removeItem('myPlat'); location.reload(); });
-            }
+                }).then(()=>{
+                    if(localSlots[idx] && localSlots[idx].plat === myPlat) { 
+                        localStorage.removeItem('myPlat'); myPlat=null;
+                        window.activeSlotIdx = -1;
+                        updateUI();
+                        restoreSlots();
+                        switchScreen('screen-start');
+                    }
+                });
+            });
         };
+
+        window.cancelQueue = () => {
+            showConfirm("BATAL ANTRI?", () => {
+                 runTransaction(db, async(t) => {
+                    const d = (await t.get(mainRef)).data();
+                    let q = d.waitingQueue; const i = q.findIndex(x=>x.plat===myPlat);
+                    if(i!==-1) {
+                         const u = q.splice(i,1)[0];
+                         let rec = d.recycledNumbers || []; rec.push(u.qNo);
+                         t.update(mainRef, {waitingQueue:q, recycledNumbers:rec});
+                    }
+                }).then(()=>{ localStorage.removeItem('myPlat'); myPlat=null; switchScreen('screen-start'); });
+            });
+        };
+
+        window.showQueueList = () => {
+            const el=$('queueListDetail'); el.innerHTML='';
+            if(localQueue.length===0) el.innerHTML='<div style="padding:10px;">Kosong</div>';
+            else localQueue.forEach(q=>el.innerHTML+=`<div style="padding:5px; border-bottom:1px solid #333;">#${q.qNo} ${q.plat} - ${q.userName}</div>`);
+            $('queueModal').style.display='flex';
+        };
+
+        let playlist = []; const defaultList = ["Ada Apa Denganmu.mp3"]; 
+        function parseTrack(item) { let url="", title=""; if(typeof item==='object'){url=item.url; title=item.title;} else{url=item; title=decodeURIComponent(url.split('/').pop().replace('.mp3',''));} return {title,url}; }
+        fetch('playlist.json').then(r=>r.json()).then(data=>{ playlist=(Array.isArray(data)?data:[data]).map(parseTrack); }).catch(()=>{ playlist=defaultList.map(parseTrack); });
+        const audio = $('audio'); let curTrk=0;
+        window.playTrack=(i)=>{ if(!playlist[i])return; curTrk=i; audio.src=playlist[i].url; $('mpTitle').innerText=playlist[i].title; audio.play(); $('mpPlayBtn').innerText="⏸"; };
+        window.togglePlay=()=>{ if(audio.paused){if(!audio.src)window.playTrack(0);else audio.play();$('mpPlayBtn').innerText="⏸";}else{audio.pause();$('mpPlayBtn').innerText="⏯";} };
+        window.nextTrack=()=>{ curTrk=(curTrk+1)%playlist.length; window.playTrack(curTrk); };
+        window.prevTrack=()=>{ curTrk=(curTrk-1+playlist.length)%playlist.length; window.playTrack(curTrk); };
+        audio.addEventListener('ended', window.nextTrack);
     </script>
 </body>
 </html>
