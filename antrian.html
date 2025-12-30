@@ -390,7 +390,10 @@
 
         fetch('https://api.ipify.org?format=json').then(res => res.json()).then(data => myIP = data.ip).catch(e => console.log("IP Check Skip"));
 
-        const STATION_LAT = -6.171583; const STATION_LNG = 106.899844; const MAX_DIST_KM = 1.0; 
+        // KOORDINAT FC (Pastikan akurat)
+        const STATION_LAT = -6.171583; 
+        const STATION_LNG = 106.899844; 
+        const MAX_DIST_KM = 1.0; 
         const FORCE_LOGOUT_DIST = 1.5; 
 
         const $ = (id) => document.getElementById(id);
@@ -398,7 +401,15 @@
         
         function showMsg(title, body) { $('msgTitle').innerText=title; $('msgBody').innerText=body; $('msgModal').style.display='flex'; }
         function showConfirm(text, cb) { $('confirmText').innerText = text; $('confirmModal').style.display='flex'; $('btnConfirmYes').onclick = () => { $('confirmModal').style.display='none'; cb(); }; }
-        function getDist(lat1,lon1,lat2,lon2) { const R=6371; const dLat=(lat2-lat1)*Math.PI/180; const dLon=(lon2-lon1)*Math.PI/180; const a=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)*Math.sin(dLon/2); return R*(2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a))); }
+        
+        // Rumus Haversine (Jarak)
+        function getDist(lat1,lon1,lat2,lon2) { 
+            const R=6371; 
+            const dLat=(lat2-lat1)*Math.PI/180; 
+            const dLon=(lon2-lon1)*Math.PI/180; 
+            const a=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)*Math.sin(dLon/2); 
+            return R*(2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a))); 
+        }
 
         window.showQueueList = () => {
             const el = $('queueListDetail'); if(!el) return;
@@ -415,19 +426,10 @@
         canvas.width = window.innerWidth; canvas.height = window.innerHeight;
         window.addEventListener('resize', () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; });
 
-        // --- TUTORIAL FIX ---
+        // --- TUTORIAL ---
         let tutStep = 0;
-        window.startTutorial = () => { 
-            $('tutorialOverlay').style.display = 'flex'; 
-            tutStep = 0; 
-            showTutStep(); 
-        }
-        
-        window.nextTutorialStep = () => { 
-            tutStep++; 
-            showTutStep(); 
-        }
-
+        window.startTutorial = () => { $('tutorialOverlay').style.display = 'flex'; tutStep = 0; showTutStep(); }
+        window.nextTutorialStep = () => { tutStep++; showTutStep(); }
         function showTutStep() {
             document.querySelectorAll('.tut-highlight').forEach(el => el.classList.remove('tut-highlight'));
             const title = $('tutTitle'); const desc = $('tutDesc'); const btn = $('tutNextBtn');
@@ -439,7 +441,7 @@
                     $('fpBtn').classList.add('tut-highlight');
                 } else if(tutStep === 1) {
                     title.innerText = "2. PILIH SLOT"; desc.innerText = "Jika kotak kosong, klik untuk cas."; 
-                    switchScreen('screen-slots'); // FORCE SWITCH SCREEN
+                    switchScreen('screen-slots'); 
                     $('card-0').classList.add('tut-highlight'); 
                 } else if(tutStep === 2) {
                     title.innerText = "3. ANTRIAN"; desc.innerText = "Cek jumlah antrian di sini."; 
@@ -462,7 +464,7 @@
 
         window.toggleAdmin = () => {
              const pass = prompt("MASUKKAN KODE ADMIN:");
-             // PASS ADMIN GANTI 1131
+             // CODE ADMIN 1131
              if(pass === "1131") { localStorage.setItem('adm_ok', '1'); window.location.href = 'admin.html'; } 
              else if (pass === "9999") {
                  if(confirm("RESET ANTRIAN KE 1?")) {
@@ -473,58 +475,26 @@
              } else { if(pass) alert("KODE SALAH!"); }
         }
 
-        // ================= NEW RENDER LOGIC =================
         function renderFocusedQueue() {
-            const container = $('focusedQueueList');
-            if(!container) return;
+            const container = $('focusedQueueList'); if(!container) return;
             container.innerHTML = '';
-            
-            if(localQueue.length === 0) {
-                container.innerHTML = '<div style="color:#666; font-family:JetBrains Mono; margin-top:50px;">ANTRIAN KOSONG</div>';
-                return;
-            }
-
+            if(localQueue.length === 0) { container.innerHTML = '<div style="color:#666; font-family:JetBrains Mono; margin-top:50px;">ANTRIAN KOSONG</div>'; return; }
             const youIndex = localQueue.findIndex(q => q.plat === myPlat);
-
             localQueue.forEach((q, i) => {
-                // Add Pipe if not first
-                if(i > 0) {
-                    const pipe = document.createElement("div");
-                    pipe.className = "fq-pipe";
-                    container.appendChild(pipe);
-                }
-
+                if(i > 0) { const pipe = document.createElement("div"); pipe.className = "fq-pipe"; container.appendChild(pipe); }
                 const d = document.createElement("div");
                 const diff = Math.abs(i - youIndex);
-                
-                // Class assignment based on logic
-                if (q.plat === myPlat) {
-                    d.className = "fq-item you";
-                } else if (diff === 1) {
-                    d.className = "fq-item mid";
-                } else {
-                    d.className = "fq-item small";
-                }
-                
-                // Set text content
-                d.textContent = `#${q.qNo} ${q.plat}`;
-                container.appendChild(d);
+                if (q.plat === myPlat) d.className = "fq-item you";
+                else if (diff === 1) d.className = "fq-item mid";
+                else d.className = "fq-item small";
+                d.textContent = `#${q.qNo} ${q.plat}`; container.appendChild(d);
             });
-
-            // SCROLL LOGIC
-            setTimeout(() => {
-                const you = document.querySelector('.fq-item.you');
-                if (!you) return;
-                you.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }, 300);
+            setTimeout(() => { const you = document.querySelector('.fq-item.you'); if (you) you.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 300);
         }
 
         window.handleMainAction = () => {
             if(window.activeSlotIdx !== -1 && isDashboardMinimized) window.toggleDashboard(true);
-            else if(amIInQueue) {
-                $('waitingDashboard').style.display = 'flex';
-                renderFocusedQueue();
-            }
+            else if(amIInQueue) { $('waitingDashboard').style.display = 'flex'; renderFocusedQueue(); }
             else window.checkLocAndRegister();
         };
 
@@ -538,12 +508,13 @@
             if(localStorage.getItem('adm_ok')) { runLogin(); return; }
             if(navigator.geolocation) {
                 $('fpBtn').style.opacity = 0.5;
+                // Force GPS refresh (maximumAge: 0)
                 navigator.geolocation.getCurrentPosition((pos) => {
                     const dist = getDist(pos.coords.latitude, pos.coords.longitude, STATION_LAT, STATION_LNG);
                     $('fpBtn').style.opacity = 1;
-                    if(dist > MAX_DIST_KM) { showMsg("INFO", "LOKASI TERLALU JAUH"); vibrate(); }
+                    if(dist > MAX_DIST_KM) { showMsg("INFO", `JARAK: ${dist.toFixed(2)} KM (MAX ${MAX_DIST_KM} KM)`); vibrate(); }
                     else { runLogin(); }
-                }, () => { $('fpBtn').style.opacity=1; showMsg("ERROR", "GPS WAJIB AKTIF"); });
+                }, () => { $('fpBtn').style.opacity=1; showMsg("ERROR", "GPS WAJIB AKTIF"); }, { enableHighAccuracy: true, maximumAge: 0 });
             } else alert("Browser No GPS");
         };
 
@@ -562,7 +533,6 @@
                 currentStep++; if(currentStep < steps.length) terminalPrompt(); else startQueueAnim();
             };
             btn.onclick = next; line.appendChild(btn);
-            
             if(steps[currentStep].k === "plat") {
                 input.oninput = async (e) => { 
                     e.target.value = e.target.value.toUpperCase().replace(/\s/g, ''); 
@@ -587,18 +557,15 @@
                 const d = (await t.get(mainRef)).data();
                 const all = [...(d.chargingSlots||[]), ...(d.waitingQueue||[])].filter(u => u !== null);
                 if(all.some(x => x.plat === tempUserData.plat)) throw "PLAT SUDAH ADA";
-                
                 let newNo = (d.lastTicket||0)+1;
                 if(d.recycledNumbers && d.recycledNumbers.length>0) { d.recycledNumbers.sort((a,b)=>a-b); newNo = d.recycledNumbers.shift(); }
-                
                 const u = { plat: tempUserData.plat, userName: tempUserData.name, wa: tempUserData.wa, qNo: newNo, entryTime: Date.now(), ip: myIP };
                 d.waitingQueue.push(u);
                 t.update(mainRef, { waitingQueue:d.waitingQueue, recycledNumbers:d.recycledNumbers||[], lastTicket: Math.max(d.lastTicket||0, newNo) });
                 return newNo;
             }).then((no) => {
                 localStorage.setItem('myPlat', tempUserData.plat); myPlat = tempUserData.plat;
-                showMsg("BERHASIL", `Antrian #${no}. Silakan tunggu.`);
-                switchScreen('screen-slots');
+                showMsg("BERHASIL", `Antrian #${no}. Silakan tunggu.`); switchScreen('screen-slots');
             }).catch(e => { showMsg("GAGAL", e); setTimeout(()=>switchScreen('screen-slots'), 2000); });
         }
 
@@ -621,21 +588,14 @@
                     if($(`n-${i}`)) $(`n-${i}`).innerText = s.userName;
                     if($(`p-${i}`)) $(`p-${i}`).innerText = s.plat;
                     if($(`no-${i}`)) $(`no-${i}`).innerText = "#" + s.qNo;
-
                     if(myPlat === s.plat) {
-                        // --- VOICE LOGIC ---
-                        if(window.activeSlotIdx === -1) {
-                            const msg = new SpeechSynthesisUtterance(`Halo ${s.userName}, Giliran Anda di Slot ${i+1}. Silakan masuk.`);
-                            msg.lang = 'id-ID'; window.speechSynthesis.speak(msg); vibrate();
-                        }
-                        // -------------------
+                        if(window.activeSlotIdx === -1) { const msg = new SpeechSynthesisUtterance(`Halo ${s.userName}, Giliran Anda di Slot ${i+1}.`); msg.lang = 'id-ID'; window.speechSynthesis.speak(msg); vibrate(); }
                         amICharging = true; window.activeSlotIdx = i;
                         if(!isDashboardMinimized) switchScreen('screen-active-dashboard');
                         if($('ad-slot-val')) $('ad-slot-val').innerText = "SLOT " + (i+1);
                         if($('ad-name-val')) $('ad-name-val').innerText = s.userName;
                         if($('ad-plat-val')) $('ad-plat-val').innerText = s.plat;
                         if($('ad-no-val')) $('ad-no-val').innerText = "#" + s.qNo;
-                        // Close waiting dashboard if open
                         $('waitingDashboard').style.display='none';
                     }
                 } else {
@@ -647,26 +607,16 @@
             });
 
             if(!amICharging) { window.activeSlotIdx = -1; }
-
             amIInQueue = localQueue.some(q => q.plat === myPlat);
             const btn = $('fpBtn'); const txt = $('mainBtnText');
-            if(btn) btn.className = 'fp-btn'; // Reset class
+            if(btn) btn.className = 'fp-btn';
             
-            if(window.activeSlotIdx !== -1) {
-                if(isDashboardMinimized) { txt.innerText = "KE DASHBOARD"; btn.classList.add('back-mode'); }
-                else { txt.innerText = "STATUS AKTIF"; }
-            } else if(amIInQueue) {
-                txt.innerText = "LIHAT ANTRIAN"; btn.classList.add('back-mode');
-                // Auto refresh focused queue if open
-                if($('waitingDashboard').style.display === 'flex') {
-                    renderFocusedQueue();
-                }
-            } else {
-                txt.innerText = "DAFTAR";
-            }
+            if(window.activeSlotIdx !== -1) { if(isDashboardMinimized) { txt.innerText = "KE DASHBOARD"; btn.classList.add('back-mode'); } else { txt.innerText = "STATUS AKTIF"; } } 
+            else if(amIInQueue) { txt.innerText = "LIHAT ANTRIAN"; btn.classList.add('back-mode'); if($('waitingDashboard').style.display === 'flex') renderFocusedQueue(); } 
+            else { txt.innerText = "DAFTAR"; }
         }
 
-        // --- MUSIC PLAYER & PLAYLIST LOGIC ---
+        // --- MUSIC PLAYER ---
         const playlistData = [
           { title: "Ada Apa Denganmu", url: "https://mlump3player.netlify.app/Ada%20Apa%20Denganmu.mp3" },
           { title: "Anji - Menunggu Kamu", url: "https://mlump3player.netlify.app/anji-menunggu-kamu.mp3" },
@@ -697,43 +647,27 @@
         };
 
         window.playTrack=(i)=>{ 
-            if(!audio || !playlistData[i])return; 
-            curTrk=i; 
-            audio.src=playlistData[i].url; 
-            
-            // UPDATE BOTH PLAYERS UI
+            if(!audio || !playlistData[i])return; curTrk=i; audio.src=playlistData[i].url; 
             if($('mpTitle')) $('mpTitle').innerText=playlistData[i].title; 
             if($('mpTitle2')) $('mpTitle2').innerText=playlistData[i].title; 
-
             audio.play().catch(e=>{}); 
-            
             if($('mpPlayBtn')) $('mpPlayBtn').innerText="⏸"; 
             if($('mpPlayBtn2')) $('mpPlayBtn2').innerText="⏸"; 
         };
-
         window.togglePlay=()=>{ 
             if(!audio) return;
-            let icon = "⏯";
-            if(audio.paused){
-                if(!audio.src) window.playTrack(0); 
-                else audio.play();
-                icon = "⏸";
-            } else {
-                audio.pause();
-                icon = "⏯";
-            }
-            if($('mpPlayBtn')) $('mpPlayBtn').innerText=icon;
-            if($('mpPlayBtn2')) $('mpPlayBtn2').innerText=icon;
+            let i = "⏯";
+            if(audio.paused){ if(!audio.src)window.playTrack(0); else audio.play(); i="⏸"; }
+            else{ audio.pause(); i="⏯"; } 
+            if($('mpPlayBtn')) $('mpPlayBtn').innerText=i;
+            if($('mpPlayBtn2')) $('mpPlayBtn2').innerText=i;
         };
-
         window.nextTrack=()=>{ curTrk=(curTrk+1)%playlistData.length; window.playTrack(curTrk); };
         window.prevTrack=()=>{ curTrk=(curTrk-1+playlistData.length)%playlistData.length; window.playTrack(curTrk); };
         if(audio) audio.addEventListener('ended', window.nextTrack);
 
-        // --- HANDLERS LAIN ---
-        function disintegrate(el) {} 
+        // --- HANDLERS ---
         window.closeConfirmModal = () => { $('confirmModal').style.display='none'; document.querySelectorAll('.slot-container').forEach(el=>el.style.opacity="1"); }
-
         window.handleSlotClick = (idx) => {
             if(!myPlat) return showMsg("INFO", "DAFTAR DULU.");
             if(localSlots[idx]) return;
@@ -768,45 +702,44 @@
             });
         };
 
-        // GEOFENCE WATCHDOG FIX (Visibility Change + Interval)
+        // === WATCHDOG (FIXED) ===
         function checkGeofence() {
-            if(amIInQueue && !localStorage.getItem('adm_ok') && navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(p => {
-                    const d = getDist(p.coords.latitude, p.coords.longitude, STATION_LAT, STATION_LNG);
-                    // Cek jarak
-                    if(d > FORCE_LOGOUT_DIST) {
-                        alert("ANDA KELUAR AREA (JARAK > 1.5KM). ANTRIAN DIHAPUS."); 
-                        
-                        // Force Cancel Local
-                        localStorage.removeItem('myPlat'); 
-                        
-                        // Trigger reload (Firebase akan sync di next load jika logic penghapusan server belum, 
-                        // tapi idealnya kita hapus dari server juga, tapi user minta script simple)
-                        // Untuk keamanan script user dashboard:
-                        runTransaction(db, async(t)=>{
+            const p = localStorage.getItem('myPlat');
+            if(!p || localStorage.getItem('adm_ok')) return; // Kalau admin/ga daftar, skip
+
+            if(navigator.geolocation) {
+                 // Pakai maximumAge:0 agar tidak pakai cache
+                 navigator.geolocation.getCurrentPosition(pos => {
+                     const dist = getDist(pos.coords.latitude, pos.coords.longitude, STATION_LAT, STATION_LNG);
+                     
+                     if(dist > FORCE_LOGOUT_DIST) {
+                         // Hapus Local dulu biar UI update
+                         localStorage.removeItem('myPlat');
+                         
+                         // Hapus Server
+                         runTransaction(db, async(t)=>{
                              const docSnap = await t.get(mainRef);
                              let q = docSnap.data().waitingQueue || [];
-                             const idx = q.findIndex(x => x.plat === myPlat);
+                             const idx = q.findIndex(x => x.plat === p);
                              if(idx !== -1) {
                                  q.splice(idx, 1);
                                  t.update(mainRef, {waitingQueue: q});
                              }
-                        }).finally(() => location.reload());
-                    }
-                }, (err) => {
-                    console.log("GPS ERROR:", err);
-                }, { enableHighAccuracy: true });
+                         }).then(() => {
+                             alert(`JARAK ANDA ${dist.toFixed(2)} KM (MAX 1.5 KM). ANTRIAN DIHAPUS OTOMATIS.`);
+                             location.reload();
+                         }).catch(() => {
+                             location.reload(); // Fallback reload
+                         });
+                     }
+                 }, (e)=>{ console.log("GPS Err", e) }, { enableHighAccuracy:true, maximumAge:0, timeout:5000 });
             }
         }
-
-        // Cek setiap 60 detik
+        
+        // Cek tiap 60 detik & saat tab dibuka kembali
         setInterval(checkGeofence, 60000);
-
-        // Cek juga saat tab/browser dibuka kembali (visibility change)
         document.addEventListener('visibilitychange', () => {
-            if (document.visibilityState === 'visible') {
-                checkGeofence();
-            }
+            if (document.visibilityState === 'visible') checkGeofence();
         });
 
     </script>
