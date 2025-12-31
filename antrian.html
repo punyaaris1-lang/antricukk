@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>FC KELAPA GADING</title>
-    <link href="https://fonts.googleapis.com/css2?family=Teko:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Teko:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&family=Inter:wght@500;700;800&display=swap" rel="stylesheet">
     <style>
         :root { --bg: #050505; --accent: #CCFF00; --cyan: #00F0FF; --red: #FF003C; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; user-select: none; }
@@ -18,7 +18,7 @@
             font-size: 20px; letter-spacing: 1px;
         }
         body::before { content: ''; position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(0,0,0,0.85), #000); z-index: 0; }
-        #dust { position: fixed; inset: 0; pointer-events: none; z-index: 9999; }
+        #dust { position: fixed; inset: 0; pointer-events: none; z-index: 1; }
 
         /* HEADER */
         .top-nav { 
@@ -85,6 +85,92 @@
         }
         @keyframes pulseBtn { 0%{opacity:1;} 50%{opacity:0.7;} 100%{opacity:1;} }
 
+        /* SCANNER VERIFICATION SCREEN */
+        .scanner-container {
+            position: relative; width: 200px; height: 200px;
+            display: flex; justify-content: center; align-items: center;
+        }
+        .scan-img {
+            width: 100%; height: 100%; object-fit: cover; border-radius: 15px;
+            position: absolute; inset: 0;
+        }
+        .scan-bw { filter: grayscale(100%) contrast(1.2); z-index: 1; }
+        .scan-color { 
+            z-index: 2; 
+            clip-path: inset(100% 0 0 0); /* Awal tertutup */
+            transition: clip-path 3s ease-in-out;
+            filter: drop-shadow(0 0 15px var(--cyan));
+        }
+        .scan-line {
+            position: absolute; left: -10%; width: 120%; height: 2px;
+            background: var(--cyan);
+            box-shadow: 0 0 10px var(--cyan), 0 0 20px var(--cyan);
+            z-index: 5; top: 100%; opacity: 0;
+            transition: 0.5s;
+        }
+        .scanning .scan-line {
+            opacity: 1;
+            animation: scanMove 3s ease-in-out forwards;
+        }
+        .scanning .scan-color {
+            clip-path: inset(0 0 0 0);
+        }
+        @keyframes scanMove {
+            0% { top: 100%; opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { top: 0%; opacity: 0; }
+        }
+        .scan-text {
+            margin-top: 20px; font-family: 'JetBrains Mono'; font-size: 14px; 
+            color: var(--cyan); letter-spacing: 2px; text-shadow: 0 0 10px var(--cyan);
+            animation: pulse 1s infinite;
+        }
+
+        /* WELCOME SCREEN OVERLAY (2026 Style) */
+        #welcomeOverlay {
+            display: none; /* Default Hidden */
+            position: fixed; inset: 0; z-index: 20000;
+            background: #000; color: #fff;
+            font-family: 'Inter', sans-serif;
+            align-items: center; justify-content: center;
+            text-align: center; overflow: hidden;
+        }
+        #welcomeOverlay .bg-layer {
+            position: absolute; inset: 0;
+            background: url("1763947427555.jpg") center/cover no-repeat;
+            opacity: 0.4; transform: scale(1);
+            animation: bgZoom 20s ease forwards;
+        }
+        @keyframes bgZoom{ to{transform:scale(1.15)} }
+        #welcomeOverlay .vignette {
+            position: absolute; inset: 0;
+            background: radial-gradient(circle, rgba(0,0,0,0) 40%, rgba(0,0,0,1) 90%);
+        }
+        #welcomeOverlay .wrap { position: relative; z-index: 10; padding: 20px; max-width: 500px; }
+        #welcomeOverlay .line {
+            font-size: 18px; line-height: 1.6; min-height: 2.4em;
+            text-shadow: 0 0 14px rgba(255,255,255,.3);
+            font-family: 'JetBrains Mono'; color: #ddd;
+        }
+        #welcomeOverlay .final {
+            font-size: 32px; font-weight: 800; letter-spacing: 1.4px;
+            color: #e8c37a; opacity: 0; margin-bottom: 20px;
+            text-shadow: 0 0 30px rgba(232,195,122,.8);
+            font-family: 'Teko';
+        }
+        .fade-in{animation:fadeInText 1s ease forwards}
+        .fade-out{animation:fadeOutText .8s ease forwards}
+        @keyframes fadeInText{ from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:none} }
+        @keyframes fadeOutText{ to{opacity:0;transform:translateY(-10px)} }
+        #fx-welcome { position: absolute; inset: 0; pointer-events: none; z-index: 5; }
+        .close-welcome {
+            position: absolute; top: 20px; right: 20px; z-index: 50;
+            background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3);
+            color: #fff; padding: 5px 15px; border-radius: 20px; font-family: 'Teko';
+            cursor: pointer; opacity: 0; transition: 1s;
+        }
+
         /* SLOT VIEW (UPDATED BLEND) */
         #screen-slots { flex-direction: row; align-items: center; justify-content: center; gap: 10px; padding: 0 15px; }
         .slot-container { width: 32%; height: 45vh; max-height: 380px; position: relative; transition: all 0.8s cubic-bezier(0.25, 1, 0.5, 1); }
@@ -92,7 +178,6 @@
 
         .onyx-card { 
             width: 100%; height: 100%; 
-            /* BLEND EFFECT: Transparent BG */
             background: rgba(0, 0, 0, 0.3); 
             border: 1px solid rgba(255,255,255,0.3); 
             border-radius: 15px; display: flex; flex-direction: column; 
@@ -101,7 +186,6 @@
         }
         .card-bg-layer { 
             position: absolute; inset: 0; 
-            /* BLEND EFFECT: Fixed attachment to match body */
             background-image: url('1763947427555.jpg'); 
             background-attachment: fixed; 
             background-position: center center;
@@ -199,7 +283,6 @@
         .tut-desc { font-family: 'JetBrains Mono'; font-size: 14px; color: #ccc; line-height: 1.5; }
         .tut-next-btn { padding: 10px 40px; border: 2px solid var(--accent); background: rgba(204,255,0,0.1); color: var(--accent); font-family: 'Teko'; font-size: 24px; border-radius: 50px; cursor: pointer; opacity: 0; transition: 0.5s; }
         
-        /* UPDATED TUTORIAL HIGHLIGHT (VISUAL ONLY) */
         .tut-highlight { 
             position: relative; 
             z-index: 10000 !important; 
@@ -212,10 +295,8 @@
         }
         @keyframes highlightPulse { 0%{box-shadow: 0 0 0 4px var(--cyan);} 50%{box-shadow: 0 0 0 8px rgba(0,240,255,0.5);} 100%{box-shadow: 0 0 0 4px var(--cyan);} }
 
-        #stream-container .loading-bar, #stream-container .loading-fill { height: 2px; }
         #queueModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 5000; justify-content: center; align-items: center; backdrop-filter: blur(8px); }
         
-        /* PLAYLIST MODAL */
         #playlistModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 9500; justify-content: center; align-items: center; backdrop-filter: blur(10px); }
         .pl-item { padding: 12px; border-bottom: 1px solid #333; cursor: pointer; display: flex; align-items: center; gap: 10px; }
         .pl-item:hover { background: rgba(255,255,255,0.05); }
@@ -223,28 +304,21 @@
         .pl-title { font-family: 'JetBrains Mono'; font-size: 14px; color: #ccc; }
         .pl-item.active .pl-title { color: var(--accent); font-weight: bold; }
 
-        /* FOCUSED QUEUE STYLES */
         .q-viewport { height: 55vh; overflow-y: auto; overflow-x: hidden; display: flex; flex-direction: column; align-items: center; width: 100%; position: relative; scroll-behavior: smooth; margin-top: 80px; }
         .q-container { text-align: center; padding: 50px 0; width: 100%; }
         
-        /* BASE ITEM */
         .fq-item { margin: 10px 0; transition: .25s; font-family: 'JetBrains Mono', monospace; color: #fff; position: relative; }
         
-        /* ARRIVE ANIMATION CSS */
         .fq-item.arrive {
             transform: scale(1.2);
             text-shadow: 0 0 30px var(--cyan), 0 0 50px white;
             transition: 0.5s cubic-bezier(0.18, 0.89, 0.32, 1.28);
         }
 
-        /* PIPE LINE */
         .fq-pipe { width: 1px; height: 15px; background: #333; margin: 0 auto; }
-
-        /* SIZE LEVELS */
         .fq-item.small { font-size: 14px; opacity: 0.35; }
         .fq-item.mid { font-size: 18px; opacity: 0.6; }
         
-        /* YOU */
         .fq-item.you { font-size: 28px; font-weight: 800; color: var(--cyan); text-shadow: 0 0 25px var(--cyan); margin: 25px 0; }
         .fq-item.you::before { content: "▶"; margin-right: 15px; color: var(--cyan); display: inline-block; animation: pointR 1s infinite alternate; }
         .fq-item.you::after { content: "◀"; margin-left: 15px; color: var(--cyan); display: inline-block; animation: pointL 1s infinite alternate; }
@@ -256,6 +330,19 @@
 <body>
 
     <canvas id="dust"></canvas>
+
+    <div id="welcomeOverlay">
+        <div class="bg-layer"></div>
+        <div class="vignette"></div>
+        <canvas id="fx-welcome"></canvas>
+        <button class="close-welcome" onclick="closeWelcome()" id="btnCloseWelcome">TUTUP</button>
+        <div class="wrap">
+            <div>
+                <div id="welcomeFinal" class="final">Selamat Tahun Baru 2026</div>
+                <div id="welcomeLine" class="line"></div>
+            </div>
+        </div>
+    </div>
 
     <div class="top-nav">
         <div class="main-title" ondblclick="toggleAdmin()">FC KELAPA GADING</div>
@@ -277,18 +364,23 @@
     </div>
 
     <div id="screen-queue" class="screen">
-        <div class="onyx-panel" style="text-align:center;">
-            <div style="font-family:'Teko'; font-size: 30px; color:var(--cyan); margin-bottom:10px;">SINKRONISASI DATA</div>
-            <div class="stream-container" id="stream"></div>
-            <div class="loading-bar"><div class="loading-fill" id="qBar"></div></div>
-            <div style="margin-top:10px; font-family:'JetBrains Mono'; font-size:12px; color:#666;">MENGHUBUNGKAN KE SERVER...</div>
+        <div class="onyx-panel" style="text-align:center; display:flex; flex-direction:column; align-items:center; background:transparent; border:none; box-shadow:none;">
+            <div style="font-family:'Teko'; font-size: 30px; color:var(--cyan); margin-bottom:20px;">VERIFIKASI DATA</div>
+            
+            <div class="scanner-container" id="scannerBox">
+                <img src="1763947427555.jpg" class="scan-img scan-bw">
+                <img src="1763947427555.jpg" class="scan-img scan-color">
+                <div class="scan-line"></div>
+            </div>
+            
+            <div class="scan-text" style="margin-top:20px;">CONNECTING...</div>
         </div>
     </div>
 
     <div id="screen-slots" class="screen" style="flex-direction:row; gap:10px; padding:0 20px;">
         <div class="slot-container" id="cont-0">
             <div class="onyx-card empty" id="card-0" onclick="handleSlotClick(0)">
-                <div class="card-bg-layer"></div> <div class="snake-border"></div> <div class="inner-bg"></div> 
+                <div class="card-bg-layer"></div> <div class="inner-bg"></div> 
                 <div class="card-content">
                     <div class="cc-top"><div class="oc-name" id="n-0">SLOT 1</div><div class="oc-plat" id="p-0"></div></div>
                     <div class="cc-center"><div class="oc-num" id="no-0">M</div></div>
@@ -298,7 +390,7 @@
         </div>
         <div class="slot-container" id="cont-1">
             <div class="onyx-card empty" id="card-1" onclick="handleSlotClick(1)">
-                <div class="card-bg-layer"></div> <div class="snake-border"></div> <div class="inner-bg"></div>
+                <div class="card-bg-layer"></div> <div class="inner-bg"></div>
                 <div class="card-content">
                     <div class="cc-top"><div class="oc-name" id="n-1">SLOT 2</div><div class="oc-plat" id="p-1"></div></div>
                     <div class="cc-center"><div class="oc-num" id="no-1">L</div></div>
@@ -308,7 +400,7 @@
         </div>
         <div class="slot-container" id="cont-2">
             <div class="onyx-card empty" id="card-2" onclick="handleSlotClick(2)">
-                <div class="card-bg-layer"></div> <div class="snake-border"></div> <div class="inner-bg"></div>
+                <div class="card-bg-layer"></div> <div class="inner-bg"></div>
                 <div class="card-content">
                     <div class="cc-top"><div class="oc-name" id="n-2">SLOT 3</div><div class="oc-plat" id="p-2"></div></div>
                     <div class="cc-center"><div class="oc-num" id="no-2">U</div></div>
@@ -343,19 +435,16 @@
         </div>
         
         <div class="q-viewport">
-            <div class="q-container" id="focusedQueueList">
-                </div>
+            <div class="q-container" id="focusedQueueList"></div>
         </div>
 
         <div style="margin-top:20px; text-align:center; width:100%; position:absolute; bottom:0; z-index:10; padding-bottom:20px; background:linear-gradient(to top, #000 80%, transparent); display:flex; flex-direction:column; align-items:center;">
-            
              <div class="music-player" style="margin-bottom:15px;">
                 <button class="mp-btn" onclick="openPlaylist()">≡</button> <button class="mp-btn" onclick="prevTrack()">⏮</button>
                 <div class="mp-info" id="mpTitle2" onclick="openPlaylist()">PILIH LAGU</div>
                 <button class="mp-btn" onclick="togglePlay()" id="mpPlayBtn2">⏯</button>
                 <button class="mp-btn" onclick="nextTrack()">⏭</button>
             </div>
-
             <div style="display:flex; gap:15px; align-items:center;">
                  <div style="font-size:14px; color:#555; cursor:pointer; letter-spacing:1px; font-family:'JetBrains Mono';" onclick="document.getElementById('waitingDashboard').style.display='none'">[ SEMBUNYIKAN ]</div>
                  <button onclick="cancelQueue()" class="btn-action" style="width:auto; padding:5px 15px; border:1px solid var(--red); background:rgba(255,0,0,0.1); color:var(--red); font-family:'Teko'; font-size:16px; border-radius:30px; cursor:pointer;">BATAL</button>
@@ -425,7 +514,6 @@
         window.activeSlotIdx = -1;
         let isDashboardMinimized = false;
         let amIInQueue = false;
-        // Fix Audio Garbage Collection
         window.currentUtterance = null;
 
         fetch('https://api.ipify.org?format=json').then(res => res.json()).then(data => myIP = data.ip).catch(e => console.log("IP Check Skip"));
@@ -434,10 +522,141 @@
         const STATION_LNG = 106.899844; 
         const MAX_DIST_KM = 1.0; 
         const FORCE_LOGOUT_DIST = 1.5; 
-
         const $ = (id) => document.getElementById(id);
         const vibrate = () => { if(navigator.vibrate) navigator.vibrate(50); };
         
+        /* =========================================
+           WELCOME SCREEN 2026 LOGIC
+           ========================================= */
+        const welcomeEl = $('welcomeOverlay');
+        const lines = [
+            "Dulu kita hanyalah orang asing.",
+            "Yang kebetulan berada di ruang yang sama.",
+            "Benar-benar asing.",
+            "Nama asing. Wajah asing.",  
+            "Hidup masing-masing.",
+            "Dari ngobrol sederhana, kini menjadi tempat bercerita.",
+            "MLU bukan hanya wadah tempat kita bertemu.",
+            "MLU adalah alasan kita tetap bersama."
+        ];
+        const lineEl = document.getElementById("welcomeLine");
+        const finalEl = document.getElementById("welcomeFinal");
+        const closeBtn = document.getElementById("btnCloseWelcome");
+        let lineIndex=0, charIndex=0, allText=[];
+
+        // CEK EXPIRE DATE & LOCALSTORAGE
+        function initWelcome() {
+            const now = new Date();
+            const expireDate = new Date("2026-01-03T23:59:59"); // Expire 3 Jan 2026
+            const hasSeen = localStorage.getItem('seen_welcome_2026');
+
+            // Syarat: Belum pernah lihat DAN belum expired
+            if (!hasSeen && now < expireDate) {
+                welcomeEl.style.display = 'flex';
+                // Mulai mengetik
+                setTimeout(typeLine, 1000);
+            }
+        }
+
+        window.closeWelcome = () => {
+            // Set flag supaya tidak muncul lagi
+            localStorage.setItem('seen_welcome_2026', 'true');
+            
+            // Animasi tutup
+            welcomeEl.style.transition = "opacity 1s ease";
+            welcomeEl.style.opacity = '0';
+            setTimeout(() => {
+                welcomeEl.style.display = 'none';
+            }, 1000);
+        };
+
+        function typeLine(){
+            if(charIndex < lines[lineIndex].length){
+                lineEl.textContent += lines[lineIndex][charIndex++];
+                setTimeout(typeLine, 55 + Math.random()*35); 
+            } else {
+                allText.push(lines[lineIndex]);
+                setTimeout(()=>{
+                    lineEl.classList.add("fade-out");
+                    setTimeout(()=>{
+                        lineEl.className="line";
+                        lineEl.textContent="";
+                        charIndex=0;
+                        lineIndex++;
+                        if(lineIndex < lines.length){
+                            typeLine();
+                        } else {
+                            showFinal();
+                        }
+                    },700);
+                },1200);
+            }
+        }
+
+        function showFinal(){
+            finalEl.classList.add("fade-in");
+            closeBtn.style.opacity = 1; // Show tombol close manual
+            setTimeout(()=>{
+                lineEl.innerHTML = allText.join("<br>");
+                lineEl.classList.add("fade-in");
+                fireworks();
+                
+                // === AUTO CLOSE 5 DETIK SETELAH SELESAI ===
+                setTimeout(() => {
+                    window.closeWelcome();
+                }, 5000);
+
+            },1200);
+        }
+
+        /* FIREWORKS LOGIC */
+        const c = document.getElementById("fx-welcome");
+        const ctxFx = c.getContext("2d");
+        let p = [];
+        c.width = window.innerWidth; c.height = window.innerHeight;
+
+        function fireworks(){
+            for(let i=0;i<6;i++){
+                setTimeout(()=>boom(
+                    Math.random()*c.width,
+                    Math.random()*c.height*0.45
+                ),i*420);
+            }
+            loopFx();
+        }
+
+        function boom(x,y){
+            for(let i=0;i<160;i++){
+                p.push({
+                    x,y,
+                    vx:(Math.random()-.5)*8,
+                    vy:(Math.random()-.6)*8,
+                    l:100,a:1
+                });
+            }
+        }
+
+        function loopFx(){
+            if(p.length > 0) {
+                ctxFx.clearRect(0,0,c.width,c.height); // Transparent clear
+                p.forEach((e,i)=>{
+                    e.x+=e.vx; e.y+=e.vy; e.vy+=0.05; e.l--; e.a-=0.01;
+                    ctxFx.fillStyle=`rgba(232,195,122,${e.a})`;
+                    ctxFx.fillRect(e.x,e.y,2,2);
+                    if(e.l<=0)p.splice(i,1);
+                });
+                requestAnimationFrame(loopFx);
+            }
+        }
+        
+        // JALANKAN LOGIKA WELCOME SAAT LOAD
+        initWelcome();
+
+
+        /* =========================================
+           MAIN APP LOGIC
+           ========================================= */
+
         function showMsg(title, body) { $('msgTitle').innerText=title; $('msgBody').innerText=body; $('msgModal').style.display='flex'; }
         function showConfirm(text, cb) { $('confirmText').innerText = text; $('confirmModal').style.display='flex'; $('btnConfirmYes').onclick = () => { $('confirmModal').style.display='none'; cb(); }; }
         
@@ -469,9 +688,7 @@
         window.startTutorial = () => { $('tutorialOverlay').style.display = 'flex'; tutStep = 0; showTutStep(); }
         window.nextTutorialStep = () => { tutStep++; showTutStep(); }
         function showTutStep() {
-            // Remove old highlights
             document.querySelectorAll('.tut-highlight').forEach(el => el.classList.remove('tut-highlight'));
-            
             const title = $('tutTitle'); const desc = $('tutDesc'); const btn = $('tutNextBtn');
             title.style.opacity = 0; desc.style.opacity = 0; btn.style.opacity = 0;
             
@@ -504,7 +721,6 @@
 
         window.toggleAdmin = () => {
              const pass = prompt("MASUKKAN KODE ADMIN:");
-             // PASS ADMIN 1131
              if(pass === "1131") { localStorage.setItem('adm_ok', '1'); window.location.href = 'admin.html'; } 
              else if (pass === "9999") {
                  if(confirm("RESET ANTRIAN KE 1?")) {
@@ -515,61 +731,35 @@
              } else { if(pass) alert("KODE SALAH!"); }
         }
 
-        // --- NEW UPDATED RENDER QUEUE FUNCTION ---
         function renderFocusedQueue() {
             const container = $('focusedQueueList');
             const viewport = document.querySelector('.q-viewport');
             if (!container || !viewport) return;
-
             container.innerHTML = '';
-
             if (localQueue.length === 0) {
                 container.innerHTML = '<div style="color:#666;margin-top:50px;font-family:JetBrains Mono;">ANTRIAN KOSONG</div>';
                 return;
             }
-
             const youIndex = localQueue.findIndex(q => q.plat === myPlat);
-
             localQueue.forEach((q, i) => {
-                if (i > 0) {
-                    const pipe = document.createElement("div");
-                    pipe.className = "fq-pipe";
-                    container.appendChild(pipe);
-                }
-
+                if (i > 0) { const pipe = document.createElement("div"); pipe.className = "fq-pipe"; container.appendChild(pipe); }
                 const d = document.createElement("div");
                 const diff = Math.abs(i - youIndex);
-
                 if (q.plat === myPlat) d.className = "fq-item you";
                 else if (diff === 1) d.className = "fq-item mid";
                 else d.className = "fq-item small";
-
                 d.textContent = `#${q.qNo} ${q.plat}`;
                 container.appendChild(d);
             });
-
-            /* STEP 1 — paksa scroll ke atas */
             viewport.scrollTop = 0;
-
-            /* STEP 2 — delay dikit lalu scroll ke YOU */
             setTimeout(() => {
                 const youEl = document.querySelector('.fq-item.you');
                 if (!youEl) return;
-
-                youEl.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'center'
-                });
-
-                /* STEP 3 — highlight + vibrate */
+                youEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 setTimeout(() => {
                     youEl.classList.add('arrive');
-
-                    if (navigator.vibrate) {
-                        navigator.vibrate([40, 30, 40]); // nerd nyit 😎
-                    }
+                    if (navigator.vibrate) navigator.vibrate([40, 30, 40]); 
                 }, 600);
-
             }, 300);
         }
 
@@ -589,7 +779,6 @@
             if(localStorage.getItem('adm_ok')) { runLogin(); return; }
             if(navigator.geolocation) {
                 $('fpBtn').style.opacity = 0.5;
-                // Force GPS refresh (maximumAge: 0)
                 navigator.geolocation.getCurrentPosition((pos) => {
                     const dist = getDist(pos.coords.latitude, pos.coords.longitude, STATION_LAT, STATION_LNG);
                     $('fpBtn').style.opacity = 1;
@@ -628,9 +817,19 @@
             input.onkeydown = e => { if (e.key === "Enter") next(); };
         }
 
+        // --- MODIFIED ANIMATION WITH SCANNER ---
         function startQueueAnim() {
-            switchScreen('screen-queue'); const bar = $('qBar'); let p = 0;
-            const int = setInterval(() => { p+=5; if(bar) bar.style.width=p+"%"; if(p>=100) { clearInterval(int); executeRegistration(); } }, 50);
+            switchScreen('screen-queue'); 
+            
+            // Trigger CSS Animation
+            const box = document.getElementById('scannerBox');
+            if(box) box.classList.add('scanning');
+
+            // Simulated Delay (3 Seconds to match scanner)
+            setTimeout(() => {
+                executeRegistration();
+                if(box) box.classList.remove('scanning');
+            }, 3000);
         }
 
         function executeRegistration() {
@@ -670,16 +869,14 @@
                     if($(`p-${i}`)) $(`p-${i}`).innerText = s.plat;
                     if($(`no-${i}`)) $(`no-${i}`).innerText = "#" + s.qNo;
                     if(myPlat === s.plat) {
-                        // --- VOICE FIX: Cancel prev, Keep utterance ref ---
                         if(window.activeSlotIdx === -1) { 
                             window.speechSynthesis.cancel();
                             const msg = new SpeechSynthesisUtterance(`Halo ${s.userName}, Giliran Anda di Slot ${i+1}.`); 
                             msg.lang = 'id-ID'; 
-                            window.currentUtterance = msg; // Store globally to prevent garbage collection
+                            window.currentUtterance = msg; 
                             window.speechSynthesis.speak(msg); 
                             vibrate(); 
                         }
-                        // --------------------------------------------------
                         amICharging = true; window.activeSlotIdx = i;
                         if(!isDashboardMinimized) switchScreen('screen-active-dashboard');
                         if($('ad-slot-val')) $('ad-slot-val').innerText = "SLOT " + (i+1);
@@ -798,15 +995,10 @@
             if(!p || localStorage.getItem('adm_ok')) return; 
 
             if(navigator.geolocation) {
-                 // maximumAge:0 forces fresh GPS data, timeout extended to 10s for accuracy
                  navigator.geolocation.getCurrentPosition(pos => {
                      const dist = getDist(pos.coords.latitude, pos.coords.longitude, STATION_LAT, STATION_LNG);
-                     
                      if(dist > FORCE_LOGOUT_DIST) {
-                         // 1. Clear Local
                          localStorage.removeItem('myPlat');
-                         
-                         // 2. Clear Server
                          runTransaction(db, async(t)=>{
                              const docSnap = await t.get(mainRef);
                              let q = docSnap.data().waitingQueue || [];
@@ -818,19 +1010,13 @@
                          }).then(() => {
                              alert(`JARAK ANDA ${dist.toFixed(2)} KM (MAX 1.5 KM). ANTRIAN DIHAPUS OTOMATIS.`);
                              location.reload();
-                         }).catch(() => {
-                             location.reload(); 
-                         });
+                         }).catch(() => { location.reload(); });
                      }
                  }, (e)=>{ console.log("GPS Err", e) }, { enableHighAccuracy:true, maximumAge:0, timeout:10000 });
             }
         }
-        
-        // Run immediately on load
         checkGeofence();
-        // Run on interval
-        setInterval(checkGeofence, 30000); // 30s
-        // Run on visibility change
+        setInterval(checkGeofence, 30000); 
         document.addEventListener('visibilitychange', () => {
             if (document.visibilityState === 'visible') checkGeofence();
         });
