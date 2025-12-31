@@ -39,6 +39,16 @@
         .stat-card { background: #111; padding: 10px; border: 1px solid #333; border-radius: 5px; }
         .stat-val { font-size: 20px; color: var(--accent); font-family: 'Teko'; }
         
+        /* LOGS TABLE STYLE (NEW) */
+        .log-table { width: 100%; font-size: 10px; color: #aaa; }
+        .log-table th { background: #222; color: #fff; border-bottom: 2px solid #444; }
+        .log-table td { border-bottom: 1px solid #222; padding: 6px; }
+        .badge { padding: 2px 6px; border-radius: 3px; font-weight: bold; color: #000; font-size: 9px; }
+        .b-add { background: #00FF66; }
+        .b-del { background: #FF003C; color: #fff; }
+        .b-edit { background: #CCFF00; }
+        .b-sys { background: #00F0FF; }
+
         /* CUSTOM MODAL */
         #customModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 9999; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
         .modal-box { background: #111; border: 1px solid var(--cyan); width: 85%; padding: 20px; border-radius: 10px; text-align: center; animation: popIn 0.3s; }
@@ -51,9 +61,9 @@
 <body>
 
     <div style="display:flex; justify-content:space-between; margin-bottom:15px; align-items:center;">
-        <span style="font-family:'Teko'; font-size:24px; color:var(--cyan);">ADMIN PANEL <span style="color:var(--accent);">v4.0</span></span>
+        <span style="font-family:'Teko'; font-size:24px; color:var(--cyan);">ADMIN PANEL <span style="color:var(--accent);">v4.1</span></span>
         <div style="display:flex; gap:5px;">
-            <button onclick="window.location.href='antrian.html'" class="btn-blue">DEPAN</button>
+            <button onclick="window.location.href='index.html'" class="btn-blue">DEPAN</button>
             <button onclick="logout()" class="btn-red">KELUAR</button>
         </div>
     </div>
@@ -130,8 +140,21 @@
     </div>
 
     <div class="box">
-        <h3>4. LOGS</h3>
-        <div id="logArea" style="height:100px; overflow-y:scroll; color:#666; font-size:9px;"></div>
+        <h3>4. SYSTEM LOGS (REALTIME)</h3>
+        <div style="max-height:200px; overflow-y:auto; border:1px solid #222;">
+            <table class="log-table">
+                <thead>
+                    <tr>
+                        <th width="20%">JAM</th>
+                        <th width="20%">AKSI</th>
+                        <th>DETAIL</th>
+                    </tr>
+                </thead>
+                <tbody id="logBody">
+                    <tr><td colspan="3" align="center">Loading Logs...</td></tr>
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <div id="customModal">
@@ -163,7 +186,7 @@
         // PASSWORD CHECK
         if(!localStorage.getItem('admin_acc')) {
             const p = prompt("PIN ADMIN:");
-            if(p !== "1131") { window.location.href='index.html'; }
+            if(p !== "8080") { window.location.href='index.html'; }
             else localStorage.setItem('admin_acc', '1');
         }
         window.logout = () => { localStorage.removeItem('admin_acc'); window.location.href='index.html'; };
@@ -178,12 +201,45 @@
         document.getElementById('btnYes').onclick = () => { if(currentCallback) currentCallback(); closeModal(); };
         window.closeModal = () => { document.getElementById('customModal').style.display = 'none'; currentCallback = null; };
 
-        // LISTENER
+        // === HELPER: GET DATE WIB (JAKARTA) ===
+        function getWIBDateString() {
+            // Returns YYYY-MM-DD based on Asia/Jakarta Timezone
+            return new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jakarta' });
+        }
+
+        // LISTENER & AUTO RESET LOGIC
         onSnapshot(mainRef, (snap) => {
             const d = snap.data();
+            if(!d) return;
+
+            // --- AUTO RESET 00:00 WIB ---
+            const todayWIB = getWIBDateString();
+            
+            // Jika tanggal di database TIDAK SAMA dengan tanggal WIB hari ini
+            if (d.lastResetDate !== todayWIB) {
+                console.log("Mendeteksi Hari Baru (WIB). Melakukan Reset...");
+                runTransaction(db, async(t) => {
+                    // Double check dalam transaksi
+                    const freshDoc = await t.get(mainRef);
+                    if (freshDoc.data().lastResetDate !== todayWIB) {
+                        t.update(mainRef, { 
+                            lastResetDate: todayWIB, // Update ke tanggal hari ini
+                            waitingQueue: [],        // Kosongkan antrian
+                            chargingSlots: [null,null,null], // Kosongkan slot
+                            recycledNumbers: [], 
+                            lastTicket: 0            // Reset nomor antrian ke 0 (jadi next #1)
+                        });
+                        addLog("AUTO_RESET", `Ganti Hari ke ${todayWIB}`);
+                    }
+                }).catch(e => console.log("Reset Error/Race Condition", e));
+                return; // Stop render, tunggu update berikutnya
+            }
+            // -----------------------------
+
             cachedSlots = d.chargingSlots || [null,null,null];
             cachedQueue = d.waitingQueue || [];
 
+            // Render Slot
             cachedSlots.forEach((s, i) => {
                 const el = document.getElementById(`slot${i+1}`);
                 if(s) {
@@ -260,7 +316,7 @@
                     u.startTime = Date.now(); d.chargingSlots[target] = u;
                 }
                 t.update(mainRef, { waitingQueue:d.waitingQueue, chargingSlots:d.chargingSlots, recycledNumbers:d.recycledNumbers||[], lastTicket:last });
-                addLog("ADMIN_ADD", p);
+                addLog("ADMIN_ADD", `${p} (${n})`);
             }).then(()=>{ document.getElementById('newPlat').value=''; }).catch(e=>alert(e));
         };
 
@@ -273,6 +329,7 @@
                 const u = d.waitingQueue.splice(i,1)[0];
                 u.startTime = Date.now(); d.chargingSlots[sIdx] = u;
                 t.update(mainRef, { waitingQueue:d.waitingQueue, chargingSlots:d.chargingSlots });
+                addLog("START_CHARGE", `${p} -> Slot ${sIdx+1}`);
             }).catch(e=>alert(e));
         };
 
@@ -283,7 +340,7 @@
                 if(!u) return;
                 d.chargingSlots[i]=null; delete u.startTime; d.waitingQueue.unshift(u);
                 t.update(mainRef, { chargingSlots:d.chargingSlots, waitingQueue:d.waitingQueue });
-                addLog("KICK", u.plat);
+                addLog("MOVE_QUEUE", `${u.plat} dari Slot ${i+1}`);
             });
         };
 
@@ -291,7 +348,7 @@
             runTransaction(db, async(t) => {
                 const d = (await t.get(mainRef)).data();
                 const u = d.chargingSlots[i];
-                if(u) { addDoc(histRef, {...u, finishTime:new Date(), timestamp:new Date(), by:'ADMIN'}); d.chargingSlots[i]=null; t.update(mainRef, {chargingSlots:d.chargingSlots}); addLog("STOP", u.plat); }
+                if(u) { addDoc(histRef, {...u, finishTime:new Date(), timestamp:new Date(), by:'ADMIN'}); d.chargingSlots[i]=null; t.update(mainRef, {chargingSlots:d.chargingSlots}); addLog("STOP_CHARGE", `${u.plat} Slot ${i+1}`); }
             });
         };
 
@@ -305,6 +362,7 @@
                 d.chargingSlots[s1] = d.chargingSlots[s2];
                 d.chargingSlots[s2] = t1;
                 t.update(mainRef, { chargingSlots:d.chargingSlots });
+                addLog("SWAP_SLOT", `S${parseInt(s1)+1} <-> S${parseInt(s2)+1}`);
             });
         };
 
@@ -316,15 +374,15 @@
                     const u = d.waitingQueue.splice(i,1)[0];
                     let r = d.recycledNumbers||[]; r.push(u.qNo);
                     t.update(mainRef, { waitingQueue:d.waitingQueue, recycledNumbers:r });
-                    addLog("DEL", p);
+                    addLog("DELETE_Q", p);
                 }
             });
         };
 
         window.resetSystem = () => {
             runTransaction(db, async(t) => {
-                t.update(mainRef, { chargingSlots:[null,null,null], waitingQueue:[], recycledNumbers:[], lastTicket:0 });
-                addLog("RESET", "SYSTEM");
+                t.update(mainRef, { chargingSlots:[null,null,null], waitingQueue:[], recycledNumbers:[], lastTicket:0, lastResetDate: getWIBDateString() });
+                addLog("MANUAL_RESET", "Reset Total by Admin");
             });
         };
 
@@ -374,14 +432,27 @@
         };
         setTimeout(loadAnalytics, 2000);
 
-        onSnapshot(query(logRef, orderBy("timestamp", "desc"), limit(30)), (snap) => {
+        // --- NEW LOG LISTENER ---
+        onSnapshot(query(logRef, orderBy("timestamp", "desc"), limit(50)), (snap) => {
             let h = '';
             snap.forEach(d => {
                 const data = d.data();
-                h += `<div>[${data.timestamp.toDate().toLocaleTimeString()}] ${data.action} - ${data.details}</div>`;
+                const time = data.timestamp ? data.timestamp.toDate().toLocaleTimeString() : '-';
+                
+                let badgeClass = 'b-sys';
+                if(data.action.includes('ADD')) badgeClass = 'b-add';
+                if(data.action.includes('DEL') || data.action.includes('STOP')) badgeClass = 'b-del';
+                if(data.action.includes('SWAP') || data.action.includes('MOVE')) badgeClass = 'b-edit';
+
+                h += `<tr>
+                    <td>${time}</td>
+                    <td><span class="badge ${badgeClass}">${data.action}</span></td>
+                    <td style="color:#fff;">${data.details}</td>
+                </tr>`;
             });
-            document.getElementById('logArea').innerHTML = h;
+            document.getElementById('logBody').innerHTML = h;
         });
+
         function addLog(act, det) { addDoc(logRef, { action: act, details: det, timestamp: new Date() }); }
     </script>
 </body>
