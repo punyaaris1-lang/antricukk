@@ -8,8 +8,11 @@
     <style>
         :root { --bg: #050505; --accent: #CCFF00; --cyan: #00F0FF; --red: #FF003C; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; user-select: none; }
+        
+        /* BACKGROUND UTAMA */
         body { 
             font-family: 'Teko', sans-serif; 
+            /* Background utama diset fixed agar sinkron dengan slot */
             background: #000 url('1763947427555.jpg') no-repeat center center fixed;
             background-size: cover; 
             color: #fff; margin: 0; overflow: hidden; 
@@ -32,15 +35,6 @@
             color: #fff; text-shadow: 0 0 15px rgba(0, 240, 255, 0.5); cursor: pointer; 
         }
         .sub-title { font-size: 14px; color: var(--accent); letter-spacing: 4px; font-weight: 600; margin-top: 0px; text-transform: uppercase; }
-
-        .tut-btn {
-            background: rgba(0, 240, 255, 0.1); border: 1px solid var(--cyan); color: var(--cyan);
-            font-family: 'JetBrains Mono'; font-size: 10px; padding: 6px 20px; border-radius: 20px;
-            margin-top: 15px; cursor: pointer; width: fit-content; align-self: center;
-            display: flex; align-items: center; gap: 8px; transition: 0.3s; font-weight: bold; letter-spacing: 1px;
-            position: relative; z-index: 60; pointer-events: auto;
-        }
-        .tut-btn:hover { background: var(--cyan); color: #000; box-shadow: 0 0 15px var(--cyan); }
 
         #logo-area {
             flex: 1; display: flex; justify-content: center; align-items: flex-start; padding-top: 20px; 
@@ -85,52 +79,57 @@
         }
         @keyframes pulseBtn { 0%{opacity:1;} 50%{opacity:0.7;} 100%{opacity:1;} }
 
-        /* SCANNER VERIFICATION SCREEN */
+        /* === SCANNER VERIFICATION SCREEN (UPDATED) === */
         .scanner-container {
-            position: relative; width: 200px; height: 200px;
+            position: relative; width: 220px; height: 220px;
             display: flex; justify-content: center; align-items: center;
+            overflow: hidden; border-radius: 15px;
+            border: 2px solid #333;
+            box-shadow: 0 0 30px rgba(0,0,0,0.8);
         }
         .scan-img {
-            width: 100%; height: 100%; object-fit: cover; border-radius: 15px;
+            width: 100%; height: 100%; object-fit: cover;
             position: absolute; inset: 0;
         }
-        .scan-bw { filter: grayscale(100%) contrast(1.2); z-index: 1; }
+        /* Gambar Hitam Putih (Default) */
+        .scan-bw { filter: grayscale(100%) contrast(1.2) brightness(0.8); z-index: 1; }
+        
+        /* Gambar Berwarna (Muncul pelan-pelan) */
         .scan-color { 
-            z-index: 2; 
-            clip-path: inset(100% 0 0 0); /* Awal tertutup */
-            transition: clip-path 3s ease-in-out;
+            z-index: 2; opacity: 0; transition: opacity 0.5s ease;
             filter: drop-shadow(0 0 15px var(--cyan));
         }
+
+        /* Garis Scanner */
         .scan-line {
-            position: absolute; left: -10%; width: 120%; height: 2px;
+            position: absolute; left: 0; width: 100%; height: 3px;
             background: var(--cyan);
             box-shadow: 0 0 10px var(--cyan), 0 0 20px var(--cyan);
-            z-index: 5; top: 100%; opacity: 0;
-            transition: 0.5s;
+            z-index: 5; top: 0%; display: none;
         }
+        
+        /* Animasi Scanner Aktif */
         .scanning .scan-line {
-            opacity: 1;
-            animation: scanMove 3s ease-in-out forwards;
+            display: block;
+            animation: scanMove 1.5s ease-in-out infinite alternate; /* Bolak balik */
         }
-        .scanning .scan-color {
-            clip-path: inset(0 0 0 0);
-        }
+        .scanning .scan-color.reveal { opacity: 1; } /* Class untuk reveal di akhir */
+
         @keyframes scanMove {
-            0% { top: 100%; opacity: 0; }
-            10% { opacity: 1; }
-            90% { opacity: 1; }
-            100% { top: 0%; opacity: 0; }
-        }
-        .scan-text {
-            margin-top: 20px; font-family: 'JetBrains Mono'; font-size: 14px; 
-            color: var(--cyan); letter-spacing: 2px; text-shadow: 0 0 10px var(--cyan);
-            animation: pulse 1s infinite;
+            0% { top: 5%; opacity: 0.5; }
+            50% { opacity: 1; }
+            100% { top: 95%; opacity: 0.5; }
         }
 
-        /* WELCOME SCREEN OVERLAY (2026 Style) */
+        .scan-text {
+            margin-top: 25px; font-family: 'JetBrains Mono'; font-size: 16px; 
+            color: var(--cyan); letter-spacing: 2px; text-shadow: 0 0 10px var(--cyan);
+            height: 20px; /* Menjaga layout tidak lompat */
+        }
+
+        /* WELCOME SCREEN 2026 */
         #welcomeOverlay {
-            display: none; /* Default Hidden */
-            position: fixed; inset: 0; z-index: 20000;
+            display: none; position: fixed; inset: 0; z-index: 20000;
             background: #000; color: #fff;
             font-family: 'Inter', sans-serif;
             align-items: center; justify-content: center;
@@ -171,28 +170,31 @@
             cursor: pointer; opacity: 0; transition: 1s;
         }
 
-        /* SLOT VIEW (UPDATED BLEND) */
+        /* === SLOT VIEW (BACKGROUND MENYATU/TERPOTONG) === */
         #screen-slots { flex-direction: row; align-items: center; justify-content: center; gap: 10px; padding: 0 15px; }
         .slot-container { width: 32%; height: 45vh; max-height: 380px; position: relative; transition: all 0.8s cubic-bezier(0.25, 1, 0.5, 1); }
         .slot-container:nth-child(2) { margin-top: -40px; } 
 
         .onyx-card { 
             width: 100%; height: 100%; 
-            background: rgba(0, 0, 0, 0.3); 
+            /* Tidak ada background color sendiri agar transparan ke pseudo-element fixed */
+            background: transparent;
             border: 1px solid rgba(255,255,255,0.3); 
             border-radius: 15px; display: flex; flex-direction: column; 
             position: relative; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.8); cursor: pointer; z-index: 2; 
-            backdrop-filter: blur(5px);
         }
-        .card-bg-layer { 
-            position: absolute; inset: 0; 
-            background-image: url('1763947427555.jpg'); 
-            background-attachment: fixed; 
-            background-position: center center;
+        
+        /* BACKGROUND SLOT TERPOTONG (FIXED) */
+        .onyx-card::before {
+            content: ''; position: absolute; inset: 0;
+            /* Menggunakan gambar yang sama dengan body, posisi fixed agar terlihat menyatu */
+            background: url('1763947427555.jpg') no-repeat center center fixed;
             background-size: cover;
-            opacity: 0.6; z-index: 0; 
-            filter: grayscale(80%) contrast(120%); 
+            /* Sedikit efek filter agar beda dengan background body asli */
+            filter: brightness(0.7) blur(2px) grayscale(50%);
+            z-index: -1;
         }
+
         .card-content { position: relative; z-index: 5; width: 100%; height: 100%; display: flex; flex-direction: column; padding: 15px; }
         .cc-top { flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.3); padding-bottom: 10px; min-height: 60px; justify-content: center; }
         .oc-name { font-weight: 600; font-size: clamp(14px, 1.8vh, 18px); color: #fff; text-shadow: 0 0 10px rgba(0,0,0,0.8); text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
@@ -276,25 +278,6 @@
         .btn-g { width: 100%; padding: 12px; background: var(--cyan); color: #000; font-family: 'Teko'; font-size: 20px; font-weight: 700; border: none; border-radius: 50px; cursor: pointer; margin-top: 10px; }
         .btn-cancel { width: 100%; padding: 10px; border: 1px solid #555; background: transparent; color: #888; font-family: 'Teko'; font-size: 18px; border-radius: 50px; margin-top: 5px; cursor: pointer; }
 
-        /* TUTORIAL OVERLAY */
-        #tutorialOverlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 9999; justify-content: center; align-items: center; flex-direction: column; backdrop-filter: blur(5px); }
-        .tut-text-box { width: 80%; text-align: center; color: #fff; margin-bottom: 30px; opacity: 0; transform: translateY(20px); transition: 0.5s; background: rgba(0,0,0,0.8); padding: 20px; border-radius: 15px; border: 1px solid var(--cyan); box-shadow: 0 0 30px rgba(0,240,255,0.2); }
-        .tut-title { font-family: 'Teko'; font-size: 30px; color: var(--cyan); margin-bottom: 5px; text-shadow: 0 0 10px var(--cyan); }
-        .tut-desc { font-family: 'JetBrains Mono'; font-size: 14px; color: #ccc; line-height: 1.5; }
-        .tut-next-btn { padding: 10px 40px; border: 2px solid var(--accent); background: rgba(204,255,0,0.1); color: var(--accent); font-family: 'Teko'; font-size: 24px; border-radius: 50px; cursor: pointer; opacity: 0; transition: 0.5s; }
-        
-        .tut-highlight { 
-            position: relative; 
-            z-index: 10000 !important; 
-            box-shadow: 0 0 0 4px var(--cyan), 0 0 50px 20px rgba(0, 240, 255, 0.2) !important; 
-            transform: scale(1.05); 
-            transition: 0.3s; 
-            background: rgba(0,0,0,0.8); 
-            border-radius: 10px; 
-            animation: highlightPulse 1s infinite;
-        }
-        @keyframes highlightPulse { 0%{box-shadow: 0 0 0 4px var(--cyan);} 50%{box-shadow: 0 0 0 8px rgba(0,240,255,0.5);} 100%{box-shadow: 0 0 0 4px var(--cyan);} }
-
         #queueModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 5000; justify-content: center; align-items: center; backdrop-filter: blur(8px); }
         
         #playlistModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 9500; justify-content: center; align-items: center; backdrop-filter: blur(10px); }
@@ -347,7 +330,6 @@
     <div class="top-nav">
         <div class="main-title" ondblclick="toggleAdmin()">FC KELAPA GADING</div>
         <div class="sub-title">SELAMAT DATANG DI RUMAH MLU</div>
-        <button class="tut-btn" onclick="startTutorial()">▶ TUTORIAL PEMAKAIAN</button>
     </div>
 
     <div id="logo-area">
@@ -369,18 +351,17 @@
             
             <div class="scanner-container" id="scannerBox">
                 <img src="1763947427555.jpg" class="scan-img scan-bw">
-                <img src="1763947427555.jpg" class="scan-img scan-color">
+                <img src="1763947427555.jpg" class="scan-img scan-color" id="scanColorImg">
                 <div class="scan-line"></div>
             </div>
             
-            <div class="scan-text" style="margin-top:20px;">CONNECTING...</div>
+            <div class="scan-text" id="scanTextStatus">CONNECTING...</div>
         </div>
     </div>
 
     <div id="screen-slots" class="screen" style="flex-direction:row; gap:10px; padding:0 20px;">
         <div class="slot-container" id="cont-0">
             <div class="onyx-card empty" id="card-0" onclick="handleSlotClick(0)">
-                <div class="card-bg-layer"></div> <div class="inner-bg"></div> 
                 <div class="card-content">
                     <div class="cc-top"><div class="oc-name" id="n-0">SLOT 1</div><div class="oc-plat" id="p-0"></div></div>
                     <div class="cc-center"><div class="oc-num" id="no-0">M</div></div>
@@ -390,7 +371,6 @@
         </div>
         <div class="slot-container" id="cont-1">
             <div class="onyx-card empty" id="card-1" onclick="handleSlotClick(1)">
-                <div class="card-bg-layer"></div> <div class="inner-bg"></div>
                 <div class="card-content">
                     <div class="cc-top"><div class="oc-name" id="n-1">SLOT 2</div><div class="oc-plat" id="p-1"></div></div>
                     <div class="cc-center"><div class="oc-num" id="no-1">L</div></div>
@@ -400,7 +380,6 @@
         </div>
         <div class="slot-container" id="cont-2">
             <div class="onyx-card empty" id="card-2" onclick="handleSlotClick(2)">
-                <div class="card-bg-layer"></div> <div class="inner-bg"></div>
                 <div class="card-content">
                     <div class="cc-top"><div class="oc-name" id="n-2">SLOT 3</div><div class="oc-plat" id="p-2"></div></div>
                     <div class="cc-center"><div class="oc-num" id="no-2">U</div></div>
@@ -482,7 +461,6 @@
         </div>
     </div>
 
-    <div id="tutorialOverlay"><div class="tut-text-box"><div class="tut-title" id="tutTitle"></div><div class="tut-desc" id="tutDesc"></div></div><button class="tut-next-btn" id="tutNextBtn" onclick="nextTutorialStep()">LANJUT ></button></div>
     <div id="msgModal" class="modal"><div class="modal-box"><h3 id="msgTitle" style="color:var(--accent);">INFO</h3><div id="msgBody" style="color:#fff; margin-bottom:20px;"></div><button onclick="document.getElementById('msgModal').style.display='none'" class="btn-g">OK</button></div></div>
     <div id="confirmModal" class="modal"><div class="modal-box" style="border-color:var(--red);"><h3 style="color:#fff;">KONFIRMASI</h3><p id="confirmText" style="color:#ccc;">Yakin?</p><div style="display:flex; gap:10px;"><button id="btnConfirmYes" class="btn-g" style="background:var(--red); color:#fff;">YA</button><button onclick="closeConfirmModal()" class="btn-g" style="background:#333; color:#fff;">TIDAK</button></div></div></div>
     <div id="queueModal" class="modal"><div class="modal-box"><h3 style="color:var(--cyan); margin-bottom:15px; border-bottom:1px solid #333; padding-bottom:10px;">LIST ANTRIAN</h3><div id="queueListDetail" style="max-height:200px; overflow-y:auto; text-align:left; color:#888; font-size:14px; font-family:'JetBrains Mono'; margin-bottom:15px;"></div><button onclick="document.getElementById('queueModal').style.display='none'" class="btn-g">TUTUP</button></div></div>
@@ -550,24 +528,17 @@
             const expireDate = new Date("2026-01-03T23:59:59"); // Expire 3 Jan 2026
             const hasSeen = localStorage.getItem('seen_welcome_2026');
 
-            // Syarat: Belum pernah lihat DAN belum expired
             if (!hasSeen && now < expireDate) {
                 welcomeEl.style.display = 'flex';
-                // Mulai mengetik
                 setTimeout(typeLine, 1000);
             }
         }
 
         window.closeWelcome = () => {
-            // Set flag supaya tidak muncul lagi
             localStorage.setItem('seen_welcome_2026', 'true');
-            
-            // Animasi tutup
             welcomeEl.style.transition = "opacity 1s ease";
             welcomeEl.style.opacity = '0';
-            setTimeout(() => {
-                welcomeEl.style.display = 'none';
-            }, 1000);
+            setTimeout(() => { welcomeEl.style.display = 'none'; }, 1000);
         };
 
         function typeLine(){
@@ -595,17 +566,12 @@
 
         function showFinal(){
             finalEl.classList.add("fade-in");
-            closeBtn.style.opacity = 1; // Show tombol close manual
+            closeBtn.style.opacity = 1; 
             setTimeout(()=>{
                 lineEl.innerHTML = allText.join("<br>");
                 lineEl.classList.add("fade-in");
                 fireworks();
-                
-                // === AUTO CLOSE 5 DETIK SETELAH SELESAI ===
-                setTimeout(() => {
-                    window.closeWelcome();
-                }, 5000);
-
+                setTimeout(() => { window.closeWelcome(); }, 5000);
             },1200);
         }
 
@@ -617,28 +583,20 @@
 
         function fireworks(){
             for(let i=0;i<6;i++){
-                setTimeout(()=>boom(
-                    Math.random()*c.width,
-                    Math.random()*c.height*0.45
-                ),i*420);
+                setTimeout(()=>boom(Math.random()*c.width, Math.random()*c.height*0.45),i*420);
             }
             loopFx();
         }
 
         function boom(x,y){
             for(let i=0;i<160;i++){
-                p.push({
-                    x,y,
-                    vx:(Math.random()-.5)*8,
-                    vy:(Math.random()-.6)*8,
-                    l:100,a:1
-                });
+                p.push({x,y,vx:(Math.random()-.5)*8, vy:(Math.random()-.6)*8, l:100,a:1});
             }
         }
 
         function loopFx(){
             if(p.length > 0) {
-                ctxFx.clearRect(0,0,c.width,c.height); // Transparent clear
+                ctxFx.clearRect(0,0,c.width,c.height);
                 p.forEach((e,i)=>{
                     e.x+=e.vx; e.y+=e.vy; e.vy+=0.05; e.l--; e.a-=0.01;
                     ctxFx.fillStyle=`rgba(232,195,122,${e.a})`;
@@ -649,9 +607,7 @@
             }
         }
         
-        // JALANKAN LOGIKA WELCOME SAAT LOAD
         initWelcome();
-
 
         /* =========================================
            MAIN APP LOGIC
@@ -682,32 +638,6 @@
         const canvas = $('dust'); const ctx = canvas.getContext("2d");
         canvas.width = window.innerWidth; canvas.height = window.innerHeight;
         window.addEventListener('resize', () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; });
-
-        // --- TUTORIAL FIX (Highlight Visual) ---
-        let tutStep = 0;
-        window.startTutorial = () => { $('tutorialOverlay').style.display = 'flex'; tutStep = 0; showTutStep(); }
-        window.nextTutorialStep = () => { tutStep++; showTutStep(); }
-        function showTutStep() {
-            document.querySelectorAll('.tut-highlight').forEach(el => el.classList.remove('tut-highlight'));
-            const title = $('tutTitle'); const desc = $('tutDesc'); const btn = $('tutNextBtn');
-            title.style.opacity = 0; desc.style.opacity = 0; btn.style.opacity = 0;
-            
-            setTimeout(() => {
-                if(tutStep === 0) {
-                    title.innerText = "1. DAFTAR"; desc.innerText = "Klik tombol Sidik Jari di bawah untuk mendaftar antrian."; 
-                    $('fpBtn').classList.add('tut-highlight');
-                } else if(tutStep === 1) {
-                    title.innerText = "2. PILIH SLOT"; desc.innerText = "Jika kotak slot kosong (huruf M/L/U), klik kotaknya untuk mulai cas."; 
-                    switchScreen('screen-slots'); 
-                    $('card-0').classList.add('tut-highlight'); 
-                } else if(tutStep === 2) {
-                    title.innerText = "3. ANTRIAN"; desc.innerText = "Klik di sini untuk melihat daftar lengkap siapa saja yang sedang antri."; 
-                    $('qBox').classList.add('tut-highlight');
-                } else { $('tutorialOverlay').style.display = 'none'; return; }
-                
-                title.style.opacity = 1; desc.style.opacity = 1; btn.style.opacity = 1;
-            }, 300);
-        }
 
         let tempUserData = {}; let currentStep = 0;
         const steps = [ {q: "PLAT NOMOR", k: "plat"}, {q: "NAMA LENGKAP", k: "name"}, {q: "NOMOR WHATSAPP", k: "wa"} ];
@@ -817,19 +747,43 @@
             input.onkeydown = e => { if (e.key === "Enter") next(); };
         }
 
-        // --- MODIFIED ANIMATION WITH SCANNER ---
+        // --- NEW SCANNER LOGIC (2-3 KALI BOLAK BALIK) ---
         function startQueueAnim() {
             switchScreen('screen-queue'); 
-            
-            // Trigger CSS Animation
             const box = document.getElementById('scannerBox');
-            if(box) box.classList.add('scanning');
+            const txt = document.getElementById('scanTextStatus');
+            const imgColor = document.getElementById('scanColorImg');
 
-            // Simulated Delay (3 Seconds to match scanner)
+            // Reset State
+            if(box) box.classList.add('scanning');
+            if(imgColor) imgColor.classList.remove('reveal');
+            if(txt) {
+                txt.innerText = "CONNECTING...";
+                txt.style.color = "var(--cyan)";
+            }
+
+            // SEQUENCE ANIMATION
+            // 1.5s pertama (Scanning 1)
+            setTimeout(() => { if(txt) txt.innerText = "CHECKING DATABASE..."; }, 1500);
+            
+            // 3.0s (Scanning 2)
+            setTimeout(() => { if(txt) txt.innerText = "VERIFYING BIOMETRIC..."; }, 3000);
+            
+            // 4.5s (Scanning 3 - Selesai & Reveal Warna)
+            setTimeout(() => { 
+                if(txt) {
+                    txt.innerText = "ACCESS GRANTED"; 
+                    txt.style.color = "var(--accent)"; // Hijau/Accent
+                }
+                if(imgColor) imgColor.classList.add('reveal'); // Munculkan warna
+            }, 4500);
+
+            // 5.5s (Eksekusi)
             setTimeout(() => {
                 executeRegistration();
-                if(box) box.classList.remove('scanning');
-            }, 3000);
+                if(box) box.classList.remove('scanning'); // Stop scan
+                if(txt) txt.style.color = "var(--cyan)"; // Reset text color
+            }, 5500);
         }
 
         function executeRegistration() {
