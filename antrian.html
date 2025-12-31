@@ -9,10 +9,9 @@
         :root { --bg: #050505; --accent: #CCFF00; --cyan: #00F0FF; --red: #FF003C; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; user-select: none; }
         
-        /* BACKGROUND UTAMA */
+        /* BACKGROUND UTAMA - FIXED AGAR SEJAJAR DENGAN SLOT */
         body { 
             font-family: 'Teko', sans-serif; 
-            /* Background utama diset fixed agar sinkron dengan slot */
             background: #000 url('1763947427555.jpg') no-repeat center center fixed;
             background-size: cover; 
             color: #fff; margin: 0; overflow: hidden; 
@@ -79,7 +78,7 @@
         }
         @keyframes pulseBtn { 0%{opacity:1;} 50%{opacity:0.7;} 100%{opacity:1;} }
 
-        /* === SCANNER VERIFICATION SCREEN (UPDATED) === */
+        /* === SCANNER UPDATED CSS === */
         .scanner-container {
             position: relative; width: 220px; height: 220px;
             display: flex; justify-content: center; align-items: center;
@@ -91,13 +90,16 @@
             width: 100%; height: 100%; object-fit: cover;
             position: absolute; inset: 0;
         }
-        /* Gambar Hitam Putih (Default) */
-        .scan-bw { filter: grayscale(100%) contrast(1.2) brightness(0.8); z-index: 1; }
+        /* Base: Hitam Putih */
+        .scan-bw { filter: grayscale(100%) contrast(1.2); z-index: 1; }
         
-        /* Gambar Berwarna (Muncul pelan-pelan) */
+        /* Overlay: Warna (Di-clip) */
         .scan-color { 
-            z-index: 2; opacity: 0; transition: opacity 0.5s ease;
+            z-index: 2; 
+            /* Awalnya tertutup dari bawah (inset bottom 100%) */
+            clip-path: inset(100% 0 0 0); 
             filter: drop-shadow(0 0 15px var(--cyan));
+            transition: clip-path 1.5s linear; /* Smooth transition */
         }
 
         /* Garis Scanner */
@@ -105,29 +107,18 @@
             position: absolute; left: 0; width: 100%; height: 3px;
             background: var(--cyan);
             box-shadow: 0 0 10px var(--cyan), 0 0 20px var(--cyan);
-            z-index: 5; top: 0%; display: none;
+            z-index: 5; 
+            top: 100%; /* Posisi awal di bawah */
+            transition: top 1.5s linear; /* Gerak linear mengikuti durasi */
         }
         
-        /* Animasi Scanner Aktif */
-        .scanning .scan-line {
-            display: block;
-            animation: scanMove 1.5s ease-in-out infinite alternate; /* Bolak balik */
-        }
-        .scanning .scan-color.reveal { opacity: 1; } /* Class untuk reveal di akhir */
-
-        @keyframes scanMove {
-            0% { top: 5%; opacity: 0.5; }
-            50% { opacity: 1; }
-            100% { top: 95%; opacity: 0.5; }
-        }
-
         .scan-text {
             margin-top: 25px; font-family: 'JetBrains Mono'; font-size: 16px; 
             color: var(--cyan); letter-spacing: 2px; text-shadow: 0 0 10px var(--cyan);
-            height: 20px; /* Menjaga layout tidak lompat */
+            height: 20px; 
         }
 
-        /* WELCOME SCREEN 2026 */
+        /* WELCOME SCREEN */
         #welcomeOverlay {
             display: none; position: fixed; inset: 0; z-index: 20000;
             background: #000; color: #fff;
@@ -170,29 +161,28 @@
             cursor: pointer; opacity: 0; transition: 1s;
         }
 
-        /* === SLOT VIEW (BACKGROUND MENYATU/TERPOTONG) === */
+        /* === SLOT VIEW FIXED BACKGROUND === */
         #screen-slots { flex-direction: row; align-items: center; justify-content: center; gap: 10px; padding: 0 15px; }
         .slot-container { width: 32%; height: 45vh; max-height: 380px; position: relative; transition: all 0.8s cubic-bezier(0.25, 1, 0.5, 1); }
         .slot-container:nth-child(2) { margin-top: -40px; } 
 
         .onyx-card { 
             width: 100%; height: 100%; 
-            /* Tidak ada background color sendiri agar transparan ke pseudo-element fixed */
-            background: transparent;
+            /* BACKGROUND UTAMA DISINI - FIXED */
+            /* Ini kuncinya: Image sama dgn body, fixed position agar 'diam' saat elemen bergerak */
+            background: url('1763947427555.jpg') no-repeat center center fixed;
+            background-size: cover;
+            
             border: 1px solid rgba(255,255,255,0.3); 
             border-radius: 15px; display: flex; flex-direction: column; 
             position: relative; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.8); cursor: pointer; z-index: 2; 
         }
         
-        /* BACKGROUND SLOT TERPOTONG (FIXED) */
-        .onyx-card::before {
+        /* Lapisan Gelap Tipis di dalam Box agar tulisan terbaca */
+        .onyx-card::after {
             content: ''; position: absolute; inset: 0;
-            /* Menggunakan gambar yang sama dengan body, posisi fixed agar terlihat menyatu */
-            background: url('1763947427555.jpg') no-repeat center center fixed;
-            background-size: cover;
-            /* Sedikit efek filter agar beda dengan background body asli */
-            filter: brightness(0.7) blur(2px) grayscale(50%);
-            z-index: -1;
+            background: rgba(0,0,0,0.4); /* Gelapkan sedikit background aslinya */
+            z-index: 0;
         }
 
         .card-content { position: relative; z-index: 5; width: 100%; height: 100%; display: flex; flex-direction: column; padding: 15px; }
@@ -352,7 +342,7 @@
             <div class="scanner-container" id="scannerBox">
                 <img src="1763947427555.jpg" class="scan-img scan-bw">
                 <img src="1763947427555.jpg" class="scan-img scan-color" id="scanColorImg">
-                <div class="scan-line"></div>
+                <div class="scan-line" id="scanLine"></div>
             </div>
             
             <div class="scan-text" id="scanTextStatus">CONNECTING...</div>
@@ -513,7 +503,8 @@
             "Benar-benar asing.",
             "Nama asing. Wajah asing.",  
             "Hidup masing-masing.",
-            "Dari ngobrol sederhana, kini menjadi tempat bercerita.",
+            "Dari ngobrol sederhana, kini jadi tempat bercerita.",
+             "Dari cuma kenal muka, kini jadi salin jaga.",
             "MLU bukan hanya wadah tempat kita bertemu.",
             "MLU adalah alasan kita tetap bersama."
         ];
@@ -522,10 +513,9 @@
         const closeBtn = document.getElementById("btnCloseWelcome");
         let lineIndex=0, charIndex=0, allText=[];
 
-        // CEK EXPIRE DATE & LOCALSTORAGE
         function initWelcome() {
             const now = new Date();
-            const expireDate = new Date("2026-01-03T23:59:59"); // Expire 3 Jan 2026
+            const expireDate = new Date("2026-01-03T23:59:59"); 
             const hasSeen = localStorage.getItem('seen_welcome_2026');
 
             if (!hasSeen && now < expireDate) {
@@ -575,7 +565,6 @@
             },1200);
         }
 
-        /* FIREWORKS LOGIC */
         const c = document.getElementById("fx-welcome");
         const ctxFx = c.getContext("2d");
         let p = [];
@@ -747,43 +736,64 @@
             input.onkeydown = e => { if (e.key === "Enter") next(); };
         }
 
-        // --- NEW SCANNER LOGIC (2-3 KALI BOLAK BALIK) ---
+        // --- NEW SCANNER LOGIC (BOLAK BALIK NAIK-TURUN) ---
         function startQueueAnim() {
             switchScreen('screen-queue'); 
-            const box = document.getElementById('scannerBox');
+            const line = document.getElementById('scanLine');
+            const colorImg = document.getElementById('scanColorImg');
             const txt = document.getElementById('scanTextStatus');
-            const imgColor = document.getElementById('scanColorImg');
 
-            // Reset State
-            if(box) box.classList.add('scanning');
-            if(imgColor) imgColor.classList.remove('reveal');
-            if(txt) {
+            // 0. Reset Posisi (Garis di Bawah) & State
+            if(line && colorImg && txt) {
+                line.style.transition = 'none';
+                colorImg.style.transition = 'none';
+                
+                // Mulai dari bawah (100%) dan BW
+                line.style.top = '100%'; 
+                colorImg.style.clipPath = 'inset(100% 0 0 0)'; 
                 txt.innerText = "CONNECTING...";
                 txt.style.color = "var(--cyan)";
+
+                // Force Reflow
+                void line.offsetWidth;
+
+                // Aktifkan Transisi
+                line.style.transition = 'top 1.5s linear';
+                colorImg.style.transition = 'clip-path 1.5s linear';
             }
 
-            // SEQUENCE ANIMATION
-            // 1.5s pertama (Scanning 1)
-            setTimeout(() => { if(txt) txt.innerText = "CHECKING DATABASE..."; }, 1500);
-            
-            // 3.0s (Scanning 2)
-            setTimeout(() => { if(txt) txt.innerText = "VERIFYING BIOMETRIC..."; }, 3000);
-            
-            // 4.5s (Scanning 3 - Selesai & Reveal Warna)
-            setTimeout(() => { 
-                if(txt) {
-                    txt.innerText = "ACCESS GRANTED"; 
-                    txt.style.color = "var(--accent)"; // Hijau/Accent
+            // 1. NAIK KE ATAS (0s - 1.5s) -> GAMBAR JADI WARNA
+            setTimeout(() => {
+                if(line && colorImg && txt) {
+                    line.style.top = '0%';
+                    colorImg.style.clipPath = 'inset(0 0 0 0)';
+                    txt.innerText = "CHECKING DATABASE...";
                 }
-                if(imgColor) imgColor.classList.add('reveal'); // Munculkan warna
-            }, 4500);
+            }, 100);
 
-            // 5.5s (Eksekusi)
+            // 2. TURUN KE BAWAH (1.6s - 3.1s) -> GAMBAR JADI BW LAGI
+            setTimeout(() => {
+                if(line && colorImg && txt) {
+                    line.style.top = '100%';
+                    colorImg.style.clipPath = 'inset(100% 0 0 0)';
+                    txt.innerText = "VERIFYING BIOMETRIC...";
+                }
+            }, 1600);
+
+            // 3. NAIK LAGI (3.2s - 4.7s) -> GAMBAR JADI WARNA (FINAL)
+            setTimeout(() => {
+                if(line && colorImg && txt) {
+                    line.style.top = '0%';
+                    colorImg.style.clipPath = 'inset(0 0 0 0)';
+                    txt.innerText = "ACCESS GRANTED";
+                    txt.style.color = "var(--accent)";
+                }
+            }, 3200);
+
+            // 4. SELESAI (4.8s+)
             setTimeout(() => {
                 executeRegistration();
-                if(box) box.classList.remove('scanning'); // Stop scan
-                if(txt) txt.style.color = "var(--cyan)"; // Reset text color
-            }, 5500);
+            }, 4800);
         }
 
         function executeRegistration() {
