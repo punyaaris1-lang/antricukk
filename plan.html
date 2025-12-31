@@ -18,7 +18,7 @@
             --accent: #3b82f6;        /* Blue 500 */
             --danger: #ef4444;
             --text-dark: #0f172a;
-            --bg-body: #f1f5f9;
+            --bg-body: #f8fafc;
             --shadow-card: 0 10px 25px -5px rgba(6, 182, 212, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
         }
 
@@ -72,9 +72,18 @@
         .t-item { position: relative; margin-bottom: 25px; }
         .t-item:last-child { margin-bottom: 0; }
         .t-dot { position: absolute; left: -30px; top: 0; width: 16px; height: 16px; border-radius: 50%; background: white; border: 3px solid #cbd5e1; z-index: 2; box-shadow: 0 0 0 3px white; }
+        
         .dist-label { position: absolute; left: -68px; top: 25px; width: 60px; text-align: right; font-size: 0.7em; color: #64748b; font-weight: 600; background: #fff; padding-right: 5px; }
+        
         .t-title { font-weight: 700; font-size: 0.95em; color: #1e293b; }
         .t-desc { font-size: 0.85em; color: #64748b; margin-top: 2px; }
+        
+        /* ALAMAT TERDETEKSI (NEW STYLE) */
+        .detected-addr { 
+            display: block; margin-top: 3px; 
+            font-size: 0.75em; color: var(--primary-dark); font-style: italic; 
+            background: #ecfeff; padding: 4px 8px; border-radius: 6px; border-left: 2px solid var(--primary);
+        }
 
         .info-dest { margin-top: 20px; padding: 15px; background: #ecfeff; border: 1px solid #cffafe; border-radius: 12px; font-size: 0.85em; color: var(--primary-dark); display: flex; align-items: center; gap: 12px; }
 
@@ -83,63 +92,33 @@
         .gmaps-btn:hover { border-color: var(--primary); color: var(--primary); }
         .remove-btn { color: #ef4444; background: none; border: none; font-size: 1.2em; padding: 0 15px; cursor: pointer; }
 
-        /* --- LASER SCANNING ANIMATION --- */
+        /* LOADING SCANNER */
         .loading-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(15, 23, 42, 0.95); z-index: 10000;
             display: none; flex-direction: column; align-items: center; justify-content: center;
             backdrop-filter: blur(5px);
         }
-        
         .scan-container {
-            position: relative;
-            width: 180px; height: 180px;
-            /* Container harus pas dengan ukuran gambar */
+            position: relative; width: 180px; height: 180px;
         }
-
-        /* 1. GAMBAR DASAR (HITAM PUTIH) */
         .img-bw {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            object-fit: contain;
-            filter: grayscale(100%) contrast(1.2) brightness(0.8);
-            opacity: 0.5;
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain;
+            filter: grayscale(100%) contrast(1.2) brightness(0.8); opacity: 0.5;
         }
-
-        /* 2. AREA GAMBAR BERWARNA (DIMASKING) */
         .scan-mask {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; 
-            height: 0%; /* Start height */
-            overflow: hidden; /* Ini kuncinya: menyembunyikan bagian yg belum discan */
-            border-bottom: 3px solid #00f2ff; /* Garis Laser */
-            box-shadow: 0 5px 20px rgba(0, 242, 255, 0.8); /* Glow Laser */
+            position: absolute; top: 0; left: 0; width: 100%; height: 0%;
+            overflow: hidden; border-bottom: 3px solid #00f2ff;
+            box-shadow: 0 5px 20px rgba(0, 242, 255, 0.8);
             animation: laserScan 2.5s infinite ease-in-out alternate;
             background: transparent;
         }
-
-        /* 3. GAMBAR BERWARNA DI DALAM MASKING */
-        /* Penting: Ukuran harus sama persis dengan container agar tidak gepeng saat mask bergerak */
-        .img-color {
-            width: 180px; height: 180px; 
-            object-fit: contain;
-        }
-
-        /* ANIMASI NAIK TURUN MASKING */
-        @keyframes laserScan {
-            0% { height: 0%; }
-            100% { height: 100%; }
-        }
-
+        .img-color { width: 180px; height: 180px; object-fit: contain; }
+        @keyframes laserScan { 0% { height: 0%; } 100% { height: 100%; } }
         .loading-text {
-            margin-top: 30px;
-            color: #00f2ff; font-family: 'Manrope', sans-serif;
-            font-weight: 700; letter-spacing: 2px; font-size: 1em;
-            text-transform: uppercase;
-            text-shadow: 0 0 10px rgba(0, 242, 255, 0.5);
-            animation: blinkText 1s infinite;
+            margin-top: 30px; color: #00f2ff; font-family: 'Manrope', sans-serif;
+            font-weight: 700; letter-spacing: 2px; font-size: 1em; text-transform: uppercase;
+            text-shadow: 0 0 10px rgba(0, 242, 255, 0.5); animation: blinkText 1s infinite;
         }
         @keyframes blinkText { 50% { opacity: 0.5; } }
 
@@ -155,7 +134,6 @@
 <div id="loading-overlay" class="loading-overlay">
     <div class="scan-container">
         <img src="1763947427555.jpg" class="img-bw" onerror="this.style.display='none'">
-        
         <div class="scan-mask">
             <img src="1763947427555.jpg" class="img-color" onerror="this.src='https://via.placeholder.com/150/000000/FFFFFF?text=MLU'">
         </div>
@@ -256,16 +234,13 @@
         inputs.forEach(i => { if(i.value.trim()) inputTexts.push(i.value.trim()); });
         if(inputTexts.length < 2) return alert("Minimal 2 lokasi!");
 
-        // START LOADING
         loading.style.display = 'flex';
         mapLayers.clearLayers();
         resArea.innerHTML = '';
 
         try {
-            // DELAY UNTUK MELIHAT EFEK SCAN (3.5 Detik)
-            await new Promise(r => setTimeout(r, 3500));
+            await new Promise(r => setTimeout(r, 3000)); // Animasi 3 detik
 
-            // 1. Geocoding
             let points = [];
             for(let txt of inputTexts) {
                 const c = await getGeo(txt);
@@ -273,7 +248,6 @@
                 points.push(c);
             }
 
-            // 2. Cek Total Rute Asli
             const directRoute = await getOSRM(points);
             const totalDist = directRoute.distance / 1000;
             const batNeeded = Math.ceil(totalDist);
@@ -282,14 +256,12 @@
 
             currentData = { points, bat: batStart, nearDest, safeList: [], nekatList: [] };
 
-            // SKENARIO 1: AMAN (Sisa > 20%)
             if (sisaAkhir >= 20) {
                 const itinerary = await buildItinerary(points, batStart, null); 
                 resArea.innerHTML = renderCard('aman', '✅ RUTE LANGSUNG AMAN', itinerary, nearDest, false);
                 drawRoute(points, '#10b981');
             } 
             else {
-                // SKENARIO 2: BUTUH CAS
                 const opts = await findChargerOptions(points, batStart);
                 currentData.safeList = opts.safeList;
                 currentData.nekatList = opts.nekatList;
@@ -338,7 +310,7 @@
 
             let pointData = {
                 name: path[i].name.split(',')[0],
-                fullName: path[i].name,
+                fullName: path[i].name, // Untuk konfirmasi alamat
                 isCharger: path[i].isCharger,
                 currentBat: currentBat,
                 distToNext: distToNext
@@ -385,8 +357,11 @@
             if(pt.currentBat < 20) batColor = '#ef4444';
             else if(pt.currentBat < 40) batColor = '#f59e0b';
 
+            let addrHtml = pt.isCharger ? '' : `<span class="detected-addr">📍 Terdeteksi: ${pt.fullName}</span>`;
+
             let content = `
                 <div class="t-title">${pt.name} ${pt.isCharger ? '⚡' : ''}</div>
+                ${addrHtml}
                 <div class="t-desc">${pt.isCharger ? '<b style="color:'+color+'">ISI DAYA (100%)</b>' : 'Sisa Baterai: <b style="color:'+batColor+'">'+pt.currentBat+'%</b>'}</div>
             `;
 
