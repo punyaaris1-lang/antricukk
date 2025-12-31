@@ -12,10 +12,10 @@
     <style>
         :root {
             /* CYAN MLU PALETTE */
-            --primary: #06b6d4;
-            --primary-dark: #0891b2;
-            --primary-light: #cffafe;
-            --accent: #3b82f6;
+            --primary: #06b6d4;       /* Cyan 500 */
+            --primary-dark: #0891b2;  /* Cyan 600 */
+            --primary-light: #cffafe; /* Cyan 100 */
+            --accent: #3b82f6;        /* Blue 500 */
             --danger: #ef4444;
             --text-dark: #0f172a;
             --bg-body: #f1f5f9;
@@ -83,58 +83,65 @@
         .gmaps-btn:hover { border-color: var(--primary); color: var(--primary); }
         .remove-btn { color: #ef4444; background: none; border: none; font-size: 1.2em; padding: 0 15px; cursor: pointer; }
 
-        /* LOADING ANIMATION (SCANNER) */
+        /* --- LASER SCANNING ANIMATION --- */
         .loading-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(15, 23, 42, 0.9); z-index: 10000;
+            background: rgba(15, 23, 42, 0.95); z-index: 10000;
             display: none; flex-direction: column; align-items: center; justify-content: center;
-            backdrop-filter: blur(8px);
+            backdrop-filter: blur(5px);
         }
         
-        .scanner-wrapper {
+        .scan-container {
             position: relative;
-            width: 150px; height: 150px;
-            border-radius: 15px;
-            overflow: hidden;
-            background: #fff;
-            box-shadow: 0 0 50px rgba(6, 182, 212, 0.5);
+            width: 180px; height: 180px;
+            /* Container harus pas dengan ukuran gambar */
         }
 
-        .scan-logo {
+        /* 1. GAMBAR DASAR (HITAM PUTIH) */
+        .img-bw {
+            position: absolute;
+            top: 0; left: 0;
             width: 100%; height: 100%;
             object-fit: contain;
-            padding: 10px; box-sizing: border-box;
+            filter: grayscale(100%) contrast(1.2) brightness(0.8);
+            opacity: 0.5;
         }
 
-        /* Layer Bawah: Hitam Putih */
-        .bw-layer {
-            filter: grayscale(100%) contrast(1.2);
-            position: absolute; top: 0; left: 0;
-            width: 100%; height: 100%;
+        /* 2. AREA GAMBAR BERWARNA (DIMASKING) */
+        .scan-mask {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; 
+            height: 0%; /* Start height */
+            overflow: hidden; /* Ini kuncinya: menyembunyikan bagian yg belum discan */
+            border-bottom: 3px solid #00f2ff; /* Garis Laser */
+            box-shadow: 0 5px 20px rgba(0, 242, 255, 0.8); /* Glow Laser */
+            animation: laserScan 2.5s infinite ease-in-out alternate;
+            background: transparent;
         }
 
-        /* Layer Atas: Berwarna (Dimasking) */
-        .color-layer {
-            position: absolute; top: 0; left: 0;
-            width: 100%; height: 50%; /* Initial Height */
-            overflow: hidden;
-            border-bottom: 3px solid var(--primary); /* Garis Laser */
-            box-shadow: 0 0 15px var(--primary);
-            animation: scanAnim 2.5s infinite alternate ease-in-out;
-            background: white;
+        /* 3. GAMBAR BERWARNA DI DALAM MASKING */
+        /* Penting: Ukuran harus sama persis dengan container agar tidak gepeng saat mask bergerak */
+        .img-color {
+            width: 180px; height: 180px; 
+            object-fit: contain;
         }
 
-        @keyframes scanAnim {
+        /* ANIMASI NAIK TURUN MASKING */
+        @keyframes laserScan {
             0% { height: 0%; }
             100% { height: 100%; }
         }
 
         .loading-text {
-            color: white; margin-top: 20px; font-weight: 600; letter-spacing: 1px;
-            text-transform: uppercase; font-size: 0.9em;
-            animation: pulse 1.5s infinite;
+            margin-top: 30px;
+            color: #00f2ff; font-family: 'Manrope', sans-serif;
+            font-weight: 700; letter-spacing: 2px; font-size: 1em;
+            text-transform: uppercase;
+            text-shadow: 0 0 10px rgba(0, 242, 255, 0.5);
+            animation: blinkText 1s infinite;
         }
-        @keyframes pulse { 0% { opacity: 0.6; } 50% { opacity: 1; } 100% { opacity: 0.6; } }
+        @keyframes blinkText { 50% { opacity: 0.5; } }
 
         /* MODAL */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.7); z-index: 9999; display: none; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
@@ -146,15 +153,14 @@
 <body>
 
 <div id="loading-overlay" class="loading-overlay">
-    <div class="scanner-wrapper">
-        <div class="bw-layer">
-            <img src="1763947427555.jpg" class="scan-logo" onerror="this.src='https://via.placeholder.com/150/000000/FFFFFF?text=MLU'">
-        </div>
-        <div class="color-layer">
-            <img src="1763947427555.jpg" class="scan-logo" onerror="this.src='https://via.placeholder.com/150/000000/FFFFFF?text=MLU'">
+    <div class="scan-container">
+        <img src="1763947427555.jpg" class="img-bw" onerror="this.style.display='none'">
+        
+        <div class="scan-mask">
+            <img src="1763947427555.jpg" class="img-color" onerror="this.src='https://via.placeholder.com/150/000000/FFFFFF?text=MLU'">
         </div>
     </div>
-    <div class="loading-text">Analyzing Route Data...</div>
+    <div class="loading-text">SYSTEM SCANNING...</div>
 </div>
 
 <div class="app-container">
@@ -240,7 +246,6 @@
         document.getElementById('waypoints').insertBefore(div, document.getElementById('waypoints').lastElementChild);
     }
 
-    // --- MAIN FUNCTION MODIFIED WITH LOADING SCREEN ---
     async function calculateRoute() {
         const inputs = document.querySelectorAll('.loc-input');
         const batStart = parseInt(document.getElementById('battery').value);
@@ -251,14 +256,14 @@
         inputs.forEach(i => { if(i.value.trim()) inputTexts.push(i.value.trim()); });
         if(inputTexts.length < 2) return alert("Minimal 2 lokasi!");
 
-        // 1. SHOW LOADING OVERLAY
+        // START LOADING
         loading.style.display = 'flex';
         mapLayers.clearLayers();
         resArea.innerHTML = '';
 
         try {
-            // FORCE DELAY UNTUK MELIHAT ANIMASI (3 Detik)
-            await new Promise(r => setTimeout(r, 3000));
+            // DELAY UNTUK MELIHAT EFEK SCAN (3.5 Detik)
+            await new Promise(r => setTimeout(r, 3500));
 
             // 1. Geocoding
             let points = [];
@@ -308,7 +313,6 @@
         } catch (e) {
             alert(e.message);
         } finally {
-            // HIDE LOADING SETELAH SELESAI
             loading.style.display = 'none';
         }
     }
