@@ -61,7 +61,7 @@
 <body>
 
     <div style="display:flex; justify-content:space-between; margin-bottom:15px; align-items:center;">
-        <span style="font-family:'Teko'; font-size:24px; color:var(--cyan);">ADMIN PANEL <span style="color:var(--accent);">v4.1</span></span>
+        <span style="font-family:'Teko'; font-size:24px; color:var(--cyan);">ADMIN PANEL <span style="color:var(--accent);">v4.2 (FIX)</span></span>
         <div style="display:flex; gap:5px;">
             <button onclick="window.location.href='index.html'" class="btn-blue">DEPAN</button>
             <button onclick="logout()" class="btn-red">KELUAR</button>
@@ -167,7 +167,6 @@
             </div>
         </div>
     </div>
-
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, doc, onSnapshot, runTransaction, collection, addDoc, query, orderBy, limit, getDocs, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -201,9 +200,8 @@
         document.getElementById('btnYes').onclick = () => { if(currentCallback) currentCallback(); closeModal(); };
         window.closeModal = () => { document.getElementById('customModal').style.display = 'none'; currentCallback = null; };
 
-        // === HELPER: GET DATE WIB (JAKARTA) ===
+        // === HELPER: GET DATE WIB ===
         function getWIBDateString() {
-            // Returns YYYY-MM-DD based on Asia/Jakarta Timezone
             return new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jakarta' });
         }
 
@@ -215,31 +213,29 @@
             // --- AUTO RESET 00:00 WIB ---
             const todayWIB = getWIBDateString();
             
-            // Jika tanggal di database TIDAK SAMA dengan tanggal WIB hari ini
+            // Cek apakah tanggal di DB sudah kadaluarsa (kemarin)
             if (d.lastResetDate !== todayWIB) {
-                console.log("Mendeteksi Hari Baru (WIB). Melakukan Reset...");
+                console.log("Mendeteksi Hari Baru. Resetting...");
                 runTransaction(db, async(t) => {
-                    // Double check dalam transaksi
                     const freshDoc = await t.get(mainRef);
+                    // Pastikan belum direset user lain
                     if (freshDoc.data().lastResetDate !== todayWIB) {
                         t.update(mainRef, { 
-                            lastResetDate: todayWIB, // Update ke tanggal hari ini
-                            waitingQueue: [],        // Kosongkan antrian
-                            chargingSlots: [null,null,null], // Kosongkan slot
+                            lastResetDate: todayWIB, 
+                            waitingQueue: [],        
+                            chargingSlots: [null,null,null],
                             recycledNumbers: [], 
-                            lastTicket: 0            // Reset nomor antrian ke 0 (jadi next #1)
+                            lastTicket: 0
                         });
-                        addLog("AUTO_RESET", `Ganti Hari ke ${todayWIB}`);
+                        addLog("AUTO_RESET", `New Day: ${todayWIB}`);
                     }
-                }).catch(e => console.log("Reset Error/Race Condition", e));
-                return; // Stop render, tunggu update berikutnya
+                });
+                // Jangan return, biarkan render berjalan agar UI update
             }
-            // -----------------------------
 
             cachedSlots = d.chargingSlots || [null,null,null];
             cachedQueue = d.waitingQueue || [];
 
-            // Render Slot
             cachedSlots.forEach((s, i) => {
                 const el = document.getElementById(`slot${i+1}`);
                 if(s) {
@@ -286,18 +282,9 @@
             document.getElementById('queueTable').innerHTML = h;
         }
 
-        // ACTIONS
-        window.switchQueue = (idx, dir) => {
-            runTransaction(db, async(t) => {
-                const d = (await t.get(mainRef)).data();
-                let q = d.waitingQueue;
-                const target = idx + dir;
-                if(target < 0 || target >= q.length) return;
-                [q[idx], q[target]] = [q[target], q[idx]];
-                t.update(mainRef, { waitingQueue: q });
-            });
-        };
+        // --- ACTIONS ---
 
+        // FIX: Manual Add sekarang memaksa update tanggal agar tidak dihapus Auto-Reset
         window.manualAdd = (target) => {
             const p = document.getElementById('newPlat').value.toUpperCase();
             const n = document.getElementById('newName').value.toUpperCase();
@@ -306,6 +293,7 @@
             runTransaction(db, async(t) => {
                 const d = (await t.get(mainRef)).data();
                 if([...(d.chargingSlots||[]), ...d.waitingQueue].some(u => u && u.plat === p)) throw "Plat Exist";
+                
                 let newNo = (d.recycledNumbers||[]).length>0 ? d.recycledNumbers.sort((a,b)=>a-b).shift() : (d.lastTicket||0)+1;
                 let last = (d.recycledNumbers||[]).length>0 ? d.lastTicket : newNo;
                 const u = { plat:p, userName:n, wa:'ADMIN', qNo:newNo, entryTime:Date.now() };
@@ -315,7 +303,15 @@
                     if(d.chargingSlots[target]) throw "Slot Penuh";
                     u.startTime = Date.now(); d.chargingSlots[target] = u;
                 }
-                t.update(mainRef, { waitingQueue:d.waitingQueue, chargingSlots:d.chargingSlots, recycledNumbers:d.recycledNumbers||[], lastTicket:last });
+
+                // KEY FIX: Update lastResetDate ke HARI INI saat input data
+                t.update(mainRef, { 
+                    waitingQueue:d.waitingQueue, 
+                    chargingSlots:d.chargingSlots, 
+                    recycledNumbers:d.recycledNumbers||[], 
+                    lastTicket:last,
+                    lastResetDate: getWIBDateString() // Mencegah auto-reset menghapus data ini
+                });
                 addLog("ADMIN_ADD", `${p} (${n})`);
             }).then(()=>{ document.getElementById('newPlat').value=''; }).catch(e=>alert(e));
         };
@@ -329,7 +325,7 @@
                 const u = d.waitingQueue.splice(i,1)[0];
                 u.startTime = Date.now(); d.chargingSlots[sIdx] = u;
                 t.update(mainRef, { waitingQueue:d.waitingQueue, chargingSlots:d.chargingSlots });
-                addLog("START_CHARGE", `${p} -> Slot ${sIdx+1}`);
+                addLog("START_CHARGE", `${p} -> S${sIdx+1}`);
             }).catch(e=>alert(e));
         };
 
@@ -340,7 +336,7 @@
                 if(!u) return;
                 d.chargingSlots[i]=null; delete u.startTime; d.waitingQueue.unshift(u);
                 t.update(mainRef, { chargingSlots:d.chargingSlots, waitingQueue:d.waitingQueue });
-                addLog("MOVE_QUEUE", `${u.plat} dari Slot ${i+1}`);
+                addLog("MOVE_QUEUE", `${u.plat} from S${i+1}`);
             });
         };
 
@@ -348,7 +344,7 @@
             runTransaction(db, async(t) => {
                 const d = (await t.get(mainRef)).data();
                 const u = d.chargingSlots[i];
-                if(u) { addDoc(histRef, {...u, finishTime:new Date(), timestamp:new Date(), by:'ADMIN'}); d.chargingSlots[i]=null; t.update(mainRef, {chargingSlots:d.chargingSlots}); addLog("STOP_CHARGE", `${u.plat} Slot ${i+1}`); }
+                if(u) { addDoc(histRef, {...u, finishTime:new Date(), timestamp:new Date(), by:'ADMIN'}); d.chargingSlots[i]=null; t.update(mainRef, {chargingSlots:d.chargingSlots}); addLog("STOP_CHARGE", `${u.plat} S${i+1}`); }
             });
         };
 
@@ -382,7 +378,7 @@
         window.resetSystem = () => {
             runTransaction(db, async(t) => {
                 t.update(mainRef, { chargingSlots:[null,null,null], waitingQueue:[], recycledNumbers:[], lastTicket:0, lastResetDate: getWIBDateString() });
-                addLog("MANUAL_RESET", "Reset Total by Admin");
+                addLog("MANUAL_RESET", "Reset by Admin");
             });
         };
 
