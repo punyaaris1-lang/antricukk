@@ -6,10 +6,10 @@
     <title>FC KELAPA GADING</title>
     <link href="https://fonts.googleapis.com/css2?family=Teko:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&family=Inter:wght@500;700;800&display=swap" rel="stylesheet">
     <style>
-        :root { --bg: #050505; --accent: #CCFF00; --cyan: #00F0FF; --red: #FF003C; }
+        :root { --bg: #050505; --accent: #CCFF00; --cyan: #00F0FF; --red: #FF003C; --wa: #25D366; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; user-select: none; }
         
-        /* BACKGROUND UTAMA - FIXED AGAR SEJAJAR DENGAN SLOT */
+        /* BACKGROUND UTAMA - FIXED */
         body { 
             font-family: 'Teko', sans-serif; 
             background: #000 url('1763947427555.jpg') no-repeat center center fixed;
@@ -78,7 +78,7 @@
         }
         @keyframes pulseBtn { 0%{opacity:1;} 50%{opacity:0.7;} 100%{opacity:1;} }
 
-        /* === SCANNER UPDATED CSS === */
+        /* === SCANNER ANIMATION === */
         .scanner-container {
             position: relative; width: 220px; height: 220px;
             display: flex; justify-content: center; align-items: center;
@@ -86,105 +86,27 @@
             border: 2px solid #333;
             box-shadow: 0 0 30px rgba(0,0,0,0.8);
         }
-        .scan-img {
-            width: 100%; height: 100%; object-fit: cover;
-            position: absolute; inset: 0;
-        }
-        /* Base: Hitam Putih */
+        .scan-img { width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0; }
         .scan-bw { filter: grayscale(100%) contrast(1.2); z-index: 1; }
-        
-        /* Overlay: Warna (Di-clip) */
-        .scan-color { 
-            z-index: 2; 
-            /* Awalnya tertutup dari bawah (inset bottom 100%) */
-            clip-path: inset(100% 0 0 0); 
-            filter: drop-shadow(0 0 15px var(--cyan));
-            transition: clip-path 1.5s linear; /* Smooth transition */
-        }
-
-        /* Garis Scanner */
+        .scan-color { z-index: 2; clip-path: inset(100% 0 0 0); filter: drop-shadow(0 0 15px var(--cyan)); transition: clip-path 1.5s linear; }
         .scan-line {
             position: absolute; left: 0; width: 100%; height: 3px;
-            background: var(--cyan);
-            box-shadow: 0 0 10px var(--cyan), 0 0 20px var(--cyan);
-            z-index: 5; 
-            top: 100%; /* Posisi awal di bawah */
-            transition: top 1.5s linear; /* Gerak linear mengikuti durasi */
+            background: var(--cyan); box-shadow: 0 0 10px var(--cyan), 0 0 20px var(--cyan);
+            z-index: 5; top: 100%; transition: top 1.5s linear;
         }
-        
-        .scan-text {
-            margin-top: 25px; font-family: 'JetBrains Mono'; font-size: 16px; 
-            color: var(--cyan); letter-spacing: 2px; text-shadow: 0 0 10px var(--cyan);
-            height: 20px; 
-        }
+        .scan-text { margin-top: 25px; font-family: 'JetBrains Mono'; font-size: 16px; color: var(--cyan); letter-spacing: 2px; text-shadow: 0 0 10px var(--cyan); height: 20px; }
 
-        /* WELCOME SCREEN */
-        #welcomeOverlay {
-            display: none; position: fixed; inset: 0; z-index: 20000;
-            background: #000; color: #fff;
-            font-family: 'Inter', sans-serif;
-            align-items: center; justify-content: center;
-            text-align: center; overflow: hidden;
-        }
-        #welcomeOverlay .bg-layer {
-            position: absolute; inset: 0;
-            background: url("1763947427555.jpg") center/cover no-repeat;
-            opacity: 0.4; transform: scale(1);
-            animation: bgZoom 20s ease forwards;
-        }
-        @keyframes bgZoom{ to{transform:scale(1.15)} }
-        #welcomeOverlay .vignette {
-            position: absolute; inset: 0;
-            background: radial-gradient(circle, rgba(0,0,0,0) 40%, rgba(0,0,0,1) 90%);
-        }
-        #welcomeOverlay .wrap { position: relative; z-index: 10; padding: 20px; max-width: 500px; }
-        #welcomeOverlay .line {
-            font-size: 18px; line-height: 1.6; min-height: 2.4em;
-            text-shadow: 0 0 14px rgba(255,255,255,.3);
-            font-family: 'JetBrains Mono'; color: #ddd;
-        }
-        #welcomeOverlay .final {
-            font-size: 32px; font-weight: 800; letter-spacing: 1.4px;
-            color: #e8c37a; opacity: 0; margin-bottom: 20px;
-            text-shadow: 0 0 30px rgba(232,195,122,.8);
-            font-family: 'Teko';
-        }
-        .fade-in{animation:fadeInText 1s ease forwards}
-        .fade-out{animation:fadeOutText .8s ease forwards}
-        @keyframes fadeInText{ from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:none} }
-        @keyframes fadeOutText{ to{opacity:0;transform:translateY(-10px)} }
-        #fx-welcome { position: absolute; inset: 0; pointer-events: none; z-index: 5; }
-        .close-welcome {
-            position: absolute; top: 20px; right: 20px; z-index: 50;
-            background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3);
-            color: #fff; padding: 5px 15px; border-radius: 20px; font-family: 'Teko';
-            cursor: pointer; opacity: 0; transition: 1s;
-        }
-
-        /* === SLOT VIEW FIXED BACKGROUND === */
+        /* SLOT VIEW */
         #screen-slots { flex-direction: row; align-items: center; justify-content: center; gap: 10px; padding: 0 15px; }
         .slot-container { width: 32%; height: 45vh; max-height: 380px; position: relative; transition: all 0.8s cubic-bezier(0.25, 1, 0.5, 1); }
         .slot-container:nth-child(2) { margin-top: -40px; } 
-
         .onyx-card { 
             width: 100%; height: 100%; 
-            /* BACKGROUND UTAMA DISINI - FIXED */
-            /* Ini kuncinya: Image sama dgn body, fixed position agar 'diam' saat elemen bergerak */
-            background: url('1763947427555.jpg') no-repeat center center fixed;
-            background-size: cover;
-            
-            border: 1px solid rgba(255,255,255,0.3); 
-            border-radius: 15px; display: flex; flex-direction: column; 
+            background: url('1763947427555.jpg') no-repeat center center fixed; background-size: cover;
+            border: 1px solid rgba(255,255,255,0.3); border-radius: 15px; display: flex; flex-direction: column; 
             position: relative; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.8); cursor: pointer; z-index: 2; 
         }
-        
-        /* Lapisan Gelap Tipis di dalam Box agar tulisan terbaca */
-        .onyx-card::after {
-            content: ''; position: absolute; inset: 0;
-            background: rgba(0,0,0,0.4); /* Gelapkan sedikit background aslinya */
-            z-index: 0;
-        }
-
+        .onyx-card::after { content: ''; position: absolute; inset: 0; background: rgba(0,0,0,0.4); z-index: 0; }
         .card-content { position: relative; z-index: 5; width: 100%; height: 100%; display: flex; flex-direction: column; padding: 15px; }
         .cc-top { flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.3); padding-bottom: 10px; min-height: 60px; justify-content: center; }
         .oc-name { font-weight: 600; font-size: clamp(14px, 1.8vh, 18px); color: #fff; text-shadow: 0 0 10px rgba(0,0,0,0.8); text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
@@ -197,19 +119,20 @@
         .btn-select { background: rgba(204, 255, 0, 0.2); border: 1px solid var(--accent); color: var(--accent); animation: pulse 2s infinite; display:none; width: 100%; padding: 8px 0; border-radius: 5px; font-family: 'Teko'; font-weight: bold; font-size: 18px; text-align: center; text-shadow: 0 0 5px #000; }
         .onyx-card.empty .btn-select { display: block; }
 
+        /* BUTTON WA */
+        .btn-wa {
+            background: rgba(37, 211, 102, 0.2); border: 1px solid var(--wa); color: var(--wa);
+            font-family: 'JetBrains Mono'; font-size: 12px; padding: 4px 10px; border-radius: 20px;
+            margin-top: 5px; cursor: pointer; display: none; align-items: center; gap: 5px;
+            text-decoration: none; font-weight: bold; width: fit-content;
+        }
+        .filled .btn-wa { display: flex; }
+        .btn-wa:hover { background: var(--wa); color: #000; box-shadow: 0 0 10px var(--wa); }
+
         /* ACTIVE DASHBOARD */
         #screen-active-dashboard { z-index: 200; background: rgba(0,0,0,0.95); backdrop-filter: blur(10px); }
         .ad-container { width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: space-between; align-items: center; padding: 20px; padding-bottom: 25vh; }
-        
-        .limit-hud { 
-            width: 90%; max-width: 350px; 
-            background: rgba(255, 255, 255, 0.05); 
-            border: 1px solid var(--accent); border-radius: 8px; 
-            padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; 
-            margin-bottom: 10px; box-shadow: 0 0 15px rgba(204, 255, 0, 0.1); 
-            margin-top: 45px; 
-        }
-
+        .limit-hud { width: 90%; max-width: 350px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--accent); border-radius: 8px; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; box-shadow: 0 0 15px rgba(204, 255, 0, 0.1); margin-top: 45px; }
         .hud-item { text-align: center; }
         .hud-label { font-size: 10px; color: #888; letter-spacing: 1px; }
         .hud-val { font-size: 20px; color: #fff; font-weight: bold; line-height: 1; text-shadow: 0 0 5px #fff; }
@@ -229,17 +152,7 @@
 
         /* FOOTER & FINGERPRINT */
         .bottom-panel { height: 35vh; min-height: 250px; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; z-index: 20; position: fixed; bottom: 0; width: 100%; background: linear-gradient(to top, #000 90%, transparent); padding-bottom: 20px; }
-        
-        .stats-wrapper { 
-            display: grid; 
-            grid-template-columns: 1fr 2px 1fr;
-            align-items: center; 
-            justify-items: center; 
-            width: 100%; max-width: 400px;
-            margin-bottom: 15px; 
-            pointer-events: auto; 
-        }
-        
+        .stats-wrapper { display: grid; grid-template-columns: 1fr 2px 1fr; align-items: center; justify-items: center; width: 100%; max-width: 400px; margin-bottom: 15px; pointer-events: auto; }
         .stat-box { display: flex; flex-direction: column; align-items: center; text-align: center; width: 100%; }
         .stat-box.clickable { cursor: pointer; transition: 0.3s; }
         .stat-box.clickable:active { transform: scale(0.95); opacity: 0.8; }
@@ -251,7 +164,6 @@
         .fp-wrapper { display: flex; flex-direction: column; align-items: center; position: relative; width:100%; justify-content:center; }
         .fp-text { font-family: 'Teko'; font-size: 24px; color: #fff; font-weight: 700; margin-bottom: 5px; text-shadow: 0 0 10px var(--cyan); letter-spacing: 1px; animation: textGlow 2s infinite alternate; }
         @keyframes textGlow { from{text-shadow: 0 0 5px var(--cyan);} to{text-shadow: 0 0 20px var(--cyan), 0 0 10px #fff;} }
-
         .fp-container { position: relative; width: 80px; height: 80px; display: flex; justify-content: center; align-items: center; margin-bottom: 10px; pointer-events: auto; }
         .fp-btn { width: 70px; height: 70px; background: rgba(0,0,0,0.5); border: 1px solid var(--cyan); border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; box-shadow: 0 0 20px rgba(0,240,255,0.3); animation: pulse 2s infinite; transition: 0.3s; }
         .fp-btn.back-mode { border-color: var(--accent); animation: none; box-shadow: 0 0 30px rgba(204, 255, 0, 0.4); background: rgba(204, 255, 0, 0.1); }
@@ -282,16 +194,10 @@
         
         .fq-item { margin: 10px 0; transition: .25s; font-family: 'JetBrains Mono', monospace; color: #fff; position: relative; }
         
-        .fq-item.arrive {
-            transform: scale(1.2);
-            text-shadow: 0 0 30px var(--cyan), 0 0 50px white;
-            transition: 0.5s cubic-bezier(0.18, 0.89, 0.32, 1.28);
-        }
-
+        .fq-item.arrive { transform: scale(1.2); text-shadow: 0 0 30px var(--cyan), 0 0 50px white; transition: 0.5s cubic-bezier(0.18, 0.89, 0.32, 1.28); }
         .fq-pipe { width: 1px; height: 15px; background: #333; margin: 0 auto; }
         .fq-item.small { font-size: 14px; opacity: 0.35; }
         .fq-item.mid { font-size: 18px; opacity: 0.6; }
-        
         .fq-item.you { font-size: 28px; font-weight: 800; color: var(--cyan); text-shadow: 0 0 25px var(--cyan); margin: 25px 0; }
         .fq-item.you::before { content: "▶"; margin-right: 15px; color: var(--cyan); display: inline-block; animation: pointR 1s infinite alternate; }
         .fq-item.you::after { content: "◀"; margin-left: 15px; color: var(--cyan); display: inline-block; animation: pointL 1s infinite alternate; }
@@ -303,19 +209,6 @@
 <body>
 
     <canvas id="dust"></canvas>
-
-    <div id="welcomeOverlay">
-        <div class="bg-layer"></div>
-        <div class="vignette"></div>
-        <canvas id="fx-welcome"></canvas>
-        <button class="close-welcome" onclick="closeWelcome()" id="btnCloseWelcome">TUTUP</button>
-        <div class="wrap">
-            <div>
-                <div id="welcomeFinal" class="final">Selamat Tahun Baru 2026</div>
-                <div id="welcomeLine" class="line"></div>
-            </div>
-        </div>
-    </div>
 
     <div class="top-nav">
         <div class="main-title" ondblclick="toggleAdmin()">FC KELAPA GADING</div>
@@ -353,7 +246,14 @@
         <div class="slot-container" id="cont-0">
             <div class="onyx-card empty" id="card-0" onclick="handleSlotClick(0)">
                 <div class="card-content">
-                    <div class="cc-top"><div class="oc-name" id="n-0">SLOT 1</div><div class="oc-plat" id="p-0"></div></div>
+                    <div class="cc-top">
+                        <div class="oc-name" id="n-0">SLOT 1</div>
+                        <div class="oc-plat" id="p-0"></div>
+                        <a href="#" class="btn-wa" id="wa-0" target="_blank" onclick="event.stopPropagation()">
+                            <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+                            KIRIM WA
+                        </a>
+                    </div>
                     <div class="cc-center"><div class="oc-num" id="no-0">M</div></div>
                     <div class="cc-bottom"><button class="btn-action btn-select">PILIH SLOT</button></div>
                 </div>
@@ -362,7 +262,14 @@
         <div class="slot-container" id="cont-1">
             <div class="onyx-card empty" id="card-1" onclick="handleSlotClick(1)">
                 <div class="card-content">
-                    <div class="cc-top"><div class="oc-name" id="n-1">SLOT 2</div><div class="oc-plat" id="p-1"></div></div>
+                    <div class="cc-top">
+                        <div class="oc-name" id="n-1">SLOT 2</div>
+                        <div class="oc-plat" id="p-1"></div>
+                        <a href="#" class="btn-wa" id="wa-1" target="_blank" onclick="event.stopPropagation()">
+                            <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+                            KIRIM WA
+                        </a>
+                    </div>
                     <div class="cc-center"><div class="oc-num" id="no-1">L</div></div>
                     <div class="cc-bottom"><button class="btn-action btn-select">PILIH SLOT</button></div>
                 </div>
@@ -371,7 +278,14 @@
         <div class="slot-container" id="cont-2">
             <div class="onyx-card empty" id="card-2" onclick="handleSlotClick(2)">
                 <div class="card-content">
-                    <div class="cc-top"><div class="oc-name" id="n-2">SLOT 3</div><div class="oc-plat" id="p-2"></div></div>
+                    <div class="cc-top">
+                        <div class="oc-name" id="n-2">SLOT 3</div>
+                        <div class="oc-plat" id="p-2"></div>
+                        <a href="#" class="btn-wa" id="wa-2" target="_blank" onclick="event.stopPropagation()">
+                            <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+                            KIRIM WA
+                        </a>
+                    </div>
                     <div class="cc-center"><div class="oc-num" id="no-2">U</div></div>
                     <div class="cc-bottom"><button class="btn-action btn-select">PILIH SLOT</button></div>
                 </div>
@@ -483,124 +397,20 @@
         let isDashboardMinimized = false;
         let amIInQueue = false;
         window.currentUtterance = null;
+        
+        // Variabel untuk menyimpan waktu klik pertama (Prioritas)
+        let tempEntryTime = 0; 
 
         fetch('https://api.ipify.org?format=json').then(res => res.json()).then(data => myIP = data.ip).catch(e => console.log("IP Check Skip"));
 
         const STATION_LAT = -6.171583; 
         const STATION_LNG = 106.899844; 
-        const MAX_DIST_KM = 1.0; 
-        const FORCE_LOGOUT_DIST = 1.5; 
+        const MAX_DIST_KM = 0.5; 
+        const FORCE_LOGOUT_DIST = 0.5; 
+        const TAKEOVER_MIN_TIME = 5 * 60 * 1000; // 5 Menit
+
         const $ = (id) => document.getElementById(id);
         const vibrate = () => { if(navigator.vibrate) navigator.vibrate(50); };
-        
-        /* =========================================
-           WELCOME SCREEN 2026 LOGIC
-           ========================================= */
-        const welcomeEl = $('welcomeOverlay');
-        const lines = [
-            "Dulu kita hanyalah orang asing.",
-            "Yang kebetulan berada di ruang yang sama.",
-            "Benar-benar asing.",
-            "Nama asing. Wajah asing.",  
-            "Hidup masing-masing.",
-            "Dari ngobrol sederhana, kini jadi tempat bercerita.",
-             "Dari cuma kenal muka, kini jadi saling jaga.",
-            "MLU bukan hanya wadah tempat kita bertemu.",
-            "MLU adalah alasan kita tetap bersama."
-        ];
-        const lineEl = document.getElementById("welcomeLine");
-        const finalEl = document.getElementById("welcomeFinal");
-        const closeBtn = document.getElementById("btnCloseWelcome");
-        let lineIndex=0, charIndex=0, allText=[];
-
-        function initWelcome() {
-            const now = new Date();
-            const expireDate = new Date("2026-01-03T23:59:59"); 
-            const hasSeen = localStorage.getItem('seen_welcome_2026');
-
-            if (!hasSeen && now < expireDate) {
-                welcomeEl.style.display = 'flex';
-                setTimeout(typeLine, 1000);
-            }
-        }
-
-        window.closeWelcome = () => {
-            localStorage.setItem('seen_welcome_2026', 'true');
-            welcomeEl.style.transition = "opacity 1s ease";
-            welcomeEl.style.opacity = '0';
-            setTimeout(() => { welcomeEl.style.display = 'none'; }, 1000);
-        };
-
-        function typeLine(){
-            if(charIndex < lines[lineIndex].length){
-                lineEl.textContent += lines[lineIndex][charIndex++];
-                setTimeout(typeLine, 55 + Math.random()*35); 
-            } else {
-                allText.push(lines[lineIndex]);
-                setTimeout(()=>{
-                    lineEl.classList.add("fade-out");
-                    setTimeout(()=>{
-                        lineEl.className="line";
-                        lineEl.textContent="";
-                        charIndex=0;
-                        lineIndex++;
-                        if(lineIndex < lines.length){
-                            typeLine();
-                        } else {
-                            showFinal();
-                        }
-                    },700);
-                },1200);
-            }
-        }
-
-        function showFinal(){
-            finalEl.classList.add("fade-in");
-            closeBtn.style.opacity = 1; 
-            setTimeout(()=>{
-                lineEl.innerHTML = allText.join("<br>");
-                lineEl.classList.add("fade-in");
-                fireworks();
-                setTimeout(() => { window.closeWelcome(); }, 5000);
-            },1200);
-        }
-
-        const c = document.getElementById("fx-welcome");
-        const ctxFx = c.getContext("2d");
-        let p = [];
-        c.width = window.innerWidth; c.height = window.innerHeight;
-
-        function fireworks(){
-            for(let i=0;i<6;i++){
-                setTimeout(()=>boom(Math.random()*c.width, Math.random()*c.height*0.45),i*420);
-            }
-            loopFx();
-        }
-
-        function boom(x,y){
-            for(let i=0;i<160;i++){
-                p.push({x,y,vx:(Math.random()-.5)*8, vy:(Math.random()-.6)*8, l:100,a:1});
-            }
-        }
-
-        function loopFx(){
-            if(p.length > 0) {
-                ctxFx.clearRect(0,0,c.width,c.height);
-                p.forEach((e,i)=>{
-                    e.x+=e.vx; e.y+=e.vy; e.vy+=0.05; e.l--; e.a-=0.01;
-                    ctxFx.fillStyle=`rgba(232,195,122,${e.a})`;
-                    ctxFx.fillRect(e.x,e.y,2,2);
-                    if(e.l<=0)p.splice(i,1);
-                });
-                requestAnimationFrame(loopFx);
-            }
-        }
-        
-        initWelcome();
-
-        /* =========================================
-           MAIN APP LOGIC
-           ========================================= */
 
         function showMsg(title, body) { $('msgTitle').innerText=title; $('msgBody').innerText=body; $('msgModal').style.display='flex'; }
         function showConfirm(text, cb) { $('confirmText').innerText = text; $('confirmModal').style.display='flex'; $('btnConfirmYes').onclick = () => { $('confirmModal').style.display='none'; cb(); }; }
@@ -707,8 +517,16 @@
             } else alert("Browser No GPS");
         };
 
-        window.cancelLogin = () => { $('terminal-box').innerHTML=''; switchScreen('screen-slots'); };
-        function runLogin() { vibrate(); switchScreen('screen-login'); currentStep = 0; tempUserData = {}; $('terminal-box').innerHTML=''; terminalPrompt(); }
+        window.cancelLogin = () => { $('terminal-box').innerHTML=''; switchScreen('screen-slots'); tempEntryTime = 0; };
+        
+        function runLogin() { 
+            vibrate(); 
+            // === KUNCI WAKTU PENDAFTARAN DI SINI (First Click Wins) ===
+            tempEntryTime = Date.now(); 
+            // ==========================================================
+            switchScreen('screen-login'); 
+            currentStep = 0; tempUserData = {}; $('terminal-box').innerHTML=''; terminalPrompt(); 
+        }
 
         function terminalPrompt() {
             const line = document.createElement("div"); line.className = "term-line";
@@ -736,64 +554,24 @@
             input.onkeydown = e => { if (e.key === "Enter") next(); };
         }
 
-        // --- NEW SCANNER LOGIC (BOLAK BALIK NAIK-TURUN) ---
         function startQueueAnim() {
             switchScreen('screen-queue'); 
             const line = document.getElementById('scanLine');
             const colorImg = document.getElementById('scanColorImg');
             const txt = document.getElementById('scanTextStatus');
 
-            // 0. Reset Posisi (Garis di Bawah) & State
             if(line && colorImg && txt) {
-                line.style.transition = 'none';
-                colorImg.style.transition = 'none';
-                
-                // Mulai dari bawah (100%) dan BW
-                line.style.top = '100%'; 
-                colorImg.style.clipPath = 'inset(100% 0 0 0)'; 
-                txt.innerText = "CONNECTING...";
-                txt.style.color = "var(--cyan)";
-
-                // Force Reflow
+                line.style.transition = 'none'; colorImg.style.transition = 'none';
+                line.style.top = '100%'; colorImg.style.clipPath = 'inset(100% 0 0 0)'; 
+                txt.innerText = "CONNECTING..."; txt.style.color = "var(--cyan)";
                 void line.offsetWidth;
-
-                // Aktifkan Transisi
-                line.style.transition = 'top 1.5s linear';
-                colorImg.style.transition = 'clip-path 1.5s linear';
+                line.style.transition = 'top 1.5s linear'; colorImg.style.transition = 'clip-path 1.5s linear';
             }
 
-            // 1. NAIK KE ATAS (0s - 1.5s) -> GAMBAR JADI WARNA
-            setTimeout(() => {
-                if(line && colorImg && txt) {
-                    line.style.top = '0%';
-                    colorImg.style.clipPath = 'inset(0 0 0 0)';
-                    txt.innerText = "CHECKING DATABASE...";
-                }
-            }, 100);
-
-            // 2. TURUN KE BAWAH (1.6s - 3.1s) -> GAMBAR JADI BW LAGI
-            setTimeout(() => {
-                if(line && colorImg && txt) {
-                    line.style.top = '100%';
-                    colorImg.style.clipPath = 'inset(100% 0 0 0)';
-                    txt.innerText = "VERIFYING BIOMETRIC...";
-                }
-            }, 1600);
-
-            // 3. NAIK LAGI (3.2s - 4.7s) -> GAMBAR JADI WARNA (FINAL)
-            setTimeout(() => {
-                if(line && colorImg && txt) {
-                    line.style.top = '0%';
-                    colorImg.style.clipPath = 'inset(0 0 0 0)';
-                    txt.innerText = "ACCESS GRANTED";
-                    txt.style.color = "var(--accent)";
-                }
-            }, 3200);
-
-            // 4. SELESAI (4.8s+)
-            setTimeout(() => {
-                executeRegistration();
-            }, 4800);
+            setTimeout(() => { if(line && colorImg && txt) { line.style.top = '0%'; colorImg.style.clipPath = 'inset(0 0 0 0)'; txt.innerText = "CHECKING DATABASE..."; } }, 100);
+            setTimeout(() => { if(line && colorImg && txt) { line.style.top = '100%'; colorImg.style.clipPath = 'inset(100% 0 0 0)'; txt.innerText = "VERIFYING BIOMETRIC..."; } }, 1600);
+            setTimeout(() => { if(line && colorImg && txt) { line.style.top = '0%'; colorImg.style.clipPath = 'inset(0 0 0 0)'; txt.innerText = "ACCESS GRANTED"; txt.style.color = "var(--accent)"; } }, 3200);
+            setTimeout(() => { executeRegistration(); }, 4800);
         }
 
         function executeRegistration() {
@@ -803,7 +581,11 @@
                 if(all.some(x => x.plat === tempUserData.plat)) throw "PLAT SUDAH ADA";
                 let newNo = (d.lastTicket||0)+1;
                 if(d.recycledNumbers && d.recycledNumbers.length>0) { d.recycledNumbers.sort((a,b)=>a-b); newNo = d.recycledNumbers.shift(); }
-                const u = { plat: tempUserData.plat, userName: tempUserData.name, wa: tempUserData.wa, qNo: newNo, entryTime: Date.now(), ip: myIP };
+                
+                // === GUNAKAN WAKTU KLIK AWAL (AGAR ADIL) ===
+                const finalEntryTime = tempEntryTime || Date.now();
+                
+                const u = { plat: tempUserData.plat, userName: tempUserData.name, wa: tempUserData.wa, qNo: newNo, entryTime: finalEntryTime, ip: myIP };
                 d.waitingQueue.push(u);
                 t.update(mainRef, { waitingQueue:d.waitingQueue, recycledNumbers:d.recycledNumbers||[], lastTicket: Math.max(d.lastTicket||0, newNo) });
                 return newNo;
@@ -815,6 +597,12 @@
 
         onSnapshot(mainRef, (snap) => {
             const d = snap.data(); if(!d) return;
+            const today = new Date().toISOString().split('T')[0];
+            if (d.lastResetDate !== today) {
+                runTransaction(db, async(t) => {
+                    t.update(mainRef, { lastResetDate: today, waitingQueue: [], chargingSlots: [null,null,null], recycledNumbers: [], lastTicket: 0 });
+                }).catch(err => console.log("Reset conflict:", err));
+            }
             localSlots = d.chargingSlots || [null,null,null];
             localQueue = (d.waitingQueue || []).sort((a,b) => a.entryTime - b.entryTime);
             updateUI();
@@ -827,11 +615,26 @@
 
             localSlots.forEach((s, i) => {
                 const c = $(`card-${i}`);
+                const waBtn = $(`wa-${i}`);
+                
                 if(s) {
+                    // SLOT TERISI
                     if(c) { c.classList.remove('empty'); c.classList.add('filled'); }
                     if($(`n-${i}`)) $(`n-${i}`).innerText = s.userName;
                     if($(`p-${i}`)) $(`p-${i}`).innerText = s.plat;
                     if($(`no-${i}`)) $(`no-${i}`).innerText = "#" + s.qNo;
+                    
+                    // Update Tombol WA
+                    if(waBtn) {
+                        let num = s.wa;
+                        if(num) {
+                            if(num.startsWith('0')) num = '62' + num.substring(1);
+                            waBtn.href = `https://wa.me/${num}?text=Halo%20${s.userName},%20antrian%20di%20FC%20Kelapa%20Gading%20nunggu%20nih.%20Udah%20selesai?`;
+                        } else {
+                            waBtn.style.display = 'none';
+                        }
+                    }
+
                     if(myPlat === s.plat) {
                         if(window.activeSlotIdx === -1) { 
                             window.speechSynthesis.cancel();
@@ -850,6 +653,7 @@
                         $('waitingDashboard').style.display='none';
                     }
                 } else {
+                    // SLOT KOSONG
                     if(c) { c.classList.remove('filled'); c.classList.add('empty'); }
                     if($(`n-${i}`)) $(`n-${i}`).innerText = "SLOT " + (i+1);
                     if($(`p-${i}`)) $(`p-${i}`).innerText = "";
@@ -917,23 +721,64 @@
         window.prevTrack=()=>{ curTrk=(curTrk-1+playlistData.length)%playlistData.length; window.playTrack(curTrk); };
         if(audio) audio.addEventListener('ended', window.nextTrack);
 
-        // --- HANDLERS ---
+        // --- HANDLERS (UPDATED) ---
         window.closeConfirmModal = () => { $('confirmModal').style.display='none'; document.querySelectorAll('.slot-container').forEach(el=>el.style.opacity="1"); }
         window.handleSlotClick = (idx) => {
             if(!myPlat) return showMsg("INFO", "DAFTAR DULU.");
-            if(localSlots[idx]) return;
+            
+            // LOGIC AMBIL ALIH
+            const slotUser = localSlots[idx];
+            if (slotUser) {
+                const amIFirst = localQueue.length > 0 && localQueue[0].plat === myPlat;
+                const duration = Date.now() - slotUser.startTime;
+                if (amIFirst && duration > TAKEOVER_MIN_TIME) {
+                    showConfirm(`SLOT INI KOSONG? AMBIL ALIH?`, () => { executeTakeOver(idx); });
+                    return;
+                }
+                return showMsg("INFO", "SLOT SEDANG DIGUNAKAN.");
+            }
+            
+            // LOGIC MASUK SLOT (STRICT MODE: Hanya Antrian No.1)
             const qIdx = localQueue.findIndex(x=>x.plat===myPlat);
-            if(qIdx > 0) return showMsg("ANTRIAN", "Tunggu giliran.");
+            
+            // 1. Jika antrian kosong, boleh masuk? (Kasus jarang, tapi mungkin terjadi)
+            // 2. Jika antrian ada, WAJIB nomor 1.
+            if(localQueue.length > 0 && qIdx !== 0) return showMsg("ANTRIAN", "Giliran Anda belum sampai.");
+            
             showConfirm(`PILIH SLOT ${idx+1}?`, ()=>{
                 runTransaction(db, async(t)=>{
                     const d = (await t.get(mainRef)).data();
                     if(d.chargingSlots[idx]) throw "Diambil.";
-                    let q=d.waitingQueue; const i=q.findIndex(x=>x.plat===myPlat);
-                    const u=q.splice(i,1)[0]; u.startTime=Date.now(); d.chargingSlots[idx]=u;
-                    t.update(mainRef, {chargingSlots:d.chargingSlots, waitingQueue:q});
+                    let q=d.waitingQueue; 
+                    
+                    // Cari user di antrian
+                    const i=q.findIndex(x=>x.plat===myPlat);
+                    
+                    // Kalau ketemu di antrian, pindahkan.
+                    if (i !== -1) {
+                        const u=q.splice(i,1)[0]; u.startTime=Date.now(); d.chargingSlots[idx]=u;
+                        t.update(mainRef, {chargingSlots:d.chargingSlots, waitingQueue:q});
+                    } else {
+                        // Kalau error (user daftar tapi ga masuk antrian db), refresh
+                        location.reload();
+                    }
                 });
             });
         };
+
+        function executeTakeOver(idx) {
+            runTransaction(db, async(t)=>{
+                const d = (await t.get(mainRef)).data();
+                const oldUser = d.chargingSlots[idx];
+                if(oldUser) { addDoc(historyRef, {...oldUser, finishTime:new Date(), status: 'KICKED_BY_NEXT_USER'}); }
+                let q = d.waitingQueue;
+                const myIdx = q.findIndex(x=>x.plat === myPlat);
+                if(myIdx !== -1) {
+                    const me = q.splice(myIdx, 1)[0]; me.startTime = Date.now(); d.chargingSlots[idx] = me;
+                    t.update(mainRef, {chargingSlots:d.chargingSlots, waitingQueue:q});
+                }
+            }).then(() => { alert("BERHASIL AMBIL ALIH!"); location.reload(); });
+        }
 
         window.stopCharging = (idx) => {
             showConfirm("SELESAI?", ()=>{
@@ -953,37 +798,29 @@
             });
         };
 
-        // === WATCHDOG (IMPROVED: Immediate Check) ===
+        // === WATCHDOG ===
         function checkGeofence() {
             const p = localStorage.getItem('myPlat');
             if(!p || localStorage.getItem('adm_ok')) return; 
-
             if(navigator.geolocation) {
                  navigator.geolocation.getCurrentPosition(pos => {
                      const dist = getDist(pos.coords.latitude, pos.coords.longitude, STATION_LAT, STATION_LNG);
                      if(dist > FORCE_LOGOUT_DIST) {
                          localStorage.removeItem('myPlat');
                          runTransaction(db, async(t)=>{
-                             const docSnap = await t.get(mainRef);
-                             let q = docSnap.data().waitingQueue || [];
-                             const idx = q.findIndex(x => x.plat === p);
-                             if(idx !== -1) {
-                                 q.splice(idx, 1);
-                                 t.update(mainRef, {waitingQueue: q});
-                             }
-                         }).then(() => {
-                             alert(`JARAK ANDA ${dist.toFixed(2)} KM (MAX 1.5 KM). ANTRIAN DIHAPUS OTOMATIS.`);
-                             location.reload();
-                         }).catch(() => { location.reload(); });
+                             const docSnap = await t.get(mainRef); const data = docSnap.data();
+                             let q = data.waitingQueue || []; let slots = data.chargingSlots || [null,null,null]; let updated = false;
+                             const qIdx = q.findIndex(x => x.plat === p);
+                             if(qIdx !== -1) { q.splice(qIdx, 1); updated = true; }
+                             slots.forEach((s, i) => { if(s && s.plat === p) { addDoc(historyRef, {...s, finishTime:new Date(), status:'AUTO_KICK_DISTANCE'}); slots[i] = null; updated = true; } });
+                             if(updated) t.update(mainRef, {waitingQueue: q, chargingSlots: slots});
+                         }).then(() => { alert(`JARAK ${dist.toFixed(2)} KM (MAX 0.5). AUTO OUT.`); location.reload(); }).catch(() => { location.reload(); });
                      }
-                 }, (e)=>{ console.log("GPS Err", e) }, { enableHighAccuracy:true, maximumAge:0, timeout:10000 });
+                 }, (e)=>{}, { enableHighAccuracy:true, maximumAge:0, timeout:10000 });
             }
         }
-        checkGeofence();
-        setInterval(checkGeofence, 30000); 
-        document.addEventListener('visibilitychange', () => {
-            if (document.visibilityState === 'visible') checkGeofence();
-        });
+        checkGeofence(); setInterval(checkGeofence, 10000); 
+        document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') checkGeofence(); });
 
     </script>
 </body>
