@@ -39,7 +39,7 @@
         .stat-card { background: #111; padding: 10px; border: 1px solid #333; border-radius: 5px; }
         .stat-val { font-size: 20px; color: var(--accent); font-family: 'Teko'; }
         
-        /* LOGS TABLE STYLE (NEW) */
+        /* LOGS TABLE STYLE (UPDATED) */
         .log-table { width: 100%; font-size: 10px; color: #aaa; }
         .log-table th { background: #222; color: #fff; border-bottom: 2px solid #444; }
         .log-table td { border-bottom: 1px solid #222; padding: 6px; }
@@ -56,12 +56,35 @@
         .modal-btns { display: flex; gap: 10px; margin-top: 20px; }
         .mb-yes { flex:1; background: var(--cyan); color: #000; }
         .mb-no { flex:1; background: transparent; border: 1px solid #555; color: #888; }
+
+        /* LOGIN OVERLAY (NEW) */
+        #loginOverlay { display: flex; position: fixed; inset: 0; background: #000; z-index: 10000; justify-content: center; align-items: center; flex-direction: column; }
+        .login-box { width: 300px; padding: 30px; border: 1px solid var(--accent); border-radius: 10px; background: #111; text-align: center; box-shadow: 0 0 30px rgba(204, 255, 0, 0.1); }
     </style>
 </head>
 <body>
 
+    <div id="loginOverlay">
+        <div class="login-box">
+            <h2 style="font-family:'Teko'; color:var(--accent); margin-top:0;">LOGIN ADMIN</h2>
+            <div style="margin-bottom:15px; text-align:left;">
+                <label style="color:#888;">NAMA ADMIN:</label>
+                <input type="text" id="loginName" placeholder="Contoh: Admin Budi" style="margin-top:5px; border-color:var(--accent);">
+            </div>
+            <div style="margin-bottom:20px; text-align:left;">
+                <label style="color:#888;">PIN AKSES:</label>
+                <input type="password" id="loginPin" placeholder="****" style="margin-top:5px; border-color:var(--accent);">
+            </div>
+            <button onclick="attemptLogin()" class="btn-green" style="width:100%; font-size:18px;">MASUK</button>
+            <div style="margin-top:15px; font-size:10px; color:#555;">SYSTEM V4.2 SECURE LOG</div>
+        </div>
+    </div>
+
     <div style="display:flex; justify-content:space-between; margin-bottom:15px; align-items:center;">
-        <span style="font-family:'Teko'; font-size:24px; color:var(--cyan);">ADMIN PANEL <span style="color:var(--accent);">v4.2 (FIX)</span></span>
+        <div>
+            <span style="font-family:'Teko'; font-size:24px; color:var(--cyan);">ADMIN PANEL <span style="color:var(--accent);">v4.2</span></span>
+            <div id="displayAdminName" style="color:#666; font-size:10px;">User: -</div>
+        </div>
         <div style="display:flex; gap:5px;">
             <button onclick="window.location.href='antrian.html'" class="btn-blue">DEPAN</button>
             <button onclick="logout()" class="btn-red">KELUAR</button>
@@ -145,13 +168,14 @@
             <table class="log-table">
                 <thead>
                     <tr>
-                        <th width="20%">JAM</th>
-                        <th width="20%">AKSI</th>
+                        <th width="15%">JAM</th>
+                        <th width="20%" style="color:var(--accent)">ADMIN</th>
+                        <th width="15%">AKSI</th>
                         <th>DETAIL</th>
                     </tr>
                 </thead>
                 <tbody id="logBody">
-                    <tr><td colspan="3" align="center">Loading Logs...</td></tr>
+                    <tr><td colspan="4" align="center">Loading Logs...</td></tr>
                 </tbody>
             </table>
         </div>
@@ -182,13 +206,31 @@
         let cachedSlots = [];
         let cachedQueue = [];
 
-        // PASSWORD CHECK
-        if(!localStorage.getItem('admin_acc')) {
-            const p = prompt("PIN ADMIN:");
-            if(p !== "1131") { window.location.href='index.html'; }
-            else localStorage.setItem('admin_acc', '1');
+        // === LOGIN LOGIC ===
+        const currentAdmin = localStorage.getItem('admin_name');
+        if(currentAdmin) {
+            document.getElementById('loginOverlay').style.display = 'none';
+            document.getElementById('displayAdminName').innerText = "User: " + currentAdmin;
         }
-        window.logout = () => { localStorage.removeItem('admin_acc'); window.location.href='index.html'; };
+
+        window.attemptLogin = () => {
+            const name = document.getElementById('loginName').value;
+            const pin = document.getElementById('loginPin').value;
+            
+            if(pin === "1131" && name.trim() !== "") {
+                localStorage.setItem('admin_name', name.trim());
+                document.getElementById('loginOverlay').style.display = 'none';
+                document.getElementById('displayAdminName').innerText = "User: " + name.trim();
+                addLog("LOGIN", "Admin Login Success");
+            } else {
+                alert("PIN Salah atau Nama Kosong!");
+            }
+        };
+
+        window.logout = () => { 
+            localStorage.removeItem('admin_name'); 
+            window.location.href='antrian.html'; 
+        };
 
         // MODAL LOGIC
         let currentCallback = null;
@@ -212,13 +254,10 @@
 
             // --- AUTO RESET 00:00 WIB ---
             const todayWIB = getWIBDateString();
-            
-            // Cek apakah tanggal di DB sudah kadaluarsa (kemarin)
             if (d.lastResetDate !== todayWIB) {
                 console.log("Mendeteksi Hari Baru. Resetting...");
                 runTransaction(db, async(t) => {
                     const freshDoc = await t.get(mainRef);
-                    // Pastikan belum direset user lain
                     if (freshDoc.data().lastResetDate !== todayWIB) {
                         t.update(mainRef, { 
                             lastResetDate: todayWIB, 
@@ -230,7 +269,6 @@
                         addLog("AUTO_RESET", `New Day: ${todayWIB}`);
                     }
                 });
-                // Jangan return, biarkan render berjalan agar UI update
             }
 
             cachedSlots = d.chargingSlots || [null,null,null];
@@ -283,8 +321,6 @@
         }
 
         // --- ACTIONS ---
-
-        // FIX: Manual Add sekarang memaksa update tanggal agar tidak dihapus Auto-Reset
         window.manualAdd = (target) => {
             const p = document.getElementById('newPlat').value.toUpperCase();
             const n = document.getElementById('newName').value.toUpperCase();
@@ -304,13 +340,12 @@
                     u.startTime = Date.now(); d.chargingSlots[target] = u;
                 }
 
-                // KEY FIX: Update lastResetDate ke HARI INI saat input data
                 t.update(mainRef, { 
                     waitingQueue:d.waitingQueue, 
                     chargingSlots:d.chargingSlots, 
                     recycledNumbers:d.recycledNumbers||[], 
                     lastTicket:last,
-                    lastResetDate: getWIBDateString() // Mencegah auto-reset menghapus data ini
+                    lastResetDate: getWIBDateString() 
                 });
                 addLog("ADMIN_ADD", `${p} (${n})`);
             }).then(()=>{ document.getElementById('newPlat').value=''; }).catch(e=>alert(e));
@@ -428,12 +463,13 @@
         };
         setTimeout(loadAnalytics, 2000);
 
-        // --- NEW LOG LISTENER ---
+        // --- NEW LOG LISTENER (WITH ADMIN NAME) ---
         onSnapshot(query(logRef, orderBy("timestamp", "desc"), limit(50)), (snap) => {
             let h = '';
             snap.forEach(d => {
                 const data = d.data();
                 const time = data.timestamp ? data.timestamp.toDate().toLocaleTimeString() : '-';
+                const adminName = data.admin || '-'; // GET ADMIN NAME
                 
                 let badgeClass = 'b-sys';
                 if(data.action.includes('ADD')) badgeClass = 'b-add';
@@ -442,6 +478,7 @@
 
                 h += `<tr>
                     <td>${time}</td>
+                    <td style="color:var(--accent); font-weight:bold;">${adminName}</td>
                     <td><span class="badge ${badgeClass}">${data.action}</span></td>
                     <td style="color:#fff;">${data.details}</td>
                 </tr>`;
@@ -449,7 +486,10 @@
             document.getElementById('logBody').innerHTML = h;
         });
 
-        function addLog(act, det) { addDoc(logRef, { action: act, details: det, timestamp: new Date() }); }
+        function addLog(act, det) { 
+            const adm = localStorage.getItem('admin_name') || 'Unknown';
+            addDoc(logRef, { action: act, details: det, admin: adm, timestamp: new Date() }); 
+        }
     </script>
 </body>
 </html>
