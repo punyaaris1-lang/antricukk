@@ -14,6 +14,7 @@
         :root { --bg: #050505; --accent: #CCFF00; --cyan: #00F0FF; --red: #FF003C; --wa: #25D366; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; user-select: none; }
         
+        /* BACKGROUND UTAMA - FIXED */
         body { 
             font-family: 'Teko', sans-serif; 
             background: #000 url('1763947427555.jpg') no-repeat center center fixed;
@@ -400,9 +401,18 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, doc, onSnapshot, runTransaction, collection, addDoc, query, where, getDocs, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, doc, onSnapshot, runTransaction, collection, addDoc, query, where, getDocs, limit, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        const firebaseConfig = { apiKey: "AIzaSyALIlkIDALIk83K8s1htalvW6rmNNw02Go", authDomain: "sistem-antrian-b1c39.firebaseapp.com", projectId: "sistem-antrian-b1c39", storageBucket: "sistem-antrian-b1c39.firebasestorage.app", messagingSenderId: "454124587608", appId: "1:454124587608:web:34fbb0f5211067a67f982d" };
+        // === CONFIG DATABASE BARU (fcgadingbaru) ===
+        const firebaseConfig = {
+            apiKey: "AIzaSyDIUivobLNDIsbK7ilqfe7fLAL8LnM4Hk8",
+            authDomain: "fcgadingbaru.firebaseapp.com",
+            projectId: "fcgadingbaru",
+            storageBucket: "fcgadingbaru.firebasestorage.app",
+            messagingSenderId: "193138253272",
+            appId: "1:193138253272:web:e183a3e455ec357ec7a6ad"
+        };
+
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         
@@ -498,7 +508,7 @@
                 if (q.plat === myPlat) {
                     d.className = "fq-item you";
                     
-                    // === LOGIKA BARU: TOMBOL KLIK DI ANTRIAN ===
+                    // === LOGIKA: TOMBOL KLIK DI ANTRIAN ===
                     const hasEmptySlot = localSlots.some(s => s === null);
                     // Jika Saya Antrian No.1 DAN Ada Slot Kosong
                     if (i === 0 && hasEmptySlot) {
@@ -634,7 +644,21 @@
         }
 
         onSnapshot(mainRef, (snap) => {
-            const d = snap.data(); if(!d) return;
+            const d = snap.data();
+            
+            // === AUTO-INIT DATABASE KOSONG ===
+            if(!d) {
+                console.log("Database kosong, inisialisasi awal...");
+                setDoc(mainRef, {
+                    chargingSlots: [null, null, null],
+                    waitingQueue: [],
+                    lastTicket: 0,
+                    recycledNumbers: [],
+                    lastResetDate: new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jakarta' })
+                });
+                return;
+            }
+
             const today = new Date().toISOString().split('T')[0];
             if (d.lastResetDate !== today) {
                 runTransaction(db, async(t) => {
@@ -642,7 +666,7 @@
                 }).catch(err => console.log("Reset conflict:", err));
             }
             localSlots = d.chargingSlots || [null,null,null];
-            // === FIX SORTING: URUTKAN BERDASARKAN NOMOR TIKET (qNo) AGAR RAPI ===
+            // === FIX SORTING: URUTKAN BERDASARKAN NOMOR TIKET (qNo) ===
             localQueue = (d.waitingQueue || []).sort((a,b) => a.qNo - b.qNo);
             updateUI();
             
@@ -671,8 +695,7 @@
 
             // === LOGIKA SUARA & AUTO-CLOSE DASHBOARD ===
             if (iAmFirst && hasEmptySlot) {
-                // Auto Close Dashboard (Agar tombol slot terlihat)
-                $('waitingDashboard').style.display = 'none';
+                $('waitingDashboard').style.display = 'none'; // Auto close
                 
                 if (!hasNotifiedTurn) {
                     window.speechSynthesis.cancel();
