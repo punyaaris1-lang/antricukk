@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>FC KELAPA GADING</title>
+    
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#00F0FF">
+    <link rel="apple-touch-icon" href="icon-192.png">
+
     <link href="https://fonts.googleapis.com/css2?family=Teko:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&family=Inter:wght@500;700;800&display=swap" rel="stylesheet">
     <style>
         :root { --bg: #050505; --accent: #CCFF00; --cyan: #00F0FF; --red: #FF003C; --wa: #25D366; }
@@ -821,6 +826,34 @@
         }
         checkGeofence(); setInterval(checkGeofence, 10000); 
         document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') checkGeofence(); });
+
+        // === 1. REGISTER PWA (Agar bisa di-install) ===
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('PWA Ready', reg))
+                    .catch(err => console.log('PWA Error', err));
+            });
+        }
+
+        // === 2. WAKE LOCK (Agar Layar & GPS Tidak Mati) ===
+        let wakeLock = null;
+        async function requestWakeLock() {
+          try {
+            if ('wakeLock' in navigator) {
+              wakeLock = await navigator.wakeLock.request('screen');
+              console.log('Layar Kunci: AKTIF');
+              
+              document.addEventListener('visibilitychange', async () => {
+                if (wakeLock !== null && document.visibilityState === 'visible') {
+                  wakeLock = await navigator.wakeLock.request('screen');
+                }
+              });
+            }
+          } catch (err) { console.log('Wake Lock Gagal:', err); }
+        }
+        // Pancing wake lock saat pertama kali klik apapun di layar
+        document.addEventListener('click', requestWakeLock, {once:true});
 
     </script>
 </body>
