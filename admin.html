@@ -8,38 +8,50 @@
     <style>
         :root { --bg: #050505; --panel: #111; --border: #333; --accent: #CCFF00; --cyan: #00F0FF; --red: #FF003C; }
         body { background: #0a0a0a; color: #fff; font-family: 'JetBrains Mono', monospace; padding: 10px; font-size: 11px; margin: 0; }
+        
         .box { border: 1px solid #333; padding: 15px; margin-bottom: 15px; background: #000; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
         h3 { margin: 0 0 15px 0; color: var(--cyan); border-bottom: 1px solid #333; padding-bottom: 5px; font-family: 'Teko', sans-serif; font-size: 18px; letter-spacing: 1px; }
+        
         button { cursor: pointer; padding: 8px 12px; margin: 0; font-weight: bold; font-family: 'Teko'; font-size: 14px; letter-spacing: 0.5px; border-radius: 4px; transition: 0.2s; border: none; text-transform: uppercase; }
         button:hover { filter: brightness(1.2); transform: translateY(-1px); }
         button:active { transform: translateY(1px); }
+        
         .btn-red { background: linear-gradient(45deg, #900, #d00); color: #fff; border: 1px solid #f00; }
         .btn-green { background: linear-gradient(45deg, #050, #090); color: #fff; border: 1px solid #0f0; }
         .btn-blue { background: linear-gradient(45deg, #005, #009); color: #fff; border: 1px solid #00f; }
         .btn-yellow { background: linear-gradient(45deg, #550, #990); color: #fff; border: 1px solid #ff0; }
         .btn-mini { padding: 4px 8px; font-size: 12px; margin: 2px; }
+
         input, select { background: #1a1a1a; color: #fff; border: 1px solid #444; padding: 8px; border-radius: 4px; font-family: 'JetBrains Mono'; width: 100%; box-sizing: border-box; }
         table { width: 100%; border-collapse: collapse; margin-top: 5px; }
         td, th { border: 1px solid #333; padding: 8px; text-align: left; vertical-align: middle; }
         th { background: #111; color: var(--accent); }
+
         .slot-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 10px; }
         .slot-item { border: 1px solid #333; padding: 10px; background: #050505; text-align: center; border-radius: 5px; min-height: 120px; display: flex; flex-direction: column; justify-content: space-between; }
+        
         .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; text-align: center; }
         .stat-card { background: #111; padding: 10px; border: 1px solid #333; border-radius: 5px; }
         .stat-val { font-size: 20px; color: var(--accent); font-family: 'Teko'; }
-        .log-table { width: 100%; font-size: 10px; color: #aaa; }
-        .log-table th { background: #222; color: #fff; border-bottom: 2px solid #444; }
-        .log-table td { border-bottom: 1px solid #222; padding: 6px; }
-        .badge { padding: 2px 6px; border-radius: 3px; font-weight: bold; color: #000; font-size: 9px; }
+        
+        /* LOG TABLE UPDATE */
+        .log-table { width: 100%; font-size: 10px; color: #aaa; table-layout: fixed; }
+        .log-table th { background: #222; color: #fff; border-bottom: 2px solid #444; padding: 8px; }
+        .log-table td { border-bottom: 1px solid #222; padding: 6px; word-wrap: break-word; }
+        
+        .badge { padding: 2px 6px; border-radius: 3px; font-weight: bold; color: #000; font-size: 9px; display:inline-block; }
         .b-add { background: #00FF66; }
         .b-del { background: #FF003C; color: #fff; }
         .b-edit { background: #CCFF00; }
         .b-sys { background: #00F0FF; }
+
         #customModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 9999; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
         .modal-box { background: #111; border: 1px solid var(--cyan); width: 85%; padding: 20px; border-radius: 10px; text-align: center; animation: popIn 0.3s; }
+        @keyframes popIn { from{transform:scale(0.8); opacity:0;} to{transform:scale(1); opacity:1;} }
         .modal-btns { display: flex; gap: 10px; margin-top: 20px; }
         .mb-yes { flex:1; background: var(--cyan); color: #000; }
         .mb-no { flex:1; background: transparent; border: 1px solid #555; color: #888; }
+
         #loginOverlay { display: flex; position: fixed; inset: 0; background: #000; z-index: 10000; justify-content: center; align-items: center; flex-direction: column; }
         .login-box { width: 300px; padding: 30px; border: 1px solid var(--accent); border-radius: 10px; background: #111; text-align: center; box-shadow: 0 0 30px rgba(204, 255, 0, 0.1); }
     </style>
@@ -58,17 +70,17 @@
                 <input type="password" id="loginPin" placeholder="****" style="margin-top:5px; border-color:var(--accent);">
             </div>
             <button onclick="attemptLogin()" class="btn-green" style="width:100%; font-size:18px;">MASUK</button>
-            <div style="margin-top:15px; font-size:10px; color:#555;">SYSTEM V4.10 SMART CHECK</div>
+            <div style="margin-top:15px; font-size:10px; color:#555;">SYSTEM V4.12 DETAIL LOG</div>
         </div>
     </div>
 
     <div style="display:flex; justify-content:space-between; margin-bottom:15px; align-items:center;">
         <div>
-            <span style="font-family:'Teko'; font-size:24px; color:var(--cyan);">ADMIN PANEL <span style="color:var(--accent);">v4.10</span></span>
+            <span style="font-family:'Teko'; font-size:24px; color:var(--cyan);">ADMIN PANEL <span style="color:var(--accent);">v4.12</span></span>
             <div id="displayAdminName" style="color:#666; font-size:10px;">User: -</div>
         </div>
         <div style="display:flex; gap:5px;">
-            <button onclick="window.location.href='index.html'" class="btn-blue">DEPAN</button>
+            <button onclick="window.location.href='antrian.html'" class="btn-blue">DEPAN</button>
             <button onclick="logout()" class="btn-red">KELUAR</button>
         </div>
     </div>
@@ -80,6 +92,7 @@
             <div id="slot2" class="slot-item">LOADING...</div>
             <div id="slot3" class="slot-item">LOADING...</div>
         </div>
+        
         <div style="margin-top:15px; padding-top:10px; border-top:1px dashed #333;">
             <div style="color:#888; margin-bottom:5px;">TUKAR POSISI SLOT:</div>
             <div style="display:grid; grid-template-columns: 1fr auto 1fr auto; gap:5px; align-items:center;">
@@ -94,6 +107,7 @@
     <div class="box" style="border-top: 3px solid var(--accent);">
         <h3>2. ANTRIAN & INPUT</h3>
         <div id="queueTable" style="max-height:250px; overflow-y:auto; margin-bottom:10px;"></div>
+        
         <div style="border-top:1px dashed #333; padding-top:10px;">
             <div style="margin-bottom:5px; color:#888;">INPUT MANUAL:</div>
             <div style="display:flex; gap:5px; margin-bottom:5px;">
@@ -139,26 +153,43 @@
             <input type="date" id="dateStart" style="margin-bottom:5px;">
             <input type="date" id="dateEnd">
         </div>
-        <button onclick="askConfirm('RESET TOTAL SYSTEM??', resetTotal)" class="btn-red" style="width:100%;">⚠ RESET TOTAL MANUAL ⚠</button>
+        <button onclick="askConfirm('RESET SEMUA?? (MANUAL)', resetTotal)" class="btn-red" style="width:100%;">⚠ RESET TOTAL MANUAL ⚠</button>
     </div>
 
     <div class="box">
         <h3>4. SYSTEM LOGS (REALTIME)</h3>
-        <div style="max-height:200px; overflow-y:auto; border:1px solid #222;">
+        <div style="max-height:300px; overflow-y:auto; border:1px solid #222;">
             <table class="log-table">
-                <thead><tr><th width="15%">JAM</th><th width="20%" style="color:var(--accent)">ADMIN</th><th width="15%">AKSI</th><th>DETAIL</th></tr></thead>
-                <tbody id="logBody"><tr><td colspan="4" align="center">Loading Logs...</td></tr></tbody>
+                <thead>
+                    <tr>
+                        <th width="15%">JAM</th>
+                        <th width="20%" style="color:var(--accent)">ADMIN</th>
+                        <th width="20%">AKSI</th>
+                        <th>DETAIL</th>
+                    </tr>
+                </thead>
+                <tbody id="logBody">
+                    <tr><td colspan="4" align="center">Loading Logs...</td></tr>
+                </tbody>
             </table>
         </div>
     </div>
 
-    <div id="customModal"><div class="modal-box"><h2 style="margin:0 0 10px 0; font-family:'Teko'; color:#fff;">KONFIRMASI</h2><div id="modalText" style="color:#ccc; margin-bottom:20px;">Text</div><div class="modal-btns"><button id="btnYes" class="mb-yes">YA</button><button onclick="closeModal()" class="mb-no">TIDAK</button></div></div></div>
-
+    <div id="customModal">
+        <div class="modal-box">
+            <h2 style="margin:0 0 10px 0; font-family:'Teko'; color:#fff;">KONFIRMASI</h2>
+            <div id="modalText" style="color:#ccc; margin-bottom:20px;">Text</div>
+            <div class="modal-btns">
+                <button id="btnYes" class="mb-yes">YA</button>
+                <button onclick="closeModal()" class="mb-no">TIDAK</button>
+            </div>
+        </div>
+    </div>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, doc, onSnapshot, runTransaction, collection, addDoc, query, orderBy, limit, getDocs, where, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // CONFIG BARU
+        // CONFIG PROJECT BARU (fcgadingbaru)
         const firebaseConfig = { apiKey: "AIzaSyDIUivobLNDIsbK7ilqfe7fLAL8LnM4Hk8", authDomain: "fcgadingbaru.firebaseapp.com", projectId: "fcgadingbaru", storageBucket: "fcgadingbaru.firebasestorage.app", messagingSenderId: "193138253272", appId: "1:193138253272:web:e183a3e455ec357ec7a6ad" };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
@@ -169,8 +200,8 @@
 
         let cachedSlots = [null, null, null];
         let cachedQueue = [];
-        let isResetting = false;
 
+        // === LOGIN LOGIC ===
         const currentAdmin = localStorage.getItem('admin_name');
         if(currentAdmin) {
             document.getElementById('loginOverlay').style.display = 'none';
@@ -180,29 +211,48 @@
         window.attemptLogin = () => {
             const name = document.getElementById('loginName').value;
             const pin = document.getElementById('loginPin').value;
-            if(pin === "8080" && name.trim() !== "") {
+            if(pin === "1131" && name.trim() !== "") {
                 localStorage.setItem('admin_name', name.trim());
                 document.getElementById('loginOverlay').style.display = 'none';
                 document.getElementById('displayAdminName').innerText = "User: " + name.trim();
                 addLog("LOGIN", "Admin Login Success");
-            } else { alert("PIN Salah atau Nama Kosong!"); }
+            } else {
+                alert("PIN Salah atau Nama Kosong!");
+            }
         };
 
         window.logout = () => { localStorage.removeItem('admin_name'); window.location.href='index.html'; };
 
+        // MODAL LOGIC
         let currentCallback = null;
-        window.askConfirm = (text, callback) => { document.getElementById('modalText').innerText = text; document.getElementById('customModal').style.display = 'flex'; currentCallback = callback; };
+        window.askConfirm = (text, callback) => {
+            document.getElementById('modalText').innerText = text;
+            document.getElementById('customModal').style.display = 'flex';
+            currentCallback = callback;
+        };
         document.getElementById('btnYes').onclick = () => { if(currentCallback) currentCallback(); closeModal(); };
         window.closeModal = () => { document.getElementById('customModal').style.display = 'none'; currentCallback = null; };
 
-        function getTodayString() { return new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jakarta' }); }
+        // === HELPER: STRICT DATE FORMAT (YYYY-MM-DD) ===
+        function getTodayString() {
+            const date = new Date();
+            return date.toLocaleDateString('en-CA', { timeZone: 'Asia/Jakarta' });
+        }
 
+        // === LISTENER ONLY (NO AUTO RESET) ===
         onSnapshot(mainRef, (snap) => {
             if (!snap.exists()) {
                 console.log("DB Kosong. Init...");
-                setDoc(mainRef, { chargingSlots: [null, null, null], waitingQueue: [], lastTicket: 0, recycledNumbers: [], lastResetDate: getTodayString() });
+                setDoc(mainRef, {
+                    chargingSlots: [null, null, null],
+                    waitingQueue: [],
+                    lastTicket: 0,
+                    recycledNumbers: [],
+                    lastResetDate: getTodayString()
+                });
                 return;
             }
+
             const d = snap.data();
             cachedSlots = d.chargingSlots || [null,null,null];
             cachedQueue = d.waitingQueue || [];
@@ -210,18 +260,21 @@
             cachedSlots.forEach((s, i) => {
                 const el = document.getElementById(`slot${i+1}`);
                 if(s) {
-                    el.innerHTML = `<div style="color:var(--cyan); font-weight:bold; font-size:14px;">${s.plat}</div>
+                    el.innerHTML = `
+                        <div style="color:var(--cyan); font-weight:bold; font-size:14px;">${s.plat}</div>
                         <div style="font-size:10px; color:#ccc;">${s.userName} (#${s.qNo})</div>
                         <div style="margin-top:auto; display:grid; grid-template-columns:1fr 1fr; gap:2px;">
                             <button class="btn-red btn-mini" onclick="askConfirm('Stop Charging?', ()=>forceStop(${i}))">STOP</button>
                             <button class="btn-yellow btn-mini" onclick="askConfirm('Tarik ke Antrian?', ()=>kickToQueue(${i}))">ANTRI</button>
-                        </div>`;
+                        </div>
+                    `;
                     el.style.border = "1px solid var(--cyan)";
                 } else {
                     el.innerHTML = `<div style="color:#444; margin:auto;">KOSONG</div>`;
                     el.style.border = "1px solid #333";
                 }
             });
+
             renderQueueTable();
             document.getElementById('stat-active').innerText = cachedQueue.length;
         });
@@ -229,21 +282,28 @@
         function renderQueueTable() {
             let h = `<table><tr><th width="20">#</th><th>USER</th><th>AKSI</th></tr>`;
             if(cachedQueue.length === 0) h += `<tr><td colspan="3" style="text-align:center; color:#444;">KOSONG</td></tr>`;
+            
             cachedQueue.forEach((q, idx) => {
-                h += `<tr><td>${q.qNo}</td><td><b style="color:var(--accent)">${q.plat}</b><br>${q.userName}</td>
-                    <td><div style="display:flex; gap:2px; flex-wrap:wrap;">
-                        <button class="btn-blue btn-mini" onclick="switchQueue(${idx},-1)">⬆</button>
-                        <button class="btn-blue btn-mini" onclick="switchQueue(${idx},1)">⬇</button>
-                        <button class="btn-green btn-mini" onclick="pushToSlot('${q.plat}',0)">S1</button>
-                        <button class="btn-green btn-mini" onclick="pushToSlot('${q.plat}',1)">S2</button>
-                        <button class="btn-green btn-mini" onclick="pushToSlot('${q.plat}',2)">S3</button>
-                        <button class="btn-red btn-mini" onclick="askConfirm('Hapus?', ()=>delQueue('${q.plat}'))">X</button>
-                    </div></td></tr>`;
+                h += `<tr>
+                    <td>${q.qNo}</td>
+                    <td><b style="color:var(--accent)">${q.plat}</b><br>${q.userName}</td>
+                    <td>
+                        <div style="display:flex; gap:2px; flex-wrap:wrap;">
+                            <button class="btn-blue btn-mini" onclick="switchQueue(${idx},-1)">⬆</button>
+                            <button class="btn-blue btn-mini" onclick="switchQueue(${idx},1)">⬇</button>
+                            <button class="btn-green btn-mini" onclick="pushToSlot('${q.plat}',0)">S1</button>
+                            <button class="btn-green btn-mini" onclick="pushToSlot('${q.plat}',1)">S2</button>
+                            <button class="btn-green btn-mini" onclick="pushToSlot('${q.plat}',2)">S3</button>
+                            <button class="btn-red btn-mini" onclick="askConfirm('Hapus?', ()=>delQueue('${q.plat}'))">X</button>
+                        </div>
+                    </td>
+                </tr>`;
             });
+            h += `</table>`;
             document.getElementById('queueTable').innerHTML = h;
         }
 
-        // --- ACTIONS (FIX DUPLICATE CHECK) ---
+        // --- ACTIONS WITH DETAILED LOGS ---
         window.manualAdd = (target) => {
             const p = document.getElementById('newPlat').value.toUpperCase();
             const n = document.getElementById('newName').value.toUpperCase();
@@ -251,28 +311,31 @@
 
             runTransaction(db, async(t) => {
                 const d = (await t.get(mainRef)).data();
-                const slots = d.chargingSlots || [null,null,null];
-                const queue = d.waitingQueue || [];
+                if([...(d.chargingSlots||[]), ...d.waitingQueue].some(u => u && u.plat === p)) throw "Plat Exist";
                 
-                // CEK DUPLIKAT YANG LEBIH PINTAR
-                const inSlot = slots.findIndex(s => s && s.plat === p);
-                if(inSlot !== -1) throw `GAGAL: Plat ${p} sudah ada di SLOT ${inSlot+1} (User: ${slots[inSlot].userName})`;
-                
-                const inQueue = queue.findIndex(q => q.plat === p);
-                if(inQueue !== -1) throw `GAGAL: Plat ${p} sudah ada di ANTRIAN #${queue[inQueue].qNo} (User: ${queue[inQueue].userName})`;
-
                 let newNo = (d.recycledNumbers||[]).length>0 ? d.recycledNumbers.sort((a,b)=>a-b).shift() : (d.lastTicket||0)+1;
                 let last = (d.recycledNumbers||[]).length>0 ? d.lastTicket : newNo;
                 const u = { plat:p, userName:n, wa:'ADMIN', qNo:newNo, entryTime:Date.now() };
 
-                if(target === 'queue') d.waitingQueue.push(u);
-                else {
+                let locationText = "";
+                if(target === 'queue') {
+                    d.waitingQueue.push(u);
+                    locationText = "ke Antrian";
+                } else {
                     if(d.chargingSlots[target]) throw "Slot Penuh";
                     u.startTime = Date.now(); d.chargingSlots[target] = u;
+                    locationText = `langsung ke S${target+1}`;
                 }
 
-                t.update(mainRef, { waitingQueue:d.waitingQueue, chargingSlots:d.chargingSlots, recycledNumbers:d.recycledNumbers||[], lastTicket:last, lastResetDate: getTodayString() });
-                addLog("ADMIN_ADD", `${p} (${n})`);
+                t.update(mainRef, { 
+                    waitingQueue:d.waitingQueue, 
+                    chargingSlots:d.chargingSlots, 
+                    recycledNumbers:d.recycledNumbers||[], 
+                    lastTicket:last,
+                    lastResetDate: getTodayString() 
+                });
+                
+                addLog("ADMIN_ADD", `${p} (${n}) ${locationText}`);
             }).then(()=>{ document.getElementById('newPlat').value=''; }).catch(e=>alert(e));
         };
 
@@ -280,37 +343,50 @@
             runTransaction(db, async(t) => {
                 const d = (await t.get(mainRef)).data();
                 if(d.chargingSlots[sIdx]) throw "Penuh";
-                const i = d.waitingQueue.findIndex(x => x.plat === p); if(i<0) throw "Hilang";
-                const u = d.waitingQueue.splice(i,1)[0]; u.startTime=Date.now(); d.chargingSlots[sIdx]=u;
+                const i = d.waitingQueue.findIndex(x => x.plat === p);
+                if(i<0) throw "Hilang";
+                const u = d.waitingQueue.splice(i,1)[0];
+                u.startTime = Date.now(); d.chargingSlots[sIdx] = u;
                 t.update(mainRef, { waitingQueue:d.waitingQueue, chargingSlots:d.chargingSlots });
-                addLog("START_CHARGE", `${p} -> S${sIdx+1}`);
+                addLog("START_CHARGE", `${p} masuk S${sIdx+1}`);
             }).catch(e=>alert(e));
         };
 
         window.kickToQueue = (i) => {
             runTransaction(db, async(t) => {
-                const d = (await t.get(mainRef)).data(); const u = d.chargingSlots[i]; if(!u) return;
+                const d = (await t.get(mainRef)).data();
+                const u = d.chargingSlots[i];
+                if(!u) return;
                 d.chargingSlots[i]=null; delete u.startTime; d.waitingQueue.unshift(u);
                 t.update(mainRef, { chargingSlots:d.chargingSlots, waitingQueue:d.waitingQueue });
-                addLog("MOVE_QUEUE", `${u.plat} from S${i+1}`);
+                addLog("MOVE_QUEUE", `${u.plat} dari S${i+1} ke Antrian`);
             });
         };
 
         window.forceStop = (i) => {
             runTransaction(db, async(t) => {
-                const d = (await t.get(mainRef)).data(); const u = d.chargingSlots[i];
-                if(u) { addDoc(histRef, {...u, finishTime:new Date(), timestamp:new Date(), by:'ADMIN'}); d.chargingSlots[i]=null; t.update(mainRef, {chargingSlots:d.chargingSlots}); addLog("STOP_CHARGE", `${u.plat} S${i+1}`); }
+                const d = (await t.get(mainRef)).data();
+                const u = d.chargingSlots[i];
+                if(u) { 
+                    addDoc(histRef, {...u, finishTime:new Date(), timestamp:new Date(), by:'ADMIN'}); 
+                    d.chargingSlots[i]=null; 
+                    t.update(mainRef, {chargingSlots:d.chargingSlots}); 
+                    addLog("STOP_CHARGE", `${u.plat} di S${i+1}`);
+                }
             });
         };
 
         window.moveSlotUser = () => {
-            const s1 = document.getElementById('moveSrc').value; const s2 = document.getElementById('moveDest').value;
+            const s1 = document.getElementById('moveSrc').value;
+            const s2 = document.getElementById('moveDest').value;
             if(s1==s2) return alert("Sama");
             runTransaction(db, async(t) => {
                 const d = (await t.get(mainRef)).data();
-                const t1 = d.chargingSlots[s1]; d.chargingSlots[s1] = d.chargingSlots[s2]; d.chargingSlots[s2] = t1;
+                const t1 = d.chargingSlots[s1];
+                d.chargingSlots[s1] = d.chargingSlots[s2];
+                d.chargingSlots[s2] = t1;
                 t.update(mainRef, { chargingSlots:d.chargingSlots });
-                addLog("SWAP_SLOT", `S${parseInt(s1)+1} <-> S${parseInt(s2)+1}`);
+                addLog("SWAP_SLOT", `Tukar S${parseInt(s1)+1} <-> S${parseInt(s2)+1}`);
             });
         };
 
@@ -322,7 +398,7 @@
                     const u = d.waitingQueue.splice(i,1)[0];
                     let r = d.recycledNumbers||[]; r.push(u.qNo);
                     t.update(mainRef, { waitingQueue:d.waitingQueue, recycledNumbers:r });
-                    addLog("DELETE_Q", p);
+                    addLog("DELETE_Q", `Hapus ${p} dari antrian`);
                 }
             });
         };
@@ -342,7 +418,10 @@
             let end = new Date(); end.setHours(23,59,59,999);
             if(range === 'yesterday') { start.setDate(start.getDate()-1); end.setDate(end.getDate()-1); }
             else if(range === '7days') { start.setDate(start.getDate()-6); }
-            else if(range === 'custom') { start = new Date(document.getElementById('dateStart').value); end = new Date(document.getElementById('dateEnd').value); end.setHours(23,59,59,999); }
+            else if(range === 'custom') {
+                start = new Date(document.getElementById('dateStart').value);
+                end = new Date(document.getElementById('dateEnd').value); end.setHours(23,59,59,999);
+            }
             
             const q = query(histRef, orderBy("timestamp", "desc"));
             const snap = await getDocs(q);
@@ -376,16 +455,25 @@
         };
         setTimeout(loadAnalytics, 2000);
 
-        onSnapshot(query(logRef, orderBy("timestamp", "desc"), limit(50)), (snap) => {
+        // --- NEW LOG LISTENER ---
+        onSnapshot(query(logRef, orderBy("timestamp", "desc"), limit(100)), (snap) => {
             let h = '';
             snap.forEach(d => {
                 const data = d.data();
                 const time = data.timestamp ? data.timestamp.toDate().toLocaleTimeString() : '-';
+                const adminName = data.admin || '-'; 
+                
                 let badgeClass = 'b-sys';
                 if(data.action.includes('ADD')) badgeClass = 'b-add';
                 if(data.action.includes('DEL') || data.action.includes('STOP')) badgeClass = 'b-del';
-                if(data.action.includes('SWAP') || data.action.includes('MOVE')) badgeClass = 'b-edit';
-                h += `<tr><td>${time}</td><td style="color:var(--accent); font-weight:bold;">${data.admin||'-'}</td><td><span class="badge ${badgeClass}">${data.action}</span></td><td style="color:#fff;">${data.details}</td></tr>`;
+                if(data.action.includes('SWAP') || data.action.includes('MOVE') || data.action.includes('CHARGE')) badgeClass = 'b-edit';
+
+                h += `<tr>
+                    <td>${time}</td>
+                    <td style="color:var(--accent); font-weight:bold;">${adminName}</td>
+                    <td><span class="badge ${badgeClass}">${data.action}</span></td>
+                    <td style="color:#fff;">${data.details}</td>
+                </tr>`;
             });
             document.getElementById('logBody').innerHTML = h;
         });
