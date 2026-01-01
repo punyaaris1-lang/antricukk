@@ -14,7 +14,6 @@
         :root { --bg: #050505; --accent: #CCFF00; --cyan: #00F0FF; --red: #FF003C; --wa: #25D366; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; user-select: none; }
         
-        /* BACKGROUND UTAMA - FIXED */
         body { 
             font-family: 'Teko', sans-serif; 
             background: #000 url('1763947427555.jpg') no-repeat center center fixed;
@@ -206,9 +205,6 @@
         .fq-item.you { font-size: 28px; font-weight: 800; color: var(--cyan); text-shadow: 0 0 25px var(--cyan); margin: 25px 0; }
         .fq-item.you::before { content: "▶"; margin-right: 15px; color: var(--cyan); display: inline-block; animation: pointR 1s infinite alternate; }
         .fq-item.you::after { content: "◀"; margin-left: 15px; color: var(--cyan); display: inline-block; animation: pointL 1s infinite alternate; }
-        
-        @keyframes pointR { from{transform:translateX(0);} to{transform:translateX(-5px);} }
-        @keyframes pointL { from{transform:translateX(0);} to{transform:translateX(5px);} }
     </style>
 </head>
 <body>
@@ -419,7 +415,7 @@
         let amIInQueue = false;
         window.currentUtterance = null;
         let tempEntryTime = 0;
-        let hasNotifiedTurn = false; // Mencegah notif suara berulang-ulang
+        let hasNotifiedTurn = false; 
 
         fetch('https://api.ipify.org?format=json').then(res => res.json()).then(data => myIP = data.ip).catch(e => console.log("IP Check Skip"));
 
@@ -619,7 +615,8 @@
                 }).catch(err => console.log("Reset conflict:", err));
             }
             localSlots = d.chargingSlots || [null,null,null];
-            localQueue = (d.waitingQueue || []).sort((a,b) => a.entryTime - b.entryTime);
+            // === FIX SORTING: URUTKAN BERDASARKAN NOMOR TIKET (qNo) AGAR TIDAK LONCAT ===
+            localQueue = (d.waitingQueue || []).sort((a,b) => a.qNo - b.qNo);
             updateUI();
         });
 
@@ -641,16 +638,16 @@
             let amICharging = false;
             amIInQueue = localQueue.some(q => q.plat === myPlat);
             
-            // 2. CEK GILIRAN SAYA (AUTO HIDE WAITING DASHBOARD)
-            // Jika saya ada di antrian paling depan (No.1) DAN ada slot kosong
+            // 2. CEK GILIRAN SAYA (AUTO HIDE WAITING DASHBOARD + SUARA INSTAN)
             const iAmFirst = (localQueue.length > 0 && localQueue[0].plat === myPlat);
             const hasEmptySlot = localSlots.some(s => s === null);
 
+            // JIKA SAYA NO 1 DAN ADA SLOT KOSONG
             if (iAmFirst && hasEmptySlot) {
-                // Sembunyikan layar antrian agar tombol slot terlihat
+                // PAKSA TUTUP LAYAR ANTRIAN SUPAYA TOMBOL TERLIHAT
                 $('waitingDashboard').style.display = 'none';
                 
-                // Bunyikan Suara Giliran (Hanya sekali)
+                // BUNYIKAN SUARA JIKA BELUM BUNYI
                 if (!hasNotifiedTurn) {
                     window.speechSynthesis.cancel();
                     const msg = new SpeechSynthesisUtterance(`Halo, Giliran Anda. Silakan pilih slot.`);
@@ -658,10 +655,9 @@
                     window.speechSynthesis.speak(msg);
                     vibrate();
                     sendNotification("GILIRAN ANDA!", "Slot tersedia. Silakan pilih slot!");
-                    hasNotifiedTurn = true; // Tandai sudah bunyi
+                    hasNotifiedTurn = true; 
                 }
             } else if (!iAmFirst) {
-                // Reset jika saya bukan urutan pertama lagi
                 hasNotifiedTurn = false;
             }
 
@@ -683,7 +679,6 @@
                     }
 
                     if(myPlat === s.plat) {
-                        // Kalau saya sedang ngecas
                         amICharging = true; window.activeSlotIdx = i;
                         if(!isDashboardMinimized) switchScreen('screen-active-dashboard');
                         if($('ad-slot-val')) $('ad-slot-val').innerText = "SLOT " + (i+1);
@@ -691,7 +686,7 @@
                         if($('ad-plat-val')) $('ad-plat-val').innerText = s.plat;
                         if($('ad-no-val')) $('ad-no-val').innerText = "#" + s.qNo;
                         $('waitingDashboard').style.display='none';
-                        hasNotifiedTurn = false; // Reset notifikasi antrian
+                        hasNotifiedTurn = false; 
                     }
                 } else {
                     if(c) { c.classList.remove('filled'); c.classList.add('empty'); }
