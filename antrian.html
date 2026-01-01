@@ -205,6 +205,9 @@
         .fq-item.you { font-size: 28px; font-weight: 800; color: var(--cyan); text-shadow: 0 0 25px var(--cyan); margin: 25px 0; }
         .fq-item.you::before { content: "▶"; margin-right: 15px; color: var(--cyan); display: inline-block; animation: pointR 1s infinite alternate; }
         .fq-item.you::after { content: "◀"; margin-left: 15px; color: var(--cyan); display: inline-block; animation: pointL 1s infinite alternate; }
+        
+        @keyframes pointR { from{transform:translateX(0);} to{transform:translateX(-5px);} }
+        @keyframes pointL { from{transform:translateX(0);} to{transform:translateX(5px);} }
     </style>
 </head>
 <body>
@@ -415,7 +418,7 @@
         let amIInQueue = false;
         window.currentUtterance = null;
         let tempEntryTime = 0;
-        let hasNotifiedTurn = false; 
+        let hasNotifiedTurn = false;
 
         fetch('https://api.ipify.org?format=json').then(res => res.json()).then(data => myIP = data.ip).catch(e => console.log("IP Check Skip"));
 
@@ -486,14 +489,38 @@
                 return;
             }
             const youIndex = localQueue.findIndex(q => q.plat === myPlat);
+            
             localQueue.forEach((q, i) => {
                 if (i > 0) { const pipe = document.createElement("div"); pipe.className = "fq-pipe"; container.appendChild(pipe); }
                 const d = document.createElement("div");
                 const diff = Math.abs(i - youIndex);
-                if (q.plat === myPlat) d.className = "fq-item you";
-                else if (diff === 1) d.className = "fq-item mid";
-                else d.className = "fq-item small";
-                d.textContent = `#${q.qNo} ${q.plat}`;
+                
+                if (q.plat === myPlat) {
+                    d.className = "fq-item you";
+                    
+                    // === LOGIKA BARU: TOMBOL KLIK DI ANTRIAN ===
+                    const hasEmptySlot = localSlots.some(s => s === null);
+                    // Jika Saya Antrian No.1 DAN Ada Slot Kosong
+                    if (i === 0 && hasEmptySlot) {
+                        d.innerHTML = "⚡ GILIRAN ANDA! ⚡<br><span style='font-size:14px; color:#fff;'>KLIK SINI UNTUK MASUK</span>";
+                        d.style.color = "var(--accent)";
+                        d.style.cursor = "pointer";
+                        d.style.border = "1px solid var(--accent)";
+                        d.style.padding = "10px";
+                        d.style.borderRadius = "10px";
+                        d.style.background = "rgba(204, 255, 0, 0.1)";
+                        // Klik tombol ini akan menutup modal antrian
+                        d.onclick = () => {
+                            $('waitingDashboard').style.display = 'none';
+                            vibrate();
+                        };
+                    } else {
+                        d.textContent = `#${q.qNo} ${q.plat}`;
+                    }
+                }
+                else if (diff === 1) { d.className = "fq-item mid"; d.textContent = `#${q.qNo} ${q.plat}`; }
+                else { d.className = "fq-item small"; d.textContent = `#${q.qNo} ${q.plat}`; }
+                
                 container.appendChild(d);
             });
             viewport.scrollTop = 0;
@@ -615,12 +642,14 @@
                 }).catch(err => console.log("Reset conflict:", err));
             }
             localSlots = d.chargingSlots || [null,null,null];
-            // === FIX SORTING: URUTKAN BERDASARKAN NOMOR TIKET (qNo) AGAR TIDAK LONCAT ===
+            // === FIX SORTING: URUTKAN BERDASARKAN NOMOR TIKET (qNo) AGAR RAPI ===
             localQueue = (d.waitingQueue || []).sort((a,b) => a.qNo - b.qNo);
             updateUI();
+            
+            // JIKA ANTRIAN DI-REFRESH, RENDER ULANG LIST JIKA SEDANG DIBUKA
+            if($('waitingDashboard').style.display === 'flex') renderFocusedQueue();
         });
 
-        // === NOTIFIKASI PWA ===
         function sendNotification(title, body) {
             if (Notification.permission === "granted" && document.visibilityState === "hidden") {
                 navigator.serviceWorker.ready.then(reg => {
@@ -630,7 +659,6 @@
         }
 
         function updateUI() {
-            // 1. UPDATE ANGKA ANTRIAN (PRIORITAS)
             if($('slotCountVal')) $('slotCountVal').innerText = localSlots.filter(s => s === null).length;
             if($('qCountVal')) $('qCountVal').innerText = localQueue.length;
             if($('hud-q')) $('hud-q').innerText = localQueue.length;
@@ -638,16 +666,14 @@
             let amICharging = false;
             amIInQueue = localQueue.some(q => q.plat === myPlat);
             
-            // 2. CEK GILIRAN SAYA (AUTO HIDE WAITING DASHBOARD + SUARA INSTAN)
             const iAmFirst = (localQueue.length > 0 && localQueue[0].plat === myPlat);
             const hasEmptySlot = localSlots.some(s => s === null);
 
-            // JIKA SAYA NO 1 DAN ADA SLOT KOSONG
+            // === LOGIKA SUARA & AUTO-CLOSE DASHBOARD ===
             if (iAmFirst && hasEmptySlot) {
-                // PAKSA TUTUP LAYAR ANTRIAN SUPAYA TOMBOL TERLIHAT
+                // Auto Close Dashboard (Agar tombol slot terlihat)
                 $('waitingDashboard').style.display = 'none';
                 
-                // BUNYIKAN SUARA JIKA BELUM BUNYI
                 if (!hasNotifiedTurn) {
                     window.speechSynthesis.cancel();
                     const msg = new SpeechSynthesisUtterance(`Halo, Giliran Anda. Silakan pilih slot.`);
@@ -707,6 +733,7 @@
             } 
             else if(amIInQueue) { 
                 txt.innerText = "LIHAT ANTRIAN"; btn.classList.add('back-mode'); 
+                // Render ulang jika dashboard terbuka (buat update realtime status giliran)
                 if($('waitingDashboard').style.display === 'flex') renderFocusedQueue(); 
             } 
             else { txt.innerText = "DAFTAR"; }
