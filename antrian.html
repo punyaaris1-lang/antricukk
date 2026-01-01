@@ -629,7 +629,21 @@
             runTransaction(db, async(t) => {
                 const d = (await t.get(mainRef)).data();
                 const all = [...(d.chargingSlots||[]), ...(d.waitingQueue||[])].filter(u => u !== null);
-                if(all.some(x => x.plat === tempUserData.plat)) throw "PLAT SUDAH ADA";
+                
+                // === FITUR RECOVERY SESSION ===
+                const duplicate = all.find(x => x.plat === tempUserData.plat);
+                if(duplicate) {
+                    // Kalau Plat Sudah Ada, JANGAN ERROR, tapi tawarkan recovery
+                    const recover = confirm(`PLAT ${tempUserData.plat} SUDAH TERDAFTAR!\nApakah ini Anda? Klik OKE untuk masuk kembali.`);
+                    if(recover) {
+                        localStorage.setItem('myPlat', tempUserData.plat);
+                        location.reload(); // Reload halaman agar state kembali
+                        return "RECOVERED"; // Stop transaction
+                    } else {
+                        throw "PLAT SUDAH ADA";
+                    }
+                }
+
                 let newNo = (d.lastTicket||0)+1;
                 if(d.recycledNumbers && d.recycledNumbers.length>0) { d.recycledNumbers.sort((a,b)=>a-b); newNo = d.recycledNumbers.shift(); }
                 const finalEntryTime = tempEntryTime || Date.now();
@@ -638,9 +652,13 @@
                 t.update(mainRef, { waitingQueue:d.waitingQueue, recycledNumbers:d.recycledNumbers||[], lastTicket: Math.max(d.lastTicket||0, newNo) });
                 return newNo;
             }).then((no) => {
+                if(no === "RECOVERED") return; // Jika recovery, skip
                 localStorage.setItem('myPlat', tempUserData.plat); myPlat = tempUserData.plat;
                 showMsg("BERHASIL", `Antrian #${no}. Silakan tunggu.`); switchScreen('screen-slots');
-            }).catch(e => { showMsg("GAGAL", e); setTimeout(()=>switchScreen('screen-slots'), 2000); });
+            }).catch(e => { 
+                if(e !== "RECOVERED") showMsg("GAGAL", e); 
+                setTimeout(()=>switchScreen('screen-slots'), 2000); 
+            });
         }
 
         onSnapshot(mainRef, (snap) => {
