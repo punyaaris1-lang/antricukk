@@ -68,17 +68,17 @@
                 <input type="password" id="loginPin" placeholder="****" style="margin-top:5px; border-color:var(--accent);">
             </div>
             <button onclick="attemptLogin()" class="btn-green" style="width:100%; font-size:18px;">MASUK</button>
-            <div style="margin-top:15px; font-size:10px; color:#555;">SYSTEM V4.3 SECURE LOG</div>
+            <div style="margin-top:15px; font-size:10px; color:#555;">SYSTEM V4.4 STABLE</div>
         </div>
     </div>
 
     <div style="display:flex; justify-content:space-between; margin-bottom:15px; align-items:center;">
         <div>
-            <span style="font-family:'Teko'; font-size:24px; color:var(--cyan);">ADMIN PANEL <span style="color:var(--accent);">v4.3</span></span>
+            <span style="font-family:'Teko'; font-size:24px; color:var(--cyan);">ADMIN PANEL <span style="color:var(--accent);">v4.4</span></span>
             <div id="displayAdminName" style="color:#666; font-size:10px;">User: -</div>
         </div>
         <div style="display:flex; gap:5px;">
-            <button onclick="window.location.href='antrian.html'" class="btn-blue">DEPAN</button>
+            <button onclick="window.location.href='index.html'" class="btn-blue">DEPAN</button>
             <button onclick="logout()" class="btn-red">KELUAR</button>
         </div>
     </div>
@@ -151,7 +151,7 @@
             <input type="date" id="dateStart" style="margin-bottom:5px;">
             <input type="date" id="dateEnd">
         </div>
-        <button onclick="askConfirm('RESET SEMUA??', resetSystem)" class="btn-red" style="width:100%;">⚠ RESET PAKSA (MANUAL) ⚠</button>
+        <button onclick="askConfirm('RESET SEMUA DATA??', resetTotal)" class="btn-red" style="width:100%;">⚠ RESET TOTAL (SEMUA HILANG) ⚠</button>
     </div>
 
     <div class="box">
@@ -197,6 +197,7 @@
 
         let cachedSlots = [];
         let cachedQueue = [];
+        let isResetting = false; // KUNCI PENGAMAN LOOPING
 
         // === LOGIN LOGIC ===
         const currentAdmin = localStorage.getItem('admin_name');
@@ -208,7 +209,7 @@
         window.attemptLogin = () => {
             const name = document.getElementById('loginName').value;
             const pin = document.getElementById('loginPin').value;
-            if(pin === "1131" && name.trim() !== "") {
+            if(pin === "8080" && name.trim() !== "") {
                 localStorage.setItem('admin_name', name.trim());
                 document.getElementById('loginOverlay').style.display = 'none';
                 document.getElementById('displayAdminName').innerText = "User: " + name.trim();
@@ -230,48 +231,59 @@
         document.getElementById('btnYes').onclick = () => { if(currentCallback) currentCallback(); closeModal(); };
         window.closeModal = () => { document.getElementById('customModal').style.display = 'none'; currentCallback = null; };
 
-        // === HELPER: GET DATE WIB ===
-        function getWIBDateString() {
-            return new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jakarta' });
+        // === HELPER: STRICT DATE FORMAT ===
+        function getTodayString() {
+            // Memaksa format YYYY-MM-DD sesuai Timezone Jakarta
+            const date = new Date();
+            return date.toLocaleDateString('en-CA', { timeZone: 'Asia/Jakarta' });
         }
 
-        // LISTENER & AUTO RESET LOGIC
+        // LISTENER & AUTO RESET LOGIC (FIXED)
         onSnapshot(mainRef, (snap) => {
             const d = snap.data();
             if(!d) return;
 
-            // --- AUTO RESET 00:00 WIB (SAFE MODE) ---
-            const todayWIB = getWIBDateString();
+            const today = getTodayString();
             
-            // Cek di Client dulu, kalau tanggal lokal beda dengan database
-            if (d.lastResetDate !== todayWIB) {
-                // JALANKAN TRANSAKSI AGAR TIDAK BENTROK/DOUBLE LOG
+            // CEK APAKAH TANGGAL DI DB SUDAH USANG?
+            // DAN PASTIKAN TIDAK SEDANG PROSES RESET
+            if (d.lastResetDate !== today && !isResetting) {
+                console.log("Triggering Auto Reset...");
+                isResetting = true; // KUNCI! Jangan biarkan loop berjalan
+
                 runTransaction(db, async(t) => {
                     const freshDoc = await t.get(mainRef);
                     const freshData = freshDoc.data();
                     
-                    // Cek lagi di dalam transaksi (Double Check)
-                    if (freshData.lastResetDate !== todayWIB) {
+                    // Double Check di dalam Transaksi (Biar aman dari multiple admin)
+                    if (freshData.lastResetDate !== today) {
                         t.update(mainRef, { 
-                            lastResetDate: todayWIB,
-                            // JANGAN HAPUS QUEUE / SLOTS
-                            // waitingQueue: [], <--- DIHAPUS BIAR AMAN
-                            // chargingSlots: [...], <--- DIHAPUS BIAR AMAN
+                            lastResetDate: today,
+                            // HANYA RESET TIKET DAN NOMER DAUR ULANG
+                            // DATA ANTRIAN & SLOT DIBIARKAN (SAFE MODE)
                             recycledNumbers: [], 
-                            lastTicket: 0 // Reset Nomer Urut ke 0
+                            lastTicket: 0 
                         });
                         
-                        // Log hanya ditulis SEKALI oleh admin pertama yg mentrigger ini
+                        // LOG
                         const adm = localStorage.getItem('admin_name') || 'SYSTEM';
                         const logRefNew = doc(collection(db, "activityLog"));
                         t.set(logRefNew, { 
                             action: "AUTO_RESET", 
-                            details: `Reset Tiket #0 (Queue Aman)`, 
+                            details: `New Day: ${today} (Queue Kept)`, 
                             admin: adm, 
                             timestamp: new Date() 
                         });
                     }
-                }).catch(err => console.log("Auto reset handled by other client"));
+                })
+                .then(() => {
+                    console.log("Reset Selesai");
+                    isResetting = false; // Buka Kunci
+                })
+                .catch(err => {
+                    console.error("Reset Error:", err);
+                    isResetting = false; // Buka Kunci jika error
+                });
             }
 
             cachedSlots = d.chargingSlots || [null,null,null];
@@ -347,7 +359,8 @@
                     waitingQueue:d.waitingQueue, 
                     chargingSlots:d.chargingSlots, 
                     recycledNumbers:d.recycledNumbers||[], 
-                    lastTicket:last
+                    lastTicket:last,
+                    lastResetDate: getTodayString() // Sync Date
                 });
                 addLog("ADMIN_ADD", `${p} (${n})`);
             }).then(()=>{ document.getElementById('newPlat').value=''; }).catch(e=>alert(e));
@@ -412,10 +425,10 @@
             });
         };
 
-        // MANUAL RESET (HAPUS SEMUA)
-        window.resetSystem = () => {
+        // MANUAL RESET TOTAL (HATI-HATI)
+        window.resetTotal = () => {
             runTransaction(db, async(t) => {
-                t.update(mainRef, { chargingSlots:[null,null,null], waitingQueue:[], recycledNumbers:[], lastTicket:0, lastResetDate: getWIBDateString() });
+                t.update(mainRef, { chargingSlots:[null,null,null], waitingQueue:[], recycledNumbers:[], lastTicket:0, lastResetDate: getTodayString() });
                 addLog("MANUAL_RESET", "Reset Total by Admin");
             });
         };
