@@ -9,8 +9,10 @@
     <meta name="theme-color" content="#00F0FF">
     <link rel="apple-touch-icon" href="icon-192.png">
 
-    <link href="https://fonts.googleapis.com/css2?family=Teko:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&family=Inter:wght@500;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Teko:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&family=Inter:wght@500;700;900&display=swap" rel="stylesheet">
+    
     <style>
+        /* === GLOBAL VARIABLES === */
         :root { --bg: #050505; --accent: #CCFF00; --cyan: #00F0FF; --red: #FF003C; --wa: #25D366; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; user-select: none; }
         
@@ -26,91 +28,99 @@
         body::before { content: ''; position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(0,0,0,0.85), #000); z-index: 0; }
         #dust { position: fixed; inset: 0; pointer-events: none; z-index: 1; }
 
-        /* HEADER */
-        .top-nav { 
-            height: 18vh; min-height: 120px; display: flex; flex-direction: column; 
-            justify-content: center; text-align: center; z-index: 50; position: relative; 
-            background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); flex-shrink: 0;
-            padding-bottom: 10px;
+        /* =========================================
+           STYLE KHUSUS WELCOME SCREEN (GUIDE)
+           ========================================= */
+        #welcome-overlay {
+            position: fixed; inset: 0; z-index: 15000; /* Layer Paling Atas */
+            background: #000; font-family: 'Inter', sans-serif;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            overflow: hidden; transition: opacity 0.5s;
         }
-        .main-title { 
-            font-size: clamp(40px, 6vh, 60px); font-weight: 700; line-height: 0.9; 
-            color: #fff; text-shadow: 0 0 15px rgba(0, 240, 255, 0.5); cursor: pointer; 
+        
+        .guide-bg {
+            position: absolute; inset: 0;
+            background: radial-gradient(circle at top, rgba(0,240,255,.15), transparent 60%),
+                        linear-gradient(120deg, #000, #020c12, #000);
+            animation: bgMove 18s linear infinite; z-index: 0;
         }
+        @keyframes bgMove{ 0%{filter:hue-rotate(0deg)} 100%{filter:hue-rotate(360deg)} }
+
+        .guide-scanline {
+            position: absolute; inset: 0; pointer-events: none; z-index: 1;
+            background: repeating-linear-gradient(to bottom, rgba(255,255,255,.03), rgba(255,255,255,.03) 1px, transparent 2px, transparent 4px);
+        }
+
+        .guide-wrap {
+            position: relative; z-index: 2; height: 100%; width: 100%;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding: 20px; text-align: center;
+        }
+
+        .guide-step { max-width: 420px; opacity: 0; transform: scale(.95) translateY(20px); transition: 1s ease; }
+        .guide-step.show { opacity: 1; transform: scale(1) translateY(0); }
+
+        .g-icon { font-size: 48px; margin-bottom: 12px; filter: drop-shadow(0 0 12px rgba(0,240,255,.6)); }
+        .g-title { font-size: 22px; font-weight: 900; letter-spacing: .5px; margin-bottom: 10px; color: #fff; }
+        .g-desc { font-size: 14px; line-height: 1.7; color: #ccc; min-height: 60px; font-weight: 500; }
+
+        .g-slots { margin-top: 18px; display: flex; gap: 12px; justify-content: center; }
+        .g-slot { width: 60px; height: 60px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 16px; }
+        .g-free { color: #000; background: #00f0ff; box-shadow: 0 0 25px rgba(0,240,255,.9); animation: breath 1.6s infinite; }
+        .g-busy { background: #200; border: 1px solid #f33; color: #f55; opacity: .6; }
+        @keyframes breath { 0%{transform:scale(1)} 50%{transform:scale(1.08)} 100%{transform:scale(1)} }
+
+        .btn-guide {
+            margin-top: 30px; padding: 12px 40px; background: linear-gradient(90deg,#00f0ff,#7cfffa);
+            color: #000; border: none; border-radius: 30px; font-weight: 900; cursor: pointer;
+            font-family: 'Inter', sans-serif; box-shadow: 0 0 30px rgba(0,240,255,.6); font-size: 16px;
+        }
+        
+        .btn-skip-guide {
+            position: absolute; top: 20px; right: 20px; z-index: 10;
+            background: rgba(255,255,255,0.1); border: 1px solid #555; color: #aaa;
+            padding: 8px 15px; border-radius: 20px; font-size: 12px; font-weight: 700;
+            cursor: pointer; backdrop-filter: blur(5px); font-family: 'Inter', sans-serif;
+        }
+        .g-final { font-size: 24px; font-weight: 900; color: #e8c37a; text-shadow: 0 0 30px rgba(232,195,122,.8); margin-bottom: 10px; }
+
+        /* =========================================
+           STYLE APLIKASI UTAMA
+           ========================================= */
+        .top-nav { height: 18vh; min-height: 120px; display: flex; flex-direction: column; justify-content: center; text-align: center; z-index: 50; position: relative; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); flex-shrink: 0; padding-bottom: 10px; }
+        .main-title { font-size: clamp(40px, 6vh, 60px); font-weight: 700; line-height: 0.9; color: #fff; text-shadow: 0 0 15px rgba(0, 240, 255, 0.5); cursor: pointer; }
         .sub-title { font-size: 14px; color: var(--accent); letter-spacing: 4px; font-weight: 600; margin-top: 0px; text-transform: uppercase; }
 
-        #logo-area {
-            flex: 1; display: flex; justify-content: center; align-items: flex-start; padding-top: 20px; 
-            position: relative; z-index: 5; transition: opacity 0.5s;
-        }
-        .big-logo {
-            width: 70%; max-width: 250px; height: auto; border-radius: 20px;
-            box-shadow: 0 0 50px rgba(0,0,0,0.8); border: 1px solid rgba(255,255,255,0.1);
-            animation: floatLogo 4s ease-in-out infinite;
-        }
+        #logo-area { flex: 1; display: flex; justify-content: center; align-items: flex-start; padding-top: 20px; position: relative; z-index: 5; transition: opacity 0.5s; }
+        .big-logo { width: 70%; max-width: 250px; height: auto; border-radius: 20px; box-shadow: 0 0 50px rgba(0,0,0,0.8); border: 1px solid rgba(255,255,255,0.1); animation: floatLogo 4s ease-in-out infinite; }
         @keyframes floatLogo { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-10px);} }
 
         body.login-mode #logo-area { opacity: 0.1; pointer-events: none; }
         body.login-mode .bottom-panel { display: none !important; }
 
-        /* SCREENS */
-        .screen {
-            position: absolute; inset: 0; top: 12vh; bottom: 0; display: none; flex-direction: column; 
-            z-index: 10; transition: opacity 0.5s; justify-content: center; align-items: center;
-        }
+        .screen { position: absolute; inset: 0; top: 12vh; bottom: 0; display: none; flex-direction: column; z-index: 10; transition: opacity 0.5s; justify-content: center; align-items: center; }
         .screen.active { display: flex; animation: fadeIn 0.5s forwards; }
         #screen-login { justify-content: flex-start; padding-top: 20px; z-index: 100; background:rgba(0,0,0,0.85); }
         @keyframes fadeIn { from{opacity:0; transform:scale(0.95);} to{opacity:1; transform:scale(1);} }
 
-        /* LOGIN PANEL */
-        .onyx-panel {
-            width: 90%; max-width: 400px; background: #050505;
-            border: 1px solid var(--cyan); border-radius: 15px; padding: 25px;
-            box-shadow: 0 0 30px rgba(0, 240, 255, 0.15); position: relative; overflow: hidden; margin: auto; 
-        }
+        .onyx-panel { width: 90%; max-width: 400px; background: #050505; border: 1px solid var(--cyan); border-radius: 15px; padding: 25px; box-shadow: 0 0 30px rgba(0, 240, 255, 0.15); position: relative; overflow: hidden; margin: auto; }
         .term-line { margin-bottom: 15px; font-family: 'JetBrains Mono', monospace; font-size: 14px; color: #ccc; display: flex; align-items: center; flex-wrap: wrap; }
-        .term-input { 
-            background: none; border: none; outline: none; color: var(--cyan); 
-            font-family: 'JetBrains Mono', monospace; font-size: 16px; width: 60%; 
-            font-weight: bold; text-transform: uppercase; caret-color: var(--cyan); margin-left: 5px;
-        }
-        .term-enter-btn {
-            background: var(--cyan); color: #000; border: none; padding: 4px 12px;
-            font-family: 'JetBrains Mono'; font-weight: bold; cursor: pointer;
-            margin-left: auto; font-size: 12px; border-radius: 4px;
-            animation: pulseBtn 1.5s infinite;
-        }
+        .term-input { background: none; border: none; outline: none; color: var(--cyan); font-family: 'JetBrains Mono', monospace; font-size: 16px; width: 60%; font-weight: bold; text-transform: uppercase; caret-color: var(--cyan); margin-left: 5px; }
+        .term-enter-btn { background: var(--cyan); color: #000; border: none; padding: 4px 12px; font-family: 'JetBrains Mono'; font-weight: bold; cursor: pointer; margin-left: auto; font-size: 12px; border-radius: 4px; animation: pulseBtn 1.5s infinite; }
         @keyframes pulseBtn { 0%{opacity:1;} 50%{opacity:0.7;} 100%{opacity:1;} }
 
-        /* === SCANNER ANIMATION === */
-        .scanner-container {
-            position: relative; width: 220px; height: 220px;
-            display: flex; justify-content: center; align-items: center;
-            overflow: hidden; border-radius: 15px;
-            border: 2px solid #333;
-            box-shadow: 0 0 30px rgba(0,0,0,0.8);
-        }
+        .scanner-container { position: relative; width: 220px; height: 220px; display: flex; justify-content: center; align-items: center; overflow: hidden; border-radius: 15px; border: 2px solid #333; box-shadow: 0 0 30px rgba(0,0,0,0.8); }
         .scan-img { width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0; }
         .scan-bw { filter: grayscale(100%) contrast(1.2); z-index: 1; }
         .scan-color { z-index: 2; clip-path: inset(100% 0 0 0); filter: drop-shadow(0 0 15px var(--cyan)); transition: clip-path 1.5s linear; }
-        .scan-line {
-            position: absolute; left: 0; width: 100%; height: 3px;
-            background: var(--cyan); box-shadow: 0 0 10px var(--cyan), 0 0 20px var(--cyan);
-            z-index: 5; top: 100%; transition: top 1.5s linear;
-        }
+        .scan-line { position: absolute; left: 0; width: 100%; height: 3px; background: var(--cyan); box-shadow: 0 0 10px var(--cyan), 0 0 20px var(--cyan); z-index: 5; top: 100%; transition: top 1.5s linear; }
         .scan-text { margin-top: 25px; font-family: 'JetBrains Mono'; font-size: 16px; color: var(--cyan); letter-spacing: 2px; text-shadow: 0 0 10px var(--cyan); height: 20px; }
 
-        /* SLOT VIEW (3 SLOT SUPPORT) */
         #screen-slots { flex-direction: row; align-items: center; justify-content: center; gap: 8px; padding: 0 10px; }
         .slot-container { width: 33%; height: 45vh; max-height: 380px; position: relative; transition: all 0.8s cubic-bezier(0.25, 1, 0.5, 1); }
-        .slot-container:nth-child(2) { margin-top: -40px; } /* Slot tengah naik dikit */
+        .slot-container:nth-child(2) { margin-top: -40px; } 
         
-        .onyx-card { 
-            width: 100%; height: 100%; 
-            background: url('1763947427555.jpg') no-repeat center center fixed; background-size: cover;
-            border: 1px solid rgba(255,255,255,0.3); border-radius: 15px; display: flex; flex-direction: column; 
-            position: relative; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.8); cursor: pointer; z-index: 2; 
-        }
+        .onyx-card { width: 100%; height: 100%; background: url('1763947427555.jpg') no-repeat center center fixed; background-size: cover; border: 1px solid rgba(255,255,255,0.3); border-radius: 15px; display: flex; flex-direction: column; position: relative; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.8); cursor: pointer; z-index: 2; }
         .onyx-card::after { content: ''; position: absolute; inset: 0; background: rgba(0,0,0,0.4); z-index: 0; }
         .card-content { position: relative; z-index: 5; width: 100%; height: 100%; display: flex; flex-direction: column; padding: 15px; }
         .cc-top { flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.3); padding-bottom: 10px; min-height: 60px; justify-content: center; }
@@ -124,17 +134,10 @@
         .btn-select { background: rgba(204, 255, 0, 0.2); border: 1px solid var(--accent); color: var(--accent); animation: pulse 2s infinite; display:none; width: 100%; padding: 8px 0; border-radius: 5px; font-family: 'Teko'; font-weight: bold; font-size: 18px; text-align: center; text-shadow: 0 0 5px #000; }
         .onyx-card.empty .btn-select { display: block; }
 
-        /* BUTTON WA */
-        .btn-wa {
-            background: rgba(37, 211, 102, 0.2); border: 1px solid var(--wa); color: var(--wa);
-            font-family: 'JetBrains Mono'; font-size: 12px; padding: 4px 10px; border-radius: 20px;
-            margin-top: 5px; cursor: pointer; display: none; align-items: center; gap: 5px;
-            text-decoration: none; font-weight: bold; width: fit-content;
-        }
+        .btn-wa { background: rgba(37, 211, 102, 0.2); border: 1px solid var(--wa); color: var(--wa); font-family: 'JetBrains Mono'; font-size: 12px; padding: 4px 10px; border-radius: 20px; margin-top: 5px; cursor: pointer; display: none; align-items: center; gap: 5px; text-decoration: none; font-weight: bold; width: fit-content; }
         .filled .btn-wa { display: flex; }
         .btn-wa:hover { background: var(--wa); color: #000; box-shadow: 0 0 10px var(--wa); }
 
-        /* ACTIVE DASHBOARD */
         #screen-active-dashboard { z-index: 200; background: rgba(0,0,0,0.95); backdrop-filter: blur(10px); }
         .ad-container { width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: space-between; align-items: center; padding: 20px; padding-bottom: 25vh; }
         .limit-hud { width: 90%; max-width: 350px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--accent); border-radius: 8px; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; box-shadow: 0 0 15px rgba(204, 255, 0, 0.1); margin-top: 45px; }
@@ -155,7 +158,6 @@
         @keyframes shine { 0% { transform: translateX(-100%) rotate(45deg); } 100% { transform: translateX(100%) rotate(45deg); } }
         @keyframes breathe { 0%,100%{transform:scale(1); opacity:1;} 50%{transform:scale(1.05); opacity:0.9;} }
 
-        /* FOOTER & FINGERPRINT */
         .bottom-panel { height: 35vh; min-height: 250px; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; z-index: 20; position: fixed; bottom: 0; width: 100%; background: linear-gradient(to top, #000 90%, transparent); padding-bottom: 20px; }
         .stats-wrapper { display: grid; grid-template-columns: 1fr 2px 1fr; align-items: center; justify-items: center; width: 100%; max-width: 400px; margin-bottom: 15px; pointer-events: auto; }
         .stat-box { display: flex; flex-direction: column; align-items: center; text-align: center; width: 100%; }
@@ -215,6 +217,18 @@
 
     <canvas id="dust"></canvas>
 
+    <div id="welcome-overlay">
+        <div class="guide-bg"></div>
+        <div class="guide-scanline"></div>
+        
+        <button id="closeGuideTop" class="btn-skip-guide" onclick="closeGuide()">✖ TUTUP / SKIP</button>
+
+        <div class="guide-wrap">
+            <div id="guideStep" class="guide-step"></div>
+            <button id="guideBtn" class="btn-guide">LANJUT</button>
+        </div>
+    </div>
+
     <div class="top-nav">
         <div class="main-title" ondblclick="toggleAdmin()">FC KELAPA GADING</div>
         <div class="sub-title">SELAMAT DATANG DI RUMAH MLU</div>
@@ -236,13 +250,11 @@
     <div id="screen-queue" class="screen">
         <div class="onyx-panel" style="text-align:center; display:flex; flex-direction:column; align-items:center; background:transparent; border:none; box-shadow:none;">
             <div style="font-family:'Teko'; font-size: 30px; color:var(--cyan); margin-bottom:20px;">VERIFIKASI DATA</div>
-            
             <div class="scanner-container" id="scannerBox">
                 <img src="1763947427555.jpg" class="scan-img scan-bw">
                 <img src="1763947427555.jpg" class="scan-img scan-color" id="scanColorImg">
                 <div class="scan-line" id="scanLine"></div>
             </div>
-            
             <div class="scan-text" id="scanTextStatus">CONNECTING...</div>
         </div>
     </div>
@@ -251,48 +263,25 @@
         <div class="slot-container" id="cont-0">
             <div class="onyx-card empty" id="card-0" onclick="handleSlotClick(0)">
                 <div class="card-content">
-                    <div class="cc-top">
-                        <div class="oc-name" id="n-0">SLOT 1</div>
-                        <div class="oc-plat" id="p-0"></div>
-                        <a href="#" class="btn-wa" id="wa-0" target="_blank" onclick="event.stopPropagation()">
-                            <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
-                            KIRIM WA
-                        </a>
-                    </div>
+                    <div class="cc-top"><div class="oc-name" id="n-0">SLOT 1</div><div class="oc-plat" id="p-0"></div><a href="#" class="btn-wa" id="wa-0" target="_blank" onclick="event.stopPropagation()">KIRIM WA</a></div>
                     <div class="cc-center"><div class="oc-num" id="no-0">M</div></div>
                     <div class="cc-bottom"><button class="btn-action btn-select">PILIH SLOT</button></div>
                 </div>
             </div>
         </div>
-
         <div class="slot-container" id="cont-1">
             <div class="onyx-card empty" id="card-1" onclick="handleSlotClick(1)">
                 <div class="card-content">
-                    <div class="cc-top">
-                        <div class="oc-name" id="n-1">SLOT 2</div>
-                        <div class="oc-plat" id="p-1"></div>
-                        <a href="#" class="btn-wa" id="wa-1" target="_blank" onclick="event.stopPropagation()">
-                            <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
-                            KIRIM WA
-                        </a>
-                    </div>
+                    <div class="cc-top"><div class="oc-name" id="n-1">SLOT 2</div><div class="oc-plat" id="p-1"></div><a href="#" class="btn-wa" id="wa-1" target="_blank" onclick="event.stopPropagation()">KIRIM WA</a></div>
                     <div class="cc-center"><div class="oc-num" id="no-1">L</div></div>
                     <div class="cc-bottom"><button class="btn-action btn-select">PILIH SLOT</button></div>
                 </div>
             </div>
         </div>
-
         <div class="slot-container" id="cont-2">
             <div class="onyx-card empty" id="card-2" onclick="handleSlotClick(2)">
                 <div class="card-content">
-                    <div class="cc-top">
-                        <div class="oc-name" id="n-2">SLOT 3</div>
-                        <div class="oc-plat" id="p-2"></div>
-                        <a href="#" class="btn-wa" id="wa-2" target="_blank" onclick="event.stopPropagation()">
-                            <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
-                            KIRIM WA
-                        </a>
-                    </div>
+                    <div class="cc-top"><div class="oc-name" id="n-2">SLOT 3</div><div class="oc-plat" id="p-2"></div><a href="#" class="btn-wa" id="wa-2" target="_blank" onclick="event.stopPropagation()">KIRIM WA</a></div>
                     <div class="cc-center"><div class="oc-num" id="no-2">U</div></div>
                     <div class="cc-bottom"><button class="btn-action btn-select">PILIH SLOT</button></div>
                 </div>
@@ -390,7 +379,7 @@
             <div style="font-size:50px; margin-bottom:10px;">📲</div>
             <h2 style="font-family:'Teko'; color:#fff; margin:0; font-size:32px;">INSTALL APLIKASI</h2>
             <p style="font-family:'JetBrains Mono'; color:#aaa; font-size:14px; margin:15px 0; line-height:1.5;">
-                Agar fitur <b>GPS</b> dan <b>Notifikasi</b> berjalan lancar, Anda wajib menginstall aplikasi ini.
+                Agar fitur <b>GPS (Watchdog)</b> dan <b>Notifikasi</b> berjalan lancar, Anda wajib menginstall aplikasi ini.
             </p>
             <button id="btnInstallNow" style="width:100%; padding:15px; background:var(--cyan); color:#000; font-family:'Teko'; font-size:24px; font-weight:bold; border:none; border-radius:10px; cursor:pointer; box-shadow:0 0 20px rgba(0,240,255,0.4); animation:pulse 2s infinite;">
                 INSTALL SEKARANG
@@ -400,12 +389,108 @@
             </button>
         </div>
     </div>
-
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, doc, onSnapshot, runTransaction, collection, addDoc, query, where, getDocs, limit, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // === CONFIG DATABASE BARU (fcgadingbaru) ===
+        // ==========================================
+        // 1. LOGIKA WELCOME SCREEN (CHARGING GUIDE)
+        // ==========================================
+        const guideSteps = [
+            {
+                icon:"📱", title:"SCAN BARCODE",
+                text:"Scan QR Code di lokasi untuk masuk. Tutup balon aplikasi lain (Gojek/Grab) agar tidak mengganggu. Jika diminta izin lokasi, klik 'Allow' / 'Izinkan'."
+            },
+            {
+                icon:"📝", title:"ISI DATA",
+                text:"Isi Plat Nomor, Nama, dan No HP dengan benar. Tenang, data kamu aman dan hanya untuk antrian charging."
+            },
+            {
+                icon:"🔌", title:"PILIH SLOT",
+                text:"Jika ada Slot Kosong (S1/S2/S3), langsung klik 'PILIH SLOT'. Pastikan nomor slot di HP sesuai dengan colokan motor kamu.",
+                slots:`<div class="g-slots"><div class="g-slot g-free">S1</div><div class="g-slot g-busy">S2</div><div class="g-slot g-busy">S3</div></div>`
+            },
+            {
+                icon:"⏳", title:"ANTRIAN",
+                text:"Jika penuh, kamu masuk daftar antrian. Silakan ngopi atau beli cemilan sambil menunggu giliran.",
+                slots:`<div class="g-slots"><div class="g-slot g-busy">S1</div><div class="g-slot g-busy">S2</div><div class="g-slot g-busy">S3</div></div>`
+            },
+            {
+                icon:"⚡", title:"GILIRAN TIBA",
+                text:"Saat slot kosong, HP kamu akan bergetar/bersuara. Segera klik tombol masuk agar tidak diserobot orang lain.",
+                slots:`<div class="g-slots"><div class="g-slot g-free">S2</div></div>`
+            },
+            {
+                icon:"✅", title:"SELESAI",
+                text:"Setelah baterai penuh atau selesai charging, WAJIB klik tombol 'SELESAI' agar slot bisa dipakai teman lain."
+            }
+        ];
+
+        let gIndex = 0;
+        const guideOverlay = document.getElementById('welcome-overlay');
+        const guideStepEl = document.getElementById('guideStep');
+        const guideBtn = document.getElementById('guideBtn');
+
+        // Fungsi Tutup Guide
+        window.closeGuide = () => {
+            guideOverlay.style.opacity = '0';
+            setTimeout(() => { 
+                guideOverlay.style.display = 'none'; 
+                window.checkLocAndRegister(); // Lanjut cek lokasi
+            }, 500);
+        };
+
+        function typeText(el, text, idx=0){
+            if(idx < text.length){
+                el.textContent += text[idx];
+                setTimeout(()=>typeText(el,text,idx+1), 25);
+            }
+        }
+
+        function renderGuide(){
+            const s = guideSteps[gIndex];
+            guideStepEl.innerHTML = `
+                <div class="g-icon">${s.icon}</div>
+                <div class="g-title">${s.title}</div>
+                <div class="g-desc" id="gDesc"></div>
+                ${s.slots || ""}
+            `;
+            guideStepEl.classList.remove("show");
+            requestAnimationFrame(()=>{
+                guideStepEl.classList.add("show");
+                const descEl = document.getElementById("gDesc");
+                if(descEl) typeText(descEl, s.text);
+            });
+        }
+
+        if(guideBtn) {
+            guideBtn.onclick = () => {
+                gIndex++;
+                if(gIndex < guideSteps.length){
+                    renderGuide();
+                } else {
+                    guideStepEl.innerHTML = `
+                        <div class="g-final">SELAMAT DATANG ✨</div>
+                        <div class="g-desc" style="margin-top:10px; font-size:16px;">
+                            "Kita mungkin datang pusing,<br>tapi tertib bikin kita ga tambah pusing."
+                        </div>`;
+                    guideBtn.innerText = "MASUK APLIKASI";
+                    guideBtn.onclick = window.closeGuide;
+                    guideStepEl.classList.add("show");
+                }
+            };
+        }
+
+        // Cek User Lama (Auto Skip Guide)
+        if(localStorage.getItem('myPlat')) {
+            guideOverlay.style.display = 'none';
+        } else {
+            renderGuide();
+        }
+
+        // ==========================================
+        // 2. LOGIKA UTAMA (FIREBASE & SYSTEM)
+        // ==========================================
         const firebaseConfig = {
             apiKey: "AIzaSyDIUivobLNDIsbK7ilqfe7fLAL8LnM4Hk8",
             authDomain: "fcgadingbaru.firebaseapp.com",
@@ -428,20 +513,19 @@
         window.activeSlotIdx = -1;
         let isDashboardMinimized = false;
         let amIInQueue = false;
-        window.currentUtterance = null;
         let tempEntryTime = 0;
         let hasNotifiedTurn = false;
 
-        fetch('https://api.ipify.org?format=json').then(res => res.json()).then(data => myIP = data.ip).catch(e => console.log("IP Check Skip"));
-
+        // KOORDINAT TOKO
         const STATION_LAT = -6.171583; 
         const STATION_LNG = 106.899844; 
         const MAX_DIST_KM = 0.5; 
-        // Force Logout Dist sudah digantikan oleh Watchdog v3
         const TAKEOVER_MIN_TIME = 5 * 60 * 1000; 
 
         const $ = (id) => document.getElementById(id);
         const vibrate = () => { if(navigator.vibrate) navigator.vibrate(50); };
+
+        fetch('https://api.ipify.org?format=json').then(res => res.json()).then(data => myIP = data.ip).catch(e => console.log("IP Check Skip"));
 
         function showMsg(title, body) { $('msgTitle').innerText=title; $('msgBody').innerText=body; $('msgModal').style.display='flex'; }
         function showConfirm(text, cb) { $('confirmText').innerText = text; $('confirmModal').style.display='flex'; $('btnConfirmYes').onclick = () => { $('confirmModal').style.display='none'; cb(); }; }
@@ -465,10 +549,6 @@
             $('queueModal').style.display = 'flex';
         };
 
-        const canvas = $('dust'); const ctx = canvas.getContext("2d");
-        canvas.width = window.innerWidth; canvas.height = window.innerHeight;
-        window.addEventListener('resize', () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; });
-
         let tempUserData = {}; let currentStep = 0;
         const steps = [ {q: "PLAT NOMOR", k: "plat"}, {q: "NAMA LENGKAP", k: "name"}, {q: "NOMOR WHATSAPP", k: "wa"} ];
         
@@ -482,13 +562,6 @@
         window.toggleAdmin = () => {
              const pass = prompt("MASUKKAN KODE ADMIN:");
              if(pass === "1131") { localStorage.setItem('adm_ok', '1'); window.location.href = 'admin.html'; } 
-             else if (pass === "9999") {
-                 if(confirm("RESET ANTRIAN KE 1?")) {
-                     runTransaction(db, async(t) => { 
-                        t.update(mainRef, { lastResetDate: new Date().toISOString().split('T')[0], waitingQueue: [], chargingSlots: [null,null,null], recycledNumbers: [], lastTicket: 0 }); 
-                     }).then(()=>alert("SUKSES!"));
-                 }
-             } else { if(pass) alert("KODE SALAH!"); }
         }
 
         function renderFocusedQueue() {
@@ -505,7 +578,6 @@
             localQueue.forEach((q, i) => {
                 if (i > 0) { const pipe = document.createElement("div"); pipe.className = "fq-pipe"; container.appendChild(pipe); }
                 const d = document.createElement("div");
-                const diff = Math.abs(i - youIndex);
                 
                 if (q.plat === myPlat) {
                     d.className = "fq-item you";
@@ -516,7 +588,7 @@
                         d.onclick = () => { $('waitingDashboard').style.display = 'none'; switchScreen('screen-slots'); isDashboardMinimized = true; updateUI(); vibrate(); };
                     } else { d.textContent = `#${q.qNo} ${q.plat}`; }
                 }
-                else if (diff === 1) { d.className = "fq-item mid"; d.textContent = `#${q.qNo} ${q.plat}`; }
+                else if (Math.abs(i - youIndex) === 1) { d.className = "fq-item mid"; d.textContent = `#${q.qNo} ${q.plat}`; }
                 else { d.className = "fq-item small"; d.textContent = `#${q.qNo} ${q.plat}`; }
                 container.appendChild(d);
             });
@@ -542,6 +614,9 @@
         }
 
         window.checkLocAndRegister = () => {
+            // Tunggu guide ditutup
+            if(guideOverlay.style.display !== 'none') return;
+
             if(localStorage.getItem('adm_ok')) { runLogin(); return; }
             if(navigator.geolocation) {
                 $('fpBtn').style.opacity = 0.5;
@@ -557,11 +632,10 @@
         window.cancelLogin = () => { $('terminal-box').innerHTML=''; switchScreen('screen-slots'); tempEntryTime = 0; };
         
         function runLogin() { 
-            vibrate(); 
-            tempEntryTime = Date.now(); 
-            switchScreen('screen-login'); 
+            vibrate(); tempEntryTime = Date.now(); switchScreen('screen-login'); 
             currentStep = 0; tempUserData = {}; $('terminal-box').innerHTML=''; terminalPrompt(); 
         }
+
         function terminalPrompt() {
             const line = document.createElement("div"); line.className = "term-line";
             line.innerHTML = `> ${steps[currentStep].q}: <input class="term-input" autofocus>`;
@@ -611,17 +685,14 @@
         function executeRegistration() {
             runTransaction(db, async(t) => {
                 const d = (await t.get(mainRef)).data();
-                // Support 3 Slot check
                 const all = [...(d.chargingSlots||[]), ...(d.waitingQueue||[])].filter(u => u !== null);
                 
-                // === SMART RECOVERY ===
                 const duplicate = all.find(x => x.plat === tempUserData.plat);
                 if(duplicate) {
                     const recover = confirm(`PLAT ${tempUserData.plat} SUDAH TERDAFTAR!\nApakah ini Anda? Klik OKE untuk masuk.`);
                     if(recover) {
                         localStorage.setItem('myPlat', tempUserData.plat);
-                        location.reload(); 
-                        return "RECOVERED";
+                        location.reload(); return "RECOVERED";
                     } else throw "PLAT SUDAH ADA";
                 }
 
@@ -644,27 +715,12 @@
 
         onSnapshot(mainRef, (snap) => {
             const d = snap.data();
-            // === ANTI OVERWRITE: Matikan Auto-Reset ===
-            if(!d) {
-                console.log("Menunggu data dari Admin...");
-                return;
-            }
-            
-            // Default 3 Slot jika null
+            if(!d) { console.log("Menunggu data dari Admin..."); return; }
             localSlots = d.chargingSlots || [null,null,null];
             localQueue = (d.waitingQueue || []).sort((a,b) => a.qNo - b.qNo);
             updateUI();
-            
             if($('waitingDashboard').style.display === 'flex') renderFocusedQueue();
         });
-
-        function sendNotification(title, body) {
-            if (Notification.permission === "granted" && document.visibilityState === "hidden") {
-                navigator.serviceWorker.ready.then(reg => {
-                    reg.showNotification(title, { body: body, icon: 'icon-192.png', vibrate: [200, 100, 200], tag: 'antrian-mlu' });
-                });
-            }
-        }
 
         function updateUI() {
             if($('slotCountVal')) $('slotCountVal').innerText = localSlots.filter(s => s === null).length;
@@ -677,32 +733,20 @@
             const iAmFirst = (localQueue.length > 0 && localQueue[0].plat === myPlat);
             const hasEmptySlot = localSlots.some(s => s === null);
 
-            // === AUTO CLOSE & NOTIF GILIRAN ===
             if (iAmFirst && hasEmptySlot) {
                 $('waitingDashboard').style.display = 'none'; 
-                if (!isDashboardMinimized) {
-                    isDashboardMinimized = true;
-                    switchScreen('screen-slots');
-                }
-                
+                if (!isDashboardMinimized) { isDashboardMinimized = true; switchScreen('screen-slots'); }
                 if (!hasNotifiedTurn) {
                     window.speechSynthesis.cancel();
                     const msg = new SpeechSynthesisUtterance(`Halo, Giliran Anda. Silakan pilih slot.`);
-                    msg.lang = 'id-ID';
-                    window.speechSynthesis.speak(msg);
-                    vibrate();
+                    msg.lang = 'id-ID'; window.speechSynthesis.speak(msg); vibrate();
                     sendNotification("GILIRAN ANDA!", "Slot tersedia. Silakan pilih slot!");
                     hasNotifiedTurn = true; 
                 }
-            } else if (!iAmFirst) {
-                hasNotifiedTurn = false;
-            }
+            } else if (!iAmFirst) { hasNotifiedTurn = false; }
 
-            // LOOP 3 SLOT
             localSlots.forEach((s, i) => {
-                const c = $(`card-${i}`);
-                const waBtn = $(`wa-${i}`);
-                
+                const c = $(`card-${i}`); const waBtn = $(`wa-${i}`);
                 if(s) {
                     if(c) { c.classList.remove('empty'); c.classList.add('filled'); }
                     if($(`n-${i}`)) $(`n-${i}`).innerText = s.userName;
@@ -715,7 +759,6 @@
                             waBtn.href = `https://wa.me/${num}?text=Halo%20${s.userName},%20antrian%20di%20FC%20Kelapa%20Gading%20nunggu%20nih.%20Udah%20selesai?`;
                         } else waBtn.style.display = 'none';
                     }
-
                     if(myPlat === s.plat) {
                         amICharging = true; window.activeSlotIdx = i;
                         if(!isDashboardMinimized) switchScreen('screen-active-dashboard');
@@ -723,14 +766,13 @@
                         if($('ad-name-val')) $('ad-name-val').innerText = s.userName;
                         if($('ad-plat-val')) $('ad-plat-val').innerText = s.plat;
                         if($('ad-no-val')) $('ad-no-val').innerText = "#" + s.qNo;
-                        $('waitingDashboard').style.display='none';
-                        hasNotifiedTurn = false; 
+                        $('waitingDashboard').style.display='none'; hasNotifiedTurn = false; 
                     }
                 } else {
                     if(c) { c.classList.remove('filled'); c.classList.add('empty'); }
                     if($(`n-${i}`)) $(`n-${i}`).innerText = "SLOT " + (i+1);
                     if($(`p-${i}`)) $(`p-${i}`).innerText = "";
-                    if($(`no-${i}`)) $(`no-${i}`).innerText = ["M","L","U"][i]; // M L U
+                    if($(`no-${i}`)) $(`no-${i}`).innerText = ["M","L","U"][i];
                 }
             });
 
@@ -750,7 +792,7 @@
             else { txt.innerText = "DAFTAR"; }
         }
 
-        // --- MUSIC PLAYER & HANDLERS ---
+        // --- MUSIC PLAYER ---
         const playlistData = [ { title: "Ada Apa Denganmu", url: "https://mlump3player.netlify.app/Ada%20Apa%20Denganmu.mp3" }, { title: "Anji - Menunggu Kamu", url: "https://mlump3player.netlify.app/anji-menunggu-kamu.mp3" }, { title: "Anugerah Terindah", url: "https://mlump3player.netlify.app/Anugerah%20Terindah%20Yang%20Pernah%20Kumiliki.mp3" }, { title: "Armada - Asalkan Kau Bahagia", url: "https://mlump3player.netlify.app/armada_asalkan_kau_bahagia.mp3" }, { title: "Armada - Harusnya Aku", url: "https://mlump3player.netlify.app/armada_harusnya_aku.mp3" }, { title: "Bintang Di Surga", url: "https://mlump3player.netlify.app/Bintang%20Di%20Surga.mp3" }, { title: "Bon Jovi - Always", url: "https://mlump3player.netlify.app/Bon%20Jovi%20-%20Always%20.MP3" }, { title: "Bon Jovi - It's My Life", url: "https://mlump3player.netlify.app/Bon%20Jovi%20-%20Its%20My%20Life%20.mp3" }, { title: "Dan - SO7", url: "https://mlump3player.netlify.app/Dan%20-%20Sheila%20On%207%20-%201999.mp3" }, { title: "Mungkin Nanti", url: "https://mlump3player.netlify.app/Mungkin%20Nanti.mp3" }, { title: "Surat Cinta Untuk Starla", url: "https://mlump3player.netlify.app/Virgoun%20-%20Surat%20Cinta%20Untuk%20Starla.mp3" } ];
         const audio = $('audio'); let curTrk=0;
         window.openPlaylist = () => { const cont = $('playlistContainer'); if(!cont) return; cont.innerHTML = ''; playlistData.forEach((item, idx) => { const div = document.createElement('div'); div.className = `pl-item ${idx === curTrk ? 'active' : ''}`; div.innerHTML = `<span class="pl-icon">🎵</span><span class="pl-title">${item.title}</span>`; div.onclick = () => { window.playTrack(idx); $('playlistModal').style.display='none'; }; cont.appendChild(div); }); $('playlistModal').style.display = 'flex'; };
@@ -796,15 +838,15 @@
         window.cancelQueue = () => { showConfirm("BATAL?", ()=>{ runTransaction(db, async(t)=>{ const d=(await t.get(mainRef)).data(); let q=d.waitingQueue; const i=q.findIndex(x=>x.plat===myPlat); if(i!==-1){ q.splice(i,1); t.update(mainRef, {waitingQueue:q}); } }).then(()=>{ localStorage.removeItem('myPlat'); location.reload(); }); }); };
 
         // ============================================
-        // WATCHDOG v3 - INTELLIGENT GEO SENTINEL
+        // WATCHDOG v3 (INTELLIGENT GEO SENTINEL)
         // ============================================
         const WD_CFG = {
-            RADIUS: 100,        // Radius aman (meter) - Disesuaikan agar aman indoor
-            JITTER: 20,         // Abaikan pergeseran < 20m
-            MAX_SPEED: 35,      // m/s (Batas kecepatan manusia, anti teleport)
-            GRACE_OUT: 60000,   // 60 Detik toleransi jika sinyal hilang/keluar radius
-            MAX_STRIKE: 5,      // Batas poin pelanggaran sebelum kick
-            INTERVAL: 5000      // Cek setiap 5 detik
+            RADIUS: 100,        // Radius aman (meter)
+            JITTER: 20,         // Abaikan pergeseran kecil
+            MAX_SPEED: 35,      // m/s (Anti Teleport)
+            GRACE_OUT: 60000,   // 60 Detik toleransi sebelum strike
+            MAX_STRIKE: 5,      // Batas poin pelanggaran
+            INTERVAL: 5000
         };
 
         let wdBase = null, wdLast = null;
@@ -823,33 +865,18 @@
             const now = Date.now();
             const cur = { lat: p.coords.latitude, lng: p.coords.longitude, time: now, mock: p.coords.isFromMockProvider || false };
             
-            // KUNCI LOKASI KE TOKO (Station)
             if (!wdBase) { wdBase = { lat: STATION_LAT, lng: STATION_LNG }; }
-
             if (!wdLast) { wdLast = cur; return; }
 
             const dMove = getDistanceMeters(wdLast, cur);
             const dt = (now - wdLast.time) / 1000;
             const speed = dMove / (dt || 1);
 
-            // 1. FILTER JITTER (Abaikan geser dikit)
             if (dMove < WD_CFG.JITTER) { wdLast = cur; return; }
+            if (cur.mock) { wdStrike += 3; console.warn("[WATCHDOG] FAKE GPS DETECTED!"); }
+            if (speed > WD_CFG.MAX_SPEED) { wdStrike += 2; console.warn("[WATCHDOG] IMPOSSIBLE SPEED!"); }
 
-            // 2. DETEKSI FAKE GPS (Mock Provider)
-            if (cur.mock) {
-                wdStrike += 3;
-                console.warn("[WATCHDOG] FAKE GPS DETECTED!");
-            }
-
-            // 3. DETEKSI TELEPORT (Speed > 120km/h)
-            if (speed > WD_CFG.MAX_SPEED) {
-                wdStrike += 2;
-                console.warn("[WATCHDOG] IMPOSSIBLE SPEED (Teleport)!");
-            }
-
-            // 4. CEK RADIUS DARI TOKO
             const distFromStation = getDistanceMeters(wdBase, cur);
-            
             if (distFromStation > WD_CFG.RADIUS) {
                 if (!wdGraceTimer) {
                     wdGraceTimer = now;
@@ -859,46 +886,40 @@
                     console.warn("[WATCHDOG] RADIUS VIOLATION! Time expired.");
                 }
             } else {
-                // User kembali masuk radius aman
                 wdGraceTimer = null;
-                // STRIKE DECAY (Pengampunan dosa jika user berperilaku baik)
-                if (wdStrike > 0) wdStrike = Math.max(0, wdStrike - 0.5);
+                if (wdStrike > 0) wdStrike = Math.max(0, wdStrike - 0.5); // Decay
             }
 
-            // 5. FINAL DECISION
             if (wdStrike >= WD_CFG.MAX_STRIKE) {
-                console.error("[WATCHDOG] STRIKE LIMIT REACHED. KICKING USER.");
+                console.error("[WATCHDOG] STRIKE LIMIT REACHED.");
                 handleAutoKick(distFromStation);
             }
-
             wdLast = cur;
         }
 
         function handleAutoKick(dist) {
-            // Hapus data lokal (Logout HP User)
             localStorage.removeItem('myPlat');
-            alert(`SISTEM KEAMANAN: \nAnda terdeteksi menjauh (${dist.toFixed(0)}m) atau menggunakan GPS palsu. \n\nSesi Anda diakhiri.`);
+            alert(`SISTEM KEAMANAN: \nAnda terdeteksi menjauh (${dist.toFixed(0)}m) atau sinyal error berulang. \nSesi diakhiri.`);
             location.reload();
-            
-            // Note: Data di server aman (slot tidak hilang), tapi user harus login ulang & konfirmasi
-            // jika ingin kembali. Ini untuk mencegah slot terkunci oleh "hantu".
         }
 
-        // START WATCHDOG
         if (navigator.geolocation && !localStorage.getItem('adm_ok')) {
             const myP = localStorage.getItem('myPlat');
             if(myP) {
                 setInterval(() => {
-                    navigator.geolocation.getCurrentPosition(
-                        runWatchdog,
-                        (err) => console.log("[WATCHDOG] GPS Error/Off (Allowed)."),
-                        { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
-                    );
+                    navigator.geolocation.getCurrentPosition(runWatchdog, (e) => {}, { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 });
                 }, WD_CFG.INTERVAL);
             }
         }
 
-        // --- UTILS LAIN ---
+        function sendNotification(title, body) {
+            if (Notification.permission === "granted" && document.visibilityState === "hidden") {
+                navigator.serviceWorker.ready.then(reg => {
+                    reg.showNotification(title, { body: body, icon: 'icon-192.png', vibrate: [200, 100, 200], tag: 'antrian-mlu' });
+                });
+            }
+        }
+
         if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js').then(reg => console.log('PWA Ready')).catch(err => console.log('PWA Error', err)); }); }
         function requestNotifPermission() { if ("Notification" in window) Notification.requestPermission(); }
         document.addEventListener('click', requestNotifPermission, {once:true});
