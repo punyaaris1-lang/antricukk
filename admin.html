@@ -3,10 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ADMIN SUPER - FC KG</title>
+    <title>ADMIN SUPER - FC KG (ULTIMATE)</title>
     <link href="https://fonts.googleapis.com/css2?family=Teko:wght@300;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        :root { --bg: #050505; --panel: #111; --border: #333; --accent: #CCFF00; --cyan: #00F0FF; --red: #FF003C; --term-bg: #000; --term-text: #0f0; }
+        /* === STYLE DASAR & TERMINAL THEME === */
+        :root { 
+            --bg: #050505; --panel: #111; --border: #333; 
+            --accent: #CCFF00; --cyan: #00F0FF; --red: #FF003C; 
+            --term-bg: #000; --term-text: #0f0; 
+        }
         body { background: #0a0a0a; color: #fff; font-family: 'JetBrains Mono', monospace; padding: 10px; font-size: 11px; margin: 0; }
         
         .box { border: 1px solid #333; padding: 15px; margin-bottom: 15px; background: #000; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
@@ -34,21 +39,25 @@
         .stat-card { background: #111; padding: 10px; border: 1px solid #333; border-radius: 5px; }
         .stat-val { font-size: 20px; color: var(--accent); font-family: 'Teko'; }
         
-        /* === TERMUX STYLE LOGS === */
+        /* === TERMUX / BRUTAL LOG STYLE === */
         .term-container {
-            background: var(--term-bg); border: 1px solid #333; height: 350px; 
+            background: var(--term-bg); border: 1px solid #333; height: 400px; 
             overflow-y: auto; padding: 10px; font-family: 'JetBrains Mono', monospace; 
             font-size: 10px; color: #ccc; border-radius: 5px;
             display: flex; flex-direction: column-reverse; /* Log baru di bawah */
         }
         .log-line { margin-bottom: 4px; border-bottom: 1px solid #111; padding-bottom: 2px; line-height: 1.4; word-wrap: break-word; }
         .ts { color: #666; margin-right: 5px; }
-        .act-admin { color: var(--red); font-weight: bold; }
-        .act-system { color: var(--cyan); font-weight: bold; }
-        .act-user { color: var(--accent); font-weight: bold; }
+        
+        /* WARNA ACTOR */
+        .act-admin { color: var(--red); font-weight: bold; }   /* Merah */
+        .act-system { color: var(--cyan); font-weight: bold; } /* Cyan */
+        .act-user { color: var(--accent); font-weight: bold; } /* Hijau Stabilo */
+        
         .cmd { color: #fff; font-weight: bold; margin-right: 5px; }
-        .dtl { color: #aaa; }
+        .dtl { color: #aaa; font-style: italic; }
 
+        /* MODAL & LOGIN */
         #customModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 9999; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
         .modal-box { background: #111; border: 1px solid var(--cyan); width: 85%; padding: 20px; border-radius: 10px; text-align: center; animation: popIn 0.3s; }
         @keyframes popIn { from{transform:scale(0.8); opacity:0;} to{transform:scale(1); opacity:1;} }
@@ -74,13 +83,13 @@
                 <input type="password" id="loginPin" placeholder="****" style="margin-top:5px; border-color:var(--accent);">
             </div>
             <button onclick="attemptLogin()" class="btn-green" style="width:100%; font-size:18px;">MASUK</button>
-            <div style="margin-top:15px; font-size:10px; color:#555;">SYSTEM V4.13 FLEXIBLE CONTROL</div>
+            <div style="margin-top:15px; font-size:10px; color:#555;">SYSTEM V5.0 SUPER LOG</div>
         </div>
     </div>
 
     <div style="display:flex; justify-content:space-between; margin-bottom:15px; align-items:center;">
         <div>
-            <span style="font-family:'Teko'; font-size:24px; color:var(--cyan);">ADMIN PANEL <span style="color:var(--accent);">v4.13</span></span>
+            <span style="font-family:'Teko'; font-size:24px; color:var(--cyan);">ADMIN PANEL <span style="color:var(--accent);">v5.0</span></span>
             <div id="displayAdminName" style="color:#666; font-size:10px;">User: -</div>
         </div>
         <div style="display:flex; gap:5px;">
@@ -128,7 +137,6 @@
             </div>
         </div>
     </div>
-
     <div class="box" style="border-top: 3px solid #fff;">
         <h3 style="display:flex; justify-content:space-between; align-items:center;">
             STATISTIK HARI INI
@@ -198,7 +206,7 @@
         let cachedSlots = [null, null, null];
         let cachedQueue = [];
 
-        // LOGIN
+        // === LOGIN LOGIC ===
         const currentAdmin = localStorage.getItem('admin_name');
         if(currentAdmin) {
             document.getElementById('loginOverlay').style.display = 'none';
@@ -218,7 +226,7 @@
 
         window.logout = () => { localStorage.removeItem('admin_name'); window.location.href='index.html'; };
 
-        // MODAL
+        // === MODAL UTILS ===
         let currentCallback = null;
         window.askConfirm = (text, callback) => {
             document.getElementById('modalText').innerText = text;
@@ -230,13 +238,14 @@
 
         function getTodayString() { return new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jakarta' }); }
 
-        // MAIN LISTENER
+        // === REALTIME LISTENER (MAIN DATA) ===
         onSnapshot(mainRef, (snap) => {
             if (!snap.exists()) return;
             const d = snap.data();
             cachedSlots = d.chargingSlots || [null,null,null];
             cachedQueue = d.waitingQueue || [];
 
+            // Render Slot
             cachedSlots.forEach((s, i) => {
                 const el = document.getElementById(`slot${i+1}`);
                 if(s) {
@@ -258,11 +267,11 @@
             document.getElementById('stat-active').innerText = cachedQueue.length;
         });
 
+        // Render Tabel Antrian dengan Panah Naik/Turun
         function renderQueueTable() {
             let h = `<table><tr><th width="20">#</th><th>USER</th><th>AKSI</th></tr>`;
             if(cachedQueue.length === 0) h += `<tr><td colspan="3" style="text-align:center; color:#444;">KOSONG</td></tr>`;
             cachedQueue.forEach((q, idx) => {
-                // Logic tombol panah naik/turun
                 const upDisabled = (idx === 0) ? 'disabled style="opacity:0.3"' : '';
                 const downDisabled = (idx === cachedQueue.length - 1) ? 'disabled style="opacity:0.3"' : '';
 
@@ -284,7 +293,7 @@
             document.getElementById('queueTable').innerHTML = h + `</table>`;
         }
 
-        // ACTIONS
+        // === ACTIONS ===
         window.manualAdd = (target) => {
             const p = document.getElementById('newPlat').value.toUpperCase();
             const n = document.getElementById('newName').value.toUpperCase();
@@ -356,20 +365,13 @@
             });
         };
 
-        // === FITUR TUKAR POSISI ANTRIAN ===
         window.switchQueue = (idx, direction) => {
             runTransaction(db, async(t) => {
                 const d = (await t.get(mainRef)).data();
                 let q = d.waitingQueue || [];
                 const targetIdx = idx + direction;
-
-                if (targetIdx < 0 || targetIdx >= q.length) return; // Out of bounds
-
-                // Swap
-                const temp = q[idx];
-                q[idx] = q[targetIdx];
-                q[targetIdx] = temp;
-
+                if (targetIdx < 0 || targetIdx >= q.length) return; 
+                const temp = q[idx]; q[idx] = q[targetIdx]; q[targetIdx] = temp;
                 t.update(mainRef, { waitingQueue: q });
                 addLog("ADMIN", "SWAP_QUEUE", `Swapped Q#${idx+1} with Q#${targetIdx+1}`);
             });
@@ -388,30 +390,21 @@
             });
         };
 
-        // === FUNGSI RESET HARIAN (NEW DAY) - TOMBOL KUNING ===
+        // === FUNGSI RESET HARIAN (AMAN - TOMBOL KUNING) ===
         window.resetDaily = () => {
             runTransaction(db, async(t) => {
                 const docSnap = await t.get(mainRef);
                 const d = docSnap.data();
-                
-                // Keep Slot, Reset Queue & Ticket
                 const currentSlots = d.chargingSlots || [null, null, null];
-                
                 t.set(mainRef, { 
                     chargingSlots: currentSlots, 
-                    waitingQueue: [], 
-                    recycledNumbers: [], 
-                    lastTicket: 0, 
-                    lastResetDate: getTodayString() 
+                    waitingQueue: [], recycledNumbers: [], lastTicket: 0, lastResetDate: getTodayString() 
                 });
-                
                 addLog("ADMIN", "NEW_DAY", "Reset Nomor Antrian ke 1 (Daily Reset)");
-            }).then(() => {
-                alert("BERHASIL! Nomor Antrian kembali ke 1. Slot aman.");
-            }).catch(e => alert("Error: " + e));
+            }).then(() => { alert("BERHASIL! Nomor Antrian kembali ke 1. Slot aman."); }).catch(e => alert("Error: " + e));
         };
 
-        // === FUNGSI RESET TOTAL (DANGER) - TOMBOL MERAH ===
+        // === FUNGSI RESET TOTAL (BAHAYA - TOMBOL MERAH) ===
         window.resetTotal = () => {
             setDoc(mainRef, { chargingSlots:[null,null,null], waitingQueue:[], recycledNumbers:[], lastTicket:0, lastResetDate: getTodayString() })
             .then(() => { addLog("ADMIN", "RESET_ALL", "System Reset Triggered"); });
@@ -456,12 +449,12 @@
         };
         setTimeout(loadAnalytics, 2000);
 
-        // === TERMINAL LOG LISTENER ===
+        // === TERMINAL LOG LISTENER (BRUTAL DETAIL) ===
         onSnapshot(query(logRef, orderBy("timestamp", "desc"), limit(200)), (snap) => {
             let h = '';
             const docs = [];
             snap.forEach(d => docs.push(d.data()));
-            docs.reverse(); // Newest at bottom
+            docs.reverse(); // Urutan bawah = terbaru
 
             docs.forEach(data => {
                 let timeStr = "??:??:??";

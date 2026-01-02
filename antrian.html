@@ -100,7 +100,7 @@
         }
         .scan-text { margin-top: 25px; font-family: 'JetBrains Mono'; font-size: 16px; color: var(--cyan); letter-spacing: 2px; text-shadow: 0 0 10px var(--cyan); height: 20px; }
 
-        /* SLOT VIEW (UPDATED FOR 3 SLOTS) */
+        /* SLOT VIEW (3 SLOT SUPPORT) */
         #screen-slots { flex-direction: row; align-items: center; justify-content: center; gap: 8px; padding: 0 10px; }
         .slot-container { width: 33%; height: 45vh; max-height: 380px; position: relative; transition: all 0.8s cubic-bezier(0.25, 1, 0.5, 1); }
         .slot-container:nth-child(2) { margin-top: -40px; } /* Slot tengah naik dikit */
@@ -390,7 +390,7 @@
             <div style="font-size:50px; margin-bottom:10px;">📲</div>
             <h2 style="font-family:'Teko'; color:#fff; margin:0; font-size:32px;">INSTALL APLIKASI</h2>
             <p style="font-family:'JetBrains Mono'; color:#aaa; font-size:14px; margin:15px 0; line-height:1.5;">
-                Agar fitur <b>GPS (Watchdog)</b> dan <b>Notifikasi</b> berjalan lancar, Anda wajib menginstall aplikasi ini.
+                Agar fitur <b>GPS</b> dan <b>Notifikasi</b> berjalan lancar, Anda wajib menginstall aplikasi ini.
             </p>
             <button id="btnInstallNow" style="width:100%; padding:15px; background:var(--cyan); color:#000; font-family:'Teko'; font-size:24px; font-weight:bold; border:none; border-radius:10px; cursor:pointer; box-shadow:0 0 20px rgba(0,240,255,0.4); animation:pulse 2s infinite;">
                 INSTALL SEKARANG
@@ -437,7 +437,7 @@
         const STATION_LAT = -6.171583; 
         const STATION_LNG = 106.899844; 
         const MAX_DIST_KM = 0.5; 
-        const FORCE_LOGOUT_DIST = 0.5; 
+        // Force Logout Dist sudah digantikan oleh Watchdog v3
         const TAKEOVER_MIN_TIME = 5 * 60 * 1000; 
 
         const $ = (id) => document.getElementById(id);
@@ -644,9 +644,8 @@
 
         onSnapshot(mainRef, (snap) => {
             const d = snap.data();
-            // === FIX DATA HILANG 1: MATIKAN AUTO RESET ===
+            // === ANTI OVERWRITE: Matikan Auto-Reset ===
             if(!d) {
-                // Code reset dihapus agar tidak menimpa data saat koneksi lemot
                 console.log("Menunggu data dari Admin...");
                 return;
             }
@@ -678,7 +677,7 @@
             const iAmFirst = (localQueue.length > 0 && localQueue[0].plat === myPlat);
             const hasEmptySlot = localSlots.some(s => s === null);
 
-            // === AUTO CLOSE & NOTIF ===
+            // === AUTO CLOSE & NOTIF GILIRAN ===
             if (iAmFirst && hasEmptySlot) {
                 $('waitingDashboard').style.display = 'none'; 
                 if (!isDashboardMinimized) {
@@ -699,7 +698,7 @@
                 hasNotifiedTurn = false;
             }
 
-            // LOOP SLOT (Otomatis handle 3 slot karena localSlots array lengthnya 3)
+            // LOOP 3 SLOT
             localSlots.forEach((s, i) => {
                 const c = $(`card-${i}`);
                 const waBtn = $(`wa-${i}`);
@@ -731,7 +730,7 @@
                     if(c) { c.classList.remove('filled'); c.classList.add('empty'); }
                     if($(`n-${i}`)) $(`n-${i}`).innerText = "SLOT " + (i+1);
                     if($(`p-${i}`)) $(`p-${i}`).innerText = "";
-                    if($(`no-${i}`)) $(`no-${i}`).innerText = ["M","L","U"][i]; // Slot 3 jadi "U" (MLU)
+                    if($(`no-${i}`)) $(`no-${i}`).innerText = ["M","L","U"][i]; // M L U
                 }
             });
 
@@ -796,26 +795,110 @@
         window.stopCharging = (idx) => { showConfirm("SELESAI?", ()=>{ runTransaction(db, async(t)=>{ const d=(await t.get(mainRef)).data(); const u=d.chargingSlots[idx]; d.chargingSlots[idx]=null; addDoc(historyRef, {...u, finishTime:new Date()}); t.update(mainRef, {chargingSlots:d.chargingSlots}); }).then(()=>{ localStorage.removeItem('myPlat'); location.reload(); }); }); };
         window.cancelQueue = () => { showConfirm("BATAL?", ()=>{ runTransaction(db, async(t)=>{ const d=(await t.get(mainRef)).data(); let q=d.waitingQueue; const i=q.findIndex(x=>x.plat===myPlat); if(i!==-1){ q.splice(i,1); t.update(mainRef, {waitingQueue:q}); } }).then(()=>{ localStorage.removeItem('myPlat'); location.reload(); }); }); };
 
-        // === FIX DATA HILANG 2: WATCHDOG (MATIKAN AUTO DELETE) ===
-        function checkGeofence() {
-            const p = localStorage.getItem('myPlat');
-            if(!p || localStorage.getItem('adm_ok')) return; 
-            if(navigator.geolocation) {
-                 navigator.geolocation.getCurrentPosition(pos => {
-                     const dist = getDist(pos.coords.latitude, pos.coords.longitude, STATION_LAT, STATION_LNG);
-                     
-                     if(dist > FORCE_LOGOUT_DIST) {
-                         // === PERUBAHAN DI SINI ===
-                         // JANGAN hapus data dari DB. Hanya peringatan log.
-                         console.log("Jarak kejauhan: " + dist.toFixed(2) + " km. (Ignored for safety)");
-                         // Opsional: showMsg("INFO", "Anda terlalu jauh dari lokasi charging.");
-                     }
-                 }, (e)=>{}, { enableHighAccuracy:true, maximumAge:0, timeout:10000 });
+        // ============================================
+        // WATCHDOG v3 - INTELLIGENT GEO SENTINEL
+        // ============================================
+        const WD_CFG = {
+            RADIUS: 100,        // Radius aman (meter) - Disesuaikan agar aman indoor
+            JITTER: 20,         // Abaikan pergeseran < 20m
+            MAX_SPEED: 35,      // m/s (Batas kecepatan manusia, anti teleport)
+            GRACE_OUT: 60000,   // 60 Detik toleransi jika sinyal hilang/keluar radius
+            MAX_STRIKE: 5,      // Batas poin pelanggaran sebelum kick
+            INTERVAL: 5000      // Cek setiap 5 detik
+        };
+
+        let wdBase = null, wdLast = null;
+        let wdStrike = 0;
+        let wdGraceTimer = null;
+
+        function getDistanceMeters(a, b) {
+            const R = 6371000;
+            const dLat = (b.lat - a.lat) * Math.PI / 180;
+            const dLon = (b.lng - a.lng) * Math.PI / 180;
+            const x = Math.sin(dLat/2)**2 + Math.cos(a.lat*Math.PI/180) * Math.cos(b.lat*Math.PI/180) * Math.sin(dLon/2)**2;
+            return 2 * R * Math.atan2(Math.sqrt(x), Math.sqrt(1-x));
+        }
+
+        function runWatchdog(p) {
+            const now = Date.now();
+            const cur = { lat: p.coords.latitude, lng: p.coords.longitude, time: now, mock: p.coords.isFromMockProvider || false };
+            
+            // KUNCI LOKASI KE TOKO (Station)
+            if (!wdBase) { wdBase = { lat: STATION_LAT, lng: STATION_LNG }; }
+
+            if (!wdLast) { wdLast = cur; return; }
+
+            const dMove = getDistanceMeters(wdLast, cur);
+            const dt = (now - wdLast.time) / 1000;
+            const speed = dMove / (dt || 1);
+
+            // 1. FILTER JITTER (Abaikan geser dikit)
+            if (dMove < WD_CFG.JITTER) { wdLast = cur; return; }
+
+            // 2. DETEKSI FAKE GPS (Mock Provider)
+            if (cur.mock) {
+                wdStrike += 3;
+                console.warn("[WATCHDOG] FAKE GPS DETECTED!");
+            }
+
+            // 3. DETEKSI TELEPORT (Speed > 120km/h)
+            if (speed > WD_CFG.MAX_SPEED) {
+                wdStrike += 2;
+                console.warn("[WATCHDOG] IMPOSSIBLE SPEED (Teleport)!");
+            }
+
+            // 4. CEK RADIUS DARI TOKO
+            const distFromStation = getDistanceMeters(wdBase, cur);
+            
+            if (distFromStation > WD_CFG.RADIUS) {
+                if (!wdGraceTimer) {
+                    wdGraceTimer = now;
+                    console.log("[WATCHDOG] User keluar radius. Grace timer start.");
+                } else if (now - wdGraceTimer > WD_CFG.GRACE_OUT) {
+                    wdStrike += 1;
+                    console.warn("[WATCHDOG] RADIUS VIOLATION! Time expired.");
+                }
+            } else {
+                // User kembali masuk radius aman
+                wdGraceTimer = null;
+                // STRIKE DECAY (Pengampunan dosa jika user berperilaku baik)
+                if (wdStrike > 0) wdStrike = Math.max(0, wdStrike - 0.5);
+            }
+
+            // 5. FINAL DECISION
+            if (wdStrike >= WD_CFG.MAX_STRIKE) {
+                console.error("[WATCHDOG] STRIKE LIMIT REACHED. KICKING USER.");
+                handleAutoKick(distFromStation);
+            }
+
+            wdLast = cur;
+        }
+
+        function handleAutoKick(dist) {
+            // Hapus data lokal (Logout HP User)
+            localStorage.removeItem('myPlat');
+            alert(`SISTEM KEAMANAN: \nAnda terdeteksi menjauh (${dist.toFixed(0)}m) atau menggunakan GPS palsu. \n\nSesi Anda diakhiri.`);
+            location.reload();
+            
+            // Note: Data di server aman (slot tidak hilang), tapi user harus login ulang & konfirmasi
+            // jika ingin kembali. Ini untuk mencegah slot terkunci oleh "hantu".
+        }
+
+        // START WATCHDOG
+        if (navigator.geolocation && !localStorage.getItem('adm_ok')) {
+            const myP = localStorage.getItem('myPlat');
+            if(myP) {
+                setInterval(() => {
+                    navigator.geolocation.getCurrentPosition(
+                        runWatchdog,
+                        (err) => console.log("[WATCHDOG] GPS Error/Off (Allowed)."),
+                        { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+                    );
+                }, WD_CFG.INTERVAL);
             }
         }
-        checkGeofence(); setInterval(checkGeofence, 10000); 
-        document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') checkGeofence(); });
 
+        // --- UTILS LAIN ---
         if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js').then(reg => console.log('PWA Ready')).catch(err => console.log('PWA Error', err)); }); }
         function requestNotifPermission() { if ("Notification" in window) Notification.requestPermission(); }
         document.addEventListener('click', requestNotifPermission, {once:true});
