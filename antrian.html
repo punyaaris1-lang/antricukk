@@ -38,7 +38,7 @@
         .big-logo { width: 60%; max-width: 200px; height: auto; border-radius: 20px; box-shadow: 0 0 50px rgba(0,0,0,0.8); border: 1px solid rgba(255,255,255,0.1); animation: floatLogo 4s ease-in-out infinite; }
         @keyframes floatLogo { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-10px);} }
 
-        /* === FIX MASALAH TUMPANG TINDIH === */
+        /* === FIX LAYOUT === */
         body.login-mode .bottom-panel { display: none !important; visibility: hidden !important; opacity: 0 !important; z-index: -999 !important; }
         #screen-login { justify-content: flex-start; padding-top: 40px; z-index: 20000 !important; background: #000 !important; top: 0 !important; bottom: 0 !important; height: 100vh !important; }
 
@@ -81,20 +81,31 @@
             width: 100%; height: 100%; 
             display: flex; flex-direction: column; 
             align-items: center; 
-            padding: 20px; padding-bottom: 50px; /* Tambah padding bawah */
-            justify-content: space-evenly; /* Sebarkan item secara merata */
+            padding: 20px; 
+            justify-content: flex-start; 
+            gap: 20px;
+            position: relative; /* Kunci Relatif */
         }
-        .limit-hud { width: 90%; max-width: 350px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--accent); border-radius: 8px; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; box-shadow: 0 0 15px rgba(204, 255, 0, 0.1); margin-top: 45px; }
+        
+        .limit-hud { width: 90%; max-width: 350px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--accent); border-radius: 8px; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; margin-top: 45px; box-shadow: 0 0 15px rgba(204, 255, 0, 0.1); }
         .hud-val { font-size: 20px; color: #fff; font-weight: bold; line-height: 1; text-shadow: 0 0 5px #fff; }
+        .ad-info { text-align: center; }
+        .ad-slot-label { font-size: 24px; color: var(--accent); font-weight: bold; letter-spacing: 2px; }
+        .ad-name { font-size: 30px; color: #fff; font-weight: 700; margin-top: 5px; }
+        .ad-plat { font-family: 'JetBrains Mono'; font-size: 20px; color: #aaa; margin-top: 5px; background: #222; padding: 5px 15px; border-radius: 5px; display: inline-block; }
+        
+        .ad-main { flex: 1; display: flex; align-items: center; justify-content: center; }
         .ad-big-num { font-size: clamp(100px, 30vw, 200px); line-height: 0.8; font-weight: 700; color: var(--cyan); text-shadow: 0 0 50px var(--cyan), 0 0 10px #fff; animation: breathe 3s infinite ease-in-out; }
         
-        /* TOMBOL SELESAI LEBIH JELAS & TIDAK KETUTUPAN */
+        /* TOMBOL SELESAI (FIX POSITION) */
         .ad-bottom {
-            width: 100%; display: flex; justify-content: center;
-            z-index: 10; position: relative; margin-top: 20px;
+            position: absolute; 
+            bottom: 40px; /* Jarak dari bawah layar */
+            left: 0; width: 100%; 
+            display: flex; justify-content: center;
+            z-index: 300; /* Layer Paling Atas */
         }
         .btn-luxury { width: 90%; max-width: 350px; padding: 15px 0; background: linear-gradient(135deg, #ff0000 0%, #990000 100%); color: #fff; font-family: 'Teko'; font-size: 30px; font-weight: 700; letter-spacing: 2px; border: 2px solid #ff5e5e; border-radius: 15px; cursor: pointer; box-shadow: 0 0 30px rgba(255, 0, 60, 0.6), inset 0 0 10px rgba(0,0,0,0.5); text-shadow: 0 2px 5px rgba(0,0,0,0.5); transition: all 0.3s; position: relative; overflow: hidden; }
-        
         .btn-minimize { background: rgba(255,255,255,0.1); border: 1px solid #555; color: #ccc; font-size: 12px; padding: 8px 20px; border-radius: 20px; position: absolute; top: 15px; right: 15px; cursor: pointer; z-index: 201; }
         
         /* FOOTER */
@@ -112,29 +123,6 @@
         .fp-btn { width: 70px; height: 70px; background: rgba(0,0,0,0.5); border: 1px solid var(--cyan); border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; box-shadow: 0 0 20px rgba(0,240,255,0.3); animation: pulse 2s infinite; transition: 0.3s; }
         .fp-btn.back-mode { border-color: var(--accent); animation: none; box-shadow: 0 0 30px rgba(204, 255, 0, 0.4); background: rgba(204, 255, 0, 0.1); }
         @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(0, 240, 255, 0.4); } 70% { box-shadow: 0 0 0 15px rgba(0, 240, 255, 0); } 100% { box-shadow: 0 0 0 0 rgba(0, 240, 255, 0); } }
-
-        /* WELCOME OVERLAY */
-        #welcome-overlay {
-            position: fixed; inset: 0; z-index: 30000;
-            background: #000; font-family: 'Inter', sans-serif;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            overflow: hidden; transition: opacity 0.5s;
-        }
-        .guide-bg {
-            position: absolute; inset: 0;
-            background: radial-gradient(circle at top, rgba(0,240,255,.15), transparent 60%), linear-gradient(120deg, #000, #020c12, #000);
-            animation: bgMove 18s linear infinite; z-index: 0;
-        }
-        @keyframes bgMove{ 0%{filter:hue-rotate(0deg)} 100%{filter:hue-rotate(360deg)} }
-        .guide-wrap { position: relative; z-index: 2; height: 100%; width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center; }
-        .guide-step { max-width: 420px; opacity: 0; transform: scale(.95) translateY(20px); transition: 1s ease; }
-        .guide-step.show { opacity: 1; transform: scale(1) translateY(0); }
-        .g-icon { font-size: 48px; margin-bottom: 12px; filter: drop-shadow(0 0 12px rgba(0,240,255,.6)); }
-        .g-title { font-size: 22px; font-weight: 900; letter-spacing: .5px; margin-bottom: 10px; color: #fff; }
-        .g-desc { font-size: 14px; line-height: 1.7; color: #ccc; min-height: 60px; font-weight: 500; }
-        .btn-guide { margin-top: 30px; padding: 12px 40px; background: linear-gradient(90deg,#00f0ff,#7cfffa); color: #000; border: none; border-radius: 30px; font-weight: 900; cursor: pointer; font-family: 'Inter', sans-serif; box-shadow: 0 0 30px rgba(0,240,255,.6); font-size: 16px; }
-        .btn-skip-guide { position: absolute; top: 20px; right: 20px; z-index: 10; background: rgba(255,255,255,0.1); border: 1px solid #555; color: #aaa; padding: 8px 15px; border-radius: 20px; font-size: 12px; font-weight: 700; cursor: pointer; backdrop-filter: blur(5px); font-family: 'Inter', sans-serif; }
-        .g-final { font-size: 24px; font-weight: 900; color: #e8c37a; text-shadow: 0 0 30px rgba(232,195,122,.8); margin-bottom: 10px; }
 
         /* MODALS & OTHERS */
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 12000; justify-content: center; align-items: center; backdrop-filter: blur(8px); }
@@ -161,15 +149,6 @@
 <body>
 
     <canvas id="dust"></canvas>
-
-    <div id="welcome-overlay">
-        <div class="guide-bg"></div>
-        <button id="closeGuideTop" class="btn-skip-guide" onclick="closeGuide()">✖ TUTUP / SKIP</button>
-        <div class="guide-wrap">
-            <div id="guideStep" class="guide-step"></div>
-            <button id="guideBtn" class="btn-guide">LANJUT</button>
-        </div>
-    </div>
 
     <div class="top-nav">
         <div class="main-title" ondblclick="toggleAdmin()">FC KELAPA GADING</div>
@@ -318,47 +297,11 @@
         const historyRef = collection(db, "riwayatCharging");
         const logRef = collection(db, "activityLog");
 
-        // === LOG SYSTEM ===
         function addLog(action, details) {
             const p = localStorage.getItem('myPlat') || "GUEST";
             addDoc(logRef, { actor: p, action: action, details: details, timestamp: new Date() }).catch(e=>{});
         }
 
-        // === GUIDE LOGIC ===
-        const guideSteps = [
-            { icon:"📱", title:"GPS & LOKASI", text:"Pastikan GPS Aktif. Sistem mengunci radius 200m dari lokasi FC." },
-            { icon:"📝", title:"1 HP = 1 PLAT", text:"Satu HP hanya bisa mendaftarkan satu plat nomor demi ketertiban." },
-            { icon:"⚡", title:"PILIH SLOT", text:"Pilih Slot (S1/S2/S3) sesuai colokan. Jika penuh, sistem otomatis memasukkan ke antrian." },
-            { icon:"✅", title:"SELESAI", text:"Wajib klik 'SELESAI' setelah charging beres agar slot kosong kembali." }
-        ];
-
-        let gIndex = 0;
-        const guideOverlay = document.getElementById('welcome-overlay');
-        const guideStepEl = document.getElementById('guideStep');
-        const guideBtn = document.getElementById('guideBtn');
-
-        // TUTUP GUIDE
-        window.closeGuide = () => { 
-            localStorage.setItem('guide_seen', '1'); 
-            guideOverlay.style.opacity = '0'; 
-            setTimeout(() => { guideOverlay.style.display = 'none'; }, 500); 
-        };
-
-        function typeText(el, text, idx=0){ if(idx < text.length){ el.textContent += text[idx]; setTimeout(()=>typeText(el,text,idx+1), 25); } }
-        function renderGuide(){
-            const s = guideSteps[gIndex]; guideStepEl.innerHTML = `<div class="g-icon">${s.icon}</div><div class="g-title">${s.title}</div><div class="g-desc" id="gDesc"></div>${s.slots || ""}`;
-            guideStepEl.classList.remove("show"); requestAnimationFrame(()=>{ guideStepEl.classList.add("show"); const descEl = document.getElementById("gDesc"); if(descEl) typeText(descEl, s.text); });
-        }
-        if(guideBtn) { guideBtn.onclick = () => { gIndex++; if(gIndex < guideSteps.length){ renderGuide(); } else { guideStepEl.innerHTML = `<div class="g-final">SIAP CHARGING?</div><div class="g-desc">Pastikan berada di lokasi.</div>`; guideBtn.innerText = "MASUK APLIKASI"; guideBtn.onclick = window.closeGuide; guideStepEl.classList.add("show"); } }; }
-        
-        // HANYA MUNCULKAN GUIDE JIKA BELUM PERNAH DILIHAT
-        if(localStorage.getItem('myPlat') || localStorage.getItem('guide_seen')) { 
-            guideOverlay.style.display = 'none'; 
-        } else { 
-            renderGuide(); 
-        }
-
-        // === CORE SYSTEM ===
         let localSlots = [null,null,null]; let localQueue = []; let myPlat = localStorage.getItem('myPlat'); let myIP = "";
         window.activeSlotIdx = -1; let isDashboardMinimized = false; let amIInQueue = false; let tempEntryTime = 0; let hasNotifiedTurn = false;
 
@@ -372,7 +315,6 @@
 
         // === 1. CEK LOKASI ===
         window.checkLocAndRegister = () => {
-            if(guideOverlay.style.display !== 'none' && guideOverlay.style.opacity !== '0') return;
             if(localStorage.getItem('adm_ok')) { runLogin(); return; }
 
             if(navigator.geolocation) {
@@ -473,18 +415,11 @@
                     } else throw "PLAT SUDAH DIGUNAKAN";
                 }
 
-                // === FIX: JANGAN PAKAI RECYCLED NUMBER ===
-                // Selalu ambil ticket terakhir + 1
-                let newNo = (d.lastTicket||0) + 1;
-                
+                let newNo = (d.lastTicket||0)+1;
+                if(d.recycledNumbers && d.recycledNumbers.length>0) { d.recycledNumbers.sort((a,b)=>a-b); newNo = d.recycledNumbers.shift(); }
                 const u = { plat: tempUserData.plat, userName: tempUserData.name, wa: tempUserData.wa, qNo: newNo, entryTime: tempEntryTime || Date.now(), ip: myIP };
                 d.waitingQueue.push(u);
-                
-                // Update tanpa mengubah array recycledNumbers (biarkan kosong/tetap)
-                t.update(mainRef, { 
-                    waitingQueue: d.waitingQueue, 
-                    lastTicket: newNo 
-                });
+                t.update(mainRef, { waitingQueue:d.waitingQueue, recycledNumbers:d.recycledNumbers||[], lastTicket: Math.max(d.lastTicket||0, newNo) });
                 return newNo;
             }).then((no) => {
                 if(no==="RECOVERED") return;
@@ -557,7 +492,6 @@
             if(id === 'screen-login' || id === 'screen-queue') document.body.classList.add('login-mode'); else document.body.classList.remove('login-mode');
         }
 
-        // --- MUSIC, MODAL, UTILS ---
         const playlistData = [ { title: "Ada Apa Denganmu", url: "https://mlump3player.netlify.app/Ada%20Apa%20Denganmu.mp3" }, { title: "Anji - Menunggu Kamu", url: "https://mlump3player.netlify.app/anji-menunggu-kamu.mp3" }, { title: "Anugerah Terindah", url: "https://mlump3player.netlify.app/Anugerah%20Terindah%20Yang%20Pernah%20Kumiliki.mp3" }, { title: "Armada - Asalkan Kau Bahagia", url: "https://mlump3player.netlify.app/armada_asalkan_kau_bahagia.mp3" }, { title: "Armada - Harusnya Aku", url: "https://mlump3player.netlify.app/armada_harusnya_aku.mp3" }, { title: "Bintang Di Surga", url: "https://mlump3player.netlify.app/Bintang%20Di%20Surga.mp3" }, { title: "Bon Jovi - Always", url: "https://mlump3player.netlify.app/Bon%20Jovi%20-%20Always%20.MP3" }, { title: "Bon Jovi - It's My Life", url: "https://mlump3player.netlify.app/Bon%20Jovi%20-%20Its%20My%20Life%20.mp3" }, { title: "Dan - SO7", url: "https://mlump3player.netlify.app/Dan%20-%20Sheila%20On%207%20-%201999.mp3" }, { title: "Mungkin Nanti", url: "https://mlump3player.netlify.app/Mungkin%20Nanti.mp3" }, { title: "Surat Cinta Untuk Starla", url: "https://mlump3player.netlify.app/Virgoun%20-%20Surat%20Cinta%20Untuk%20Starla.mp3" } ];
         const audio = $('audio'); let curTrk=0;
         window.openPlaylist = () => { const cont = $('playlistContainer'); if(!cont) return; cont.innerHTML = ''; playlistData.forEach((item, idx) => { const div = document.createElement('div'); div.className = `pl-item ${idx === curTrk ? 'active' : ''}`; div.innerHTML = `<span class="pl-icon">🎵</span><span class="pl-title">${item.title}</span>`; div.onclick = () => { window.playTrack(idx); $('playlistModal').style.display='none'; }; cont.appendChild(div); }); $('playlistModal').style.display = 'flex'; };
@@ -595,7 +529,6 @@
         window.toggleDashboard = (show) => { if(show){isDashboardMinimized=false;switchScreen('screen-active-dashboard');}else{isDashboardMinimized=true;switchScreen('screen-slots');} updateUI(); }
         window.handleMainAction = () => { if(window.activeSlotIdx!==-1&&isDashboardMinimized)window.toggleDashboard(true); else if(amIInQueue){$('waitingDashboard').style.display='flex';renderFocusedQueue();} else window.checkLocAndRegister(); };
 
-        // WATCHDOG V3 (AUTO KICK)
         const WD_CFG={RADIUS:100,MAX_SPEED:35,GRACE:60000,MAX_STRIKE:5,INT:5000}; let wdBase=null,wdLast=null,wdStrike=0,wdTimer=null;
         function runWatchdog(p){
             const now=Date.now(), cur={lat:p.coords.latitude,lng:p.coords.longitude,time:now,mock:p.coords.isFromMockProvider};
