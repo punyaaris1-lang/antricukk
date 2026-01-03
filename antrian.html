@@ -282,24 +282,14 @@
         const historyRef = collection(db, "riwayatCharging");
         const logRef = collection(db, "activityLog");
 
-        // === LOG SYSTEM ===
         function addLog(action, details) {
             const p = localStorage.getItem('myPlat') || "GUEST";
             addDoc(logRef, { actor: p, action: action, details: details, timestamp: new Date() }).catch(e=>{});
         }
 
-        // === CORE VARIABLES ===
-        let localSlots = [null,null,null]; 
-        let localQueue = []; 
-        let myPlat = localStorage.getItem('myPlat'); 
-        let myIP = "";
-        window.activeSlotIdx = -1; 
-        let isDashboardMinimized = false; 
-        let amIInQueue = false; 
-        let tempEntryTime = 0; 
-        let hasNotifiedTurn = false;
+        let localSlots = [null,null,null]; let localQueue = []; let myPlat = localStorage.getItem('myPlat'); let myIP = "";
+        window.activeSlotIdx = -1; let isDashboardMinimized = false; let amIInQueue = false; let tempEntryTime = 0; let hasNotifiedTurn = false;
 
-        // === UTILS ===
         const $ = (id) => document.getElementById(id);
         const vibrate = () => { if(navigator.vibrate) navigator.vibrate(50); };
         fetch('https://api.ipify.org?format=json').then(res => res.json()).then(data => myIP = data.ip).catch(e => {});
@@ -308,41 +298,33 @@
         function showConfirm(text, cb) { $('confirmText').innerText = text; $('confirmModal').style.display='flex'; $('btnConfirmYes').onclick = () => { $('confirmModal').style.display='none'; cb(); }; }
         function getDist(lat1,lon1,lat2,lon2) { const R=6371; const dLat=(lat2-lat1)*Math.PI/180; const dLon=(lon2-lon1)*Math.PI/180; const a=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)*Math.sin(dLon/2); return R*(2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a))); }
 
-        // === 1. CEK LOKASI & DAFTAR ===
+        // === 1. CEK LOKASI ===
         window.checkLocAndRegister = () => {
-            // Cek Admin (Bypass GPS)
             if(localStorage.getItem('adm_ok')) { runLogin(); return; }
-
             if(navigator.geolocation) {
                 $('fpBtn').style.opacity = 0.5;
-                // Mode Sabar (15s Timeout, Cache 1 Menit)
                 const geoOptions = { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 }; 
-                
                 navigator.geolocation.getCurrentPosition((pos) => {
                     $('fpBtn').style.opacity = 1;
                     const dist = getDist(pos.coords.latitude, pos.coords.longitude, STATION_LAT, STATION_LNG);
-                    
                     if(dist > MAX_DIST_KM) { 
                         $('msgModal').style.display='none';
-                        alert(`GAGAL: KEJAUHAN (${dist.toFixed(2)} KM)\n\nAnda wajib berada di area FC.`); 
-                        vibrate();
+                        alert(`GAGAL: KEJAUHAN (${dist.toFixed(2)} KM)\n\nWajib radius 200m.`); vibrate();
                     } else { 
                         $('msgModal').style.display='none';
-                        runLogin(); // Lanjut ke Form
+                        runLogin(); 
                     }
                 }, (err) => { 
                     $('fpBtn').style.opacity = 1; $('msgModal').style.display='none';
-                    let msg = "GPS Error."; if(err.code===1) msg = "Izin Lokasi Ditolak."; else if(err.code===2) msg = "Sinyal GPS Hilang.";
-                    alert(`GAGAL: ${msg}\nPastikan GPS Aktif & Izinkan Browser.`);
+                    let msg = "GPS Error."; if(err.code===1) msg = "Izin Ditolak."; else if(err.code===2) msg = "Sinyal Hilang.";
+                    alert(`GAGAL: ${msg}`);
                 }, geoOptions);
-
             } else { alert("HP tidak support GPS."); }
         };
 
         window.cancelLogin = () => { $('terminal-box').innerHTML=''; switchScreen('screen-slots'); tempEntryTime = 0; };
         function runLogin() { vibrate(); tempEntryTime = Date.now(); switchScreen('screen-login'); currentStep = 0; tempUserData = {}; $('terminal-box').innerHTML=''; terminalPrompt(); }
 
-        // === TERMINAL INPUT LOGIC ===
         let tempUserData = {}; let currentStep = 0;
         const steps = [ {q: "PLAT NOMOR", k: "plat"}, {q: "NAMA LENGKAP", k: "name"}, {q: "NOMOR WHATSAPP", k: "wa"} ];
 
@@ -352,36 +334,26 @@
             $('terminal-box').appendChild(line);
             const input = line.querySelector("input"); input.focus();
             const btn = document.createElement("button"); btn.className = "term-enter-btn"; btn.innerText = "ENTER";
-            
             const next = () => {
                 if(!input.value) return; 
                 const val = input.value.toUpperCase();
                 
-                // === LOGIKA PENGUNCIAN 1 HP 1 PLAT ===
                 if(steps[currentStep].k === "plat") {
                     if(!localStorage.getItem('adm_ok')) {
                         const today = new Date().toDateString();
                         const lockData = JSON.parse(localStorage.getItem('device_lock') || '{}');
-                        
-                        // Jika HP ini sudah dipakai hari ini utk plat lain -> TOLAK
                         if(lockData.date === today && lockData.plat && lockData.plat !== val) {
-                            alert(`AKSES DITOLAK!\n\nHP ini sudah terkunci untuk plat: ${lockData.plat}\nSatu HP hanya boleh untuk satu motor.`);
+                            alert(`AKSES DITOLAK!\nHP ini terkunci untuk plat: ${lockData.plat}`);
                             window.location.reload();
                             return;
                         }
                     }
                 }
 
-                tempUserData[steps[currentStep].k] = val; 
-                input.disabled = true; btn.remove();
-                currentStep++; 
-                if(currentStep < steps.length) terminalPrompt(); 
-                else startQueueAnim();
+                tempUserData[steps[currentStep].k] = val; input.disabled = true; btn.remove();
+                currentStep++; if(currentStep < steps.length) terminalPrompt(); else startQueueAnim();
             };
-
             btn.onclick = next; line.appendChild(btn);
-            
-            // Auto-Fill Nama & WA jika plat pernah daftar
             if(steps[currentStep].k === "plat") {
                 input.oninput = async (e) => { 
                     e.target.value = e.target.value.toUpperCase().replace(/\s/g, ''); 
@@ -414,50 +386,36 @@
                 const d = (await t.get(mainRef)).data();
                 const all = [...(d.chargingSlots||[]), ...(d.waitingQueue||[])].filter(u => u !== null);
                 
-                // Recovery Check
                 const duplicate = all.find(x => x.plat === tempUserData.plat);
                 if(duplicate) {
                     const recover = confirm(`HALO ${duplicate.userName}!\nPlat ${tempUserData.plat} sudah aktif.\nMasuk Dashboard?`);
                     if(recover) { 
                         localStorage.setItem('myPlat', tempUserData.plat); 
-                        // Kunci HP ulang saat recovery
                         localStorage.setItem('device_lock', JSON.stringify({ date: new Date().toDateString(), plat: tempUserData.plat }));
                         location.reload(); 
                         return "RECOVERED"; 
                     } else throw "PLAT SUDAH DIGUNAKAN";
                 }
 
-                // === NO RECYCLE: TIKET SELALU NAIK ===
-                let newNo = (d.lastTicket || 0) + 1;
-                
+                let newNo = (d.lastTicket||0)+1;
                 const u = { plat: tempUserData.plat, userName: tempUserData.name, wa: tempUserData.wa, qNo: newNo, entryTime: tempEntryTime || Date.now(), ip: myIP };
                 d.waitingQueue.push(u);
-                
-                t.update(mainRef, { 
-                    waitingQueue: d.waitingQueue, 
-                    lastTicket: newNo // Simpan tiket terakhir
-                });
+                t.update(mainRef, { waitingQueue:d.waitingQueue, lastTicket: newNo });
                 return newNo;
             }).then((no) => {
                 if(no==="RECOVERED") return;
-                
-                // Simpan Sesi & Kunci HP
                 localStorage.setItem('myPlat', tempUserData.plat); 
                 localStorage.setItem('device_lock', JSON.stringify({ date: new Date().toDateString(), plat: tempUserData.plat }));
-                
                 myPlat = tempUserData.plat;
                 addLog("REGISTER", `User ${tempUserData.plat} joined #${no}`);
                 showMsg("BERHASIL", `Antrian #${no}. Silakan tunggu.`); switchScreen('screen-slots');
             }).catch(e => { if(e!=="RECOVERED") showMsg("GAGAL", e); setTimeout(()=>switchScreen('screen-slots'), 2000); });
         }
 
-        // === REALTIME UPDATE UI ===
         onSnapshot(mainRef, (snap) => {
             const d = snap.data(); if(!d) return;
-            localSlots = d.chargingSlots || [null,null,null]; 
-            localQueue = (d.waitingQueue || []).sort((a,b) => a.qNo - b.qNo);
-            updateUI(); 
-            if($('waitingDashboard').style.display === 'flex') renderFocusedQueue();
+            localSlots = d.chargingSlots || [null,null,null]; localQueue = (d.waitingQueue || []).sort((a,b) => a.qNo - b.qNo);
+            updateUI(); if($('waitingDashboard').style.display === 'flex') renderFocusedQueue();
         });
 
         function updateUI() {
@@ -465,24 +423,19 @@
             if($('qCountVal')) $('qCountVal').innerText = localQueue.length;
             if($('hud-q')) $('hud-q').innerText = localQueue.length;
 
-            let amICharging = false; 
-            amIInQueue = localQueue.some(q => q.plat === myPlat);
+            let amICharging = false; amIInQueue = localQueue.some(q => q.plat === myPlat);
             const iAmFirst = (localQueue.length > 0 && localQueue[0].plat === myPlat);
             const hasEmptySlot = localSlots.some(s => s === null);
 
-            // Notifikasi Giliran
             if (iAmFirst && hasEmptySlot) {
                 $('waitingDashboard').style.display = 'none'; 
                 if (!isDashboardMinimized) { isDashboardMinimized = true; switchScreen('screen-slots'); }
                 if (!hasNotifiedTurn) {
-                    window.speechSynthesis.cancel(); 
-                    const msg = new SpeechSynthesisUtterance(`Halo, Giliran Anda.`); 
-                    msg.lang = 'id-ID'; window.speechSynthesis.speak(msg); vibrate();
+                    window.speechSynthesis.cancel(); const msg = new SpeechSynthesisUtterance(`Halo, Giliran Anda.`); msg.lang = 'id-ID'; window.speechSynthesis.speak(msg); vibrate();
                     hasNotifiedTurn = true; 
                 }
             } else if (!iAmFirst) { hasNotifiedTurn = false; }
 
-            // Render Slot
             localSlots.forEach((s, i) => {
                 const c = $(`card-${i}`); const waBtn = $(`wa-${i}`);
                 if(s) {
@@ -491,18 +444,7 @@
                     if($(`p-${i}`)) $(`p-${i}`).innerText = s.plat;
                     if($(`no-${i}`)) $(`no-${i}`).innerText = "#" + s.qNo;
                     if(waBtn) { let num = s.wa; if(num && num.startsWith('0')) num = '62' + num.substring(1); if(num) waBtn.href = `https://wa.me/${num}`; else waBtn.style.display = 'none'; }
-                    
-                    // Kalau ini slot saya
-                    if(myPlat === s.plat) { 
-                        amICharging = true; window.activeSlotIdx = i; 
-                        if(!isDashboardMinimized) switchScreen('screen-active-dashboard'); 
-                        $('ad-slot-val').innerText = "SLOT " + (i+1); 
-                        $('ad-name-val').innerText = s.userName; 
-                        $('ad-plat-val').innerText = s.plat; 
-                        $('ad-no-val').innerText = "#" + s.qNo; 
-                        $('waitingDashboard').style.display='none'; 
-                        hasNotifiedTurn = false; 
-                    }
+                    if(myPlat === s.plat) { amICharging = true; window.activeSlotIdx = i; if(!isDashboardMinimized) switchScreen('screen-active-dashboard'); $('ad-slot-val').innerText = "SLOT " + (i+1); $('ad-name-val').innerText = s.userName; $('ad-plat-val').innerText = s.plat; $('ad-no-val').innerText = "#" + s.qNo; $('waitingDashboard').style.display='none'; hasNotifiedTurn = false; }
                 } else {
                     if(c) { c.classList.remove('filled'); c.classList.add('empty'); }
                     if($(`n-${i}`)) $(`n-${i}`).innerText = "SLOT " + (i+1);
@@ -512,9 +454,7 @@
             });
             if(!amICharging) window.activeSlotIdx = -1;
             
-            // Atur Tombol Utama
-            const btn = $('fpBtn'); const txt = $('mainBtnText'); 
-            if(btn) btn.className = 'fp-btn';
+            const btn = $('fpBtn'); const txt = $('mainBtnText'); if(btn) btn.className = 'fp-btn';
             
             if(window.activeSlotIdx !== -1) { 
                 if(isDashboardMinimized) { txt.innerText = "KE DASHBOARD"; btn.classList.add('back-mode'); } 
@@ -533,8 +473,67 @@
             if(id === 'screen-login' || id === 'screen-queue') document.body.classList.add('login-mode'); else document.body.classList.remove('login-mode');
         }
 
-        // --- MUSIC PLAYER DATA ---
-        const playlistData = [ { title: "Ada Apa Denganmu", url: "https://mlump3player.netlify.app/Ada%20Apa%20Denganmu.mp3" }, { title: "Anji - Menunggu Kamu", url: "https://mlump3player.netlify.app/anji-menunggu-kamu.mp3" }, { title: "Anugerah Terindah", url: "https://mlump3player.netlify.app/Anugerah%20Terindah%20Yang%20Pernah%20Kumiliki.mp3" }, { title: "Armada - Asalkan Kau Bahagia", url: "https://mlump3player.netlify.app/armada_asalkan_kau_bahagia.mp3" }, { title: "Armada - Harusnya Aku", url: "https://mlump3player.netlify.app/armada_harusnya_aku.mp3" }, { title: "Bintang Di Surga", url: "https://mlump3player.netlify.app/Bintang%20Di%20Surga.mp3" }, { title: "Bon Jovi - Always", url: "https://mlump3player.netlify.app/Bon%20Jovi%20-%20Always%20.MP3" }, { title: "Bon Jovi - It's My Life", url: "https://mlump3player.netlify.app/Bon%20Jovi%20-%20Its%20My%20Life%20.mp3" }, { title: "Dan - SO7", url: "https://mlump3player.netlify.app/Dan%20-%20Sheila%20On%207%20-%201999.mp3" }, { title: "Mungkin Nanti", url: "https://mlump3player.netlify.app/Mungkin%20Nanti.mp3" }, { title: "Surat Cinta Untuk Starla", url: "https://mlump3player.netlify.app/Virgoun%20-%20Surat%20Cinta%20Untuk%20Starla.mp3" } ];
+        // === MUSIC PLAYER SYSTEM (AUTO GENERATE TITLES) ===
+        // DATA MENTAH DARI JSON BAPAK
+        const rawMusicList = [
+          { "url": "https://mlump3player.netlify.app/Ada%20Apa%20Denganmu.mp3" },
+          { "url": "https://mlump3player.netlify.app/anji-menunggu-kamu.mp3" },
+          { "url": "https://mlump3player.netlify.app/Anugerah%20Terindah%20Yang%20Pernah%20Kumiliki.mp3" },
+          { "url": "https://mlump3player.netlify.app/armada_asalkan_kau_bahagia.mp3" },
+          { "url": "https://mlump3player.netlify.app/armada_harusnya_aku.mp3" },
+          { "url": "https://mlump3player.netlify.app/Bendera%20-%20Cokelat%20-%202003.mp3" },
+          { "url": "https://mlump3player.netlify.app/Bintang%20Di%20Surga.mp3" },
+          { "url": "https://mlump3player.netlify.app/Bon%20Jovi%20-%20Always%20.MP3" },
+          { "url": "https://mlump3player.netlify.app/Bon%20Jovi%20-%20I'll%20Be%20There%20For%20You%20.MP3" },
+          { "url": "https://mlump3player.netlify.app/Bon%20Jovi%20-%20Its%20My%20Life%20.mp3" },
+          { "url": "https://mlump3player.netlify.app/Bon%20Jovi%20-%20Lay%20Your%20Hands%20On%20Me.MP3" },
+          { "url": "https://mlump3player.netlify.app/Bon%20Jovi%20-%20Livin'%20On%20A%20Prayer%20.MP3" },
+          { "url": "https://mlump3player.netlify.app/Bon%20Jovi%20-%20This%20house%20is%20not%20for%20sale.mp3" },
+          { "url": "https://mlump3player.netlify.app/Bon%20Jovi%20-%20Who%20Says%20You%20Can't%20Go%20Home%20%5BDuet%5D.mp3" },
+          { "url": "https://mlump3player.netlify.app/Bon%20Jovi%20-%20You%20Give%20Love%20A%20Bad%20Name.mp3" },
+          { "url": "https://mlump3player.netlify.app/Bunda%20-%20Potret%20-%201997.mp3" },
+          { "url": "https://mlump3player.netlify.app/Cukup%20Siti%20Nurbaya%20-%20Dewa%2019%20-%201995.mp3" },
+          { "url": "https://mlump3player.netlify.app/Dan%20-%20Sheila%20On%207%20-%201999.mp3" },
+          { "url": "https://mlump3player.netlify.app/Fourtwnty%20-%20Mangu%20(Official%20Lyric%20Visualizer).mp3" },
+          { "url": "https://mlump3player.netlify.app/Galang%20Rambu%20Anarki%20-%20Iwan%20Fals%20-%201982.mp3" },
+          { "url": "https://mlump3player.netlify.app/Guru%20Oemar%20Bakri%20-%20Iwan%20Fals%20-%201981.mp3" },
+          { "url": "https://mlump3player.netlify.app/Janji%20-%20Gigi%20-%201995.mp3" },
+          { "url": "https://mlump3player.netlify.app/Judika%20-%20Bagaimana%20Kalau%20Aku%20Tidak%20Baik%20-%20Baik%20Saja.mp3" },
+          { "url": "https://mlump3player.netlify.app/Judika%20-%20Putus%20atau%20Terus%20(Official%20Music%20Video).mp3" },
+          { "url": "https://mlump3player.netlify.app/Mahadewi%20-%20Padi%20-%201999.mp3" },
+          { "url": "https://mlump3player.netlify.app/Melompat%20Lebih%20Tinggi%20-%20Sheila%20on%207%20-%202003.mp3" },
+          { "url": "https://mlump3player.netlify.app/Mimpi%20-%20Anggun%20C.%20Sasmi%20-%201990.mp3" },
+          { "url": "https://mlump3player.netlify.app/Mix%20Lagu%20Pop%20Indonesia.mp3" },
+          { "url": "https://mlump3player.netlify.app/Mungkin%20Nanti.mp3" },
+          { "url": "https://mlump3player.netlify.app/No%20Doubt%20-%20Don't%20Speak.mp3" },
+          { "url": "https://mlump3player.netlify.app/PADI%20-%20Kasih%20Tak%20Sampai.mp3" },
+          { "url": "https://mlump3player.netlify.app/PADI%20-%20Semua%20Tak%20Sama.mp3" },
+          { "url": "https://mlump3player.netlify.app/Pelangi%20Di%20Matamu.mp3" },
+          { "url": "https://mlump3player.netlify.app/Pesawat%20Tempurku%20-%20Iwan%20Fals%20-%201987.mp3" },
+          { "url": "https://mlump3player.netlify.app/Sarjana%20Muda%20-%20Iwan%20Fals%20-%201981.mp3" },
+          { "url": "https://mlump3player.netlify.app/Sheila%20On%207%20-%20Saat%20Aku%20Lanjut%20Usia%20(Official%20Music%20Video)%20(320).mp3" },
+          { "url": "https://mlump3player.netlify.app/Slank%20-%20Terlalu%20Manis.mp3" },
+          { "url": "https://mlump3player.netlify.app/Sobat%20-%20Padi%20-%201999.mp3" },
+          { "url": "https://mlump3player.netlify.app/Sore%20Tugu%20Pancoran.mp3" },
+          { "url": "https://mlump3player.netlify.app/Stevie%20B-Dream%20About%20You.mp3" },
+          { "url": "https://mlump3player.netlify.app/Stinky%20-%20Mungkinkah%20(Official%20Lyric%20Video).mp3" },
+          { "url": "https://mlump3player.netlify.app/Surat%20Buat%20Wakil%20Rakyat.mp3" },
+          { "url": "https://mlump3player.netlify.app/Surat%20Buat%20Wakil%20Rakyat%20-%20Iwan%20Fals%20-%201981.mp3" },
+          { "url": "https://mlump3player.netlify.app/Surti%20Tejo%20(Acoustic).mp3" },
+          { "url": "https://mlump3player.netlify.app/Terbang%20-%20Gigi%20-%201997.mp3" },
+          { "url": "https://mlump3player.netlify.app/Terbunuh%20Sepi%20-%20Slank%20-%201994.mp3" },
+          { "url": "https://mlump3player.netlify.app/Terima%20Kasih.mp3" },
+          { "url": "https://mlump3player.netlify.app/Ujung%20Aspal%20Pondok%20Gede.mp3" },
+          { "url": "https://mlump3player.netlify.app/Virgoun%20-%20Surat%20Cinta%20Untuk%20Starla.mp3" }
+        ];
+
+        // KONVERSI OTOMATIS: URL -> JUDUL LAGU BERSIH
+        const playlistData = rawMusicList.map(item => {
+            // Ambil nama file, decode %20 jadi spasi, hapus .mp3
+            let cleanTitle = decodeURIComponent(item.url.split('/').pop().replace(/\.mp3$/i, '').replace(/\.MP3$/i, ''));
+            return { title: cleanTitle, url: item.url };
+        });
+
         const audio = $('audio'); let curTrk=0;
         window.openPlaylist = () => { const cont = $('playlistContainer'); if(!cont) return; cont.innerHTML = ''; playlistData.forEach((item, idx) => { const div = document.createElement('div'); div.className = `pl-item ${idx === curTrk ? 'active' : ''}`; div.innerHTML = `<span class="pl-icon">🎵</span><span class="pl-title">${item.title}</span>`; div.onclick = () => { window.playTrack(idx); $('playlistModal').style.display='none'; }; cont.appendChild(div); }); $('playlistModal').style.display = 'flex'; };
         window.playTrack=(i)=>{ if(!audio || !playlistData[i])return; curTrk=i; audio.src=playlistData[i].url; if($('mpTitle')) $('mpTitle').innerText=playlistData[i].title; if($('mpTitle2')) $('mpTitle2').innerText=playlistData[i].title; audio.play().catch(e=>{}); if($('mpPlayBtn')) $('mpPlayBtn').innerText="⏸"; if($('mpPlayBtn2')) $('mpPlayBtn2').innerText="⏸"; };
@@ -571,7 +570,6 @@
         window.toggleDashboard = (show) => { if(show){isDashboardMinimized=false;switchScreen('screen-active-dashboard');}else{isDashboardMinimized=true;switchScreen('screen-slots');} updateUI(); }
         window.handleMainAction = () => { if(window.activeSlotIdx!==-1&&isDashboardMinimized)window.toggleDashboard(true); else if(amIInQueue){$('waitingDashboard').style.display='flex';renderFocusedQueue();} else window.checkLocAndRegister(); };
 
-        // WATCHDOG V3 (AUTO KICK)
         const WD_CFG={RADIUS:100,MAX_SPEED:35,GRACE:60000,MAX_STRIKE:5,INT:5000}; let wdBase=null,wdLast=null,wdStrike=0,wdTimer=null;
         function runWatchdog(p){
             const now=Date.now(), cur={lat:p.coords.latitude,lng:p.coords.longitude,time:now,mock:p.coords.isFromMockProvider};
