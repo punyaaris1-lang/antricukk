@@ -29,44 +29,27 @@
         #dust { position: fixed; inset: 0; pointer-events: none; z-index: 1; }
 
         /* === LAYOUT UTAMA === */
-        /* Header diperkecil agar slot naik */
         .top-nav { height: 14vh; min-height: 90px; display: flex; flex-direction: column; justify-content: flex-end; text-align: center; z-index: 50; position: relative; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); flex-shrink: 0; padding-bottom: 10px; }
         .main-title { font-size: clamp(40px, 6vh, 60px); font-weight: 700; line-height: 0.9; color: #fff; text-shadow: 0 0 15px rgba(0, 240, 255, 0.5); cursor: pointer; }
         .sub-title { font-size: 14px; color: var(--accent); letter-spacing: 4px; font-weight: 600; margin-top: 5px; text-transform: uppercase; }
         
-        /* Logo muncul HANYA saat login mode */
         #logo-area { height: 0; opacity: 0; pointer-events: none; transition: 0.5s; flex: 0 0 auto; }
         body.login-mode #logo-area { height: auto; opacity: 1; margin-bottom: 10px; display: flex; justify-content: center; padding-top: 10px; } 
         .big-logo { width: 60%; max-width: 200px; height: auto; border-radius: 20px; box-shadow: 0 0 50px rgba(0,0,0,0.8); border: 1px solid rgba(255,255,255,0.1); animation: floatLogo 4s ease-in-out infinite; }
         @keyframes floatLogo { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-10px);} }
 
         /* === FIX MASALAH TUMPANG TINDIH === */
-        /* Saat login mode, Panel Bawah WAJIB HILANG */
-        body.login-mode .bottom-panel { 
-            display: none !important; 
-            visibility: hidden !important;
-            opacity: 0 !important;
-            z-index: -999 !important;
-        }
-
-        /* Screen Login WAJIB paling atas dan hitam pekat */
-        #screen-login { 
-            justify-content: flex-start; 
-            padding-top: 40px; 
-            z-index: 20000 !important; /* Layer paling atas */
-            background: #000 !important; /* Hitam pekat */
-            top: 0 !important;
-            bottom: 0 !important;
-            height: 100vh !important;
-        }
+        body.login-mode .bottom-panel { display: none !important; visibility: hidden !important; opacity: 0 !important; z-index: -999 !important; }
+        #screen-login { justify-content: flex-start; padding-top: 40px; z-index: 20000 !important; background: #000 !important; top: 0 !important; bottom: 0 !important; height: 100vh !important; }
 
         /* === SCREENS === */
         .screen { position: absolute; inset: 0; top: 14vh; bottom: 0; display: none; flex-direction: column; z-index: 10; transition: opacity 0.5s; justify-content: flex-start; align-items: center; }
         .screen.active { display: flex; animation: fadeIn 0.5s forwards; }
         @keyframes fadeIn { from{opacity:0; transform:scale(0.95);} to{opacity:1; transform:scale(1);} }
         
-        /* Layout Slot */
-        #screen-slots { flex-direction: row; align-items: flex-start; justify-content: center; gap: 8px; padding: 15px 10px 0 10px; height: 100%; }
+        /* === POSISI SLOT DITURUNKAN === */
+        /* padding-top: 50px (sebelumnya 15px) agar tidak nabrak tulisan header */
+        #screen-slots { flex-direction: row; align-items: flex-start; justify-content: center; gap: 8px; padding: 50px 10px 0 10px; height: 100%; }
         
         .slot-container { width: 33%; height: 42vh; max-height: 380px; position: relative; transition: all 0.8s cubic-bezier(0.25, 1, 0.5, 1); }
         .slot-container:nth-child(2) { margin-top: -20px; } 
@@ -102,7 +85,7 @@
         .btn-luxury { width: 90%; max-width: 350px; padding: 15px 0; background: linear-gradient(135deg, #ff0000 0%, #990000 100%); color: #fff; font-family: 'Teko'; font-size: 30px; font-weight: 700; letter-spacing: 2px; border: 2px solid #ff5e5e; border-radius: 15px; cursor: pointer; box-shadow: 0 0 30px rgba(255, 0, 60, 0.6), inset 0 0 10px rgba(0,0,0,0.5); text-shadow: 0 2px 5px rgba(0,0,0,0.5); transition: all 0.3s; position: relative; overflow: hidden; }
         .btn-minimize { background: rgba(255,255,255,0.1); border: 1px solid #555; color: #ccc; font-size: 12px; padding: 8px 20px; border-radius: 20px; position: absolute; top: 15px; right: 15px; cursor: pointer; z-index: 201; }
         
-        /* FOOTER (PANEL BAWAH) */
+        /* FOOTER */
         .bottom-panel { height: 35vh; min-height: 250px; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; z-index: 500; position: fixed; bottom: 0; width: 100%; background: linear-gradient(to top, #000 90%, transparent); padding-bottom: 20px; pointer-events: none; }
         .stats-wrapper, .fp-wrapper, .music-player { pointer-events: auto; } 
 
@@ -329,10 +312,10 @@
             addDoc(logRef, { actor: p, action: action, details: details, timestamp: new Date() }).catch(e=>{});
         }
 
-        // === GUIDE LOGIC (TANPA TOKEN) ===
+        // === GUIDE LOGIC (FIX: TIDAK OTOMATIS BUKA FORM) ===
         const guideSteps = [
             { icon:"📱", title:"GPS & LOKASI", text:"Pastikan GPS Aktif. Sistem mengunci radius 200m dari lokasi FC." },
-            { icon:"📝", title:"ISI DATA / MONITOR", text:"Isi Plat Nomor. Jika sudah didaftarkan Admin, Anda akan langsung masuk ke Dashboard." },
+            { icon:"📝", title:"ISI DATA", text:"Isi Plat Nomor. Jika sudah didaftarkan Admin, Anda akan langsung masuk ke Dashboard." },
             { icon:"⚡", title:"PILIH SLOT", text:"Pilih Slot (S1/S2/S3) sesuai colokan. Jika penuh, sistem otomatis memasukkan ke antrian." },
             { icon:"✅", title:"SELESAI", text:"Wajib klik 'SELESAI' setelah charging beres agar slot kosong kembali." }
         ];
@@ -342,7 +325,12 @@
         const guideStepEl = document.getElementById('guideStep');
         const guideBtn = document.getElementById('guideBtn');
 
-        window.closeGuide = () => { guideOverlay.style.opacity = '0'; setTimeout(() => { guideOverlay.style.display = 'none'; window.checkLocAndRegister(); }, 500); };
+        // FIX: Hapus window.checkLocAndRegister() disini agar tidak auto-open form
+        window.closeGuide = () => { 
+            guideOverlay.style.opacity = '0'; 
+            setTimeout(() => { guideOverlay.style.display = 'none'; }, 500); 
+        };
+
         function typeText(el, text, idx=0){ if(idx < text.length){ el.textContent += text[idx]; setTimeout(()=>typeText(el,text,idx+1), 25); } }
         function renderGuide(){
             const s = guideSteps[gIndex]; guideStepEl.innerHTML = `<div class="g-icon">${s.icon}</div><div class="g-title">${s.title}</div><div class="g-desc" id="gDesc"></div>${s.slots || ""}`;
@@ -363,15 +351,18 @@
         function showConfirm(text, cb) { $('confirmText').innerText = text; $('confirmModal').style.display='flex'; $('btnConfirmYes').onclick = () => { $('confirmModal').style.display='none'; cb(); }; }
         function getDist(lat1,lon1,lat2,lon2) { const R=6371; const dLat=(lat2-lat1)*Math.PI/180; const dLon=(lon2-lon1)*Math.PI/180; const a=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)*Math.sin(dLon/2); return R*(2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a))); }
 
-        // === 1. CEK LOKASI (TANPA TOKEN - LANGSUNG GPS) ===
+        // === 1. CEK LOKASI (DIPANGGIL SAAT KLIK DAFTAR) ===
         window.checkLocAndRegister = () => {
-            if(guideOverlay.style.display !== 'none') return;
+            // Tunggu guide nutup dulu kalau masih kebuka
+            if(guideOverlay.style.display !== 'none' && guideOverlay.style.opacity !== '0') return;
+            
             if(localStorage.getItem('adm_ok')) { runLogin(); return; }
 
-            // Langsung Cek GPS (200m Lock)
+            // Langsung Cek GPS
             if(navigator.geolocation) {
                 $('fpBtn').style.opacity = 0.5;
-                const geoOptions = { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 }; // Mode Sabar
+                // Mode Sabar: Timeout 15s (HP Jadul Friendly)
+                const geoOptions = { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 }; 
 
                 navigator.geolocation.getCurrentPosition((pos) => {
                     $('fpBtn').style.opacity = 1;
@@ -382,6 +373,7 @@
                         alert(`GAGAL: KEJAUHAN (${dist.toFixed(2)} KM)\n\nWajib radius 200m dari FC.\nSilakan mendekat.`);
                         vibrate();
                     } else { 
+                        // GPS OK -> BARU BUKA FORM LOGIN
                         $('msgModal').style.display='none';
                         runLogin(); 
                     }
@@ -435,7 +427,7 @@
                 void line.offsetWidth; line.style.transition = 'top 1.5s linear'; colorImg.style.transition = 'clip-path 1.5s linear';
             }
             setTimeout(() => { if(line) line.style.top = '0%'; if(colorImg) colorImg.style.clipPath = 'inset(0 0 0 0)'; txt.innerText = "VALIDATING..."; }, 1600);
-            setTimeout(() => { if(line) line.style.top = '0%'; if(colorImg) colorImg.style.clipPath = 'inset(0 0 0 0)'; txt.innerText = "ACCESS GRANTED"; txt.style.color = "var(--accent)"; }, 3200);
+            setTimeout(() => { if(line) line.style.top = '100%'; if(colorImg) colorImg.style.clipPath = 'inset(0 0 0 0)'; txt.innerText = "ACCESS GRANTED"; txt.style.color = "var(--accent)"; }, 3200);
             setTimeout(() => { executeRegistration(); }, 4800);
         }
 
@@ -444,7 +436,7 @@
                 const d = (await t.get(mainRef)).data();
                 const all = [...(d.chargingSlots||[]), ...(d.waitingQueue||[])].filter(u => u !== null);
                 
-                // === FITUR MEMBER ADMIN ===
+                // === FITUR MEMBER ADMIN (RECOVERY) ===
                 const duplicate = all.find(x => x.plat === tempUserData.plat);
                 if(duplicate) {
                     const recover = confirm(`HALO ${duplicate.userName}!\nPlat ${tempUserData.plat} sudah aktif.\n\nApakah ini Anda? Klik OKE untuk masuk Dashboard.`);
@@ -476,7 +468,7 @@
         });
 
         function updateUI() {
-            // Update Slot Count Format 3/3
+            // Update Slot Count 3/3
             if($('slotCountVal')) $('slotCountVal').innerText = localSlots.filter(s => s === null).length + "/3";
             if($('qCountVal')) $('qCountVal').innerText = localQueue.length;
             if($('hud-q')) $('hud-q').innerText = localQueue.length;
