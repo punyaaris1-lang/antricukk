@@ -289,7 +289,7 @@
         // === CONFIG UTAMA ===
         const STATION_LAT = -6.171583; 
         const STATION_LNG = 106.899844; 
-        const MAX_DIST_KM = 0.2; // 200 Meter (Sesuai Request)
+        const MAX_DIST_KM = 0.2; // 200 Meter
 
         // === FIREBASE INIT ===
         const firebaseConfig = {
@@ -312,10 +312,10 @@
             addDoc(logRef, { actor: p, action: action, details: details, timestamp: new Date() }).catch(e=>{});
         }
 
-        // === GUIDE LOGIC (FIX: TIDAK OTOMATIS BUKA FORM) ===
+        // === GUIDE LOGIC (HANYA SEKALI SEUMUR HIDUP) ===
         const guideSteps = [
             { icon:"📱", title:"GPS & LOKASI", text:"Pastikan GPS Aktif. Sistem mengunci radius 200m dari lokasi FC." },
-            { icon:"📝", title:"ISI DATA", text:"Isi Plat Nomor. Jika sudah didaftarkan Admin, Anda akan langsung masuk ke Dashboard." },
+            { icon:"📝", title:"1 HP = 1 PLAT", text:"Satu HP hanya bisa mendaftarkan satu plat nomor demi ketertiban." },
             { icon:"⚡", title:"PILIH SLOT", text:"Pilih Slot (S1/S2/S3) sesuai colokan. Jika penuh, sistem otomatis memasukkan ke antrian." },
             { icon:"✅", title:"SELESAI", text:"Wajib klik 'SELESAI' setelah charging beres agar slot kosong kembali." }
         ];
@@ -325,8 +325,9 @@
         const guideStepEl = document.getElementById('guideStep');
         const guideBtn = document.getElementById('guideBtn');
 
-        // FIX: Hapus window.checkLocAndRegister() disini agar tidak auto-open form
+        // FUNGSI TUTUP GUIDE & SIMPAN STATUS
         window.closeGuide = () => { 
+            localStorage.setItem('guide_seen', '1'); // TANDAI SUDAH DILIHAT
             guideOverlay.style.opacity = '0'; 
             setTimeout(() => { guideOverlay.style.display = 'none'; }, 500); 
         };
@@ -337,7 +338,13 @@
             guideStepEl.classList.remove("show"); requestAnimationFrame(()=>{ guideStepEl.classList.add("show"); const descEl = document.getElementById("gDesc"); if(descEl) typeText(descEl, s.text); });
         }
         if(guideBtn) { guideBtn.onclick = () => { gIndex++; if(gIndex < guideSteps.length){ renderGuide(); } else { guideStepEl.innerHTML = `<div class="g-final">SIAP CHARGING?</div><div class="g-desc">Pastikan berada di lokasi.</div>`; guideBtn.innerText = "MASUK APLIKASI"; guideBtn.onclick = window.closeGuide; guideStepEl.classList.add("show"); } }; }
-        if(localStorage.getItem('myPlat')) { guideOverlay.style.display = 'none'; } else { renderGuide(); }
+        
+        // CEK: JIKA SUDAH DAFTAR ATAU SUDAH PERNAH LIHAT GUIDE -> SEMBUNYIKAN
+        if(localStorage.getItem('myPlat') || localStorage.getItem('guide_seen')) { 
+            guideOverlay.style.display = 'none'; 
+        } else { 
+            renderGuide(); 
+        }
 
         // === CORE SYSTEM ===
         let localSlots = [null,null,null]; let localQueue = []; let myPlat = localStorage.getItem('myPlat'); let myIP = "";
@@ -351,39 +358,29 @@
         function showConfirm(text, cb) { $('confirmText').innerText = text; $('confirmModal').style.display='flex'; $('btnConfirmYes').onclick = () => { $('confirmModal').style.display='none'; cb(); }; }
         function getDist(lat1,lon1,lat2,lon2) { const R=6371; const dLat=(lat2-lat1)*Math.PI/180; const dLon=(lon2-lon1)*Math.PI/180; const a=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)*Math.sin(dLon/2); return R*(2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a))); }
 
-        // === 1. CEK LOKASI (DIPANGGIL SAAT KLIK DAFTAR) ===
+        // === 1. CEK LOKASI ===
         window.checkLocAndRegister = () => {
-            // Tunggu guide nutup dulu kalau masih kebuka
             if(guideOverlay.style.display !== 'none' && guideOverlay.style.opacity !== '0') return;
-            
             if(localStorage.getItem('adm_ok')) { runLogin(); return; }
 
-            // Langsung Cek GPS
             if(navigator.geolocation) {
                 $('fpBtn').style.opacity = 0.5;
-                // Mode Sabar: Timeout 15s (HP Jadul Friendly)
                 const geoOptions = { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 }; 
-
                 navigator.geolocation.getCurrentPosition((pos) => {
                     $('fpBtn').style.opacity = 1;
                     const dist = getDist(pos.coords.latitude, pos.coords.longitude, STATION_LAT, STATION_LNG);
-                    
                     if(dist > MAX_DIST_KM) { 
                         $('msgModal').style.display='none';
-                        alert(`GAGAL: KEJAUHAN (${dist.toFixed(2)} KM)\n\nWajib radius 200m dari FC.\nSilakan mendekat.`);
-                        vibrate();
+                        alert(`GAGAL: KEJAUHAN (${dist.toFixed(2)} KM)\n\nWajib radius 200m.`); vibrate();
                     } else { 
-                        // GPS OK -> BARU BUKA FORM LOGIN
                         $('msgModal').style.display='none';
                         runLogin(); 
                     }
                 }, (err) => { 
                     $('fpBtn').style.opacity = 1; $('msgModal').style.display='none';
-                    let msg = "GPS Error.";
-                    if(err.code===1) msg = "Izin Lokasi Ditolak."; else if(err.code===2) msg = "Sinyal Hilang.";
-                    alert(`GAGAL: ${msg}\nPastikan GPS Aktif & Izinkan Browser.`);
+                    let msg = "GPS Error."; if(err.code===1) msg = "Izin Ditolak."; else if(err.code===2) msg = "Sinyal Hilang.";
+                    alert(`GAGAL: ${msg}`);
                 }, geoOptions);
-
             } else { alert("HP tidak support GPS."); }
         };
 
@@ -401,7 +398,23 @@
             const btn = document.createElement("button"); btn.className = "term-enter-btn"; btn.innerText = "ENTER";
             const next = () => {
                 if(!input.value) return; 
-                tempUserData[steps[currentStep].k] = input.value.toUpperCase(); input.disabled = true; btn.remove();
+                const val = input.value.toUpperCase();
+                
+                // === LOGIKA PENGUNCIAN 1 HP 1 PLAT ===
+                if(steps[currentStep].k === "plat") {
+                    if(!localStorage.getItem('adm_ok')) {
+                        const today = new Date().toDateString();
+                        const lockData = JSON.parse(localStorage.getItem('device_lock') || '{}');
+                        
+                        if(lockData.date === today && lockData.plat && lockData.plat !== val) {
+                            alert(`AKSES DITOLAK!\nHP ini terkunci untuk plat: ${lockData.plat}`);
+                            window.location.reload();
+                            return;
+                        }
+                    }
+                }
+
+                tempUserData[steps[currentStep].k] = val; input.disabled = true; btn.remove();
                 currentStep++; if(currentStep < steps.length) terminalPrompt(); else startQueueAnim();
             };
             btn.onclick = next; line.appendChild(btn);
@@ -423,11 +436,12 @@
             switchScreen('screen-queue'); 
             const line = document.getElementById('scanLine'); const colorImg = document.getElementById('scanColorImg'); const txt = document.getElementById('scanTextStatus');
             if(line && colorImg && txt) {
-                line.style.transition = 'none'; colorImg.style.transition = 'none'; line.style.top = '100%'; colorImg.style.clipPath = 'inset(100% 0 0 0)'; txt.innerText = "CHECKING DATA..."; txt.style.color = "var(--cyan)";
+                line.style.transition = 'none'; colorImg.style.transition = 'none'; line.style.top = '100%'; colorImg.style.clipPath = 'inset(100% 0 0 0)'; txt.innerText = "CHECKING..."; txt.style.color = "var(--cyan)";
                 void line.offsetWidth; line.style.transition = 'top 1.5s linear'; colorImg.style.transition = 'clip-path 1.5s linear';
             }
-            setTimeout(() => { if(line) line.style.top = '0%'; if(colorImg) colorImg.style.clipPath = 'inset(0 0 0 0)'; txt.innerText = "VALIDATING..."; }, 1600);
-            setTimeout(() => { if(line) line.style.top = '100%'; if(colorImg) colorImg.style.clipPath = 'inset(0 0 0 0)'; txt.innerText = "ACCESS GRANTED"; txt.style.color = "var(--accent)"; }, 3200);
+            setTimeout(() => { if(line) line.style.top = '0%'; if(colorImg) colorImg.style.clipPath = 'inset(0 0 0 0)'; txt.innerText = "DEVICE ID..."; }, 100);
+            setTimeout(() => { if(line) line.style.top = '100%'; if(colorImg) colorImg.style.clipPath = 'inset(100% 0 0 0)'; txt.innerText = "VALIDATING..."; }, 1600);
+            setTimeout(() => { if(line) line.style.top = '0%'; if(colorImg) colorImg.style.clipPath = 'inset(0 0 0 0)'; txt.innerText = "ACCESS GRANTED"; txt.style.color = "var(--accent)"; }, 3200);
             setTimeout(() => { executeRegistration(); }, 4800);
         }
 
@@ -436,12 +450,12 @@
                 const d = (await t.get(mainRef)).data();
                 const all = [...(d.chargingSlots||[]), ...(d.waitingQueue||[])].filter(u => u !== null);
                 
-                // === FITUR MEMBER ADMIN (RECOVERY) ===
                 const duplicate = all.find(x => x.plat === tempUserData.plat);
                 if(duplicate) {
-                    const recover = confirm(`HALO ${duplicate.userName}!\nPlat ${tempUserData.plat} sudah aktif.\n\nApakah ini Anda? Klik OKE untuk masuk Dashboard.`);
+                    const recover = confirm(`HALO ${duplicate.userName}!\nPlat ${tempUserData.plat} sudah aktif.\nMasuk Dashboard?`);
                     if(recover) { 
                         localStorage.setItem('myPlat', tempUserData.plat); 
+                        localStorage.setItem('device_lock', JSON.stringify({ date: new Date().toDateString(), plat: tempUserData.plat }));
                         location.reload(); 
                         return "RECOVERED"; 
                     } else throw "PLAT SUDAH DIGUNAKAN";
@@ -455,7 +469,9 @@
                 return newNo;
             }).then((no) => {
                 if(no==="RECOVERED") return;
-                localStorage.setItem('myPlat', tempUserData.plat); myPlat = tempUserData.plat;
+                localStorage.setItem('myPlat', tempUserData.plat); 
+                localStorage.setItem('device_lock', JSON.stringify({ date: new Date().toDateString(), plat: tempUserData.plat }));
+                myPlat = tempUserData.plat;
                 addLog("REGISTER", `User ${tempUserData.plat} joined #${no}`);
                 showMsg("BERHASIL", `Antrian #${no}. Silakan tunggu.`); switchScreen('screen-slots');
             }).catch(e => { if(e!=="RECOVERED") showMsg("GAGAL", e); setTimeout(()=>switchScreen('screen-slots'), 2000); });
@@ -468,7 +484,6 @@
         });
 
         function updateUI() {
-            // Update Slot Count 3/3
             if($('slotCountVal')) $('slotCountVal').innerText = localSlots.filter(s => s === null).length + "/3";
             if($('qCountVal')) $('qCountVal').innerText = localQueue.length;
             if($('hud-q')) $('hud-q').innerText = localQueue.length;
@@ -523,7 +538,6 @@
             if(id === 'screen-login' || id === 'screen-queue') document.body.classList.add('login-mode'); else document.body.classList.remove('login-mode');
         }
 
-        // --- MUSIC, MODAL, UTILS ---
         const playlistData = [ { title: "Ada Apa Denganmu", url: "https://mlump3player.netlify.app/Ada%20Apa%20Denganmu.mp3" }, { title: "Anji - Menunggu Kamu", url: "https://mlump3player.netlify.app/anji-menunggu-kamu.mp3" }, { title: "Anugerah Terindah", url: "https://mlump3player.netlify.app/Anugerah%20Terindah%20Yang%20Pernah%20Kumiliki.mp3" }, { title: "Armada - Asalkan Kau Bahagia", url: "https://mlump3player.netlify.app/armada_asalkan_kau_bahagia.mp3" }, { title: "Armada - Harusnya Aku", url: "https://mlump3player.netlify.app/armada_harusnya_aku.mp3" }, { title: "Bintang Di Surga", url: "https://mlump3player.netlify.app/Bintang%20Di%20Surga.mp3" }, { title: "Bon Jovi - Always", url: "https://mlump3player.netlify.app/Bon%20Jovi%20-%20Always%20.MP3" }, { title: "Bon Jovi - It's My Life", url: "https://mlump3player.netlify.app/Bon%20Jovi%20-%20Its%20My%20Life%20.mp3" }, { title: "Dan - SO7", url: "https://mlump3player.netlify.app/Dan%20-%20Sheila%20On%207%20-%201999.mp3" }, { title: "Mungkin Nanti", url: "https://mlump3player.netlify.app/Mungkin%20Nanti.mp3" }, { title: "Surat Cinta Untuk Starla", url: "https://mlump3player.netlify.app/Virgoun%20-%20Surat%20Cinta%20Untuk%20Starla.mp3" } ];
         const audio = $('audio'); let curTrk=0;
         window.openPlaylist = () => { const cont = $('playlistContainer'); if(!cont) return; cont.innerHTML = ''; playlistData.forEach((item, idx) => { const div = document.createElement('div'); div.className = `pl-item ${idx === curTrk ? 'active' : ''}`; div.innerHTML = `<span class="pl-icon">🎵</span><span class="pl-title">${item.title}</span>`; div.onclick = () => { window.playTrack(idx); $('playlistModal').style.display='none'; }; cont.appendChild(div); }); $('playlistModal').style.display = 'flex'; };
@@ -561,7 +575,6 @@
         window.toggleDashboard = (show) => { if(show){isDashboardMinimized=false;switchScreen('screen-active-dashboard');}else{isDashboardMinimized=true;switchScreen('screen-slots');} updateUI(); }
         window.handleMainAction = () => { if(window.activeSlotIdx!==-1&&isDashboardMinimized)window.toggleDashboard(true); else if(amIInQueue){$('waitingDashboard').style.display='flex';renderFocusedQueue();} else window.checkLocAndRegister(); };
 
-        // WATCHDOG V3 (AUTO KICK)
         const WD_CFG={RADIUS:100,MAX_SPEED:35,GRACE:60000,MAX_STRIKE:5,INT:5000}; let wdBase=null,wdLast=null,wdStrike=0,wdTimer=null;
         function runWatchdog(p){
             const now=Date.now(), cur={lat:p.coords.latitude,lng:p.coords.longitude,time:now,mock:p.coords.isFromMockProvider};
