@@ -47,8 +47,7 @@
         .screen.active { display: flex; animation: fadeIn 0.5s forwards; }
         @keyframes fadeIn { from{opacity:0; transform:scale(0.95);} to{opacity:1; transform:scale(1);} }
         
-        /* === POSISI SLOT DITURUNKAN === */
-        /* padding-top: 50px (sebelumnya 15px) agar tidak nabrak tulisan header */
+        /* === POSISI SLOT === */
         #screen-slots { flex-direction: row; align-items: flex-start; justify-content: center; gap: 8px; padding: 50px 10px 0 10px; height: 100%; }
         
         .slot-container { width: 33%; height: 42vh; max-height: 380px; position: relative; transition: all 0.8s cubic-bezier(0.25, 1, 0.5, 1); }
@@ -76,13 +75,26 @@
         @keyframes pulseBtn { 0%{opacity:1;} 50%{opacity:0.7;} 100%{opacity:1;} }
         @keyframes breathe { 0%,100%{transform:scale(1); opacity:1;} 50%{transform:scale(1.05); opacity:0.9;} }
         
-        /* DASHBOARD AKTIF */
+        /* DASHBOARD AKTIF (FIXED LAYOUT) */
         #screen-active-dashboard { z-index: 200; background: rgba(0,0,0,0.95); backdrop-filter: blur(10px); top: 0; }
-        .ad-container { width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: space-between; align-items: center; padding: 20px; padding-bottom: 25vh; }
+        .ad-container { 
+            width: 100%; height: 100%; 
+            display: flex; flex-direction: column; 
+            align-items: center; 
+            padding: 20px; padding-bottom: 50px; /* Tambah padding bawah */
+            justify-content: space-evenly; /* Sebarkan item secara merata */
+        }
         .limit-hud { width: 90%; max-width: 350px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--accent); border-radius: 8px; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; box-shadow: 0 0 15px rgba(204, 255, 0, 0.1); margin-top: 45px; }
         .hud-val { font-size: 20px; color: #fff; font-weight: bold; line-height: 1; text-shadow: 0 0 5px #fff; }
         .ad-big-num { font-size: clamp(100px, 30vw, 200px); line-height: 0.8; font-weight: 700; color: var(--cyan); text-shadow: 0 0 50px var(--cyan), 0 0 10px #fff; animation: breathe 3s infinite ease-in-out; }
+        
+        /* TOMBOL SELESAI LEBIH JELAS & TIDAK KETUTUPAN */
+        .ad-bottom {
+            width: 100%; display: flex; justify-content: center;
+            z-index: 10; position: relative; margin-top: 20px;
+        }
         .btn-luxury { width: 90%; max-width: 350px; padding: 15px 0; background: linear-gradient(135deg, #ff0000 0%, #990000 100%); color: #fff; font-family: 'Teko'; font-size: 30px; font-weight: 700; letter-spacing: 2px; border: 2px solid #ff5e5e; border-radius: 15px; cursor: pointer; box-shadow: 0 0 30px rgba(255, 0, 60, 0.6), inset 0 0 10px rgba(0,0,0,0.5); text-shadow: 0 2px 5px rgba(0,0,0,0.5); transition: all 0.3s; position: relative; overflow: hidden; }
+        
         .btn-minimize { background: rgba(255,255,255,0.1); border: 1px solid #555; color: #ccc; font-size: 12px; padding: 8px 20px; border-radius: 20px; position: absolute; top: 15px; right: 15px; cursor: pointer; z-index: 201; }
         
         /* FOOTER */
@@ -289,7 +301,7 @@
         // === CONFIG UTAMA ===
         const STATION_LAT = -6.171583; 
         const STATION_LNG = 106.899844; 
-        const MAX_DIST_KM = 0.2; // 200 Meter
+        const MAX_DIST_KM = 0.2; 
 
         // === FIREBASE INIT ===
         const firebaseConfig = {
@@ -312,7 +324,7 @@
             addDoc(logRef, { actor: p, action: action, details: details, timestamp: new Date() }).catch(e=>{});
         }
 
-        // === GUIDE LOGIC (HANYA SEKALI SEUMUR HIDUP) ===
+        // === GUIDE LOGIC ===
         const guideSteps = [
             { icon:"📱", title:"GPS & LOKASI", text:"Pastikan GPS Aktif. Sistem mengunci radius 200m dari lokasi FC." },
             { icon:"📝", title:"1 HP = 1 PLAT", text:"Satu HP hanya bisa mendaftarkan satu plat nomor demi ketertiban." },
@@ -325,9 +337,9 @@
         const guideStepEl = document.getElementById('guideStep');
         const guideBtn = document.getElementById('guideBtn');
 
-        // FUNGSI TUTUP GUIDE & SIMPAN STATUS
+        // TUTUP GUIDE
         window.closeGuide = () => { 
-            localStorage.setItem('guide_seen', '1'); // TANDAI SUDAH DILIHAT
+            localStorage.setItem('guide_seen', '1'); 
             guideOverlay.style.opacity = '0'; 
             setTimeout(() => { guideOverlay.style.display = 'none'; }, 500); 
         };
@@ -339,7 +351,7 @@
         }
         if(guideBtn) { guideBtn.onclick = () => { gIndex++; if(gIndex < guideSteps.length){ renderGuide(); } else { guideStepEl.innerHTML = `<div class="g-final">SIAP CHARGING?</div><div class="g-desc">Pastikan berada di lokasi.</div>`; guideBtn.innerText = "MASUK APLIKASI"; guideBtn.onclick = window.closeGuide; guideStepEl.classList.add("show"); } }; }
         
-        // CEK: JIKA SUDAH DAFTAR ATAU SUDAH PERNAH LIHAT GUIDE -> SEMBUNYIKAN
+        // HANYA MUNCULKAN GUIDE JIKA BELUM PERNAH DILIHAT
         if(localStorage.getItem('myPlat') || localStorage.getItem('guide_seen')) { 
             guideOverlay.style.display = 'none'; 
         } else { 
@@ -461,11 +473,18 @@
                     } else throw "PLAT SUDAH DIGUNAKAN";
                 }
 
-                let newNo = (d.lastTicket||0)+1;
-                if(d.recycledNumbers && d.recycledNumbers.length>0) { d.recycledNumbers.sort((a,b)=>a-b); newNo = d.recycledNumbers.shift(); }
+                // === FIX: JANGAN PAKAI RECYCLED NUMBER ===
+                // Selalu ambil ticket terakhir + 1
+                let newNo = (d.lastTicket||0) + 1;
+                
                 const u = { plat: tempUserData.plat, userName: tempUserData.name, wa: tempUserData.wa, qNo: newNo, entryTime: tempEntryTime || Date.now(), ip: myIP };
                 d.waitingQueue.push(u);
-                t.update(mainRef, { waitingQueue:d.waitingQueue, recycledNumbers:d.recycledNumbers||[], lastTicket: Math.max(d.lastTicket||0, newNo) });
+                
+                // Update tanpa mengubah array recycledNumbers (biarkan kosong/tetap)
+                t.update(mainRef, { 
+                    waitingQueue: d.waitingQueue, 
+                    lastTicket: newNo 
+                });
                 return newNo;
             }).then((no) => {
                 if(no==="RECOVERED") return;
@@ -538,6 +557,7 @@
             if(id === 'screen-login' || id === 'screen-queue') document.body.classList.add('login-mode'); else document.body.classList.remove('login-mode');
         }
 
+        // --- MUSIC, MODAL, UTILS ---
         const playlistData = [ { title: "Ada Apa Denganmu", url: "https://mlump3player.netlify.app/Ada%20Apa%20Denganmu.mp3" }, { title: "Anji - Menunggu Kamu", url: "https://mlump3player.netlify.app/anji-menunggu-kamu.mp3" }, { title: "Anugerah Terindah", url: "https://mlump3player.netlify.app/Anugerah%20Terindah%20Yang%20Pernah%20Kumiliki.mp3" }, { title: "Armada - Asalkan Kau Bahagia", url: "https://mlump3player.netlify.app/armada_asalkan_kau_bahagia.mp3" }, { title: "Armada - Harusnya Aku", url: "https://mlump3player.netlify.app/armada_harusnya_aku.mp3" }, { title: "Bintang Di Surga", url: "https://mlump3player.netlify.app/Bintang%20Di%20Surga.mp3" }, { title: "Bon Jovi - Always", url: "https://mlump3player.netlify.app/Bon%20Jovi%20-%20Always%20.MP3" }, { title: "Bon Jovi - It's My Life", url: "https://mlump3player.netlify.app/Bon%20Jovi%20-%20Its%20My%20Life%20.mp3" }, { title: "Dan - SO7", url: "https://mlump3player.netlify.app/Dan%20-%20Sheila%20On%207%20-%201999.mp3" }, { title: "Mungkin Nanti", url: "https://mlump3player.netlify.app/Mungkin%20Nanti.mp3" }, { title: "Surat Cinta Untuk Starla", url: "https://mlump3player.netlify.app/Virgoun%20-%20Surat%20Cinta%20Untuk%20Starla.mp3" } ];
         const audio = $('audio'); let curTrk=0;
         window.openPlaylist = () => { const cont = $('playlistContainer'); if(!cont) return; cont.innerHTML = ''; playlistData.forEach((item, idx) => { const div = document.createElement('div'); div.className = `pl-item ${idx === curTrk ? 'active' : ''}`; div.innerHTML = `<span class="pl-icon">🎵</span><span class="pl-title">${item.title}</span>`; div.onclick = () => { window.playTrack(idx); $('playlistModal').style.display='none'; }; cont.appendChild(div); }); $('playlistModal').style.display = 'flex'; };
@@ -575,6 +595,7 @@
         window.toggleDashboard = (show) => { if(show){isDashboardMinimized=false;switchScreen('screen-active-dashboard');}else{isDashboardMinimized=true;switchScreen('screen-slots');} updateUI(); }
         window.handleMainAction = () => { if(window.activeSlotIdx!==-1&&isDashboardMinimized)window.toggleDashboard(true); else if(amIInQueue){$('waitingDashboard').style.display='flex';renderFocusedQueue();} else window.checkLocAndRegister(); };
 
+        // WATCHDOG V3 (AUTO KICK)
         const WD_CFG={RADIUS:100,MAX_SPEED:35,GRACE:60000,MAX_STRIKE:5,INT:5000}; let wdBase=null,wdLast=null,wdStrike=0,wdTimer=null;
         function runWatchdog(p){
             const now=Date.now(), cur={lat:p.coords.latitude,lng:p.coords.longitude,time:now,mock:p.coords.isFromMockProvider};
