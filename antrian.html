@@ -28,58 +28,49 @@
         body::before { content: ''; position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(0,0,0,0.85), #000); z-index: 0; }
         #dust { position: fixed; inset: 0; pointer-events: none; z-index: 1; }
 
-        /* === WELCOME SCREEN / GUIDE === */
-        #welcome-overlay {
-            position: fixed; inset: 0; z-index: 15000;
-            background: #000; font-family: 'Inter', sans-serif;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            overflow: hidden; transition: opacity 0.5s;
-        }
-        .guide-bg {
-            position: absolute; inset: 0;
-            background: radial-gradient(circle at top, rgba(0,240,255,.15), transparent 60%), linear-gradient(120deg, #000, #020c12, #000);
-            animation: bgMove 18s linear infinite; z-index: 0;
-        }
-        @keyframes bgMove{ 0%{filter:hue-rotate(0deg)} 100%{filter:hue-rotate(360deg)} }
-        .guide-wrap { position: relative; z-index: 2; height: 100%; width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center; }
-        .guide-step { max-width: 420px; opacity: 0; transform: scale(.95) translateY(20px); transition: 1s ease; }
-        .guide-step.show { opacity: 1; transform: scale(1) translateY(0); }
-        .g-icon { font-size: 48px; margin-bottom: 12px; filter: drop-shadow(0 0 12px rgba(0,240,255,.6)); }
-        .g-title { font-size: 22px; font-weight: 900; letter-spacing: .5px; margin-bottom: 10px; color: #fff; }
-        .g-desc { font-size: 14px; line-height: 1.7; color: #ccc; min-height: 60px; font-weight: 500; }
-        .g-slots { margin-top: 18px; display: flex; gap: 12px; justify-content: center; }
-        .g-slot { width: 60px; height: 60px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 16px; }
-        .g-free { color: #000; background: #00f0ff; box-shadow: 0 0 25px rgba(0,240,255,.9); animation: breath 1.6s infinite; }
-        .g-busy { background: #200; border: 1px solid #f33; color: #f55; opacity: .6; }
-        .btn-guide { margin-top: 30px; padding: 12px 40px; background: linear-gradient(90deg,#00f0ff,#7cfffa); color: #000; border: none; border-radius: 30px; font-weight: 900; cursor: pointer; font-family: 'Inter', sans-serif; box-shadow: 0 0 30px rgba(0,240,255,.6); font-size: 16px; }
-        .btn-skip-guide { position: absolute; top: 20px; right: 20px; z-index: 10; background: rgba(255,255,255,0.1); border: 1px solid #555; color: #aaa; padding: 8px 15px; border-radius: 20px; font-size: 12px; font-weight: 700; cursor: pointer; backdrop-filter: blur(5px); font-family: 'Inter', sans-serif; }
-        .g-final { font-size: 24px; font-weight: 900; color: #e8c37a; text-shadow: 0 0 30px rgba(232,195,122,.8); margin-bottom: 10px; }
-
-        /* === MAIN APP === */
-        .top-nav { height: 18vh; min-height: 120px; display: flex; flex-direction: column; justify-content: center; text-align: center; z-index: 50; position: relative; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); flex-shrink: 0; padding-bottom: 10px; }
+        /* === LAYOUT UTAMA === */
+        /* Header diperkecil agar slot naik */
+        .top-nav { height: 14vh; min-height: 90px; display: flex; flex-direction: column; justify-content: flex-end; text-align: center; z-index: 50; position: relative; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); flex-shrink: 0; padding-bottom: 10px; }
         .main-title { font-size: clamp(40px, 6vh, 60px); font-weight: 700; line-height: 0.9; color: #fff; text-shadow: 0 0 15px rgba(0, 240, 255, 0.5); cursor: pointer; }
-        .sub-title { font-size: 14px; color: var(--accent); letter-spacing: 4px; font-weight: 600; margin-top: 0px; text-transform: uppercase; }
-        #logo-area { flex: 1; display: flex; justify-content: center; align-items: flex-start; padding-top: 20px; position: relative; z-index: 5; transition: opacity 0.5s; }
-        .big-logo { width: 70%; max-width: 250px; height: auto; border-radius: 20px; box-shadow: 0 0 50px rgba(0,0,0,0.8); border: 1px solid rgba(255,255,255,0.1); animation: floatLogo 4s ease-in-out infinite; }
+        .sub-title { font-size: 14px; color: var(--accent); letter-spacing: 4px; font-weight: 600; margin-top: 5px; text-transform: uppercase; }
+        
+        /* Logo muncul HANYA saat login mode */
+        #logo-area { height: 0; opacity: 0; pointer-events: none; transition: 0.5s; flex: 0 0 auto; }
+        body.login-mode #logo-area { height: auto; opacity: 1; margin-bottom: 10px; display: flex; justify-content: center; padding-top: 10px; } 
+        .big-logo { width: 60%; max-width: 200px; height: auto; border-radius: 20px; box-shadow: 0 0 50px rgba(0,0,0,0.8); border: 1px solid rgba(255,255,255,0.1); animation: floatLogo 4s ease-in-out infinite; }
         @keyframes floatLogo { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-10px);} }
-        body.login-mode #logo-area { opacity: 0.1; pointer-events: none; }
-        body.login-mode .bottom-panel { display: none !important; }
 
-        /* SCREENS & CARDS */
-        .screen { position: absolute; inset: 0; top: 12vh; bottom: 0; display: none; flex-direction: column; z-index: 10; transition: opacity 0.5s; justify-content: center; align-items: center; }
+        /* === FIX MASALAH TUMPANG TINDIH === */
+        /* Saat login mode, Panel Bawah WAJIB HILANG */
+        body.login-mode .bottom-panel { 
+            display: none !important; 
+            visibility: hidden !important;
+            opacity: 0 !important;
+            z-index: -999 !important;
+        }
+
+        /* Screen Login WAJIB paling atas dan hitam pekat */
+        #screen-login { 
+            justify-content: flex-start; 
+            padding-top: 40px; 
+            z-index: 20000 !important; /* Layer paling atas */
+            background: #000 !important; /* Hitam pekat */
+            top: 0 !important;
+            bottom: 0 !important;
+            height: 100vh !important;
+        }
+
+        /* === SCREENS === */
+        .screen { position: absolute; inset: 0; top: 14vh; bottom: 0; display: none; flex-direction: column; z-index: 10; transition: opacity 0.5s; justify-content: flex-start; align-items: center; }
         .screen.active { display: flex; animation: fadeIn 0.5s forwards; }
-        #screen-login { justify-content: flex-start; padding-top: 20px; z-index: 100; background:rgba(0,0,0,0.85); }
         @keyframes fadeIn { from{opacity:0; transform:scale(0.95);} to{opacity:1; transform:scale(1);} }
         
-        .onyx-panel { width: 90%; max-width: 400px; background: #050505; border: 1px solid var(--cyan); border-radius: 15px; padding: 25px; box-shadow: 0 0 30px rgba(0, 240, 255, 0.15); position: relative; overflow: hidden; margin: auto; }
-        .term-input { background: none; border: none; outline: none; color: var(--cyan); font-family: 'JetBrains Mono', monospace; font-size: 16px; width: 60%; font-weight: bold; text-transform: uppercase; caret-color: var(--cyan); margin-left: 5px; }
-        .term-enter-btn { background: var(--cyan); color: #000; border: none; padding: 4px 12px; font-family: 'JetBrains Mono'; font-weight: bold; cursor: pointer; margin-left: auto; font-size: 12px; border-radius: 4px; animation: pulseBtn 1.5s infinite; }
-        @keyframes pulseBtn { 0%{opacity:1;} 50%{opacity:0.7;} 100%{opacity:1;} }
-
-        /* SLOT GRID */
-        #screen-slots { flex-direction: row; align-items: center; justify-content: center; gap: 8px; padding: 0 10px; }
-        .slot-container { width: 33%; height: 45vh; max-height: 380px; position: relative; transition: all 0.8s cubic-bezier(0.25, 1, 0.5, 1); }
-        .slot-container:nth-child(2) { margin-top: -40px; } 
+        /* Layout Slot */
+        #screen-slots { flex-direction: row; align-items: flex-start; justify-content: center; gap: 8px; padding: 15px 10px 0 10px; height: 100%; }
+        
+        .slot-container { width: 33%; height: 42vh; max-height: 380px; position: relative; transition: all 0.8s cubic-bezier(0.25, 1, 0.5, 1); }
+        .slot-container:nth-child(2) { margin-top: -20px; } 
+        
         .onyx-card { width: 100%; height: 100%; background: url('1763947427555.jpg') no-repeat center center fixed; background-size: cover; border: 1px solid rgba(255,255,255,0.3); border-radius: 15px; display: flex; flex-direction: column; position: relative; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.8); cursor: pointer; z-index: 2; }
         .onyx-card::after { content: ''; position: absolute; inset: 0; background: rgba(0,0,0,0.4); z-index: 0; }
         .card-content { position: relative; z-index: 5; width: 100%; height: 100%; display: flex; flex-direction: column; padding: 15px; }
@@ -96,24 +87,59 @@
         .btn-wa { background: rgba(37, 211, 102, 0.2); border: 1px solid var(--wa); color: var(--wa); font-family: 'JetBrains Mono'; font-size: 12px; padding: 4px 10px; border-radius: 20px; margin-top: 5px; cursor: pointer; display: none; align-items: center; gap: 5px; text-decoration: none; font-weight: bold; width: fit-content; }
         .filled .btn-wa { display: flex; }
 
+        .onyx-panel { width: 90%; max-width: 400px; background: #050505; border: 1px solid var(--cyan); border-radius: 15px; padding: 25px; box-shadow: 0 0 30px rgba(0, 240, 255, 0.15); position: relative; overflow: hidden; margin: auto; }
+        .term-input { background: none; border: none; outline: none; color: var(--cyan); font-family: 'JetBrains Mono', monospace; font-size: 16px; width: 60%; font-weight: bold; text-transform: uppercase; caret-color: var(--cyan); margin-left: 5px; }
+        .term-enter-btn { background: var(--cyan); color: #000; border: none; padding: 4px 12px; font-family: 'JetBrains Mono'; font-weight: bold; cursor: pointer; margin-left: auto; font-size: 12px; border-radius: 4px; animation: pulseBtn 1.5s infinite; }
+        @keyframes pulseBtn { 0%{opacity:1;} 50%{opacity:0.7;} 100%{opacity:1;} }
+        @keyframes breathe { 0%,100%{transform:scale(1); opacity:1;} 50%{transform:scale(1.05); opacity:0.9;} }
+        
         /* DASHBOARD AKTIF */
-        #screen-active-dashboard { z-index: 200; background: rgba(0,0,0,0.95); backdrop-filter: blur(10px); }
+        #screen-active-dashboard { z-index: 200; background: rgba(0,0,0,0.95); backdrop-filter: blur(10px); top: 0; }
         .ad-container { width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: space-between; align-items: center; padding: 20px; padding-bottom: 25vh; }
         .limit-hud { width: 90%; max-width: 350px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--accent); border-radius: 8px; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; box-shadow: 0 0 15px rgba(204, 255, 0, 0.1); margin-top: 45px; }
         .hud-val { font-size: 20px; color: #fff; font-weight: bold; line-height: 1; text-shadow: 0 0 5px #fff; }
         .ad-big-num { font-size: clamp(100px, 30vw, 200px); line-height: 0.8; font-weight: 700; color: var(--cyan); text-shadow: 0 0 50px var(--cyan), 0 0 10px #fff; animation: breathe 3s infinite ease-in-out; }
         .btn-luxury { width: 90%; max-width: 350px; padding: 15px 0; background: linear-gradient(135deg, #ff0000 0%, #990000 100%); color: #fff; font-family: 'Teko'; font-size: 30px; font-weight: 700; letter-spacing: 2px; border: 2px solid #ff5e5e; border-radius: 15px; cursor: pointer; box-shadow: 0 0 30px rgba(255, 0, 60, 0.6), inset 0 0 10px rgba(0,0,0,0.5); text-shadow: 0 2px 5px rgba(0,0,0,0.5); transition: all 0.3s; position: relative; overflow: hidden; }
         .btn-minimize { background: rgba(255,255,255,0.1); border: 1px solid #555; color: #ccc; font-size: 12px; padding: 8px 20px; border-radius: 20px; position: absolute; top: 15px; right: 15px; cursor: pointer; z-index: 201; }
-        @keyframes breathe { 0%,100%{transform:scale(1); opacity:1;} 50%{transform:scale(1.05); opacity:0.9;} }
+        
+        /* FOOTER (PANEL BAWAH) */
+        .bottom-panel { height: 35vh; min-height: 250px; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; z-index: 500; position: fixed; bottom: 0; width: 100%; background: linear-gradient(to top, #000 90%, transparent); padding-bottom: 20px; pointer-events: none; }
+        .stats-wrapper, .fp-wrapper, .music-player { pointer-events: auto; } 
 
-        /* FOOTER */
-        .bottom-panel { height: 35vh; min-height: 250px; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; z-index: 20; position: fixed; bottom: 0; width: 100%; background: linear-gradient(to top, #000 90%, transparent); padding-bottom: 20px; }
-        .stats-wrapper { display: grid; grid-template-columns: 1fr 2px 1fr; align-items: center; justify-items: center; width: 100%; max-width: 400px; margin-bottom: 15px; pointer-events: auto; }
+        .stats-wrapper { display: grid; grid-template-columns: 1fr 2px 1fr; align-items: center; justify-items: center; width: 100%; max-width: 400px; margin-bottom: 15px; }
         .stat-box { display: flex; flex-direction: column; align-items: center; text-align: center; width: 100%; }
-        .stat-num { font-size: 70px; line-height: 0.8; color: #fff; font-weight: bold; text-shadow: 0 0 20px rgba(204,255,0,0.4); }
+        .stat-num { font-size: 55px; line-height: 0.8; color: #fff; font-weight: bold; text-shadow: 0 0 20px rgba(204,255,0,0.4); letter-spacing: -2px; }
+        
+        .fp-wrapper { display: flex; flex-direction: column; align-items: center; position: relative; width:100%; justify-content:center; text-align: center; }
+        .fp-text { font-family: 'Teko'; font-size: 24px; color: #fff; font-weight: 700; margin-bottom: 5px; text-shadow: 0 0 10px var(--cyan); letter-spacing: 1px; animation: textGlow 2s infinite alternate; width: 100%; text-align: center; display:block; }
+        @keyframes textGlow { from{text-shadow: 0 0 5px var(--cyan);} to{text-shadow: 0 0 20px var(--cyan), 0 0 10px #fff;} }
+        .fp-container { position: relative; width: 80px; height: 80px; display: flex; justify-content: center; align-items: center; margin-bottom: 10px; cursor: pointer; }
         .fp-btn { width: 70px; height: 70px; background: rgba(0,0,0,0.5); border: 1px solid var(--cyan); border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; box-shadow: 0 0 20px rgba(0,240,255,0.3); animation: pulse 2s infinite; transition: 0.3s; }
         .fp-btn.back-mode { border-color: var(--accent); animation: none; box-shadow: 0 0 30px rgba(204, 255, 0, 0.4); background: rgba(204, 255, 0, 0.1); }
         @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(0, 240, 255, 0.4); } 70% { box-shadow: 0 0 0 15px rgba(0, 240, 255, 0); } 100% { box-shadow: 0 0 0 0 rgba(0, 240, 255, 0); } }
+
+        /* WELCOME OVERLAY */
+        #welcome-overlay {
+            position: fixed; inset: 0; z-index: 30000;
+            background: #000; font-family: 'Inter', sans-serif;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            overflow: hidden; transition: opacity 0.5s;
+        }
+        .guide-bg {
+            position: absolute; inset: 0;
+            background: radial-gradient(circle at top, rgba(0,240,255,.15), transparent 60%), linear-gradient(120deg, #000, #020c12, #000);
+            animation: bgMove 18s linear infinite; z-index: 0;
+        }
+        @keyframes bgMove{ 0%{filter:hue-rotate(0deg)} 100%{filter:hue-rotate(360deg)} }
+        .guide-wrap { position: relative; z-index: 2; height: 100%; width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center; }
+        .guide-step { max-width: 420px; opacity: 0; transform: scale(.95) translateY(20px); transition: 1s ease; }
+        .guide-step.show { opacity: 1; transform: scale(1) translateY(0); }
+        .g-icon { font-size: 48px; margin-bottom: 12px; filter: drop-shadow(0 0 12px rgba(0,240,255,.6)); }
+        .g-title { font-size: 22px; font-weight: 900; letter-spacing: .5px; margin-bottom: 10px; color: #fff; }
+        .g-desc { font-size: 14px; line-height: 1.7; color: #ccc; min-height: 60px; font-weight: 500; }
+        .btn-guide { margin-top: 30px; padding: 12px 40px; background: linear-gradient(90deg,#00f0ff,#7cfffa); color: #000; border: none; border-radius: 30px; font-weight: 900; cursor: pointer; font-family: 'Inter', sans-serif; box-shadow: 0 0 30px rgba(0,240,255,.6); font-size: 16px; }
+        .btn-skip-guide { position: absolute; top: 20px; right: 20px; z-index: 10; background: rgba(255,255,255,0.1); border: 1px solid #555; color: #aaa; padding: 8px 15px; border-radius: 20px; font-size: 12px; font-weight: 700; cursor: pointer; backdrop-filter: blur(5px); font-family: 'Inter', sans-serif; }
+        .g-final { font-size: 24px; font-weight: 900; color: #e8c37a; text-shadow: 0 0 30px rgba(232,195,122,.8); margin-bottom: 10px; }
 
         /* MODALS & OTHERS */
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 12000; justify-content: center; align-items: center; backdrop-filter: blur(8px); }
@@ -125,7 +151,7 @@
         .fq-item.arrive { transform: scale(1.2); text-shadow: 0 0 30px var(--cyan), 0 0 50px white; }
         .fq-item.you { font-size: 28px; font-weight: 800; color: var(--cyan); text-shadow: 0 0 25px var(--cyan); margin: 25px 0; }
         
-        .music-player { pointer-events: auto; width: 260px; height: 40px; background: rgba(255,255,255,0.05); border-radius: 20px; display: flex; align-items: center; justify-content: space-between; padding: 0 15px; backdrop-filter: blur(5px); border: 1px solid rgba(255,255,255,0.1); }
+        .music-player { width: 260px; height: 40px; background: rgba(255,255,255,0.05); border-radius: 20px; display: flex; align-items: center; justify-content: space-between; padding: 0 15px; backdrop-filter: blur(5px); border: 1px solid rgba(255,255,255,0.1); }
         .mp-btn { background: none; border: none; color: var(--cyan); cursor: pointer; font-size: 18px; }
         .mp-info { font-family: 'JetBrains Mono'; font-size: 12px; color: #aaa; white-space: nowrap; overflow: hidden; width: 120px; text-align: center; }
         .pl-item { padding: 12px; border-bottom: 1px solid #333; cursor: pointer; display: flex; align-items: center; gap: 10px; }
@@ -159,8 +185,6 @@
         <img src="1763947427555.jpg" class="big-logo">
     </div>
 
-    <div id="screen-start" class="screen active"></div>
-
     <div id="screen-login" class="screen">
         <div class="onyx-panel" id="terminal-box"></div>
         <div style="text-align:center; margin-top:10px;">
@@ -180,7 +204,7 @@
         </div>
     </div>
 
-    <div id="screen-slots" class="screen" style="flex-direction:row; gap:10px; padding:0 20px;">
+    <div id="screen-slots" class="screen active">
         <div class="slot-container" id="cont-0">
             <div class="onyx-card empty" id="card-0" onclick="handleSlotClick(0)">
                 <div class="card-content">
@@ -279,7 +303,12 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, doc, onSnapshot, runTransaction, collection, addDoc, query, where, getDocs, limit, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // === CONFIG FIREBASE ===
+        // === CONFIG UTAMA ===
+        const STATION_LAT = -6.171583; 
+        const STATION_LNG = 106.899844; 
+        const MAX_DIST_KM = 0.2; // 200 Meter (Sesuai Request)
+
+        // === FIREBASE INIT ===
         const firebaseConfig = {
             apiKey: "AIzaSyDIUivobLNDIsbK7ilqfe7fLAL8LnM4Hk8",
             authDomain: "fcgadingbaru.firebaseapp.com",
@@ -288,35 +317,24 @@
             messagingSenderId: "193138253272",
             appId: "1:193138253272:web:e183a3e455ec357ec7a6ad"
         };
-
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-        
         const mainRef = doc(db, "antrian", "utama");
         const historyRef = collection(db, "riwayatCharging");
-        const logRef = collection(db, "activityLog"); // Reference untuk Log Admin
+        const logRef = collection(db, "activityLog");
 
-        // === HELPER: KIRIM LOG KE ADMIN ===
+        // === LOG SYSTEM ===
         function addLog(action, details) {
             const p = localStorage.getItem('myPlat') || "GUEST";
-            addDoc(logRef, {
-                actor: p,
-                action: action,
-                details: details,
-                timestamp: new Date()
-            }).catch(e => console.log("Log Fail", e));
+            addDoc(logRef, { actor: p, action: action, details: details, timestamp: new Date() }).catch(e=>{});
         }
 
-        // ==========================================
-        // 1. LOGIKA WELCOME SCREEN (CHARGING GUIDE)
-        // ==========================================
+        // === GUIDE LOGIC (TANPA TOKEN) ===
         const guideSteps = [
-            { icon:"📱", title:"SCAN BARCODE", text:"Scan QR Code di lokasi. Jika diminta izin lokasi, klik 'Allow' / 'Izinkan'." },
-            { icon:"📝", title:"ISI DATA", text:"Isi Plat Nomor, Nama, dan No HP. Data aman, hanya untuk antrian." },
-            { icon:"🔌", title:"PILIH SLOT", text:"Jika ada Slot Kosong, langsung klik. Pastikan sesuai colokan motor.", slots:`<div class="g-slots"><div class="g-slot g-free">S1</div><div class="g-slot g-busy">S2</div><div class="g-slot g-busy">S3</div></div>` },
-            { icon:"⏳", title:"ANTRIAN", text:"Jika penuh, masuk antrian. Tunggu giliran sambil ngopi.", slots:`<div class="g-slots"><div class="g-slot g-busy">S1</div><div class="g-slot g-busy">S2</div><div class="g-slot g-busy">S3</div></div>` },
-            { icon:"⚡", title:"GILIRAN TIBA", text:"HP akan bergetar saat slot kosong. Segera masuk!", slots:`<div class="g-slots"><div class="g-slot g-free">S2</div></div>` },
-            { icon:"✅", title:"SELESAI", text:"Wajib klik 'SELESAI' setelah charging beres." }
+            { icon:"📱", title:"GPS & LOKASI", text:"Pastikan GPS Aktif. Sistem mengunci radius 200m dari lokasi FC." },
+            { icon:"📝", title:"ISI DATA / MONITOR", text:"Isi Plat Nomor. Jika sudah didaftarkan Admin, Anda akan langsung masuk ke Dashboard." },
+            { icon:"⚡", title:"PILIH SLOT", text:"Pilih Slot (S1/S2/S3) sesuai colokan. Jika penuh, sistem otomatis memasukkan ke antrian." },
+            { icon:"✅", title:"SELESAI", text:"Wajib klik 'SELESAI' setelah charging beres agar slot kosong kembali." }
         ];
 
         let gIndex = 0;
@@ -324,58 +342,18 @@
         const guideStepEl = document.getElementById('guideStep');
         const guideBtn = document.getElementById('guideBtn');
 
-        window.closeGuide = () => {
-            guideOverlay.style.opacity = '0';
-            setTimeout(() => { 
-                guideOverlay.style.display = 'none'; 
-                window.checkLocAndRegister(); 
-            }, 500);
-        };
-
-        function typeText(el, text, idx=0){
-            if(idx < text.length){ el.textContent += text[idx]; setTimeout(()=>typeText(el,text,idx+1), 25); }
-        }
-
+        window.closeGuide = () => { guideOverlay.style.opacity = '0'; setTimeout(() => { guideOverlay.style.display = 'none'; window.checkLocAndRegister(); }, 500); };
+        function typeText(el, text, idx=0){ if(idx < text.length){ el.textContent += text[idx]; setTimeout(()=>typeText(el,text,idx+1), 25); } }
         function renderGuide(){
-            const s = guideSteps[gIndex];
-            guideStepEl.innerHTML = `<div class="g-icon">${s.icon}</div><div class="g-title">${s.title}</div><div class="g-desc" id="gDesc"></div>${s.slots || ""}`;
-            guideStepEl.classList.remove("show");
-            requestAnimationFrame(()=>{
-                guideStepEl.classList.add("show");
-                const descEl = document.getElementById("gDesc");
-                if(descEl) typeText(descEl, s.text);
-            });
+            const s = guideSteps[gIndex]; guideStepEl.innerHTML = `<div class="g-icon">${s.icon}</div><div class="g-title">${s.title}</div><div class="g-desc" id="gDesc"></div>${s.slots || ""}`;
+            guideStepEl.classList.remove("show"); requestAnimationFrame(()=>{ guideStepEl.classList.add("show"); const descEl = document.getElementById("gDesc"); if(descEl) typeText(descEl, s.text); });
         }
-
-        if(guideBtn) {
-            guideBtn.onclick = () => {
-                gIndex++;
-                if(gIndex < guideSteps.length){ renderGuide(); } else {
-                    guideStepEl.innerHTML = `<div class="g-final">SELAMAT DATANG ✨</div><div class="g-desc" style="margin-top:10px; font-size:16px;">"Tertib bikin kita ga tambah pusing."</div>`;
-                    guideBtn.innerText = "MASUK APLIKASI"; guideBtn.onclick = window.closeGuide; guideStepEl.classList.add("show");
-                }
-            };
-        }
-
+        if(guideBtn) { guideBtn.onclick = () => { gIndex++; if(gIndex < guideSteps.length){ renderGuide(); } else { guideStepEl.innerHTML = `<div class="g-final">SIAP CHARGING?</div><div class="g-desc">Pastikan berada di lokasi.</div>`; guideBtn.innerText = "MASUK APLIKASI"; guideBtn.onclick = window.closeGuide; guideStepEl.classList.add("show"); } }; }
         if(localStorage.getItem('myPlat')) { guideOverlay.style.display = 'none'; } else { renderGuide(); }
 
-        // ==========================================
-        // 2. LOGIKA UTAMA (SYSTEM)
-        // ==========================================
-        let localSlots = [null, null, null];
-        let localQueue = [];
-        let myPlat = localStorage.getItem('myPlat');
-        let myIP = "";
-        window.activeSlotIdx = -1;
-        let isDashboardMinimized = false;
-        let amIInQueue = false;
-        let tempEntryTime = 0;
-        let hasNotifiedTurn = false;
-
-        const STATION_LAT = -6.171583; 
-        const STATION_LNG = 106.899844; 
-        const MAX_DIST_KM = 0.2; // 200 Meter (Outdoor Ruko)
-        const TAKEOVER_MIN_TIME = 5 * 60 * 1000; 
+        // === CORE SYSTEM ===
+        let localSlots = [null,null,null]; let localQueue = []; let myPlat = localStorage.getItem('myPlat'); let myIP = "";
+        window.activeSlotIdx = -1; let isDashboardMinimized = false; let amIInQueue = false; let tempEntryTime = 0; let hasNotifiedTurn = false;
 
         const $ = (id) => document.getElementById(id);
         const vibrate = () => { if(navigator.vibrate) navigator.vibrate(50); };
@@ -385,78 +363,43 @@
         function showConfirm(text, cb) { $('confirmText').innerText = text; $('confirmModal').style.display='flex'; $('btnConfirmYes').onclick = () => { $('confirmModal').style.display='none'; cb(); }; }
         function getDist(lat1,lon1,lat2,lon2) { const R=6371; const dLat=(lat2-lat1)*Math.PI/180; const dLon=(lon2-lon1)*Math.PI/180; const a=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)*Math.sin(dLon/2); return R*(2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a))); }
 
-        window.showQueueList = () => {
-            const el = $('queueListDetail'); if(!el) return; el.innerHTML = '';
-            if(localQueue.length === 0) el.innerHTML = '<div style="padding:20px; text-align:center; color:#555;">KOSONG</div>';
-            else localQueue.forEach(q => { const isMe = (q.plat === myPlat) ? 'color:var(--accent); font-weight:bold;' : 'color:#aaa;'; el.innerHTML += `<div style="padding:10px; border-bottom:1px solid #333; display:flex; justify-content:space-between;"><span style="color:var(--cyan);">#${q.qNo}</span><div style="text-align:right;"><div style="${isMe}">${q.plat}</div><div style="font-size:10px; color:#555;">${q.userName}</div></div></div>`; });
-            $('queueModal').style.display = 'flex';
-        };
-
-        let tempUserData = {}; let currentStep = 0;
-        const steps = [ {q: "PLAT NOMOR", k: "plat"}, {q: "NAMA LENGKAP", k: "name"}, {q: "NOMOR WHATSAPP", k: "wa"} ];
-        
-        function switchScreen(id) {
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            const target = $(id); if(target) target.classList.add('active');
-            if(id === 'screen-login' || id === 'screen-queue') document.body.classList.add('login-mode'); else document.body.classList.remove('login-mode');
-        }
-
-        window.toggleAdmin = () => { const pass = prompt("MASUKKAN KODE ADMIN:"); if(pass === "1131") { localStorage.setItem('adm_ok', '1'); window.location.href = 'admin.html'; } }
-
-        function renderFocusedQueue() {
-            const container = $('focusedQueueList'); const viewport = document.querySelector('.q-viewport'); if (!container || !viewport) return; container.innerHTML = '';
-            if (localQueue.length === 0) { container.innerHTML = '<div style="color:#666;margin-top:50px;font-family:JetBrains Mono;">ANTRIAN KOSONG</div>'; return; }
-            const youIndex = localQueue.findIndex(q => q.plat === myPlat);
-            localQueue.forEach((q, i) => {
-                if (i > 0) { const pipe = document.createElement("div"); pipe.className = "fq-pipe"; container.appendChild(pipe); }
-                const d = document.createElement("div");
-                if (q.plat === myPlat) {
-                    d.className = "fq-item you";
-                    if (i === 0 && localSlots.some(s => s === null)) {
-                        d.innerHTML = "⚡ GILIRAN ANDA! ⚡<br><span style='font-size:14px; color:#fff;'>KLIK SINI UNTUK MASUK</span>";
-                        d.style.color = "var(--accent)"; d.style.cursor = "pointer"; d.style.border = "1px solid var(--accent)"; d.style.padding = "10px"; d.style.borderRadius = "10px"; d.style.background = "rgba(204, 255, 0, 0.1)";
-                        d.onclick = () => { $('waitingDashboard').style.display = 'none'; switchScreen('screen-slots'); isDashboardMinimized = true; updateUI(); vibrate(); };
-                    } else { d.textContent = `#${q.qNo} ${q.plat}`; }
-                } else if (Math.abs(i - youIndex) === 1) { d.className = "fq-item mid"; d.textContent = `#${q.qNo} ${q.plat}`; } else { d.className = "fq-item small"; d.textContent = `#${q.qNo} ${q.plat}`; }
-                container.appendChild(d);
-            });
-            setTimeout(() => { const youEl = document.querySelector('.fq-item.you'); if (youEl) { youEl.scrollIntoView({ behavior: 'smooth', block: 'center' }); setTimeout(() => { youEl.classList.add('arrive'); if (navigator.vibrate) navigator.vibrate([40, 30, 40]); }, 600); } }, 300);
-        }
-
-        window.handleMainAction = () => {
-            if(window.activeSlotIdx !== -1 && isDashboardMinimized) window.toggleDashboard(true);
-            else if(amIInQueue) { $('waitingDashboard').style.display = 'flex'; renderFocusedQueue(); }
-            else window.checkLocAndRegister();
-        };
-
-        window.toggleDashboard = (show) => {
-            if(show) { isDashboardMinimized = false; switchScreen('screen-active-dashboard'); } else { isDashboardMinimized = true; switchScreen('screen-slots'); }
-            updateUI();
-        }
-
-        // === GPS CHECK (PATIENT MODE) ===
+        // === 1. CEK LOKASI (TANPA TOKEN - LANGSUNG GPS) ===
         window.checkLocAndRegister = () => {
             if(guideOverlay.style.display !== 'none') return;
             if(localStorage.getItem('adm_ok')) { runLogin(); return; }
+
+            // Langsung Cek GPS (200m Lock)
             if(navigator.geolocation) {
                 $('fpBtn').style.opacity = 0.5;
-                const geoOptions = { enableHighAccuracy: true, timeout: 15000, maximumAge: 30000 };
+                const geoOptions = { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 }; // Mode Sabar
+
                 navigator.geolocation.getCurrentPosition((pos) => {
-                    const dist = getDist(pos.coords.latitude, pos.coords.longitude, STATION_LAT, STATION_LNG);
                     $('fpBtn').style.opacity = 1;
-                    if(dist > MAX_DIST_KM) { showMsg("KEJAUHAN", `Jarak: ${dist.toFixed(2)} KM.\nMax: ${MAX_DIST_KM} KM.\nMendekatlah.`); vibrate(); } 
-                    else { runLogin(); }
+                    const dist = getDist(pos.coords.latitude, pos.coords.longitude, STATION_LAT, STATION_LNG);
+                    
+                    if(dist > MAX_DIST_KM) { 
+                        $('msgModal').style.display='none';
+                        alert(`GAGAL: KEJAUHAN (${dist.toFixed(2)} KM)\n\nWajib radius 200m dari FC.\nSilakan mendekat.`);
+                        vibrate();
+                    } else { 
+                        $('msgModal').style.display='none';
+                        runLogin(); 
+                    }
                 }, (err) => { 
-                    $('fpBtn').style.opacity=1;
-                    let msg = "GPS Error";
-                    if(err.code===1) msg="Izin Lokasi Ditolak Browser."; else if(err.code===2) msg="Sinyal GPS Hilang."; else if(err.code===3) msg="Waktu Habis. Coba lagi.";
-                    showMsg("GAGAL", msg); 
+                    $('fpBtn').style.opacity = 1; $('msgModal').style.display='none';
+                    let msg = "GPS Error.";
+                    if(err.code===1) msg = "Izin Lokasi Ditolak."; else if(err.code===2) msg = "Sinyal Hilang.";
+                    alert(`GAGAL: ${msg}\nPastikan GPS Aktif & Izinkan Browser.`);
                 }, geoOptions);
-            } else showMsg("ERROR", "Browser tidak support GPS.");
+
+            } else { alert("HP tidak support GPS."); }
         };
 
         window.cancelLogin = () => { $('terminal-box').innerHTML=''; switchScreen('screen-slots'); tempEntryTime = 0; };
         function runLogin() { vibrate(); tempEntryTime = Date.now(); switchScreen('screen-login'); currentStep = 0; tempUserData = {}; $('terminal-box').innerHTML=''; terminalPrompt(); }
+
+        let tempUserData = {}; let currentStep = 0;
+        const steps = [ {q: "PLAT NOMOR", k: "plat"}, {q: "NAMA LENGKAP", k: "name"}, {q: "NOMOR WHATSAPP", k: "wa"} ];
 
         function terminalPrompt() {
             const line = document.createElement("div"); line.className = "term-line";
@@ -488,11 +431,10 @@
             switchScreen('screen-queue'); 
             const line = document.getElementById('scanLine'); const colorImg = document.getElementById('scanColorImg'); const txt = document.getElementById('scanTextStatus');
             if(line && colorImg && txt) {
-                line.style.transition = 'none'; colorImg.style.transition = 'none'; line.style.top = '100%'; colorImg.style.clipPath = 'inset(100% 0 0 0)'; txt.innerText = "CONNECTING..."; txt.style.color = "var(--cyan)";
+                line.style.transition = 'none'; colorImg.style.transition = 'none'; line.style.top = '100%'; colorImg.style.clipPath = 'inset(100% 0 0 0)'; txt.innerText = "CHECKING DATA..."; txt.style.color = "var(--cyan)";
                 void line.offsetWidth; line.style.transition = 'top 1.5s linear'; colorImg.style.transition = 'clip-path 1.5s linear';
             }
-            setTimeout(() => { if(line) line.style.top = '0%'; if(colorImg) colorImg.style.clipPath = 'inset(0 0 0 0)'; txt.innerText = "CHECKING DATABASE..."; }, 100);
-            setTimeout(() => { if(line) line.style.top = '100%'; if(colorImg) colorImg.style.clipPath = 'inset(100% 0 0 0)'; txt.innerText = "VERIFYING BIOMETRIC..."; }, 1600);
+            setTimeout(() => { if(line) line.style.top = '0%'; if(colorImg) colorImg.style.clipPath = 'inset(0 0 0 0)'; txt.innerText = "VALIDATING..."; }, 1600);
             setTimeout(() => { if(line) line.style.top = '0%'; if(colorImg) colorImg.style.clipPath = 'inset(0 0 0 0)'; txt.innerText = "ACCESS GRANTED"; txt.style.color = "var(--accent)"; }, 3200);
             setTimeout(() => { executeRegistration(); }, 4800);
         }
@@ -501,11 +443,18 @@
             runTransaction(db, async(t) => {
                 const d = (await t.get(mainRef)).data();
                 const all = [...(d.chargingSlots||[]), ...(d.waitingQueue||[])].filter(u => u !== null);
+                
+                // === FITUR MEMBER ADMIN ===
                 const duplicate = all.find(x => x.plat === tempUserData.plat);
                 if(duplicate) {
-                    const recover = confirm(`PLAT ${tempUserData.plat} SUDAH TERDAFTAR!\nApakah ini Anda? Klik OKE untuk masuk.`);
-                    if(recover) { localStorage.setItem('myPlat', tempUserData.plat); location.reload(); return "RECOVERED"; } else throw "PLAT SUDAH ADA";
+                    const recover = confirm(`HALO ${duplicate.userName}!\nPlat ${tempUserData.plat} sudah aktif.\n\nApakah ini Anda? Klik OKE untuk masuk Dashboard.`);
+                    if(recover) { 
+                        localStorage.setItem('myPlat', tempUserData.plat); 
+                        location.reload(); 
+                        return "RECOVERED"; 
+                    } else throw "PLAT SUDAH DIGUNAKAN";
                 }
+
                 let newNo = (d.lastTicket||0)+1;
                 if(d.recycledNumbers && d.recycledNumbers.length>0) { d.recycledNumbers.sort((a,b)=>a-b); newNo = d.recycledNumbers.shift(); }
                 const u = { plat: tempUserData.plat, userName: tempUserData.name, wa: tempUserData.wa, qNo: newNo, entryTime: tempEntryTime || Date.now(), ip: myIP };
@@ -515,7 +464,7 @@
             }).then((no) => {
                 if(no==="RECOVERED") return;
                 localStorage.setItem('myPlat', tempUserData.plat); myPlat = tempUserData.plat;
-                addLog("REGISTER", `New user ${tempUserData.plat} joined Queue #${no}`); // LOG REGISTER
+                addLog("REGISTER", `User ${tempUserData.plat} joined #${no}`);
                 showMsg("BERHASIL", `Antrian #${no}. Silakan tunggu.`); switchScreen('screen-slots');
             }).catch(e => { if(e!=="RECOVERED") showMsg("GAGAL", e); setTimeout(()=>switchScreen('screen-slots'), 2000); });
         }
@@ -527,12 +476,12 @@
         });
 
         function updateUI() {
-            if($('slotCountVal')) $('slotCountVal').innerText = localSlots.filter(s => s === null).length;
+            // Update Slot Count Format 3/3
+            if($('slotCountVal')) $('slotCountVal').innerText = localSlots.filter(s => s === null).length + "/3";
             if($('qCountVal')) $('qCountVal').innerText = localQueue.length;
             if($('hud-q')) $('hud-q').innerText = localQueue.length;
 
-            let amICharging = false;
-            amIInQueue = localQueue.some(q => q.plat === myPlat);
+            let amICharging = false; amIInQueue = localQueue.some(q => q.plat === myPlat);
             const iAmFirst = (localQueue.length > 0 && localQueue[0].plat === myPlat);
             const hasEmptySlot = localSlots.some(s => s === null);
 
@@ -540,9 +489,7 @@
                 $('waitingDashboard').style.display = 'none'; 
                 if (!isDashboardMinimized) { isDashboardMinimized = true; switchScreen('screen-slots'); }
                 if (!hasNotifiedTurn) {
-                    window.speechSynthesis.cancel();
-                    const msg = new SpeechSynthesisUtterance(`Halo, Giliran Anda. Silakan pilih slot.`);
-                    msg.lang = 'id-ID'; window.speechSynthesis.speak(msg); vibrate();
+                    window.speechSynthesis.cancel(); const msg = new SpeechSynthesisUtterance(`Halo, Giliran Anda.`); msg.lang = 'id-ID'; window.speechSynthesis.speak(msg); vibrate();
                     hasNotifiedTurn = true; 
                 }
             } else if (!iAmFirst) { hasNotifiedTurn = false; }
@@ -554,19 +501,8 @@
                     if($(`n-${i}`)) $(`n-${i}`).innerText = s.userName;
                     if($(`p-${i}`)) $(`p-${i}`).innerText = s.plat;
                     if($(`no-${i}`)) $(`no-${i}`).innerText = "#" + s.qNo;
-                    if(waBtn) {
-                        let num = s.wa; if(num && num.startsWith('0')) num = '62' + num.substring(1);
-                        if(num) waBtn.href = `https://wa.me/${num}?text=Halo%20${s.userName},%20antrian%20di%20FC%20Kelapa%20Gading%20nunggu%20nih.%20Udah%20selesai?`; else waBtn.style.display = 'none';
-                    }
-                    if(myPlat === s.plat) {
-                        amICharging = true; window.activeSlotIdx = i;
-                        if(!isDashboardMinimized) switchScreen('screen-active-dashboard');
-                        if($('ad-slot-val')) $('ad-slot-val').innerText = "SLOT " + (i+1);
-                        if($('ad-name-val')) $('ad-name-val').innerText = s.userName;
-                        if($('ad-plat-val')) $('ad-plat-val').innerText = s.plat;
-                        if($('ad-no-val')) $('ad-no-val').innerText = "#" + s.qNo;
-                        $('waitingDashboard').style.display='none'; hasNotifiedTurn = false; 
-                    }
+                    if(waBtn) { let num = s.wa; if(num && num.startsWith('0')) num = '62' + num.substring(1); if(num) waBtn.href = `https://wa.me/${num}`; else waBtn.style.display = 'none'; }
+                    if(myPlat === s.plat) { amICharging = true; window.activeSlotIdx = i; if(!isDashboardMinimized) switchScreen('screen-active-dashboard'); $('ad-slot-val').innerText = "SLOT " + (i+1); $('ad-name-val').innerText = s.userName; $('ad-plat-val').innerText = s.plat; $('ad-no-val').innerText = "#" + s.qNo; $('waitingDashboard').style.display='none'; hasNotifiedTurn = false; }
                 } else {
                     if(c) { c.classList.remove('filled'); c.classList.add('empty'); }
                     if($(`n-${i}`)) $(`n-${i}`).innerText = "SLOT " + (i+1);
@@ -574,23 +510,34 @@
                     if($(`no-${i}`)) $(`no-${i}`).innerText = ["M","L","U"][i];
                 }
             });
-
-            if(!amICharging) { window.activeSlotIdx = -1; }
+            if(!amICharging) window.activeSlotIdx = -1;
+            
             const btn = $('fpBtn'); const txt = $('mainBtnText'); if(btn) btn.className = 'fp-btn';
-            if(window.activeSlotIdx !== -1) { if(isDashboardMinimized) { txt.innerText = "KE DASHBOARD"; btn.classList.add('back-mode'); } else { txt.innerText = "STATUS AKTIF"; } } 
-            else if(amIInQueue) { txt.innerText = "LIHAT ANTRIAN"; btn.classList.add('back-mode'); if($('waitingDashboard').style.display === 'flex') renderFocusedQueue(); } 
+            
+            if(window.activeSlotIdx !== -1) { 
+                if(isDashboardMinimized) { txt.innerText = "KE DASHBOARD"; btn.classList.add('back-mode'); } 
+                else { txt.innerText = "STATUS AKTIF"; } 
+            } 
+            else if(amIInQueue) { 
+                txt.innerText = "LIHAT ANTRIAN"; btn.classList.add('back-mode'); 
+                if($('waitingDashboard').style.display === 'flex') renderFocusedQueue(); 
+            } 
             else { txt.innerText = "DAFTAR"; }
         }
 
-        // --- MUSIC PLAYER ---
+        function switchScreen(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            const target = $(id); if(target) target.classList.add('active');
+            if(id === 'screen-login' || id === 'screen-queue') document.body.classList.add('login-mode'); else document.body.classList.remove('login-mode');
+        }
+
+        // --- MUSIC, MODAL, UTILS ---
         const playlistData = [ { title: "Ada Apa Denganmu", url: "https://mlump3player.netlify.app/Ada%20Apa%20Denganmu.mp3" }, { title: "Anji - Menunggu Kamu", url: "https://mlump3player.netlify.app/anji-menunggu-kamu.mp3" }, { title: "Anugerah Terindah", url: "https://mlump3player.netlify.app/Anugerah%20Terindah%20Yang%20Pernah%20Kumiliki.mp3" }, { title: "Armada - Asalkan Kau Bahagia", url: "https://mlump3player.netlify.app/armada_asalkan_kau_bahagia.mp3" }, { title: "Armada - Harusnya Aku", url: "https://mlump3player.netlify.app/armada_harusnya_aku.mp3" }, { title: "Bintang Di Surga", url: "https://mlump3player.netlify.app/Bintang%20Di%20Surga.mp3" }, { title: "Bon Jovi - Always", url: "https://mlump3player.netlify.app/Bon%20Jovi%20-%20Always%20.MP3" }, { title: "Bon Jovi - It's My Life", url: "https://mlump3player.netlify.app/Bon%20Jovi%20-%20Its%20My%20Life%20.mp3" }, { title: "Dan - SO7", url: "https://mlump3player.netlify.app/Dan%20-%20Sheila%20On%207%20-%201999.mp3" }, { title: "Mungkin Nanti", url: "https://mlump3player.netlify.app/Mungkin%20Nanti.mp3" }, { title: "Surat Cinta Untuk Starla", url: "https://mlump3player.netlify.app/Virgoun%20-%20Surat%20Cinta%20Untuk%20Starla.mp3" } ];
         const audio = $('audio'); let curTrk=0;
         window.openPlaylist = () => { const cont = $('playlistContainer'); if(!cont) return; cont.innerHTML = ''; playlistData.forEach((item, idx) => { const div = document.createElement('div'); div.className = `pl-item ${idx === curTrk ? 'active' : ''}`; div.innerHTML = `<span class="pl-icon">🎵</span><span class="pl-title">${item.title}</span>`; div.onclick = () => { window.playTrack(idx); $('playlistModal').style.display='none'; }; cont.appendChild(div); }); $('playlistModal').style.display = 'flex'; };
         window.playTrack=(i)=>{ if(!audio || !playlistData[i])return; curTrk=i; audio.src=playlistData[i].url; if($('mpTitle')) $('mpTitle').innerText=playlistData[i].title; if($('mpTitle2')) $('mpTitle2').innerText=playlistData[i].title; audio.play().catch(e=>{}); if($('mpPlayBtn')) $('mpPlayBtn').innerText="⏸"; if($('mpPlayBtn2')) $('mpPlayBtn2').innerText="⏸"; };
         window.togglePlay=()=>{ if(!audio) return; let i = "⏯"; if(audio.paused){ if(!audio.src)window.playTrack(0); else audio.play(); i="⏸"; } else{ audio.pause(); i="⏯"; } if($('mpPlayBtn')) $('mpPlayBtn').innerText=i; if($('mpPlayBtn2')) $('mpPlayBtn2').innerText=i; };
-        window.nextTrack=()=>{ curTrk=(curTrk+1)%playlistData.length; window.playTrack(curTrk); };
-        window.prevTrack=()=>{ curTrk=(curTrk-1+playlistData.length)%playlistData.length; window.playTrack(curTrk); };
-        if(audio) audio.addEventListener('ended', window.nextTrack);
+        window.nextTrack=()=>{ curTrk=(curTrk+1)%playlistData.length; window.playTrack(curTrk); }; window.prevTrack=()=>{ curTrk=(curTrk-1+playlistData.length)%playlistData.length; window.playTrack(curTrk); }; if(audio) audio.addEventListener('ended', window.nextTrack);
 
         window.closeConfirmModal = () => { $('confirmModal').style.display='none'; document.querySelectorAll('.slot-container').forEach(el=>el.style.opacity="1"); }
         window.handleSlotClick = (idx) => {
@@ -599,71 +546,42 @@
             if (slotUser) {
                 const amIFirst = localQueue.length > 0 && localQueue[0].plat === myPlat;
                 const duration = Date.now() - slotUser.startTime;
-                if (amIFirst && duration > TAKEOVER_MIN_TIME) { showConfirm(`SLOT INI KOSONG? AMBIL ALIH?`, () => { executeTakeOver(idx); }); return; }
+                if (amIFirst && duration > 5*60*1000) { showConfirm(`SLOT INI KOSONG? AMBIL ALIH?`, () => { executeTakeOver(idx); }); return; }
                 return showMsg("INFO", "SLOT SEDANG DIGUNAKAN.");
             }
-            const qIdx = localQueue.findIndex(x=>x.plat===myPlat);
-            if(localQueue.length > 0 && qIdx !== 0) return showMsg("ANTRIAN", "Giliran Anda belum sampai.");
             showConfirm(`PILIH SLOT ${idx+1}?`, ()=>{
                 runTransaction(db, async(t)=>{
                     const d = (await t.get(mainRef)).data();
                     if(d.chargingSlots[idx]) throw "Diambil.";
                     let q=d.waitingQueue; const i=q.findIndex(x=>x.plat===myPlat);
                     if (i !== -1) { const u=q.splice(i,1)[0]; u.startTime=Date.now(); d.chargingSlots[idx]=u; t.update(mainRef, {chargingSlots:d.chargingSlots, waitingQueue:q}); } else location.reload();
-                }).then(() => addLog("SELECT_SLOT", `User entered Slot ${idx+1}`)); // LOG MASUK SLOT
+                }).then(() => addLog("SELECT_SLOT", `User selected Slot ${idx+1}`));
             });
         };
 
-        function executeTakeOver(idx) {
-            runTransaction(db, async(t)=>{
-                const d = (await t.get(mainRef)).data(); const oldUser = d.chargingSlots[idx];
-                if(oldUser) { addDoc(historyRef, {...oldUser, finishTime:new Date(), status: 'KICKED_BY_NEXT_USER'}); }
-                let q = d.waitingQueue; const myIdx = q.findIndex(x=>x.plat === myPlat);
-                if(myIdx !== -1) { const me = q.splice(myIdx, 1)[0]; me.startTime = Date.now(); d.chargingSlots[idx] = me; t.update(mainRef, {chargingSlots:d.chargingSlots, waitingQueue:q}); }
-            }).then(() => { addLog("TAKEOVER", `User took over Slot ${idx+1}`); alert("BERHASIL AMBIL ALIH!"); location.reload(); });
+        function executeTakeOver(idx) { runTransaction(db, async(t)=>{ const d=(await t.get(mainRef)).data(); const oldUser=d.chargingSlots[idx]; if(oldUser){addDoc(historyRef,{...oldUser,finishTime:new Date(),status:'KICKED'});} let q=d.waitingQueue; const myIdx=q.findIndex(x=>x.plat===myPlat); if(myIdx!==-1){const me=q.splice(myIdx,1)[0]; me.startTime=Date.now(); d.chargingSlots[idx]=me; t.update(mainRef,{chargingSlots:d.chargingSlots,waitingQueue:q});} }).then(()=>{addLog("TAKEOVER", `Slot ${idx+1}`); alert("BERHASIL!"); location.reload();}); }
+        window.stopCharging = (idx) => { showConfirm("SELESAI?", ()=>{ runTransaction(db, async(t)=>{ const d=(await t.get(mainRef)).data(); const u=d.chargingSlots[idx]; d.chargingSlots[idx]=null; addDoc(historyRef,{...u,finishTime:new Date()}); t.update(mainRef,{chargingSlots:d.chargingSlots}); }).then(()=>{addLog("STOP", "Finished"); localStorage.removeItem('myPlat'); location.reload();}); }); };
+        window.cancelQueue = () => { showConfirm("BATAL?", ()=>{ runTransaction(db, async(t)=>{ const d=(await t.get(mainRef)).data(); let q=d.waitingQueue; const i=q.findIndex(x=>x.plat===myPlat); if(i!==-1){ q.splice(i,1); t.update(mainRef,{waitingQueue:q}); } }).then(()=>{addLog("CANCEL", "Queue"); localStorage.removeItem('myPlat'); location.reload();}); }); };
+
+        window.toggleAdmin = () => { const pass = prompt("MASUKKAN KODE ADMIN:"); if(pass === "1131") { localStorage.setItem('adm_ok', '1'); window.location.href = 'admin.html'; } }
+        window.showQueueList = () => { const el=$('queueListDetail'); if(!el)return; el.innerHTML=''; if(localQueue.length===0) el.innerHTML='<div style="padding:20px;text-align:center;color:#555;">KOSONG</div>'; else localQueue.forEach(q=>{const isMe=(q.plat===myPlat)?'color:var(--accent);font-weight:bold;':'color:#aaa;'; el.innerHTML+=`<div style="padding:10px;border-bottom:1px solid #333;display:flex;justify-content:space-between;"><span style="color:var(--cyan);">#${q.qNo}</span><div style="text-align:right;"><div style="${isMe}">${q.plat}</div><div style="font-size:10px;color:#555;">${q.userName}</div></div></div>`;}); $('queueModal').style.display='flex'; };
+        function renderFocusedQueue(){ const container=$('focusedQueueList'); if(!container)return; container.innerHTML=''; if(localQueue.length===0){container.innerHTML='<div style="color:#666;margin-top:50px;">ANTRIAN KOSONG</div>';return;} const youIndex=localQueue.findIndex(q=>q.plat===myPlat); localQueue.forEach((q,i)=>{const d=document.createElement("div"); if(q.plat===myPlat){d.className="fq-item you"; if(i===0 && localSlots.some(s=>s===null)){d.innerHTML="⚡ GILIRAN ANDA! ⚡<br><span style='font-size:14px;color:#fff;'>KLIK UNTUK MASUK</span>";d.style.color="var(--accent)";d.style.cursor="pointer";d.style.border="1px solid var(--accent)";d.style.padding="10px";d.onclick=()=>{ $('waitingDashboard').style.display='none'; switchScreen('screen-slots'); isDashboardMinimized=true; updateUI(); vibrate(); };}else{d.textContent=`#${q.qNo} ${q.plat}`;}} else if(Math.abs(i-youIndex)===1){d.className="fq-item mid";d.textContent=`#${q.qNo} ${q.plat}`;} else{d.className="fq-item small";d.textContent=`#${q.qNo} ${q.plat}`;} container.appendChild(d);}); }
+        window.toggleDashboard = (show) => { if(show){isDashboardMinimized=false;switchScreen('screen-active-dashboard');}else{isDashboardMinimized=true;switchScreen('screen-slots');} updateUI(); }
+        window.handleMainAction = () => { if(window.activeSlotIdx!==-1&&isDashboardMinimized)window.toggleDashboard(true); else if(amIInQueue){$('waitingDashboard').style.display='flex';renderFocusedQueue();} else window.checkLocAndRegister(); };
+
+        // WATCHDOG V3 (AUTO KICK)
+        const WD_CFG={RADIUS:100,MAX_SPEED:35,GRACE:60000,MAX_STRIKE:5,INT:5000}; let wdBase=null,wdLast=null,wdStrike=0,wdTimer=null;
+        function runWatchdog(p){
+            const now=Date.now(), cur={lat:p.coords.latitude,lng:p.coords.longitude,time:now,mock:p.coords.isFromMockProvider};
+            if(!wdBase)wdBase={lat:STATION_LAT,lng:STATION_LNG}; if(!wdLast){wdLast=cur;return;}
+            const dist=getDist(wdBase.lat,wdBase.lng,cur.lat,cur.lng);
+            if(dist > WD_CFG.RADIUS){ if(!wdTimer)wdTimer=now; else if(now-wdTimer>WD_CFG.GRACE){wdStrike++; addLog("WD_WARN", `Out radius ${dist.toFixed(0)}m`);} } else {wdTimer=null; if(wdStrike>0)wdStrike-=0.5;}
+            if(wdStrike>=WD_CFG.MAX_STRIKE){ localStorage.removeItem('myPlat'); addLog("WD_KICK", "Kicked"); alert("KEAMANAN: Anda terdeteksi menjauh. Sesi berakhir."); location.reload(); }
+            wdLast=cur;
         }
+        if(navigator.geolocation&&!localStorage.getItem('adm_ok')&&localStorage.getItem('myPlat')){ setInterval(()=>{navigator.geolocation.getCurrentPosition(runWatchdog,()=>{},{enableHighAccuracy:true,timeout:5000,maximumAge:0});},WD_CFG.INT); }
 
-        window.stopCharging = (idx) => { showConfirm("SELESAI?", ()=>{ runTransaction(db, async(t)=>{ const d=(await t.get(mainRef)).data(); const u=d.chargingSlots[idx]; d.chargingSlots[idx]=null; addDoc(historyRef, {...u, finishTime:new Date()}); t.update(mainRef, {chargingSlots:d.chargingSlots}); }).then(()=>{ addLog("STOP", "User finished charging"); localStorage.removeItem('myPlat'); location.reload(); }); }); };
-        window.cancelQueue = () => { showConfirm("BATAL?", ()=>{ runTransaction(db, async(t)=>{ const d=(await t.get(mainRef)).data(); let q=d.waitingQueue; const i=q.findIndex(x=>x.plat===myPlat); if(i!==-1){ q.splice(i,1); t.update(mainRef, {waitingQueue:q}); } }).then(()=>{ addLog("CANCEL", "User cancelled queue"); localStorage.removeItem('myPlat'); location.reload(); }); }); };
-
-        // ============================================
-        // WATCHDOG v3 (INTELLIGENT GEO SENTINEL)
-        // ============================================
-        const WD_CFG = { RADIUS: 100, JITTER: 20, MAX_SPEED: 35, GRACE_OUT: 60000, MAX_STRIKE: 5, INTERVAL: 5000 };
-        let wdBase = null, wdLast = null, wdStrike = 0, wdGraceTimer = null;
-
-        function getDistanceMeters(a, b) { const R = 6371000; const dLat = (b.lat - a.lat) * Math.PI / 180; const dLon = (b.lng - a.lng) * Math.PI / 180; const x = Math.sin(dLat/2)**2 + Math.cos(a.lat*Math.PI/180) * Math.cos(b.lat*Math.PI/180) * Math.sin(dLon/2)**2; return 2 * R * Math.atan2(Math.sqrt(x), Math.sqrt(1-x)); }
-
-        function runWatchdog(p) {
-            const now = Date.now(); const cur = { lat: p.coords.latitude, lng: p.coords.longitude, time: now, mock: p.coords.isFromMockProvider || false };
-            if (!wdBase) { wdBase = { lat: STATION_LAT, lng: STATION_LNG }; } if (!wdLast) { wdLast = cur; return; }
-            const dMove = getDistanceMeters(wdLast, cur); const dt = (now - wdLast.time) / 1000; const speed = dMove / (dt || 1);
-
-            if (dMove < WD_CFG.JITTER) { wdLast = cur; return; }
-            if (cur.mock) { wdStrike += 3; addLog("WD_WARN", "Fake GPS Detected"); }
-            if (speed > WD_CFG.MAX_SPEED) { wdStrike += 2; addLog("WD_WARN", `Teleport? Speed ${speed.toFixed(1)}m/s`); }
-
-            const distFromStation = getDistanceMeters(wdBase, cur);
-            if (distFromStation > WD_CFG.RADIUS) {
-                if (!wdGraceTimer) wdGraceTimer = now; 
-                else if (now - wdGraceTimer > WD_CFG.GRACE_OUT) { wdStrike += 1; addLog("WD_WARN", `Out of radius ${distFromStation.toFixed(0)}m`); }
-            } else { wdGraceTimer = null; if (wdStrike > 0) wdStrike = Math.max(0, wdStrike - 0.5); }
-
-            if (wdStrike >= WD_CFG.MAX_STRIKE) {
-                addLog("WD_KICK", "User kicked by Watchdog");
-                handleAutoKick(distFromStation);
-            }
-            wdLast = cur;
-        }
-
-        function handleAutoKick(dist) { localStorage.removeItem('myPlat'); alert(`SISTEM KEAMANAN: \nAnda terdeteksi menjauh (${dist.toFixed(0)}m) atau sinyal error berulang. \nSesi diakhiri.`); location.reload(); }
-
-        if (navigator.geolocation && !localStorage.getItem('adm_ok')) {
-            const myP = localStorage.getItem('myPlat');
-            if(myP) { setInterval(() => { navigator.geolocation.getCurrentPosition(runWatchdog, (e) => {}, { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }); }, WD_CFG.INTERVAL); }
-        }
-
-        if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js').then(reg => console.log('PWA Ready')).catch(err => console.log('PWA Error', err)); }); }
+        if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js').catch(e=>{}); }); }
         function requestNotifPermission() { if ("Notification" in window) Notification.requestPermission(); } document.addEventListener('click', requestNotifPermission, {once:true});
         let wakeLock = null; async function requestWakeLock() { try { if ('wakeLock' in navigator) { wakeLock = await navigator.wakeLock.request('screen'); document.addEventListener('visibilitychange', async () => { if (wakeLock !== null && document.visibilityState === 'visible') wakeLock = await navigator.wakeLock.request('screen'); }); } } catch (err) {} } document.addEventListener('click', requestWakeLock, {once:true});
         let deferredPrompt; const installOverlay = document.getElementById('installOverlay'); const btnInstallNow = document.getElementById('btnInstallNow');
