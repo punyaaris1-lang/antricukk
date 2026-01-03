@@ -206,8 +206,11 @@
         let cachedSlots = [null, null, null];
         let cachedQueue = [];
 
-        // === LOGIN LOGIC ===
-        const currentAdmin = localStorage.getItem('admin_name');
+        // === LOGIN LOGIC (UPDATED FORCE LOGOUT) ===
+        // Menggunakan Key Baru 'adm_sess_v5' agar admin lama (v4/v3) tertendang.
+        const SESSION_KEY = 'adm_sess_v5';
+        const currentAdmin = localStorage.getItem(SESSION_KEY);
+        
         if(currentAdmin) {
             document.getElementById('loginOverlay').style.display = 'none';
             document.getElementById('displayAdminName').innerText = "User: " + currentAdmin;
@@ -217,14 +220,17 @@
             const name = document.getElementById('loginName').value;
             const pin = document.getElementById('loginPin').value;
             if(pin === "1131" && name.trim() !== "") {
-                localStorage.setItem('admin_name', name.trim());
+                localStorage.setItem(SESSION_KEY, name.trim()); // Simpan ke key baru
                 document.getElementById('loginOverlay').style.display = 'none';
                 document.getElementById('displayAdminName').innerText = "User: " + name.trim();
-                addLog("ADMIN", "LOGIN", "Login success from panel");
+                addLog("ADMIN", "LOGIN", "Login success (New Session)");
             } else { alert("PIN Salah!"); }
         };
 
-        window.logout = () => { localStorage.removeItem('admin_name'); window.location.href='index.html'; };
+        window.logout = () => { 
+            localStorage.removeItem(SESSION_KEY); 
+            window.location.href='index.html'; 
+        };
 
         // === MODAL UTILS ===
         let currentCallback = null;
@@ -485,7 +491,7 @@
         function addLog(actor, act, det) { 
             let finalActor = actor;
             if(actor === 'ADMIN') {
-                finalActor = (localStorage.getItem('admin_name') || 'ADMIN').toUpperCase();
+                finalActor = (localStorage.getItem(SESSION_KEY) || 'ADMIN').toUpperCase();
             }
             addDoc(logRef, { 
                 action: act, 
