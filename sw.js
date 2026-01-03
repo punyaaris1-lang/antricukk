@@ -1,41 +1,36 @@
-const CACHE_NAME = 'fc-kg-v1';
-const urlsToCache = [
-  './antrian.html',
-  './1763947427555.jpg',
-  './manifest.json'
-];
-
-// Install Service Worker
-self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => {
-        return cache.addAll(urlsToCache);
-      })
-  );
+/* file: sw.js */
+self.addEventListener('install', (e) => {
+  self.skipWaiting();
 });
 
-// Fetch Data
-self.addEventListener('fetch', event => {
-  event.respondWith(
-    fetch(event.request).catch(() => {
-      return caches.match(event.request);
-    })
-  );
+self.addEventListener('activate', (e) => {
+  e.waitUntil(self.clients.claim());
 });
 
-// Update Service Worker
-self.addEventListener('activate', event => {
-  const cacheWhitelist = [CACHE_NAME];
+self.addEventListener('push', (e) => {
+  const data = e.data ? e.data.json() : {};
+  self.registration.showNotification(data.title || 'FC Charging', {
+    body: data.body || 'Ada update antrian!',
+    icon: 'icon-192.png', // Pastikan ada file icon-192.png
+    vibrate: [200, 100, 200, 100, 200],
+    tag: 'queue-alert',
+    renotify: true,
+    requireInteraction: true
+  });
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
   event.waitUntil(
-    caches.keys().then(cacheNames => {
-      return Promise.all(
-        cacheNames.map(cacheName => {
-          if (cacheWhitelist.indexOf(cacheName) === -1) {
-            return caches.delete(cacheName);
-          }
-        })
-      );
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(clientList) {
+      if (clientList.length > 0) {
+        let client = clientList[0];
+        for (let i = 0; i < clientList.length; i++) {
+          if (clientList[i].focused) { client = clientList[i]; }
+        }
+        return client.focus();
+      }
+      return clients.openWindow('/');
     })
   );
 });
