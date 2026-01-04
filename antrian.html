@@ -64,10 +64,16 @@
         .filled .oc-num { color: var(--cyan); text-shadow: 0 0 20px rgba(0, 240, 255, 0.4); animation:none; }
         .empty .oc-num { color: rgba(255,255,255,0.4); }
         .cc-bottom { flex: 0 0 auto; width: 100%; display: flex; flex-direction: column; align-items: center; gap: 10px; }
-        .btn-select { background: rgba(204, 255, 0, 0.2); border: 1px solid var(--accent); color: var(--accent); animation: pulse 2s infinite; display:none; width: 100%; padding: 8px 0; border-radius: 5px; font-family: 'Teko'; font-weight: bold; font-size: 18px; text-align: center; text-shadow: 0 0 5px #000; }
-        .onyx-card.empty .btn-select { display: block; }
-        .btn-wa { background: rgba(37, 211, 102, 0.2); border: 1px solid var(--wa); color: var(--wa); font-family: 'JetBrains Mono'; font-size: 12px; padding: 4px 10px; border-radius: 20px; margin-top: 5px; cursor: pointer; display: none; align-items: center; gap: 5px; text-decoration: none; font-weight: bold; width: fit-content; }
-        .filled .btn-wa { display: flex; }
+        
+        /* TOMBOL PILIH SLOT (DIPAKSA MUNCUL SAAT KOSONG) */
+        .btn-select { background: rgba(204, 255, 0, 0.2); border: 1px solid var(--accent); color: var(--accent); animation: pulse 2s infinite; display:none; width: 100%; padding: 8px 0; border-radius: 5px; font-family: 'Teko'; font-weight: bold; font-size: 18px; text-align: center; text-shadow: 0 0 5px #000; z-index: 20; cursor: pointer; }
+        .onyx-card.empty .btn-select { display: block !important; }
+
+        /* TOMBOL WA (DEFAULT HIDDEN UNTUK USER BIASA) */
+        .btn-wa { background: rgba(37, 211, 102, 0.2); border: 1px solid var(--wa); color: var(--wa); font-family: 'JetBrains Mono'; font-size: 12px; padding: 4px 10px; border-radius: 20px; margin-top: 5px; cursor: pointer; display: none !important; align-items: center; gap: 5px; text-decoration: none; font-weight: bold; width: fit-content; }
+        
+        /* TOMBOL WA HANYA MUNCUL KALO BODY PUNYA KELAS 'ADMIN-MODE' */
+        body.admin-mode .filled .btn-wa { display: flex !important; }
 
         .onyx-panel { width: 90%; max-width: 400px; background: #050505; border: 1px solid var(--cyan); border-radius: 15px; padding: 25px; box-shadow: 0 0 30px rgba(0, 240, 255, 0.15); position: relative; overflow: hidden; margin: auto; }
         .term-input { background: none; border: none; outline: none; color: var(--cyan); font-family: 'JetBrains Mono', monospace; font-size: 16px; width: 60%; font-weight: bold; text-transform: uppercase; caret-color: var(--cyan); margin-left: 5px; }
@@ -99,9 +105,14 @@
         .stat-box { display: flex; flex-direction: column; align-items: center; text-align: center; width: 100%; }
         .stat-num { font-size: 55px; line-height: 0.8; color: #fff; font-weight: bold; text-shadow: 0 0 20px rgba(204,255,0,0.4); letter-spacing: -2px; }
         .fp-wrapper { display: flex; flex-direction: column; align-items: center; position: relative; width:100%; justify-content:center; text-align: center; }
-        .fp-text { font-family: 'Teko'; font-size: 24px; color: #fff; font-weight: 700; margin-bottom: 5px; text-shadow: 0 0 10px var(--cyan); letter-spacing: 1px; animation: textGlow 2s infinite alternate; width: 100%; text-align: center; display:block; }
+        .fp-text { font-family: 'Teko'; font-size: 24px; color: #fff; font-weight: 700; margin-bottom: 2px; text-shadow: 0 0 10px var(--cyan); letter-spacing: 1px; animation: textGlow 2s infinite alternate; width: 100%; text-align: center; display:block; }
+        
+        /* STYLES KHUSUS TEKS BANTUAN */
+        .fp-help-text { font-family: 'JetBrains Mono'; font-size: 10px; color: #ccff00; letter-spacing: 1px; margin-bottom: 8px; text-shadow: 0 0 5px #ccff00; animation: pulseText 2s infinite; pointer-events: none; }
+        @keyframes pulseText { 0%{opacity:0.7} 50%{opacity:1} 100%{opacity:0.7} }
+
         @keyframes textGlow { from{text-shadow: 0 0 5px var(--cyan);} to{text-shadow: 0 0 20px var(--cyan), 0 0 10px #fff;} }
-        .fp-container { position: relative; width: 80px; height: 80px; display: flex; justify-content: center; align-items: center; margin-bottom: 10px; cursor: pointer; }
+        .fp-container { position: relative; width: 80px; height: 80px; display: flex; justify-content: center; align-items: center; margin-bottom: 10px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
         .fp-btn { width: 70px; height: 70px; background: rgba(0,0,0,0.5); border: 1px solid var(--cyan); border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; box-shadow: 0 0 20px rgba(0,240,255,0.3); animation: pulse 2s infinite; transition: 0.3s; }
         .fp-btn.back-mode { border-color: var(--accent); animation: none; box-shadow: 0 0 30px rgba(204, 255, 0, 0.4); background: rgba(204, 255, 0, 0.1); }
         @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(0, 240, 255, 0.4); } 70% { box-shadow: 0 0 0 15px rgba(0, 240, 255, 0); } 100% { box-shadow: 0 0 0 0 rgba(0, 240, 255, 0); } }
@@ -314,7 +325,8 @@
         </div>
         <div class="fp-wrapper">
             <div class="fp-text" id="mainBtnText">DAFTAR</div>
-            <div class="fp-container" id="fpCont" onclick="handleMainAction()" style="pointer-events: auto;">
+            <div class="fp-help-text">TAHAN UNTUK BANTUAN</div>
+            <div class="fp-container" id="fpCont" style="pointer-events: auto;">
                 <div class="fp-btn" id="fpBtn"><svg style="width:35px;height:35px;fill:#fff;" viewBox="0 0 24 24"><path d="M17.81 4.47c-.08 0-.16-.02-.23-.06C15.66 3.42 14 3 12.01 3c-1.98 0-3.86.47-5.57 1.41-.24.13-.54.04-.68-.2-.13-.24-.04-.55.2-.68C7.82 2.52 9.86 2 12.01 2c2.13 0 3.99.47 6.03 1.52.25.13.34.43.21.67-.09.18-.26.28-.44.28zM3.5 9.72c-.1 0-.2-.03-.29-.09-.23-.16-.28-.47-.12-.7.99-1.4 2.25-2.5 3.75-3.27C9.98 4.04 14 4.03 17.15 5.65c1.5.77 2.76 1.86 3.75 3.25.16.22.11.54-.12.7-.23.16-.54.11-.7-.12-.9-1.26-2.04-2.25-3.39-2.94-2.87-1.47-6.54-1.47-9.4.01-1.36.7-2.5 1.7-3.4 2.96-.08.14-.23.21-.39.21zm6.25 12.07c-.1 0-.26-.05-.35-.15-.87-.87-1.34-1.43-2.01-2.64-.69-1.23-1.05-2.73-1.05-4.34 0-2.97 2.54-5.39 5.66-5.39s5.66 2.42 5.66 5.39c0 .28-.22.5-.5.5s-.5-.22-.5-.5c0-2.42-2.09-4.39-4.66-4.39-2.57 0-4.66 1.97-4.66 4.39 0 1.44.32 2.77.93 3.85.64 1.15 1.08 1.64 1.85 2.42.19.2.19.51 0 .71-.11.1-.24.15-.37.15zm7.17-1.85c-1.19 0-2.24-.3-3.1-.89-1.49-1.01-2.38-2.65-2.38-4.39 0-.28.22-.5.5s.5.22.5.5c0 1.41.72 2.74 1.94 3.56.71.48 1.54.71 2.54.71.24 0 .64-.03 1.04-.1.27-.05.53.13.58.41.05.27-.13.53-.41.58-.57.11-1.07.12-1.21.12zM14.91 22c-.04 0-.09-.01-.13-.02-1.59-.44-2.63-1.03-3.72-2.1-1.4-1.39-2.17-3.24-2.17-5.22 0-1.62 1.38-2.94 3.08-2.94 1.7 0 3.08 1.32 3.08 2.94 0 1.07.93 1.94 2.08 1.94s2.08-.87 2.08-1.94c0-3.77-3.25-6.83-7.25-6.83-2.84 0-5.44 1.58-6.45 3.94-.11.25-.41.37-.67.26-.25-.11-.37-.41-.26-.67 1.13-2.62 4.07-4.39 7.38-4.39 4.53 0 8.25 3.42 8.25 7.69 0 1.62-1.38 2.94-3.08 2.94s-3.08-1.32-3.08-2.94c0-1.07-.93-1.94-2.08-1.94s-2.08.87-2.08 1.94c0 1.71.66 3.31 1.87 4.51.95.94 1.86 1.46 3.27 1.85.27.07.42.35.35.61-.05.23-.26.38-.47.38z"/></svg></div>
             </div>
         </div>
@@ -343,14 +355,14 @@
         const STATION_LNG = 106.899844; 
         const MAX_DIST_KM = 0.2; 
 
-        // === FIREBASE INIT ===
+        // === FIREBASE INIT (FC Gading New 22) ===
         const firebaseConfig = {
-            apiKey: "AIzaSyDIUivobLNDIsbK7ilqfe7fLAL8LnM4Hk8",
-            authDomain: "fcgadingbaru.firebaseapp.com",
-            projectId: "fcgadingbaru",
-            storageBucket: "fcgadingbaru.firebasestorage.app",
-            messagingSenderId: "193138253272",
-            appId: "1:193138253272:web:e183a3e455ec357ec7a6ad"
+            apiKey: "AIzaSyB666i9lYWIpxOdkwpoX9EvFvHLmHczeq8",
+            authDomain: "fcgadingnew22.firebaseapp.com",
+            projectId: "fcgadingnew22",
+            storageBucket: "fcgadingnew22.firebasestorage.app",
+            messagingSenderId: "537736846678",
+            appId: "1:537736846678:web:53788d71a196423ac08af7"
         };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
@@ -382,6 +394,7 @@
         document.addEventListener('click', requestNotifPermission, {once:true});
 
         function sendLockScreenNotification(title, body) {
+            if (!('Notification' in window)) return; // Safety check
             if (Notification.permission === 'granted') {
                  if(navigator.serviceWorker && navigator.serviceWorker.controller) {
                      navigator.serviceWorker.ready.then(function(reg) {
@@ -469,7 +482,17 @@
 
         function executeRegistration() {
             runTransaction(db, async(t) => {
-                const d = (await t.get(mainRef)).data();
+                const docSnap = await t.get(mainRef);
+                
+                // === AUTO FIX: Jika DB Kosong, Initialize dulu ===
+                let d;
+                if (!docSnap.exists()) {
+                    d = { chargingSlots: [null, null, null], waitingQueue: [], lastTicket: 0 };
+                    t.set(mainRef, d);
+                } else {
+                    d = docSnap.data();
+                }
+
                 const all = [...(d.chargingSlots||[]), ...(d.waitingQueue||[])].filter(u => u !== null);
                 
                 const duplicate = all.find(x => x.plat === tempUserData.plat);
@@ -494,7 +517,6 @@
                 myPlat = tempUserData.plat;
                 addLog("REGISTER", `User ${tempUserData.plat} joined #${no}`);
                 
-                // === NOTIFIKASI 1: BERHASIL DAFTAR ===
                 sendLockScreenNotification("✅ PENDAFTARAN BERHASIL", `Anda antrian #${no}. Pantau terus HP Anda.`);
                 
                 showMsg("BERHASIL", `Antrian #${no}. Silakan tunggu.`); switchScreen('screen-slots');
@@ -502,9 +524,20 @@
         }
 
         onSnapshot(mainRef, (snap) => {
-            const d = snap.data(); if(!d) return;
+            // === AUTO-FIX: INIT DB JIKA KOSONG ===
+            if (!snap.exists()) {
+                setDoc(mainRef, { chargingSlots: [null, null, null], waitingQueue: [], lastTicket: 0 });
+                return;
+            }
+
+            const d = snap.data();
             localSlots = d.chargingSlots || [null,null,null]; localQueue = (d.waitingQueue || []).sort((a,b) => a.qNo - b.qNo);
-            updateUI(); if($('waitingDashboard').style.display === 'flex') renderFocusedQueue();
+            
+            // Cek mode admin
+            if(localStorage.getItem('adm_ok')) document.body.classList.add('admin-mode');
+            
+            updateUI(); 
+            if($('waitingDashboard').style.display === 'flex') renderFocusedQueue();
         });
 
         function updateUI() {
@@ -516,28 +549,49 @@
             const iAmFirst = (localQueue.length > 0 && localQueue[0].plat === myPlat);
             const hasEmptySlot = localSlots.some(s => s === null);
 
+            // === FIX UTAMA: PAKSA KELUAR DARI ANTRIAN JIKA GILIRAN TIBA ===
             if (iAmFirst && hasEmptySlot) {
-                $('waitingDashboard').style.display = 'none'; 
-                if (!isDashboardMinimized) { isDashboardMinimized = true; switchScreen('screen-slots'); }
+                $('waitingDashboard').style.display = 'none';
+                switchScreen('screen-slots'); 
+                isDashboardMinimized = true;
+                document.getElementById('screen-slots').scrollIntoView({ behavior: 'smooth', block: 'center' });
+
                 if (!hasNotifiedTurn) {
-                    window.speechSynthesis.cancel(); const msg = new SpeechSynthesisUtterance(`Halo, Giliran Anda.`); msg.lang = 'id-ID'; window.speechSynthesis.speak(msg); vibrate();
-                    
-                    // === NOTIFIKASI 2: GILIRAN TIBA ===
+                    if ('speechSynthesis' in window) {
+                        window.speechSynthesis.cancel(); 
+                        const msg = new SpeechSynthesisUtterance(`Halo, Giliran Anda.`); 
+                        msg.lang = 'id-ID'; 
+                        window.speechSynthesis.speak(msg); 
+                    }
+                    vibrate();
                     sendLockScreenNotification("⚡ GILIRAN ANDA! ⚡", "Slot kosong tersedia. Masuk sekarang sebelum diambil!");
-                    
                     hasNotifiedTurn = true; 
                 }
             } else if (!iAmFirst) { hasNotifiedTurn = false; }
 
             localSlots.forEach((s, i) => {
-                const c = $(`card-${i}`); const waBtn = $(`wa-${i}`);
+                const c = $(`card-${i}`); 
+                const waBtn = $(`wa-${i}`);
                 if(s) {
                     if(c) { c.classList.remove('empty'); c.classList.add('filled'); }
                     if($(`n-${i}`)) $(`n-${i}`).innerText = s.userName;
                     if($(`p-${i}`)) $(`p-${i}`).innerText = s.plat;
                     if($(`no-${i}`)) $(`no-${i}`).innerText = "#" + s.qNo;
-                    if(waBtn) { let num = s.wa; if(num && num.startsWith('0')) num = '62' + num.substring(1); if(num) waBtn.href = `https://wa.me/${num}`; else waBtn.style.display = 'none'; }
-                    if(myPlat === s.plat) { amICharging = true; window.activeSlotIdx = i; if(!isDashboardMinimized) switchScreen('screen-active-dashboard'); $('ad-slot-val').innerText = "SLOT " + (i+1); $('ad-name-val').innerText = s.userName; $('ad-plat-val').innerText = s.plat; $('ad-no-val').innerText = "#" + s.qNo; $('waitingDashboard').style.display='none'; hasNotifiedTurn = false; }
+                    if(waBtn) { 
+                        let num = s.wa; 
+                        if(num && num.startsWith('0')) num = '62' + num.substring(1); 
+                        if(num) waBtn.href = `https://wa.me/${num}`; 
+                    }
+                    if(myPlat === s.plat) { 
+                        amICharging = true; window.activeSlotIdx = i; 
+                        if(!isDashboardMinimized) switchScreen('screen-active-dashboard'); 
+                        $('ad-slot-val').innerText = "SLOT " + (i+1); 
+                        $('ad-name-val').innerText = s.userName; 
+                        $('ad-plat-val').innerText = s.plat; 
+                        $('ad-no-val').innerText = "#" + s.qNo; 
+                        $('waitingDashboard').style.display='none'; 
+                        hasNotifiedTurn = false; 
+                    }
                 } else {
                     if(c) { c.classList.remove('filled'); c.classList.add('empty'); }
                     if($(`n-${i}`)) $(`n-${i}`).innerText = "SLOT " + (i+1);
@@ -545,6 +599,7 @@
                     if($(`no-${i}`)) $(`no-${i}`).innerText = ["M","L","U"][i];
                 }
             });
+            
             if(!amICharging) window.activeSlotIdx = -1;
             
             const btn = $('fpBtn'); const txt = $('mainBtnText'); if(btn) btn.className = 'fp-btn';
@@ -555,7 +610,10 @@
             } 
             else if(amIInQueue) { 
                 txt.innerText = "LIHAT ANTRIAN"; btn.classList.add('back-mode'); 
-                if($('waitingDashboard').style.display === 'flex') renderFocusedQueue(); 
+                if($('waitingDashboard').style.display === 'flex') {
+                    renderFocusedQueue();
+                    setTimeout(scrollToMyPosition, 500); 
+                }
             } 
             else { txt.innerText = "DAFTAR"; }
         }
@@ -602,7 +660,7 @@
         window.stopCharging = (idx) => { showConfirm("SELESAI?", ()=>{ runTransaction(db, async(t)=>{ const d=(await t.get(mainRef)).data(); const u=d.chargingSlots[idx]; d.chargingSlots[idx]=null; addDoc(historyRef,{...u,finishTime:new Date()}); t.update(mainRef,{chargingSlots:d.chargingSlots}); }).then(()=>{addLog("STOP", "Finished"); localStorage.removeItem('myPlat'); location.reload();}); }); };
         window.cancelQueue = () => { showConfirm("BATAL?", ()=>{ runTransaction(db, async(t)=>{ const d=(await t.get(mainRef)).data(); let q=d.waitingQueue; const i=q.findIndex(x=>x.plat===myPlat); if(i!==-1){ q.splice(i,1); t.update(mainRef,{waitingQueue:q}); } }).then(()=>{addLog("CANCEL", "Queue"); localStorage.removeItem('myPlat'); location.reload();}); }); };
 
-        window.toggleAdmin = () => { const pass = prompt("MASUKKAN KODE ADMIN:"); if(pass === "1131") { localStorage.setItem('adm_ok', '1'); window.location.href = 'admin.html'; } }
+        window.toggleAdmin = () => { const pass = prompt("MASUKKAN KODE ADMIN:"); if(pass === "1131") { localStorage.setItem('adm_ok', '1'); document.body.classList.add('admin-mode'); window.location.href = 'admin.html'; } }
         window.showQueueList = () => { const el=$('queueListDetail'); if(!el)return; el.innerHTML=''; if(localQueue.length===0) el.innerHTML='<div style="padding:20px;text-align:center;color:#555;">KOSONG</div>'; else localQueue.forEach(q=>{const isMe=(q.plat===myPlat)?'color:var(--accent);font-weight:bold;':'color:#aaa;'; el.innerHTML+=`<div style="padding:10px;border-bottom:1px solid #333;display:flex;justify-content:space-between;"><span style="color:var(--cyan);">#${q.qNo}</span><div style="text-align:right;"><div style="${isMe}">${q.plat}</div><div style="font-size:10px;color:#555;">${q.userName}</div></div></div>`;}); $('queueModal').style.display='flex'; };
         
         // === RENDER DASHBOARD ANTRIAN BARU (UPDATED) ===
@@ -637,7 +695,6 @@
                 progress = 90; 
             }
             
-            // Update UI Progress & Badge
             posEl.innerText = "Status Antrian";
             percEl.innerText = `${progress}%`;
             barEl.style.width = `${progress}%`;
@@ -684,13 +741,43 @@
 
         window.toggleDashboard = (show) => { if(show){isDashboardMinimized=false;switchScreen('screen-active-dashboard');}else{isDashboardMinimized=true;switchScreen('screen-slots');} updateUI(); }
         
+        // === LOGIKA BARU TOMBOL: TAP = DAFTAR, HOLD = WA ===
+        const fpBtn = document.getElementById('fpCont');
+        let pressTimer;
+        let isLongPress = false;
+
+        fpBtn.addEventListener('touchstart', (e) => {
+            isLongPress = false;
+            pressTimer = setTimeout(() => {
+                isLongPress = true;
+                if(confirm("HUBUNGI ADMIN VIA WA?")) {
+                    window.open("https://wa.me/6282125611740", "_blank");
+                }
+            }, 1000); // Tahan 1 detik
+        });
+
+        fpBtn.addEventListener('touchend', (e) => {
+            clearTimeout(pressTimer);
+            if (!isLongPress) {
+                // Kalau bukan long press, jalankan fungsi utama
+                handleMainAction();
+            }
+        });
+
+        // Handler Klik Biasa (Backup)
+        fpBtn.addEventListener('click', (e) => {
+            if (!isLongPress && e.detail > 0) { 
+                 // Logic 'handleMainAction' sudah dipanggil di touchend, jadi di sini dicegah double trigger
+                 // kecuali di desktop
+            }
+        });
+
         window.handleMainAction = () => { 
             if(window.activeSlotIdx!==-1&&isDashboardMinimized) {
                 window.toggleDashboard(true);
             } else if(amIInQueue){
                 $('waitingDashboard').style.display='flex';
                 renderFocusedQueue();
-                // === TRIGGER AUTO SCROLL SAAT DIBUKA ===
                 setTimeout(scrollToMyPosition, 500); 
             } else {
                 window.checkLocAndRegister();
