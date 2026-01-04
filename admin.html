@@ -195,7 +195,16 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, doc, onSnapshot, runTransaction, collection, addDoc, query, orderBy, limit, getDocs, where, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        const firebaseConfig = { apiKey: "AIzaSyDIUivobLNDIsbK7ilqfe7fLAL8LnM4Hk8", authDomain: "fcgadingbaru.firebaseapp.com", projectId: "fcgadingbaru", storageBucket: "fcgadingbaru.firebasestorage.app", messagingSenderId: "193138253272", appId: "1:193138253272:web:e183a3e455ec357ec7a6ad" };
+        // === CONFIG DIUPDATE KE FCGADINGNEW22 (SUPAYA NYAMBUNG KE USER) ===
+        const firebaseConfig = {
+            apiKey: "AIzaSyB666i9lYWIpxOdkwpoX9EvFvHLmHczeq8",
+            authDomain: "fcgadingnew22.firebaseapp.com",
+            projectId: "fcgadingnew22",
+            storageBucket: "fcgadingnew22.firebasestorage.app",
+            messagingSenderId: "537736846678",
+            appId: "1:537736846678:web:53788d71a196423ac08af7"
+        };
+
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         
@@ -206,8 +215,7 @@
         let cachedSlots = [null, null, null];
         let cachedQueue = [];
 
-        // === LOGIN LOGIC (UPDATED FORCE LOGOUT) ===
-        // Menggunakan Key Baru 'adm_sess_v5' agar admin lama (v4/v3) tertendang.
+        // === LOGIN LOGIC ===
         const SESSION_KEY = 'adm_sess_v5';
         const currentAdmin = localStorage.getItem(SESSION_KEY);
         
@@ -220,7 +228,7 @@
             const name = document.getElementById('loginName').value;
             const pin = document.getElementById('loginPin').value;
             if(pin === "1131" && name.trim() !== "") {
-                localStorage.setItem(SESSION_KEY, name.trim()); // Simpan ke key baru
+                localStorage.setItem(SESSION_KEY, name.trim());
                 document.getElementById('loginOverlay').style.display = 'none';
                 document.getElementById('displayAdminName').innerText = "User: " + name.trim();
                 addLog("ADMIN", "LOGIN", "Login success (New Session)");
@@ -244,7 +252,7 @@
 
         function getTodayString() { return new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jakarta' }); }
 
-        // === REALTIME LISTENER (MAIN DATA) ===
+        // === REALTIME LISTENER ===
         onSnapshot(mainRef, (snap) => {
             if (!snap.exists()) return;
             const d = snap.data();
@@ -273,21 +281,27 @@
             document.getElementById('stat-active').innerText = cachedQueue.length;
         });
 
-        // Render Tabel Antrian dengan Panah Naik/Turun
+        // Render Tabel Antrian
         function renderQueueTable() {
             let h = `<table><tr><th width="20">#</th><th>USER</th><th>AKSI</th></tr>`;
             if(cachedQueue.length === 0) h += `<tr><td colspan="3" style="text-align:center; color:#444;">KOSONG</td></tr>`;
-            cachedQueue.forEach((q, idx) => {
+            
+            // Urutkan berdasarkan qNo (tiket)
+            const sortedQ = [...cachedQueue].sort((a,b) => a.qNo - b.qNo);
+
+            sortedQ.forEach((q, idx) => {
+                // Cari index asli di array utama untuk fungsi hapus/pindah
+                const originalIdx = cachedQueue.findIndex(x => x.plat === q.plat);
+                
+                // Cek apakah bisa naik/turun di tampilan (visual index)
                 const upDisabled = (idx === 0) ? 'disabled style="opacity:0.3"' : '';
-                const downDisabled = (idx === cachedQueue.length - 1) ? 'disabled style="opacity:0.3"' : '';
+                const downDisabled = (idx === sortedQ.length - 1) ? 'disabled style="opacity:0.3"' : '';
 
                 h += `<tr>
                     <td>${q.qNo}</td>
                     <td><b style="color:var(--accent)">${q.plat}</b><br>${q.userName}</td>
                     <td>
                         <div style="display:flex; gap:2px; flex-wrap:wrap;">
-                            <button class="btn-blue btn-mini" onclick="switchQueue(${idx}, -1)" ${upDisabled}>⬆</button>
-                            <button class="btn-blue btn-mini" onclick="switchQueue(${idx}, 1)" ${downDisabled}>⬇</button>
                             <button class="btn-green btn-mini" onclick="pushToSlot('${q.plat}',0)">S1</button>
                             <button class="btn-green btn-mini" onclick="pushToSlot('${q.plat}',1)">S2</button>
                             <button class="btn-green btn-mini" onclick="pushToSlot('${q.plat}',2)">S3</button>
@@ -371,18 +385,6 @@
             });
         };
 
-        window.switchQueue = (idx, direction) => {
-            runTransaction(db, async(t) => {
-                const d = (await t.get(mainRef)).data();
-                let q = d.waitingQueue || [];
-                const targetIdx = idx + direction;
-                if (targetIdx < 0 || targetIdx >= q.length) return; 
-                const temp = q[idx]; q[idx] = q[targetIdx]; q[targetIdx] = temp;
-                t.update(mainRef, { waitingQueue: q });
-                addLog("ADMIN", "SWAP_QUEUE", `Swapped Q#${idx+1} with Q#${targetIdx+1}`);
-            });
-        };
-
         window.delQueue = (p) => {
             runTransaction(db, async(t) => {
                 const d = (await t.get(mainRef)).data();
@@ -396,7 +398,7 @@
             });
         };
 
-        // === FUNGSI RESET HARIAN (AMAN - TOMBOL KUNING) ===
+        // === FUNGSI RESET HARIAN (AMAN) ===
         window.resetDaily = () => {
             runTransaction(db, async(t) => {
                 const docSnap = await t.get(mainRef);
@@ -410,7 +412,7 @@
             }).then(() => { alert("BERHASIL! Nomor Antrian kembali ke 1. Slot aman."); }).catch(e => alert("Error: " + e));
         };
 
-        // === FUNGSI RESET TOTAL (BAHAYA - TOMBOL MERAH) ===
+        // === FUNGSI RESET TOTAL (BAHAYA) ===
         window.resetTotal = () => {
             setDoc(mainRef, { chargingSlots:[null,null,null], waitingQueue:[], recycledNumbers:[], lastTicket:0, lastResetDate: getTodayString() })
             .then(() => { addLog("ADMIN", "RESET_ALL", "System Reset Triggered"); });
@@ -455,7 +457,7 @@
         };
         setTimeout(loadAnalytics, 2000);
 
-        // === TERMINAL LOG LISTENER (BRUTAL DETAIL) ===
+        // === TERMINAL LOG LISTENER ===
         onSnapshot(query(logRef, orderBy("timestamp", "desc"), limit(200)), (snap) => {
             let h = '';
             const docs = [];
@@ -487,7 +489,7 @@
             cont.scrollTop = cont.scrollHeight; 
         });
 
-        // Add Log
+        // Add Log Helper
         function addLog(actor, act, det) { 
             let finalActor = actor;
             if(actor === 'ADMIN') {
