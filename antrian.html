@@ -137,13 +137,12 @@
         .wd-badge { 
             display: inline-block; padding: 5px 15px; 
             background: rgba(204, 255, 0, 0.1); border: 1px solid var(--accent); 
-            color: var(--accent); font-family: 'JetBrains Mono'; font-size: 12px; 
-            border-radius: 20px; font-weight: bold;
+            color: var(--accent); font-family: 'JetBrains Mono'; font-size: 14px; 
+            border-radius: 20px; font-weight: bold; text-transform: uppercase;
         }
         .wd-prog-top { display: flex; justify-content: space-between; margin-bottom: 8px; font-family: 'JetBrains Mono'; font-size: 12px; color: #ccc; }
         .wd-bar-bg { width: 100%; height: 8px; background: rgba(255,255,255,0.1); border-radius: 10px; overflow: hidden; }
         .wd-bar-fill { height: 100%; background: var(--cyan); box-shadow: 0 0 15px var(--cyan); width: 0%; transition: width 1s ease; }
-        .wd-eta { margin-top: 10px; font-family: 'JetBrains Mono'; font-size: 11px; color: var(--cyan); text-align: right; }
         .wd-list-container { max-height: 250px; overflow-y: auto; padding-right: 5px; }
         .wd-item { 
             display: flex; justify-content: space-between; align-items: center; 
@@ -276,16 +275,15 @@
         <div class="wd-card wd-hero">
             <div class="wd-label">NOMOR ANTRIAN ANDA</div>
             <div class="wd-big-num" id="wdMyNum">#--</div>
-            <div class="wd-badge">MOHON BERSABAR</div>
+            <div class="wd-badge" id="wdBadge">URUTAN KE - DARI -</div>
         </div>
 
         <div class="wd-card">
             <div class="wd-prog-top">
-                <span id="wdPosText">Posisi: -</span>
+                <span id="wdPosText">Status Antrian</span>
                 <span id="wdPercText">0%</span>
             </div>
             <div class="wd-bar-bg"><div class="wd-bar-fill" id="wdBar"></div></div>
-            <div class="wd-eta" id="wdEta">Estimasi: Menghitung...</div>
         </div>
 
         <div class="wd-card" style="flex:1; display:flex; flex-direction:column; min-height:200px;">
@@ -607,14 +605,14 @@
         window.toggleAdmin = () => { const pass = prompt("MASUKKAN KODE ADMIN:"); if(pass === "1131") { localStorage.setItem('adm_ok', '1'); window.location.href = 'admin.html'; } }
         window.showQueueList = () => { const el=$('queueListDetail'); if(!el)return; el.innerHTML=''; if(localQueue.length===0) el.innerHTML='<div style="padding:20px;text-align:center;color:#555;">KOSONG</div>'; else localQueue.forEach(q=>{const isMe=(q.plat===myPlat)?'color:var(--accent);font-weight:bold;':'color:#aaa;'; el.innerHTML+=`<div style="padding:10px;border-bottom:1px solid #333;display:flex;justify-content:space-between;"><span style="color:var(--cyan);">#${q.qNo}</span><div style="text-align:right;"><div style="${isMe}">${q.plat}</div><div style="font-size:10px;color:#555;">${q.userName}</div></div></div>`;}); $('queueModal').style.display='flex'; };
         
-        // === RENDER DASHBOARD ANTRIAN BARU ===
+        // === RENDER DASHBOARD ANTRIAN BARU (UPDATED) ===
         function renderFocusedQueue(){ 
             const listEl = $('wdList'); 
             const numEl = $('wdMyNum');
             const posEl = $('wdPosText');
             const percEl = $('wdPercText');
             const barEl = $('wdBar');
-            const etaEl = $('wdEta');
+            const badgeEl = $('wdBadge');
 
             if(!listEl) return;
             
@@ -640,20 +638,11 @@
                 progress = 90; // Kalau sendiri, hampir penuh
             }
             
-            // Update UI Progress
-            posEl.innerText = `Urutan ke-${myIndex + 1} dari ${totalQ}`;
+            // Update UI Progress & Badge
+            posEl.innerText = "Status Antrian";
             percEl.innerText = `${progress}%`;
             barEl.style.width = `${progress}%`;
-            
-            // Estimasi Waktu (Asumsi 1 motor = 15 menit, dikali jumlah antrian di depan)
-            const waitTime = myIndex * 15; 
-            if(myIndex === 0) {
-                etaEl.innerText = "SIAP-SIAP! Giliran Anda sebentar lagi.";
-                etaEl.style.color = "var(--accent)";
-            } else {
-                etaEl.innerText = `Estimasi Giliran: ±${waitTime} Menit lagi`;
-                etaEl.style.color = "var(--cyan)";
-            }
+            badgeEl.innerText = `URUTAN KE-${myIndex + 1} DARI ${totalQ}`; // Update Badge Text
 
             // 3. Render List
             listEl.innerHTML = ''; 
@@ -680,12 +669,15 @@
                     <div class="wd-status">${statusTxt}</div>
                 `;
                 
-                // Auto Scroll ke User (Cinematic effect sederhana)
-                if(isMe && listEl.scrollTop === 0 && i > 2) {
-                    setTimeout(() => item.scrollIntoView({behavior: "smooth", block: "center"}), 500);
-                }
-
                 listEl.appendChild(item);
+
+                // === AUTO SCROLL LOGIC ===
+                // Jika ini item user, dan posisinya di bawah (misal index > 2), scroll otomatis
+                if(isMe && i > 2) {
+                    setTimeout(() => {
+                        item.scrollIntoView({behavior: "smooth", block: "center"});
+                    }, 300); // Delay dikit biar render selesai
+                }
             }); 
         }
 
