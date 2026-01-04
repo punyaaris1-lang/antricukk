@@ -195,7 +195,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, doc, onSnapshot, runTransaction, collection, addDoc, query, orderBy, limit, getDocs, where, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // === CONFIG DIUPDATE KE FCGADINGNEW22 (SUPAYA NYAMBUNG KE USER) ===
+        // === CONFIG SAMA DENGAN USER (JANGAN UBAH) ===
         const firebaseConfig = {
             apiKey: "AIzaSyB666i9lYWIpxOdkwpoX9EvFvHLmHczeq8",
             authDomain: "fcgadingnew22.firebaseapp.com",
@@ -281,27 +281,23 @@
             document.getElementById('stat-active').innerText = cachedQueue.length;
         });
 
-        // Render Tabel Antrian
+        // Render Tabel Antrian dengan Panah Naik/Turun
         function renderQueueTable() {
             let h = `<table><tr><th width="20">#</th><th>USER</th><th>AKSI</th></tr>`;
             if(cachedQueue.length === 0) h += `<tr><td colspan="3" style="text-align:center; color:#444;">KOSONG</td></tr>`;
             
-            // Urutkan berdasarkan qNo (tiket)
-            const sortedQ = [...cachedQueue].sort((a,b) => a.qNo - b.qNo);
-
-            sortedQ.forEach((q, idx) => {
-                // Cari index asli di array utama untuk fungsi hapus/pindah
-                const originalIdx = cachedQueue.findIndex(x => x.plat === q.plat);
-                
-                // Cek apakah bisa naik/turun di tampilan (visual index)
+            // Urutkan manual (FIFO/Array Order) - JANGAN DISORTIR OTOMATIS SUPAYA BISA NAIK TURUN
+            cachedQueue.forEach((q, idx) => {
                 const upDisabled = (idx === 0) ? 'disabled style="opacity:0.3"' : '';
-                const downDisabled = (idx === sortedQ.length - 1) ? 'disabled style="opacity:0.3"' : '';
+                const downDisabled = (idx === cachedQueue.length - 1) ? 'disabled style="opacity:0.3"' : '';
 
                 h += `<tr>
                     <td>${q.qNo}</td>
                     <td><b style="color:var(--accent)">${q.plat}</b><br>${q.userName}</td>
                     <td>
                         <div style="display:flex; gap:2px; flex-wrap:wrap;">
+                            <button class="btn-blue btn-mini" onclick="switchQueue(${idx}, -1)" ${upDisabled}>⬆</button>
+                            <button class="btn-blue btn-mini" onclick="switchQueue(${idx}, 1)" ${downDisabled}>⬇</button>
                             <button class="btn-green btn-mini" onclick="pushToSlot('${q.plat}',0)">S1</button>
                             <button class="btn-green btn-mini" onclick="pushToSlot('${q.plat}',1)">S2</button>
                             <button class="btn-green btn-mini" onclick="pushToSlot('${q.plat}',2)">S3</button>
@@ -313,7 +309,27 @@
             document.getElementById('queueTable').innerHTML = h + `</table>`;
         }
 
-        // === ACTIONS ===
+        // === ACTIONS (NAIK TURUN DLL) ===
+        
+        // FUNGSI NAIK TURUN ANTRIAN (SWAP ARRAY)
+        window.switchQueue = (idx, direction) => {
+            runTransaction(db, async(t) => {
+                const d = (await t.get(mainRef)).data();
+                let q = d.waitingQueue || [];
+                
+                const targetIdx = idx + direction;
+                if (targetIdx < 0 || targetIdx >= q.length) return; // Validasi batas
+                
+                // Swap Posisi
+                const temp = q[idx];
+                q[idx] = q[targetIdx];
+                q[targetIdx] = temp;
+                
+                t.update(mainRef, { waitingQueue: q });
+                addLog("ADMIN", "SWAP_QUEUE", `Swapped Q#${idx+1} with Q#${targetIdx+1}`);
+            });
+        };
+
         window.manualAdd = (target) => {
             const p = document.getElementById('newPlat').value.toUpperCase();
             const n = document.getElementById('newName').value.toUpperCase();
@@ -457,7 +473,7 @@
         };
         setTimeout(loadAnalytics, 2000);
 
-        // === TERMINAL LOG LISTENER ===
+        // === TERMINAL LOG LISTENER (BRUTAL DETAIL) ===
         onSnapshot(query(logRef, orderBy("timestamp", "desc"), limit(200)), (snap) => {
             let h = '';
             const docs = [];

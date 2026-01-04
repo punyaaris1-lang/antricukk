@@ -100,7 +100,7 @@
         .btn-luxury { width: 85%; max-width: 350px; padding: 20px 0; background: linear-gradient(135deg, #ff0000 0%, #990000 100%); color: #fff; font-family: 'Teko'; font-size: 35px; font-weight: 700; letter-spacing: 2px; border: 2px solid #ff5e5e; border-radius: 15px; cursor: pointer; box-shadow: 0 0 40px rgba(255, 0, 60, 0.8), inset 0 0 10px rgba(0,0,0,0.5); text-shadow: 0 2px 5px rgba(0,0,0,0.5); transition: all 0.3s; position: relative; overflow: hidden; }
         .btn-minimize { background: rgba(255,255,255,0.1); border: 1px solid #555; color: #ccc; font-size: 12px; padding: 8px 20px; border-radius: 20px; position: absolute; top: 15px; right: 15px; cursor: pointer; z-index: 201; }
         
-        /* FOOTER & 3 TOMBOL SEJAJAR */
+        /* FOOTER & BUTTONS LAYOUT */
         .bottom-panel { height: 35vh; min-height: 250px; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; z-index: 500; position: fixed; bottom: 0; width: 100%; background: linear-gradient(to top, #000 90%, transparent); padding-bottom: 20px; pointer-events: none; }
         .stats-wrapper, .fp-wrapper, .music-player, .action-bar { pointer-events: auto; } 
         .stats-wrapper { display: grid; grid-template-columns: 1fr 2px 1fr; align-items: center; justify-items: center; width: 100%; max-width: 400px; margin-bottom: 20px; }
@@ -465,7 +465,9 @@
             }
             const d = snap.data();
             localSlots = d.chargingSlots || [null,null,null]; 
-            localQueue = (d.waitingQueue || []).sort((a,b) => a.qNo - b.qNo);
+            
+            // PENTING: Ikuti urutan Database (Admin Rule)
+            localQueue = (d.waitingQueue || []);
             
             if(localStorage.getItem('adm_ok')) document.body.classList.add('admin-mode');
             
@@ -533,7 +535,7 @@
             
             if(!amICharging) window.activeSlotIdx = -1;
             
-            // TOMBOL UTAMA (Hanya Label)
+            // TOMBOL UTAMA (Label)
             const btn = $('fpBtn'); const txt = $('mainBtnText'); if(btn) btn.className = 'fp-btn';
             
             if(window.activeSlotIdx !== -1) { 
@@ -734,7 +736,7 @@
         window.toggleAdmin = () => { const pass = prompt("MASUKKAN KODE ADMIN:"); if(pass === "1131") { localStorage.setItem('adm_ok', '1'); document.body.classList.add('admin-mode'); window.location.href = 'admin.html'; } };
         window.showQueueList = () => { const el=$('queueListDetail'); if(!el)return; el.innerHTML=''; if(localQueue.length===0) el.innerHTML='<div style="padding:20px;text-align:center;color:#555;">KOSONG</div>'; else localQueue.forEach(q=>{const isMe=(q.plat===myPlat)?'color:var(--accent);font-weight:bold;':'color:#aaa;'; el.innerHTML+=`<div style="padding:10px;border-bottom:1px solid #333;display:flex;justify-content:space-between;"><span style="color:var(--cyan);">#${q.qNo}</span><div style="text-align:right;"><div style="${isMe}">${q.plat}</div><div style="font-size:10px;color:#555;">${q.userName}</div></div></div>`;}); $('queueModal').style.display='flex'; };
         
-        // === RENDER DASHBOARD ANTRIAN (DENGAN TIMELINE VISUAL) ===
+        // === RENDER DASHBOARD ANTRIAN (FIX POSISI RAPAT) ===
         function renderFocusedQueue(){ 
             const listEl=$('wdList'); const numEl=$('wdMyNum'); const userMarker=$('wdUserMarker'); const timelineVis=$('timelineVisual');
             if(!listEl)return;
@@ -744,13 +746,24 @@
             
             const totalQ=localQueue.length; const myIndex=localQueue.findIndex(q=>q.plat===myPlat);
             
-            // TIMELINE MOVEMENT LOGIC
-            // Index 0 (Depan) = 100% (Kanan/Finish)
-            // Index Terakhir = 0% (Kiri/Start)
+            // TIMELINE MOVEMENT LOGIC (RAPAT TAPI TIDAK NUMPUK)
+            // Konsep: Index 0 (Depan) = 70% (Bukan 100%, supaya ga numpuk petir)
+            // Index Belakang = 5% (Start)
+            
+            const maxPos = 88; // Maksimal 88% (Biar ga nubruk petir)
+            const minPos = 5;  // Start 5%
+            
             let percentage = 0;
             if(totalQ > 1) {
-                percentage = ((totalQ - 1 - myIndex) / (totalQ - 1)) * 100;
-            } else { percentage = 100; }
+                // Hitung step per orang
+                // Semakin banyak orang, semakin rapat (otomatis)
+                const range = maxPos - minPos;
+                // Logika: Urutan 0 itu paling kanan (maxPos)
+                // Rumus: minPos + ( (Total - 1 - myIndex) / (Total - 1) * range )
+                percentage = minPos + (((totalQ - 1 - myIndex) / (totalQ - 1)) * range);
+            } else { 
+                percentage = maxPos; // Kalau sendirian langsung di posisi siap
+            }
             
             // Update User Marker
             if(userMarker) {
@@ -766,22 +779,25 @@
                 }
             }
 
-            // CLEANUP OLD MARKERS (Clear sisa marker nomor lain)
+            // CLEANUP OLD MARKERS
             const oldMarkers = timelineVis.querySelectorAll('.t-marker-other');
             oldMarkers.forEach(m => m.remove());
 
             // ADD OTHER USERS MARKERS (Max 3 orang di depan saya)
+            // Menggunakan Rumus Posisi yang SAMA persis agar sinkron
             let shownCount = 0;
             for(let i = myIndex - 1; i >= 0; i--) {
                 if(shownCount >= 3) break; 
                 
-                let otherPerc = 100;
-                if(totalQ > 1) otherPerc = ((totalQ - 1 - i) / (totalQ - 1)) * 100;
+                let otherPerc = 0;
+                if(totalQ > 1) {
+                    const range = maxPos - minPos;
+                    otherPerc = minPos + (((totalQ - 1 - i) / (totalQ - 1)) * range);
+                } else { otherPerc = maxPos; }
                 
                 const otherMarker = document.createElement('div');
                 otherMarker.className = 't-marker-other';
                 otherMarker.style.left = `${otherPerc}%`;
-                // Menampilkan Nomor Antrian Saja (#10, #11, dst)
                 otherMarker.innerHTML = `<div class="tmo-num">#${localQueue[i].qNo}</div>`;
                 timelineVis.appendChild(otherMarker);
                 shownCount++;
@@ -818,18 +834,6 @@
         window.playTrack=(i)=>{ if(!audio || !playlistData[i])return; curTrk=i; audio.src=playlistData[i].url; if($('mpTitle')) $('mpTitle').innerText=playlistData[i].title; if($('mpTitle2')) $('mpTitle2').innerText=playlistData[i].title; audio.play().catch(e=>{}); if($('mpPlayBtn')) $('mpPlayBtn').innerText="⏸"; if($('mpPlayBtn2')) $('mpPlayBtn2').innerText="⏸"; };
         window.togglePlay=()=>{ if(!audio) return; let i = "⏯"; if(audio.paused){ if(!audio.src)window.playTrack(0); else audio.play(); i="⏸"; } else{ audio.pause(); i="⏯"; } if($('mpPlayBtn')) $('mpPlayBtn').innerText=i; if($('mpPlayBtn2')) $('mpPlayBtn2').innerText=i; };
         window.nextTrack=()=>{ curTrk=(curTrk+1)%playlistData.length; window.playTrack(curTrk); }; window.prevTrack=()=>{ curTrk=(curTrk-1+playlistData.length)%playlistData.length; window.playTrack(curTrk); }; if(audio) audio.addEventListener('ended', window.nextTrack);
-
-        function runWatchdog(p){
-            const now=Date.now(), cur={lat:p.coords.latitude,lng:p.coords.longitude,time:now};
-            if(!wdBase)wdBase={lat:STATION_LAT,lng:STATION_LNG}; if(!wdLast){wdLast=cur;return;}
-            const dist=getDist(wdBase.lat,wdBase.lng,cur.lat,cur.lng);
-            if(dist > WD_CFG.RADIUS){ if(!wdTimer)wdTimer=now; else if(now-wdTimer>WD_CFG.GRACE){wdStrike++; addLog("WD_WARN", `Out radius ${dist.toFixed(0)}m`);} } else {wdTimer=null; if(wdStrike>0)wdStrike-=0.5;}
-            if(wdStrike>=WD_CFG.MAX_STRIKE){ localStorage.removeItem('myPlat'); addLog("WD_KICK", "Kicked"); alert("KEAMANAN: Anda terdeteksi menjauh. Sesi berakhir."); location.reload(); }
-            wdLast=cur;
-        }
-        let wdBase=null,wdLast=null,wdStrike=0,wdTimer=null;
-        const WD_CFG={RADIUS:100,MAX_SPEED:35,GRACE:60000,MAX_STRIKE:5,INT:5000};
-        if(navigator.geolocation&&!localStorage.getItem('adm_ok')&&localStorage.getItem('myPlat')){ setInterval(()=>{navigator.geolocation.getCurrentPosition(runWatchdog,()=>{},{enableHighAccuracy:true,timeout:5000,maximumAge:0});},WD_CFG.INT); }
 
         if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js').catch(e=>{}); }); }
         let wakeLock = null; async function requestWakeLock() { try { if ('wakeLock' in navigator) { wakeLock = await navigator.wakeLock.request('screen'); document.addEventListener('visibilitychange', async () => { if (wakeLock !== null && document.visibilityState === 'visible') wakeLock = await navigator.wakeLock.request('screen'); }); } } catch (err) {} } document.addEventListener('click', requestWakeLock, {once:true});
