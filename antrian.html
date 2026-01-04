@@ -143,7 +143,7 @@
         .wd-prog-top { display: flex; justify-content: space-between; margin-bottom: 8px; font-family: 'JetBrains Mono'; font-size: 12px; color: #ccc; }
         .wd-bar-bg { width: 100%; height: 8px; background: rgba(255,255,255,0.1); border-radius: 10px; overflow: hidden; }
         .wd-bar-fill { height: 100%; background: var(--cyan); box-shadow: 0 0 15px var(--cyan); width: 0%; transition: width 1s ease; }
-        .wd-list-container { max-height: 250px; overflow-y: auto; padding-right: 5px; }
+        .wd-list-container { max-height: 250px; overflow-y: auto; padding-right: 5px; scroll-behavior: smooth; }
         .wd-item { 
             display: flex; justify-content: space-between; align-items: center; 
             padding: 12px; margin-bottom: 8px; border-radius: 8px; 
@@ -630,12 +630,11 @@
             const myIndex = localQueue.findIndex(q => q.plat === myPlat);
             const totalQ = localQueue.length;
             
-            // Logika Progress: Semakin dekat index ke 0, semakin 100%
             let progress = 0;
             if (totalQ > 1) {
                 progress = Math.round(((totalQ - myIndex) / totalQ) * 100);
             } else {
-                progress = 90; // Kalau sendiri, hampir penuh
+                progress = 90; 
             }
             
             // Update UI Progress & Badge
@@ -656,7 +655,6 @@
                 const item = document.createElement("div");
                 item.className = isMe ? "wd-item me" : "wd-item";
                 
-                // Status Text
                 let statusTxt = "Menunggu";
                 if(i === 0) statusTxt = "Persiapan..";
                 if(isMe) statusTxt = "ANDA";
@@ -670,19 +668,34 @@
                 `;
                 
                 listEl.appendChild(item);
-
-                // === AUTO SCROLL LOGIC ===
-                // Jika ini item user, dan posisinya di bawah (misal index > 2), scroll otomatis
-                if(isMe && i > 2) {
-                    setTimeout(() => {
-                        item.scrollIntoView({behavior: "smooth", block: "center"});
-                    }, 300); // Delay dikit biar render selesai
-                }
             }); 
         }
 
+        // === FUNGSI KHUSUS SCROLL KE POSISI USER ===
+        function scrollToMyPosition() {
+            const container = $('wdList');
+            const me = container.querySelector('.me'); 
+            if (me && container) {
+                // Paksa scroll biar item user ada di tengah
+                const topPos = me.offsetTop - (container.clientHeight / 2) + (me.clientHeight / 2);
+                container.scrollTo({ top: topPos, behavior: 'smooth' });
+            }
+        }
+
         window.toggleDashboard = (show) => { if(show){isDashboardMinimized=false;switchScreen('screen-active-dashboard');}else{isDashboardMinimized=true;switchScreen('screen-slots');} updateUI(); }
-        window.handleMainAction = () => { if(window.activeSlotIdx!==-1&&isDashboardMinimized)window.toggleDashboard(true); else if(amIInQueue){$('waitingDashboard').style.display='flex';renderFocusedQueue();} else window.checkLocAndRegister(); };
+        
+        window.handleMainAction = () => { 
+            if(window.activeSlotIdx!==-1&&isDashboardMinimized) {
+                window.toggleDashboard(true);
+            } else if(amIInQueue){
+                $('waitingDashboard').style.display='flex';
+                renderFocusedQueue();
+                // === TRIGGER AUTO SCROLL SAAT DIBUKA ===
+                setTimeout(scrollToMyPosition, 500); 
+            } else {
+                window.checkLocAndRegister();
+            }
+        };
 
         const WD_CFG={RADIUS:100,MAX_SPEED:35,GRACE:60000,MAX_STRIKE:5,INT:5000}; let wdBase=null,wdLast=null,wdStrike=0,wdTimer=null;
         function runWatchdog(p){
