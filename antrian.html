@@ -3,376 +3,349 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FC KELAPA GADING - CINEMATIC</title>
+    <title>FC KELAPA GADING - LIVE SYSTEM</title>
     
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#00F0FF">
-    <link rel="apple-touch-icon" href="icon-192.png">
-
-    <link href="https://fonts.googleapis.com/css2?family=Teko:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&family=Inter:wght@500;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Teko:wght@300;400;500;600&family=Rajdhani:wght@500;600;700&family=Outfit:wght@300;400;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     
     <style>
-        /* === GLOBAL VARIABLES === */
-        :root { --bg: #050505; --accent: #CCFF00; --cyan: #00F0FF; --red: #FF003C; --wa: #25D366; }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; user-select: none; }
+        /* === 1. GLOBAL SETUP === */
+        :root {
+            --bg: #000;
+            --cyan: #00F0FF;
+            --glass-card: rgba(20, 25, 30, 0.95);
+            --glass-border: rgba(0, 240, 255, 0.3);
+            --text-dim: rgba(255, 255, 255, 0.6);
+            --danger: #ff003c;
+        }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; outline: none; }
         
         body { 
-            font-family: 'Teko', sans-serif; 
-            background: #000 url('1763947427555.jpg') no-repeat center center fixed;
+            font-family: 'Rajdhani', sans-serif;
+            background: #000;
+            background-image: linear-gradient(to bottom, rgba(0,0,0,0.9), #000), url('logo.png'); 
             background-size: cover; 
-            color: #fff; margin: 0; overflow: hidden; 
-            width: 100vw; height: 100dvh; 
-            display: flex; flex-direction: column; 
-            font-size: 20px; letter-spacing: 1px;
+            background-position: center;
+            background-attachment: fixed;
+            color: #fff; 
+            margin: 0; 
+            width: 100vw; 
+            min-height: 100vh; 
+            height: auto;      
+            overflow-y: auto;  
+            display: flex; 
+            flex-direction: column;
+            padding: 10px 20px 40px 20px;
         }
-        body::before { content: ''; position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(0,0,0,0.85), #000); z-index: 0; }
-        #dust { position: fixed; inset: 0; pointer-events: none; z-index: 1; }
 
-        /* === LAYOUT UTAMA === */
-        .top-nav { 
-            position: absolute; top: 0; left: 0; width: 100%;
-            height: 120px; 
-            display: flex; flex-direction: column; justify-content: center; 
-            text-align: center; 
-            z-index: 100;
-            background: linear-gradient(to bottom, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 100%);
-            padding-top: 20px; pointer-events: none;
+        /* === 2. HEADER === */
+        .header { flex: 0 0 auto; text-align: center; padding-top: 40px; margin-bottom: 20px; cursor: pointer; }
+        .main-title { 
+            font-family: 'Teko'; font-size: 42px; line-height: 0.9; color: #fff; 
+            text-shadow: 0 0 15px rgba(0, 240, 255, 0.5); letter-spacing: 1px; margin-bottom: 5px;
         }
-        .main-title { font-size: clamp(40px, 6vh, 55px); font-weight: 700; line-height: 0.9; color: #fff; text-shadow: 0 0 20px rgba(0, 240, 255, 0.6); pointer-events: auto; }
-        .sub-title { font-size: 14px; color: var(--accent); letter-spacing: 4px; font-weight: 600; margin-top: 5px; text-transform: uppercase; text-shadow: 0 0 10px rgba(0,0,0,0.8); pointer-events: auto; }
-        
-        #logo-area { height: 0; opacity: 0; pointer-events: none; transition: 0.5s; flex: 0 0 auto; z-index: 101; position:relative; }
-        body.login-mode #logo-area { height: auto; opacity: 1; margin-bottom: 10px; display: flex; justify-content: center; padding-top: 10px; } 
-        .big-logo { width: 60%; max-width: 200px; height: auto; border-radius: 20px; box-shadow: 0 0 50px rgba(0,0,0,0.8); border: 1px solid rgba(255,255,255,0.1); animation: floatLogo 4s ease-in-out infinite; }
-        @keyframes floatLogo { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-10px);} }
+        .sub-title { font-size: 10px; color: var(--cyan); letter-spacing: 4px; font-weight: 700; text-transform: uppercase; }
 
-        body.login-mode .bottom-panel { display: none !important; visibility: hidden !important; opacity: 0 !important; z-index: -999 !important; }
-        #screen-login { justify-content: flex-start; padding-top: 40px; z-index: 20000 !important; background: #000 !important; top: 0 !important; bottom: 0 !important; height: 100vh !important; }
-
-        .screen { 
-            position: absolute; inset: 0; top: 0; bottom: 0; 
-            display: none; flex-direction: column; z-index: 10; 
-            transition: opacity 0.5s; justify-content: flex-start; align-items: center; 
-            padding-top: 130px; 
+        /* === 3. SLOT AREA === */
+        .slot-section { display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px; flex: 0 0 auto; }
+        .slot-card {
+            position: relative; height: 85px; 
+            background: var(--glass-card); backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border); border-radius: 16px;
+            padding: 0 20px; display: flex; align-items: center; justify-content: space-between;
+            transition: 0.3s; box-shadow: 0 5px 15px rgba(0,0,0,0.5);
         }
-        .screen.active { display: flex; animation: fadeIn 0.5s forwards; }
-        @keyframes fadeIn { from{opacity:0; transform:scale(0.98);} to{opacity:1; transform:scale(1);} }
-        
-        #screen-slots { flex-direction: row; align-items: flex-start; justify-content: center; gap: 10px; padding-left: 10px; padding-right: 10px; }
-        .slot-container { width: 32%; height: 40vh; max-height: 360px; position: relative; transition: all 0.5s; }
-        .slot-container:nth-child(2) { margin-top: 40px; } 
-        
-        .onyx-card { width: 100%; height: 100%; background: url('1763947427555.jpg') no-repeat center center fixed; background-size: cover; border: 1px solid rgba(255,255,255,0.3); border-radius: 15px; display: flex; flex-direction: column; position: relative; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.8); cursor: pointer; z-index: 2; }
-        .onyx-card::after { content: ''; position: absolute; inset: 0; background: rgba(0,0,0,0.6); z-index: 0; }
-        .card-content { position: relative; z-index: 5; width: 100%; height: 100%; display: flex; flex-direction: column; padding: 10px; }
-        .cc-top { flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.3); padding-bottom: 5px; min-height: 50px; justify-content: center; }
-        .oc-name { font-weight: 600; font-size: clamp(12px, 1.6vh, 16px); color: #fff; text-shadow: 0 0 10px rgba(0,0,0,0.8); text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
-        .oc-plat { font-family: 'JetBrains Mono'; font-weight: 700; font-size: clamp(10px, 1.4vh, 14px); color: var(--accent); margin-top: 3px; text-shadow: 0 0 5px #000; }
-        .cc-center { flex: 1; display: flex; align-items: center; justify-content: center; }
-        .oc-num { font-weight: 700; font-size: clamp(50px, 10vw, 80px); line-height: 0.8; transition:0.3s; margin-top: -5px; text-shadow: 0 0 15px rgba(0,0,0,0.8); }
-        .filled .oc-num { color: var(--cyan); text-shadow: 0 0 20px rgba(0, 240, 255, 0.4); animation:none; }
-        .empty .oc-num { color: rgba(255,255,255,0.4); }
-        .cc-bottom { flex: 0 0 auto; width: 100%; display: flex; flex-direction: column; align-items: center; gap: 5px; }
-        
-        .btn-select { background: rgba(204, 255, 0, 0.2); border: 1px solid var(--accent); color: var(--accent); animation: pulse 2s infinite; display:none; width: 100%; padding: 6px 0; border-radius: 5px; font-family: 'Teko'; font-weight: bold; font-size: 18px; text-align: center; text-shadow: 0 0 5px #000; z-index: 20; cursor: pointer; }
-        .onyx-card.empty .btn-select { display: block !important; }
-
-        .btn-wa-slot { background: rgba(37, 211, 102, 0.2); border: 1px solid var(--wa); color: var(--wa); font-family: 'JetBrains Mono'; font-size: 10px; padding: 3px 8px; border-radius: 20px; margin-top: 5px; cursor: pointer; display: none !important; align-items: center; gap: 3px; text-decoration: none; font-weight: bold; width: fit-content; }
-        body.admin-mode .filled .btn-wa-slot { display: flex !important; }
-
-        .onyx-panel { width: 90%; max-width: 400px; background: #050505; border: 1px solid var(--cyan); border-radius: 15px; padding: 25px; box-shadow: 0 0 30px rgba(0, 240, 255, 0.15); position: relative; overflow: hidden; margin: auto; }
-        .term-input { background: none; border: none; outline: none; color: var(--cyan); font-family: 'JetBrains Mono', monospace; font-size: 16px; width: 60%; font-weight: bold; text-transform: uppercase; caret-color: var(--cyan); margin-left: 5px; }
-        .term-enter-btn { background: var(--cyan); color: #000; border: none; padding: 4px 12px; font-family: 'JetBrains Mono'; font-weight: bold; cursor: pointer; margin-left: auto; font-size: 12px; border-radius: 4px; animation: pulseBtn 1.5s infinite; }
-        @keyframes pulseBtn { 0%{opacity:1;} 50%{opacity:0.7;} 100%{opacity:1;} }
-        @keyframes breathe { 0%,100%{transform:scale(1); opacity:1;} 50%{transform:scale(1.05); opacity:0.9;} }
-        
-        #screen-active-dashboard { z-index: 2000 !important; background: rgba(0,0,0,0.95); backdrop-filter: blur(10px); top: 0; padding-top: 20px; }
-        .ad-container { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; padding: 20px; justify-content: flex-start; gap: 20px; position: relative; }
-        .limit-hud { width: 90%; max-width: 350px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--accent); border-radius: 8px; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; margin-top: 60px; box-shadow: 0 0 15px rgba(204, 255, 0, 0.1); }
-        .hud-val { font-size: 20px; color: #fff; font-weight: bold; line-height: 1; text-shadow: 0 0 5px #fff; }
-        .ad-info { text-align: center; }
-        .ad-slot-label { font-size: 24px; color: var(--accent); font-weight: bold; letter-spacing: 2px; }
-        .ad-name { font-size: 30px; color: #fff; font-weight: 700; margin-top: 5px; }
-        .ad-plat { font-family: 'JetBrains Mono'; font-size: 20px; color: #aaa; margin-top: 5px; background: #222; padding: 5px 15px; border-radius: 5px; display: inline-block; }
-        .ad-main { flex: 1; display: flex; align-items: center; justify-content: center; }
-        .ad-big-num { font-size: clamp(100px, 30vw, 200px); line-height: 0.8; font-weight: 700; color: var(--cyan); text-shadow: 0 0 50px var(--cyan), 0 0 10px #fff; animation: breathe 3s infinite ease-in-out; }
-        .ad-bottom { position: absolute; bottom: 50px; left: 0; width: 100%; display: flex; justify-content: center; z-index: 5000 !important; }
-        .btn-luxury { width: 85%; max-width: 350px; padding: 20px 0; background: linear-gradient(135deg, #ff0000 0%, #990000 100%); color: #fff; font-family: 'Teko'; font-size: 35px; font-weight: 700; letter-spacing: 2px; border: 2px solid #ff5e5e; border-radius: 15px; cursor: pointer; box-shadow: 0 0 40px rgba(255, 0, 60, 0.8), inset 0 0 10px rgba(0,0,0,0.5); text-shadow: 0 2px 5px rgba(0,0,0,0.5); transition: all 0.3s; position: relative; overflow: hidden; }
-        .btn-minimize { background: rgba(255,255,255,0.1); border: 1px solid #555; color: #ccc; font-size: 12px; padding: 8px 20px; border-radius: 20px; position: absolute; top: 15px; right: 15px; cursor: pointer; z-index: 201; }
-        
-        /* FOOTER & BUTTONS LAYOUT */
-        .bottom-panel { height: 35vh; min-height: 250px; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; z-index: 500; position: fixed; bottom: 0; width: 100%; background: linear-gradient(to top, #000 90%, transparent); padding-bottom: 20px; pointer-events: none; }
-        .stats-wrapper, .fp-wrapper, .music-player, .action-bar { pointer-events: auto; } 
-        .stats-wrapper { display: grid; grid-template-columns: 1fr 2px 1fr; align-items: center; justify-items: center; width: 100%; max-width: 400px; margin-bottom: 20px; }
-        .stat-box { display: flex; flex-direction: column; align-items: center; text-align: center; width: 100%; }
-        .stat-num { font-size: 50px; line-height: 0.8; color: #fff; font-weight: bold; text-shadow: 0 0 20px rgba(204,255,0,0.4); letter-spacing: -2px; }
-        
-        .action-bar { display: flex; align-items: center; justify-content: center; gap: 30px; width: 100%; position: relative; margin-top: 10px; }
-        .fab-btn { width: 55px; height: 55px; border-radius: 50%; border: 1px solid var(--cyan); background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; cursor: pointer; backdrop-filter: blur(5px); box-shadow: 0 0 15px rgba(0,240,255,0.2); transition: 0.3s; }
-        .fab-btn.wa-mode { border-color: var(--wa); color: var(--wa); box-shadow: 0 0 15px rgba(37,211,102,0.2); }
-        .fab-btn:active { transform: scale(0.9); }
-        .fab-btn svg { width: 28px; height: 28px; fill: currentColor; }
-
-        .fp-wrapper { display: flex; flex-direction: column; align-items: center; position: relative; width: 100px; }
-        .fp-text { font-family: 'Teko'; font-size: 24px; color: #fff; font-weight: 700; margin-bottom: 2px; text-shadow: 0 0 10px var(--cyan); letter-spacing: 1px; animation: textGlow 2s infinite alternate; width: 100%; text-align: center; display:block; }
-        @keyframes textGlow { from{text-shadow: 0 0 5px var(--cyan);} to{text-shadow: 0 0 20px var(--cyan), 0 0 10px #fff;} }
-        
-        .fp-container { position: relative; width: 80px; height: 80px; display: flex; justify-content: center; align-items: center; margin-bottom: 0px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
-        .fp-btn { width: 80px; height: 80px; background: rgba(0,0,0,0.5); border: 1px solid var(--cyan); border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; box-shadow: 0 0 20px rgba(0,240,255,0.3); animation: pulse 2s infinite; transition: 0.3s; }
-        .fp-btn.back-mode { border-color: var(--accent); animation: none; box-shadow: 0 0 30px rgba(204, 255, 0, 0.4); background: rgba(204, 255, 0, 0.1); }
-        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(0, 240, 255, 0.4); } 70% { box-shadow: 0 0 0 15px rgba(0, 240, 255, 0); } 100% { box-shadow: 0 0 0 0 rgba(0, 240, 255, 0); } }
-
-        .music-drawer { position: fixed; bottom: -250px; left: 0; width: 100%; background: rgba(10, 10, 10, 0.95); border-top: 1px solid var(--cyan); border-radius: 20px 20px 0 0; padding: 20px; transition: bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1); z-index: 9999; backdrop-filter: blur(10px); display: flex; flex-direction: column; align-items: center; box-shadow: 0 -10px 50px rgba(0,0,0,0.8); }
-        .music-drawer.open { bottom: 0; }
-        .music-header { width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #333; padding-bottom: 10px; }
-        .music-title { font-family: 'Teko'; color: var(--cyan); font-size: 20px; letter-spacing: 1px; }
-        .music-close { background: none; border: none; color: #666; font-size: 20px; cursor: pointer; }
-        .music-controls { display: flex; align-items: center; gap: 20px; margin-bottom: 15px; }
-        .mc-btn { background: none; border: 1px solid #555; color: #fff; width: 40px; height: 40px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; }
-        .mc-play { width: 60px; height: 60px; border-color: var(--accent); color: var(--accent); font-size: 24px; box-shadow: 0 0 15px rgba(204,255,0,0.2); }
-        .music-info-display { font-family: 'JetBrains Mono'; font-size: 12px; color: #aaa; margin-bottom: 15px; text-align: center; width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .playlist-trigger { font-family: 'JetBrains Mono'; font-size: 10px; color: #666; border: 1px solid #333; padding: 5px 15px; border-radius: 15px; cursor: pointer; }
-
-        .scanner-container { position: relative; width: 180px; height: 180px; margin: 0 auto; }
-        .scan-img { width: 100%; height: 100%; object-fit: contain; position: absolute; left: 0; top: 0; }
-        .scan-color { z-index: 2; clip-path: inset(100% 0 0 0); filter: drop-shadow(0 0 15px var(--cyan)); transition: clip-path 1.5s linear; }
-        .scan-line { position: absolute; left: 0; width: 100%; height: 3px; background: var(--cyan); box-shadow: 0 0 10px var(--cyan), 0 0 20px var(--cyan); z-index: 5; top: 100%; transition: top 1.5s linear; }
-        .scan-text { margin-top: 25px; font-family: 'JetBrains Mono'; font-size: 16px; color: var(--cyan); letter-spacing: 2px; text-shadow: 0 0 10px var(--cyan); height: 20px; }
-
-        /* === CINEMATIC QUEUE STYLES (NEW) === */
-        .city-bg-layer { position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, #020205 0%, #0a0a15 100%); overflow: hidden; }
-        .city-silhouette { position: absolute; bottom: 0; left: 0; width: 100%; height: 40%; background: repeating-linear-gradient(90deg, transparent 0, transparent 15px, #05050a 15px, #05050a 30px); opacity: 0.4; mask-image: linear-gradient(to top, black, transparent); }
-        .stars-layer { position: absolute; top: 0; left: 0; width: 100%; height: 50%; background-image: radial-gradient(white 1px, transparent 1px); background-size: 40px 40px; opacity: 0.3; }
-
-        #waitingDashboard { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.98); backdrop-filter: blur(5px); z-index: 9000; flex-direction: column; overflow: hidden; }
-        .wd-header-sticky { padding: 20px; text-align: center; background: linear-gradient(to bottom, rgba(0,0,0,1), transparent); z-index: 20; flex: 0 0 auto; }
-
-        /* BIG INFO PANEL (ATAS MOTOR - MENCOLOK) */
-        .big-info-panel {
-            position: absolute; top: 15%; width: 100%; text-align: center; z-index: 60;
-            display: flex; flex-direction: column; align-items: center; gap: 10px;
-            text-shadow: 0 0 20px rgba(0,0,0,0.9);
+        .slot-card::before {
+            content:''; position: absolute; left: 0; top: 20px; bottom: 20px; width: 4px;
+            background: #333; border-radius: 0 4px 4px 0; transition: 0.3s;
         }
-        .bip-main {
-            font-family: 'Teko'; font-size: clamp(30px, 8vw, 40px); color: #fff; line-height: 1; text-transform: uppercase; letter-spacing: 1px;
+        .sc-info { display: flex; flex-direction: column; justify-content: center; width: 65%; }
+        .sc-label { font-size: 9px; color: var(--text-dim); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 2px; }
+        .sc-plat { font-family: 'Teko'; font-size: 38px; color: #fff; line-height: 0.9; letter-spacing: 0.5px; }
+        .sc-user { font-size: 11px; color: var(--cyan); margin-top: -2px; opacity: 0; transition: 0.3s; font-weight: bold; }
+        .status-pill {
+            font-size: 10px; padding: 6px 12px; border-radius: 20px;
+            background: rgba(255,255,255,0.05); color: #888; font-weight: bold; letter-spacing: 1px;
+            border: 1px solid rgba(255,255,255,0.1); white-space: nowrap;
         }
-        .bip-main span { color: var(--cyan); font-size: clamp(40px, 10vw, 50px); text-shadow: 0 0 20px var(--cyan); margin: 0 5px; }
-        
-        .bip-sub {
-            font-family: 'JetBrains Mono'; font-size: clamp(14px, 4vw, 18px); 
-            color: var(--accent); background: rgba(0,0,0,0.7); 
-            padding: 8px 20px; border-radius: 30px; 
-            border: 1px solid var(--accent); 
-            box-shadow: 0 0 20px rgba(204, 255, 0, 0.2);
-            font-weight: bold; animation: pulseSlow 3s infinite;
+        .slot-card.active { background: linear-gradient(90deg, rgba(0,240,255,0.1), rgba(20,25,30,0.9)); border-color: var(--cyan); box-shadow: 0 0 20px rgba(0,240,255,0.15); }
+        .slot-card.active::before { background: var(--cyan); box-shadow: 0 0 15px var(--cyan); }
+        .slot-card.active .sc-plat { text-shadow: 0 0 15px rgba(0,240,255,0.6); }
+        .slot-card.active .sc-user { opacity: 1; }
+        .slot-card.active .status-pill { color: #000; background: var(--cyan); border-color: var(--cyan); box-shadow: 0 0 10px var(--cyan); }
+        .slot-card.empty .sc-plat { color: #555; font-size: 28px; letter-spacing: 2px; }
+        .btn-pilih { display: none; background: rgba(255, 215, 0, 0.2); border: 1px solid #FFD700; color: #FFD700; padding: 4px 10px; border-radius: 6px; margin-left: 10px; font-size: 10px; font-weight: bold; animation: blink 2s infinite; }
+        .slot-card.empty .btn-pilih { display: inline-block; }
+
+        /* === 4. MIDDLE BUTTON & LOGO === */
+        .mid-action-area { 
+            flex: 1 0 auto; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            position: relative; z-index: 50; 
+            min-height: 150px; 
+            margin-bottom: 20px;
         }
-        @keyframes pulseSlow { 0%,100%{transform:scale(1);} 50%{transform:scale(1.05);} }
+        .logo-btn { width: 100px; height: 100px; position: relative; cursor: pointer; transition: transform 0.2s; display: flex; justify-content: center; align-items: center; }
+        .logo-img { 
+            width: 100%; height: 100%; object-fit: contain; 
+            filter: drop-shadow(0 0 15px rgba(0, 240, 255, 0.6)); 
+            animation: breatheLogo 3s infinite ease-in-out; 
+        }
+        .tap-hint { font-size: 11px; color: var(--cyan); letter-spacing: 2px; margin-top: 10px; font-weight: bold; text-shadow: 0 0 10px rgba(0,240,255,0.5); animation: blink 2s infinite; }
+        .logo-btn:active { transform: scale(0.9); }
 
-        /* AREA JALAN RAYA */
-        .road-cinematic-container { position: relative; width: 100%; height: 260px; margin: 0; perspective: 800px; overflow: hidden; display: flex; align-items: flex-end; justify-content: center; flex: 0 0 auto; }
-        .road-surface { position: absolute; bottom: 0; width: 150%; height: 100%; background: linear-gradient(180deg, #1a1a1a 0%, #050505 100%); transform: rotateX(30deg) scale(1.2); box-shadow: 0 -20px 50px rgba(0,0,0,0.8); border-top: 2px solid #333; }
-        .road-markings { position: absolute; top: 50%; left: 0; width: 100%; height: 4px; background: repeating-linear-gradient(90deg, #555 0 40px, transparent 40px 100px); opacity: 0.5; box-shadow: 0 0 10px #000; }
-        .gate-zone { position: absolute; right: 10px; top: 0; bottom: 0; width: 60px; background: linear-gradient(90deg, transparent, rgba(0, 240, 255, 0.1)); border-right: 4px solid var(--cyan); z-index: 5; }
+        /* === 5. QUEUE INFO === */
+        .queue-section { 
+            flex: 0 0 auto; 
+            display: flex; gap: 10px; align-items: stretch; margin-bottom: 10px; 
+        }
+        .q-box-next { flex: 2; background: #0a0a0a; border: 1px solid #333; border-radius: 16px; padding: 15px 20px; display: flex; flex-direction: column; justify-content: center; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
+        .qbn-lbl { font-size: 9px; color: #888; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 5px; }
+        .qbn-val { font-size: 20px; color: #fff; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+        .qbn-rank { color: var(--cyan); font-family: 'Teko'; font-size: 28px; }
+        .q-box-total { flex: 1; background: rgba(255,255,255,0.05); border: 1px solid #333; border-radius: 16px; padding: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; }
+        .qbt-lbl { font-size: 8px; color: #aaa; letter-spacing: 1px; text-align: center; }
+        .qbt-val { font-family: 'Teko'; font-size: 42px; line-height: 0.8; color: #fff; margin-top: 2px; }
 
-        /* VISUAL MOTOR */
-        .bike-unit { position: absolute; bottom: 60px; width: 70px; display: flex; flex-direction: column; align-items: center; transition: left 1s cubic-bezier(0.25, 0.1, 0.25, 1); z-index: 10; }
-        .bike-visual { font-size: 50px; transform: scaleX(-1); filter: grayscale(100%) brightness(0.6); transition: all 0.5s; }
-        .bike-plate { background: #000; color: #888; font-family: 'JetBrains Mono'; font-size: 10px; padding: 2px 6px; border-radius: 4px; border: 1px solid #333; margin-top: -10px; white-space: nowrap; z-index: 12; }
+        /* === 6. NEW WELCOME SCREEN (RULES) === */
+        .welcome-card {
+            width: 90%; max-width: 400px;
+            background: linear-gradient(180deg, rgba(20, 25, 30, 0.98), rgba(10, 10, 15, 0.98));
+            border: 1px solid var(--cyan); border-radius: 24px;
+            padding: 30px 25px; display: flex; flex-direction: column;
+            box-shadow: 0 0 60px rgba(0, 240, 255, 0.15);
+        }
+        .rules-list { display: flex; flex-direction: column; gap: 12px; margin: 20px 0; max-height: 50vh; overflow-y: auto; }
+        .rule-item {
+            display: flex; gap: 12px; align-items: center;
+            padding: 12px 15px; border-radius: 12px;
+            background: rgba(0, 240, 255, 0.05);
+            border-left: 2px solid var(--cyan);
+            font-size: 14px; line-height: 1.4; color: #ddd;
+        }
+        .rule-icon { font-size: 18px; min-width: 25px; text-align: center; }
+        .btn-agree {
+            width: 100%; padding: 15px; border-radius: 50px; border: none;
+            background: var(--cyan); color: #000;
+            font-family: 'Teko'; font-size: 22px; font-weight: 600; letter-spacing: 1px;
+            cursor: pointer; box-shadow: 0 0 20px rgba(0,240,255,0.4);
+            animation: pulseBtn 2s infinite;
+        }
 
-        /* KHUSUS USER (Glow) */
-        .bike-unit.is-me { z-index: 50; }
-        .bike-unit.is-me .bike-visual { filter: grayscale(0%) drop-shadow(0 0 15px var(--cyan)); transform: scaleX(-1) scale(1.1); }
-        .bike-unit.is-me .bike-plate { background: var(--cyan); color: #000; font-weight: bold; box-shadow: 0 0 15px var(--cyan); border: none; }
-        .bike-unit.pinned { left: 20px !important; transition: none; }
+        /* === 7. SCREENS & OVERLAYS === */
+        .screen-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); backdrop-filter: blur(15px); z-index: 9999; display: none; flex-direction: column; align-items: center; justify-content: center; overflow-y: auto; padding: 20px;}
+        .screen-overlay.active { display: flex; animation: fadeIn 0.3s forwards; }
         
-        .visual-break { position: absolute; left: 100px; bottom: 70px; font-size: 30px; color: #555; opacity: 0; transition: opacity 0.5s; text-shadow: 0 0 10px #000; z-index: 5; }
-        .visual-break.active { opacity: 1; animation: flash 2s infinite; }
-        .dust-fx { position: absolute; bottom: 5px; right: 10px; width: 10px; height: 10px; background: rgba(255,255,255,0.3); border-radius: 50%; animation: puff 0.6s ease-out forwards; }
+        /* Modal & Login Styles */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 10000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(5px); animation: fadeIn 0.2s; }
+        .modal-box { width: 85%; max-width: 350px; background: #111; border: 1px solid var(--cyan); border-radius: 15px; padding: 25px; text-align: center; box-shadow: 0 0 30px rgba(0, 240, 255, 0.3); transform: scale(0.9); animation: popUp 0.3s forwards; }
+        .modal-msg { font-size: 18px; color: #fff; margin-bottom: 25px; font-family: 'Rajdhani'; font-weight: 600; line-height: 1.4; }
+        .modal-actions { display: flex; gap: 10px; justify-content: center; }
+        .btn-modal { flex: 1; padding: 12px; border: none; border-radius: 8px; font-family: 'Teko'; font-size: 20px; cursor: pointer; text-transform: uppercase; }
+        .btn-yes { background: var(--cyan); color: #000; box-shadow: 0 0 15px rgba(0,240,255,0.3); }
+        .btn-no { background: #222; color: #888; border: 1px solid #444; }
+        
+        .login-card { width: 100%; max-width: 320px; background: rgba(20, 25, 30, 0.95); border: 1px solid var(--cyan); border-radius: 20px; padding: 30px 20px; text-align: center; box-shadow: 0 0 50px rgba(0, 240, 255, 0.2); }
+        .holo-input { background: transparent; border: none; border-bottom: 2px solid #333; width: 100%; color: #fff; font-family: 'Teko'; font-size: 42px; text-align: center; outline: none; margin: 20px 0; text-transform: uppercase; }
+        .btn-next { width: 100%; padding: 15px; background: var(--cyan); color: #000; font-family: 'Rajdhani'; font-weight: bold; font-size: 18px; border-radius: 50px; border:none; cursor: pointer; box-shadow: 0 0 20px rgba(0,240,255,0.4); }
 
-        @keyframes flash { 0%,100%{opacity:0.3;} 50%{opacity:1; text-shadow:0 0 15px #fff;} }
-        @keyframes puff { 0%{opacity:0.6; transform:scale(1);} 100%{opacity:0; transform:translate(-20px, -10px) scale(2.5);} }
+        /* === 8. WAITING & ACTIVE DASHBOARD === */
+        #waitingDashboard { justify-content: flex-start !important; padding-top: 50px; }
+        .queue-status-card { flex: 0 0 auto; width: 100%; max-width: 400px; background: rgba(20, 25, 30, 0.9); border: 1px solid var(--glass-border); border-radius: 20px; padding: 20px; display: flex; flex-direction: column; align-items: center; position: relative; margin-bottom: 15px; box-shadow: 0 10px 40px rgba(0,0,0,0.5); z-index: 2; }
+        .qsc-ring { width: 130px; height: 130px; border-radius: 50%; border: 4px solid rgba(255,255,255,0.05); border-top: 4px solid var(--cyan); display: flex; flex-direction: column; justify-content: center; align-items: center; box-shadow: 0 0 30px rgba(0, 240, 255, 0.15); animation: spinRing 4s infinite linear; margin-bottom: 10px; position: relative; flex-shrink: 0; }
+        .qsc-content { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; animation: counterSpin 4s infinite linear; }
+        .qsc-rank-big { font-family: 'Teko'; font-size: 60px; line-height: 0.8; color: #fff; text-shadow: 0 0 20px var(--cyan); }
+        .queue-list-wrapper { flex: 1; width: 100%; max-width: 400px; overflow-y: auto; min-height: 0; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px; margin-bottom: 10px; scrollbar-width: none; }
+        .ql-item { display: grid; grid-template-columns: 50px 1fr; align-items: center; padding: 12px 15px; border-bottom: 1px solid rgba(255,255,255,0.08); gap: 15px; }
+        .ql-rank-box { font-family: 'Teko'; font-size: 24px; color: #666; text-align: center; background: rgba(255,255,255,0.05); border-radius: 8px; padding: 5px 0; }
+        .ql-info-box { display: flex; flex-direction: column; justify-content: center; text-align: left; }
+        .ql-plat { font-weight: bold; font-size: 16px; color: #fff; letter-spacing: 1px; }
+        .ql-name { font-size: 12px; color: var(--cyan); margin-top: 2px; text-transform: uppercase; font-weight: bold; letter-spacing: 1px; }
+        .ql-item.active { background: linear-gradient(90deg, rgba(0,240,255,0.15), transparent); border-left: 4px solid var(--cyan); padding-left: 11px; }
+        .ql-item.active .ql-rank-box { color: #000; background: var(--cyan); box-shadow: 0 0 10px var(--cyan); }
 
-        /* List Antrian (Glassmorphism) */
-        .wd-list-wrapper { flex: 1; width: 95%; margin: 0 auto; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 15px; padding: 10px; backdrop-filter: blur(10px); overflow-y: auto; display: flex; flex-direction: column; margin-bottom: 20px; }
-        .wd-item-glass { display: flex; justify-content: space-between; align-items: center; padding: 12px; margin-bottom: 5px; border-radius: 8px; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .wd-item-glass.me { background: rgba(0, 240, 255, 0.1); border: 1px solid var(--cyan); }
-        .wd-btn-hide { width: 100%; padding: 15px; background: transparent; border: 1px solid #333; color: #666; border-radius: 10px; font-family: 'JetBrains Mono'; font-size: 12px; cursor: pointer; margin-top: 10px; }
-        .wd-btn-cancel { width: 100%; padding: 15px; background: rgba(255, 0, 60, 0.1); border: 1px solid var(--red); color: var(--red); border-radius: 10px; font-family: 'Teko'; font-size: 20px; cursor: pointer; }
+        /* === 9. MUSIC PLAYER === */
+        #cyberPlayer { position: fixed; top: 20px; left: 20px; z-index: 9000; display: flex; flex-direction: column; align-items: flex-start; }
+        .cp-disc { width: 45px; height: 45px; background: rgba(0,0,0,0.8); border: 2px solid #333; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.5); transition: 0.3s; position: relative; z-index: 2; }
+        .cp-disc.playing { border-color: var(--cyan); box-shadow: 0 0 15px var(--cyan); animation: spinDisc 3s infinite linear; }
+        .cp-icon { font-size: 18px; filter: grayscale(100%); transition: 0.3s; }
+        .cp-disc.playing .cp-icon { filter: grayscale(0%); color: var(--cyan); }
+        .cp-panel { position: absolute; top: 55px; left: 0; width: 260px; background: rgba(10, 15, 20, 0.95); backdrop-filter: blur(15px); border: 1px solid var(--glass-border); border-radius: 12px; padding: 15px; display: none; flex-direction: column; gap: 10px; box-shadow: 0 10px 40px rgba(0,0,0,0.8); transform-origin: top left; animation: popUp 0.3s; }
+        .cp-panel.show { display: flex; }
+        .cp-controls { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; }
+        .cp-btn { background: none; border: 1px solid #333; color: #fff; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 10px; }
+        .cp-title-scroll { flex: 1; overflow: hidden; white-space: nowrap; margin: 0 10px; font-family: 'Teko'; font-size: 16px; color: var(--cyan); }
+        .cp-list { max-height: 200px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; }
+        .cp-item { font-size: 11px; padding: 8px; background: rgba(255,255,255,0.05); border-radius: 6px; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #aaa; }
+        .cp-item.active { border-left: 2px solid var(--cyan); color: var(--cyan); background: rgba(0,240,255,0.1); }
 
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 12000; justify-content: center; align-items: center; backdrop-filter: blur(8px); }
-        .modal-box { background: #0a0a0a; border: 1px solid var(--cyan); padding: 30px; border-radius: 20px; width: 85%; max-width: 320px; text-align: center; box-shadow: 0 0 50px rgba(0,240,255,0.2); max-height: 80vh; overflow-y: auto; }
-        .btn-g { width: 100%; padding: 12px; background: var(--cyan); color: #000; font-family: 'Teko'; font-size: 20px; font-weight: 700; border: none; border-radius: 50px; cursor: pointer; margin-top: 10px; }
-        .btn-cancel { width: 100%; padding: 10px; border: 1px solid #555; background: transparent; color: #888; font-family: 'Teko'; font-size: 18px; border-radius: 50px; margin-top: 5px; cursor: pointer; }
-        .pl-item { padding: 12px; border-bottom: 1px solid #333; cursor: pointer; display: flex; align-items: center; gap: 10px; }
-        .pl-item.active .pl-title { color: var(--accent); font-weight: bold; }
-        .pl-title { font-family: 'JetBrains Mono'; font-size: 14px; color: #ccc; }
+        /* === 10. SCAN SCREEN FIX === */
+        .scan-wrapper { position: relative; width: 200px; height: 200px; margin-bottom: 20px; border-radius: 20px; overflow: hidden; border: 2px solid var(--cyan); box-shadow: 0 0 30px rgba(0, 240, 255, 0.2); }
+        .scan-logo { width: 100%; height: 100%; object-fit: cover; }
+        .scan-beam { position: absolute; top: 0; left: 0; right: 0; height: 5px; background: var(--cyan); box-shadow: 0 0 15px var(--cyan); animation: scanMove 2s infinite ease-in-out; }
+        .scan-status { font-family: 'Teko'; font-size: 24px; color: #fff; letter-spacing: 2px; animation: blink 1s infinite; }
+
+        /* Keyframes */
+        @keyframes breatheLogo { 0%,100%{transform:scale(1); filter:drop-shadow(0 0 15px rgba(0,240,255,0.6));} 50%{transform:scale(1.05); filter:drop-shadow(0 0 30px rgba(0,240,255,0.9));} }
+        @keyframes blink { 0%,100%{opacity:0.4;} 50%{opacity:1;} }
+        @keyframes fadeIn { from{opacity:0;} to{opacity:1;} }
+        @keyframes scanMove { 0% { top: 0; opacity: 0; } 50% { opacity: 1; } 100% { top: 100%; opacity: 0; } }
+        @keyframes spinRing { 0%{transform:rotate(0deg);} 100%{transform:rotate(360deg);} }
+        @keyframes counterSpin { 0%{transform:rotate(0deg);} 100%{transform:rotate(-360deg);} }
+        @keyframes spinDisc { 0%{transform:rotate(0deg);} 100%{transform:rotate(360deg);} }
+        @keyframes popUp { from{opacity:0; transform:scale(0.8);} to{opacity:1; transform:scale(1);} }
+        @keyframes pulseBtn { 0%{box-shadow: 0 0 20px rgba(0,240,255,0.4);} 50%{box-shadow: 0 0 40px rgba(0,240,255,0.8);} 100%{box-shadow: 0 0 20px rgba(0,240,255,0.4);} }
     </style>
 </head>
 <body>
 
-    <canvas id="dust"></canvas>
+    <div id="screen-welcome" class="screen-overlay" style="z-index: 20000;">
+        <div class="welcome-card">
+            <div class="main-title" style="text-align: center; font-size: 36px; margin-bottom: 5px;">PERATURAN</div>
+            <div class="sub-title" style="text-align: center; margin-bottom: 20px;">SHOWROOM FC KELAPA GADING</div>
 
-    <div class="top-nav">
-        <div class="main-title" ondblclick="toggleAdmin()">FC KELAPA GADING</div>
+            <div class="rules-list">
+                <div class="rule-item"> <div class="rule-icon">🔌</div> <div>Cas di dalam showroom? HP wajib ditinggal (Silahkan tunggu diluar).</div> </div>
+                <div class="rule-item"> <div class="rule-icon">🛵</div> <div>Parkir yang rapi, kepala motor saling berhadapan kanan kiri.</div> </div>
+                <div class="rule-item"> <div class="rule-icon">🧹</div> <div>Wajib menjaga kebersihan area showroom.</div> </div>
+                <div class="rule-item"> <div class="rule-icon">🚫</div> <div>Dilarang makan & minum di dalam area showroom.</div> </div>
+                <div class="rule-item"> <div class="rule-icon">📲</div> <div>Wajib scan barcode/daftar sebelum cas motor.</div> </div>
+            </div>
+
+            <button class="btn-agree" onclick="closeWelcome()">SAYA PAHAM & SETUJU</button>
+        </div>
+    </div>
+
+    <div id="customModal" class="modal-overlay">
+        <div class="modal-box">
+            <div id="modalMsg" class="modal-msg">MESSAGE HERE</div>
+            <input type="text" id="modalInput" class="holo-input" style="display:none; margin-bottom:20px; font-size:24px;">
+            <div id="modalActions" class="modal-actions"></div>
+        </div>
+    </div>
+
+    <div id="cyberPlayer">
+        <div class="cp-disc" onclick="togglePlayerPanel()">
+            <div class="cp-icon">🎵</div>
+        </div>
+        <div class="cp-panel" id="cpPanel">
+            <div class="cp-controls">
+                <button class="cp-btn" onclick="prevSong()">⏮</button>
+                <div class="cp-title-scroll" id="cpTitle">STOPPED</div>
+                <button class="cp-btn" onclick="nextSong()">⏭</button>
+            </div>
+            <div class="cp-list" id="cpListContainer"></div>
+        </div>
+    </div>
+    <audio id="audioPlayer" onended="nextSong()"></audio>
+
+    <div class="header" ondblclick="toggleAdmin()">
+        <div class="main-title">FC KELAPA GADING</div>
         <div class="sub-title">SELAMAT DATANG DI RUMAH MLU</div>
     </div>
 
-    <div id="logo-area">
-        <img src="1763947427555.jpg" class="big-logo">
+    <div class="slot-section" id="slotsContainer">
+        <div class="slot-card empty"><div class="sc-info"><div class="sc-label">SLOT --</div><div class="sc-plat">LOADING...</div></div></div>
     </div>
-
-    <div id="screen-login" class="screen">
-        <div class="onyx-panel" id="terminal-box"></div>
-        <div style="text-align:center; margin-top:10px;">
-            <button onclick="cancelLogin()" class="btn-cancel" style="width:auto; border:none; color:#666;">BATAL / KEMBALI</button>
+    <div class="mid-action-area">
+        <div class="logo-btn" onclick="window.handleMainAction()">
+            <img src="logo.png" class="logo-img" alt="LOGO ERROR">
         </div>
-    </div>
+        <div class="tap-hint" id="mainBtnLabel">TAP UNTUK DAFTAR</div>
 
-    <div id="screen-queue" class="screen">
-        <div class="onyx-panel" style="text-align:center; display:flex; flex-direction:column; align-items:center; background:transparent; border:none; box-shadow:none;">
-            <div style="font-family:'Teko'; font-size: 30px; color:var(--cyan); margin-bottom:20px;">VERIFIKASI DATA</div>
-            <div class="scanner-container" id="scannerBox">
-                <img src="1763947427555.jpg" class="scan-img" style="filter:grayscale(100%); position:absolute;">
-                <img src="1763947427555.jpg" class="scan-img scan-color" id="scanColorImg">
-                <div class="scan-line" id="scanLine"></div>
-            </div>
-            <div class="scan-text" id="scanTextStatus">CONNECTING...</div>
+        <div onclick="window.gantiMotor()" style="margin-top:15px; cursor:pointer; opacity:0.6; padding: 10px;">
+            <span style="font-size:10px; color:#666; letter-spacing:1px; border-bottom:1px solid #444; padding-bottom:2px;">
+                GANTI PLAT / RESET (ADMIN ONLY)
+            </span>
         </div>
     </div>
 
-    <div id="screen-slots" class="screen active">
-        <div class="slot-container" id="cont-0">
-            <div class="onyx-card empty" id="card-0" onclick="handleSlotClick(0)">
-                <div class="card-content">
-                    <div class="cc-top"><div class="oc-name" id="n-0">SLOT 1</div><div class="oc-plat" id="p-0"></div><a href="#" class="btn-wa-slot" id="wa-0" target="_blank" onclick="event.stopPropagation()">KIRIM WA</a></div>
-                    <div class="cc-center"><div class="oc-num" id="no-0">M</div></div>
-                    <div class="cc-bottom"><button class="btn-action btn-select">PILIH SLOT</button></div>
-                </div>
-            </div>
+    <div class="queue-section">
+        <div class="q-box-next">
+            <div class="qbn-lbl">SELANJUTNYA (NEXT)</div>
+            <div class="qbn-val" id="nextQDisplay"><span class="qbn-rank">#--</span> ...</div>
         </div>
-        <div class="slot-container" id="cont-1">
-            <div class="onyx-card empty" id="card-1" onclick="handleSlotClick(1)">
-                <div class="card-content">
-                    <div class="cc-top"><div class="oc-name" id="n-1">SLOT 2</div><div class="oc-plat" id="p-1"></div><a href="#" class="btn-wa-slot" id="wa-1" target="_blank" onclick="event.stopPropagation()">KIRIM WA</a></div>
-                    <div class="cc-center"><div class="oc-num" id="no-1">L</div></div>
-                    <div class="cc-bottom"><button class="btn-action btn-select">PILIH SLOT</button></div>
-                </div>
-            </div>
-        </div>
-        <div class="slot-container" id="cont-2">
-            <div class="onyx-card empty" id="card-2" onclick="handleSlotClick(2)">
-                <div class="card-content">
-                    <div class="cc-top"><div class="oc-name" id="n-2">SLOT 3</div><div class="oc-plat" id="p-2"></div><a href="#" class="btn-wa-slot" id="wa-2" target="_blank" onclick="event.stopPropagation()">KIRIM WA</a></div>
-                    <div class="cc-center"><div class="oc-num" id="no-2">U</div></div>
-                    <div class="cc-bottom"><button class="btn-action btn-select">PILIH SLOT</button></div>
-                </div>
-            </div>
+        <div class="q-box-total" onclick="openWaitingDashboard()">
+            <div class="qbt-lbl">TOTAL</div>
+            <div class="qbt-val" id="totalQDisplay">0</div>
         </div>
     </div>
 
-    <div id="screen-active-dashboard" class="screen">
-        <button class="btn-minimize" onclick="toggleDashboard(false)">▼ LIHAT SLOT LAIN</button>
-        <div class="ad-container">
-            <div class="limit-hud">
-                <div class="hud-item"><div class="hud-label">ANTRIAN</div><div class="hud-val" id="hud-q">0</div></div>
-                <div class="hud-line"></div>
-                <div class="hud-item"><div class="hud-label">MAX CHARGE</div><div class="hud-val" id="hud-max">100%</div></div>
-            </div>
-            <div class="ad-info">
-                <div class="ad-slot-label" id="ad-slot-val">SLOT 1</div>
-                <div class="ad-name" id="ad-name-val">NAMA USER</div>
-                <div class="ad-plat" id="ad-plat-val">B 1234 XYZ</div>
-            </div>
-            <div class="ad-main"><div class="ad-big-num" id="ad-no-val">#12</div></div>
-            <div class="ad-bottom"><button class="btn-luxury" onclick="stopCharging(activeSlotIdx)">SELESAI</button></div>
+    <div id="screen-login" class="screen-overlay">
+        <div class="login-card">
+            <div style="font-size:12px; color:var(--cyan); letter-spacing:2px; margin-bottom:10px;" id="stepLabel">LANGKAH 1</div>
+            <div style="font-family:'Teko'; font-size:24px; color:#fff;" id="questionText">PLAT NOMOR</div>
+            <input type="text" id="holoInput" class="holo-input" placeholder="..." autocomplete="off">
+            <button class="btn-next" onclick="nextStepAction()">LANJUT</button>
+            <button class="btn-cancel" onclick="cancelLogin()" style="margin-top:15px; background:none; border:none; color:#666;">BATAL</button>
         </div>
     </div>
-    
-    <div id="waitingDashboard">
-        <div class="city-bg-layer"><div class="stars-layer"></div><div class="city-silhouette"></div></div>
-        
-        <div class="wd-header-sticky">
-            <div style="font-family:'Teko'; font-size:36px; color:#fff; text-shadow:0 0 15px var(--cyan);">LIVE MONITOR ANTRIAN</div>
-            <div style="font-family:'JetBrains Mono'; font-size:10px; color:var(--accent); letter-spacing:2px;">MLU REALTIME QUEUE TRACKING</div>
-        </div>
 
-        <div class="big-info-panel">
-            <div class="bip-main" id="bipMain">
-                ANDA ANTRIAN KE <span id="bipRank">-</span> DARI <span id="bipTotal">-</span>
-            </div>
-            <div class="bip-sub" id="bipEst">
-                ESTIMASI WAKTU TUNGGU: -- MENIT
-            </div>
+    <div id="screen-scan" class="screen-overlay">
+        <div class="scan-wrapper">
+            <img src="logo.jpg" class="scan-logo" id="scanLogoImg">
+            <div class="scan-beam"></div>
         </div>
-
-        <div class="road-cinematic-container" id="cinematicRoad">
-            <div class="road-surface"><div class="road-markings"></div><div class="gate-zone"></div></div>
-            <div class="visual-break" id="visualBreakIcon">⚡</div>
-            <div id="roadVehiclesLayer" style="position:absolute; inset:0; width:100%; height:100%; pointer-events:none;"></div>
-        </div>
-
-        <div class="wd-list-wrapper">
-            <div style="font-family:'Teko'; font-size:18px; color:#888; margin-bottom:10px; padding-left:5px;">DAFTAR MENUNGGU</div>
-            <div id="wdList" class="wd-list-container"></div>
-        </div>
-
-        <div style="padding:20px; text-align:center; z-index:20;">
-            <button onclick="cancelQueue()" class="wd-btn-cancel" style="background:rgba(255,0,60,0.2); backdrop-filter:blur(5px);">BATALKAN ANTRIAN</button>
-            <button onclick="document.getElementById('waitingDashboard').style.display='none'" class="wd-btn-hide" style="color:#fff; border-color:rgba(255,255,255,0.2); margin-top:10px;">▼ SEMBUNYIKAN</button>
-        </div>
+        <div class="scan-status" id="scanText">MENGHUBUNGKAN...</div>
     </div>
-    <div class="bottom-panel">
-        <div class="stats-wrapper">
-            <div class="stat-box"><div class="stat-num" id="slotCountVal">0</div><div class="stat-label">SLOT TERSEDIA</div></div>
-            <div class="stat-line"></div>
-            <div class="stat-box clickable" id="qBox" onclick="showQueueList()"><div class="stat-num" id="qCountVal">0</div><div class="stat-label">TOTAL ANTRIAN <span class="info-mark">ⓘ</span></div></div>
+
+    <div id="waitingDashboard" class="screen-overlay">
+        <div class="header" style="flex: 0 0 auto; margin-bottom: 10px; padding-top: 0;">
+            <div class="main-title" style="font-size:32px;">LIVE MONITOR</div>
+            <div class="sub-title">STATUS ANTRIAN ANDA</div>
         </div>
         
-        <div class="action-bar">
-            <div class="fab-btn" onclick="toggleMusicDrawer()">
-                <span style="font-size:20px;">🎵</span>
-            </div>
-
-            <div class="fp-wrapper">
-                <div class="fp-text" id="mainBtnText">DAFTAR</div>
-                <div class="fp-container" id="fpCont" style="pointer-events: auto;">
-                    <div class="fp-btn" id="fpBtn"><svg style="width:35px;height:35px;fill:#fff;" viewBox="0 0 24 24"><path d="M17.81 4.47c-.08 0-.16-.02-.23-.06C15.66 3.42 14 3 12.01 3c-1.98 0-3.86.47-5.57 1.41-.24.13-.54.04-.68-.2-.13-.24-.04-.55.2-.68C7.82 2.52 9.86 2 12.01 2c2.13 0 3.99.47 6.03 1.52.25.13.34.43.21.67-.09.18-.26.28-.44.28zM3.5 9.72c-.1 0-.2-.03-.29-.09-.23-.16-.28-.47-.12-.7.99-1.4 2.25-2.5 3.75-3.27C9.98 4.04 14 4.03 17.15 5.65c1.5.77 2.76 1.86 3.75 3.25.16.22.11.54-.12.7-.23.16-.54.11-.7-.12-.9-1.26-2.04-2.25-3.39-2.94-2.87-1.47-6.54-1.47-9.4.01-1.36.7-2.5 1.7-3.4 2.96-.08.14-.23.21-.39.21zm6.25 12.07c-.1 0-.26-.05-.35-.15-.87-.87-1.34-1.43-2.01-2.64-.69-1.23-1.05-2.73-1.05-4.34 0-2.97 2.54-5.39 5.66-5.39s5.66 2.42 5.66 5.39c0 .28-.22.5-.5.5s-.5-.22-.5-.5c0-2.42-2.09-4.39-4.66-4.39-2.57 0-4.66 1.97-4.66 4.39 0 1.44.32 2.77.93 3.85.64 1.15 1.08 1.64 1.85 2.42.19.2.19.51 0 .71-.11.1-.24.15-.37.15zm7.17-1.85c-1.19 0-2.24-.3-3.1-.89-1.49-1.01-2.38-2.65-2.38-4.39 0-.28.22-.5.5s.5.22.5.5c0 1.41.72 2.74 1.94 3.56.71.48 1.54.71 2.54.71.24 0 .64-.03 1.04-.1.27-.05.53.13.58.41.05.27-.13.53-.41.58-.57.11-1.07.12-1.21.12zM14.91 22c-.04 0-.09-.01-.13-.02-1.59-.44-2.63-1.03-3.72-2.1-1.4-1.39-2.17-3.24-2.17-5.22 0-1.62 1.38-2.94 3.08-2.94 1.7 0 3.08 1.32 3.08 2.94 0 1.07.93 1.94 2.08 1.94s2.08-.87 2.08-1.94c0-3.77-3.25-6.83-7.25-6.83-2.84 0-5.44 1.58-6.45 3.94-.11.25-.41.37-.67.26-.25-.11-.37-.41-.26-.67 1.13-2.62 4.07-4.39 7.38-4.39 4.53 0 8.25 3.42 8.25 7.69 0 1.62-1.38 2.94-3.08 2.94s-3.08-1.32-3.08-2.94c0-1.07-.93-1.94-2.08-1.94s-2.08.87-2.08 1.94c0 1.71.66 3.31 1.87 4.51.95.94 1.86 1.46 3.27 1.85.27.07.42.35.35.61-.05.23-.26.38-.47.38z"/></svg></div>
+        <div class="queue-status-card">
+            <div class="qsc-ring">
+                <div class="qsc-content">
+                    <div class="qsc-rank-big" id="wdMyRank">#?</div>
+                    <div style="font-size:10px; color:var(--cyan); letter-spacing:1px;">POSISI</div>
                 </div>
             </div>
-
-            <div class="fab-btn wa-mode" onclick="window.open('https://wa.me/6282125611740','_blank')">
-                <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+            <div style="text-align:center;">
+                <div style="font-family:'Teko'; font-size:28px; color:#fff;" id="wdMyPlat">--</div>
+                <div style="font-size:11px; color:#888; margin-top:5px;" id="wdEstTime">Estimasi: -- Menit</div>
             </div>
         </div>
+
+        <div class="lbl-list">Daftar Menunggu</div>
+
+        <div class="queue-list-wrapper">
+            <div id="wdListContainer"></div>
+        </div>
+        
+        <div style="flex:0 0 auto; width:100%; max-width:400px; display:flex; gap:10px; padding-bottom: 10px;">
+            <button onclick="document.getElementById('waitingDashboard').classList.remove('active')" style="flex:1; padding:15px; background:#111; color:#888; border:1px solid #333; border-radius:12px; font-family:'Teko'; font-size:18px;">▼ SEMBUNYIKAN</button>
+            <button onclick="cancelQueue()" style="flex:1; padding:15px; background:rgba(255,0,0,0.1); color:red; border:1px solid red; border-radius:12px; font-family:'Teko'; font-size:18px;">BATALKAN</button>
+        </div>
     </div>
 
-    <div class="music-drawer" id="musicDrawer">
-        <div class="music-header">
-            <div class="music-title">MUSIC PLAYER</div>
-            <button class="music-close" onclick="toggleMusicDrawer()">▼</button>
+    <div id="screen-active-dashboard" class="screen-overlay" style="background-image:radial-gradient(circle at 50% 30%, #0a151a 0%, #000 80%);">
+        <button onclick="toggleDashboard(false)" style="position:absolute; top:20px; right:20px; background:rgba(255,255,255,0.1); border:1px solid #555; color:#ccc; padding:5px 15px; border-radius:20px; font-size:10px;">▼ MINIMIZE</button>
+        <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+            <div class="qsc-ring" style="width:200px; height:200px; box-shadow:0 0 50px rgba(0,240,255,0.2);">
+                <div class="qsc-content">
+                    <div style="font-size:10px; color:var(--cyan);">CHARGING TIME</div>
+                    <div class="qsc-rank-big" id="timerVal">00:00</div>
+                </div>
+            </div>
         </div>
-        <div class="music-info-display" id="mpTitle">PILIH LAGU</div>
-        <div class="music-controls">
-            <button class="mc-btn" onclick="prevTrack()">⏮</button>
-            <button class="mc-btn mc-play" onclick="togglePlay()" id="mpPlayBtn">⏯</button>
-            <button class="mc-btn" onclick="nextTrack()">⏭</button>
+        <div style="width:100%; display:flex; justify-content:center;">
+            <div class="login-card" style="margin-bottom:30px;">
+                <div style="font-size:10px; color:#666;">INFO USER</div>
+                <div style="font-family:'Teko'; font-size:42px; color:#fff;" id="ad-plat-val">--</div>
+                <div style="font-size:12px; color:var(--cyan); font-weight:bold;" id="ad-name-val">--</div>
+            </div>
         </div>
-        <button class="playlist-trigger" onclick="openPlaylist()">Buka Playlist</button>
+        <div style="width:100%; display:flex; justify-content:center;">
+            <button onclick="stopCharging(activeSlotIdx)" style="width:100%; max-width:320px; padding:15px; background:linear-gradient(90deg, rgba(255,0,60,0.1), rgba(255,0,60,0.2)); border:1px solid #ff003c; color:#ff003c; border-radius:50px; font-family:'Rajdhani'; font-weight:bold; font-size:16px; margin-bottom:20px;">⏹ HENTIKAN PENGISIAN</button>
+        </div>
     </div>
-
-    <div id="msgModal" class="modal"><div class="modal-box"><h3 id="msgTitle" style="color:var(--accent);">INFO</h3><div id="msgBody" style="color:#fff; margin-bottom:20px;"></div><button onclick="document.getElementById('msgModal').style.display='none'" class="btn-g">OK</button></div></div>
-    <div id="confirmModal" class="modal"><div class="modal-box" style="border-color:var(--red);"><h3 style="color:#fff;">KONFIRMASI</h3><p id="confirmText" style="color:#ccc;">Yakin?</p><div style="display:flex; gap:10px;"><button id="btnConfirmYes" class="btn-g" style="background:var(--red); color:#fff;">YA</button><button onclick="closeConfirmModal()" class="btn-g" style="background:#333; color:#fff;">TIDAK</button></div></div></div>
-    <div id="queueModal" class="modal"><div class="modal-box"><h3 style="color:var(--cyan); margin-bottom:15px; border-bottom:1px solid #333; padding-bottom:10px;">LIST ANTRIAN</h3><div id="queueListDetail" style="max-height:200px; overflow-y:auto; text-align:left; color:#888; font-size:14px; font-family:'JetBrains Mono'; margin-bottom:15px;"></div><button onclick="document.getElementById('queueModal').style.display='none'" class="btn-g">TUTUP</button></div></div>
-    <div id="playlistModal" class="modal"><div class="modal-box" style="max-height:60vh; overflow-y:auto; width:90%; padding:10px;"><h3 style="color:var(--cyan); position:sticky; top:0; background:#0a0a0a; padding:10px; margin:0; border-bottom:1px solid #333;">DAFTAR LAGU</h3><div id="playlistContainer"></div><button onclick="document.getElementById('playlistModal').style.display='none'" class="btn-g" style="margin-top:10px; position:sticky; bottom:0;">TUTUP</button></div></div>
-    
-    <audio id="audio" crossorigin="anonymous"></audio>
-    <div id="installOverlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.95); z-index:99999; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding:20px; backdrop-filter:blur(5px);"><div style="border:1px solid var(--cyan); padding:30px; border-radius:15px; background:#0a0a0a; max-width:90%; width:350px; box-shadow:0 0 50px rgba(0,240,255,0.2);"><div style="font-size:50px; margin-bottom:10px;">📲</div><h2 style="font-family:'Teko'; color:#fff; margin:0; font-size:32px;">INSTALL APLIKASI</h2><p style="font-family:'JetBrains Mono'; color:#aaa; font-size:14px; margin:15px 0; line-height:1.5;">Agar fitur <b>GPS</b> dan <b>Notifikasi</b> berjalan lancar, Anda wajib menginstall aplikasi ini.</p><button id="btnInstallNow" style="width:100%; padding:15px; background:var(--cyan); color:#000; font-family:'Teko'; font-size:24px; font-weight:bold; border:none; border-radius:10px; cursor:pointer; box-shadow:0 0 20px rgba(0,240,255,0.4); animation:pulse 2s infinite;">INSTALL SEKARANG</button><button onclick="document.getElementById('installOverlay').style.display='none'" style="margin-top:15px; background:none; border:none; color:#555; font-family:'JetBrains Mono'; font-size:12px; cursor:pointer; text-decoration:underline;">Nanti saja (Resiko fitur tidak jalan)</button></div></div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, doc, onSnapshot, runTransaction, collection, addDoc, query, where, getDocs, limit, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, doc, onSnapshot, runTransaction, collection, addDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // === 1. KONFIGURASI DATABASE (FC GADING NEW 22) ===
+        // === 1. FIREBASE CONFIG ===
         const firebaseConfig = {
             apiKey: "AIzaSyB666i9lYWIpxOdkwpoX9EvFvHLmHczeq8",
             authDomain: "fcgadingnew22.firebaseapp.com",
@@ -383,426 +356,424 @@
         };
 
         const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+        const db = getFirestore(app); 
+        
         const mainRef = doc(db, "antrian", "utama");
         const historyRef = collection(db, "riwayatCharging");
-        const logRef = collection(db, "activityLog");
 
-        // === KONFIGURASI CINEMATIC ===
-        const CINEMATIC_CONFIG = {
-            SHOW_ESTIMATION: true,    
-            MINUTES_PER_QUEUE: 20,    
-            STICKY_THRESHOLD: 3,      
-            ROAD_GAP_PX: 100          
+        // === 2. WELCOME SCREEN LOGIC (MODIFIED: ONE TIME ONLY) ===
+        const $ = (id) => document.getElementById(id);
+        
+        // Cek LocalStorage saat load: Apakah 'welcome_done' sudah ada?
+        // Jika BELUM ada (!), maka munculkan layar welcome (tambah class active).
+        if (!localStorage.getItem('welcome_done')) {
+            $('screen-welcome').classList.add('active');
+        }
+
+        window.closeWelcome = () => {
+            // Saat tombol ditekan, simpan data ke HP user
+            localStorage.setItem('welcome_done', 'true');
+            
+            const screen = $('screen-welcome');
+            screen.style.opacity = '0';
+            setTimeout(() => {
+                screen.classList.remove('active');
+                screen.style.opacity = '1'; 
+            }, 300);
         };
 
-        // === FUNGSI LOGGING ===
-        function addLog(action, details) {
-            const p = localStorage.getItem('myPlat') || "GUEST";
-            addDoc(logRef, { actor: p, action: action, details: details, timestamp: new Date() }).catch(e=>{});
-        }
+        // === 3. PLAYLIST DATA ===
+        const rawMusicList = [
+          { "url": "https://mlump3player.netlify.app/Ada%20Apa%20Denganmu.mp3" }, { "url": "https://mlump3player.netlify.app/anji-menunggu-kamu.mp3" }, { "url": "https://mlump3player.netlify.app/Anugerah%20Terindah%20Yang%20Pernah%20Kumiliki.mp3" }, { "url": "https://mlump3player.netlify.app/armada_asalkan_kau_bahagia.mp3" }, { "url": "https://mlump3player.netlify.app/armada_harusnya_aku.mp3" }, { "url": "https://mlump3player.netlify.app/Bendera%20-%20Cokelat%20-%202003.mp3" }, { "url": "https://mlump3player.netlify.app/Bintang%20Di%20Surga.mp3" }, { "url": "https://mlump3player.netlify.app/Bon%20Jovi%20-%20Always%20.MP3" }, { "url": "https://mlump3player.netlify.app/Bon%20Jovi%20-%20I'll%20Be%20There%20For%20You%20.MP3" }, { "url": "https://mlump3player.netlify.app/Bon%20Jovi%20-%20Its%20My%20Life%20.mp3" }, { "url": "https://mlump3player.netlify.app/Bon%20Jovi%20-%20Lay%20Your%20Hands%20On%20Me.MP3" }, { "url": "https://mlump3player.netlify.app/Bon%20Jovi%20-%20Livin'%20On%20A%20Prayer%20.MP3" }, { "url": "https://mlump3player.netlify.app/Bon%20Jovi%20-%20This%20house%20is%20not%20for%20sale.mp3" }, { "url": "https://mlump3player.netlify.app/Bon%20Jovi%20-%20Who%20Says%20You%20Can't%20Go%20Home%20%5BDuet%5D.mp3" }, { "url": "https://mlump3player.netlify.app/Bon%20Jovi%20-%20You%20Give%20Love%20A%20Bad%20Name.mp3" }, { "url": "https://mlump3player.netlify.app/Bunda%20-%20Potret%20-%201997.mp3" }, { "url": "https://mlump3player.netlify.app/Cukup%20Siti%20Nurbaya%20-%20Dewa%2019%20-%201995.mp3" }, { "url": "https://mlump3player.netlify.app/Dan%20-%20Sheila%20On%207%20-%201999.mp3" }, { "url": "https://mlump3player.netlify.app/Fourtwnty%20-%20Mangu%20(Official%20Lyric%20Visualizer).mp3" }, { "url": "https://mlump3player.netlify.app/Galang%20Rambu%20Anarki%20-%20Iwan%20Fals%20-%201982.mp3" }, { "url": "https://mlump3player.netlify.app/Guru%20Oemar%20Bakri%20-%20Iwan%20Fals%20-%201981.mp3" }, { "url": "https://mlump3player.netlify.app/Janji%20-%20Gigi%20-%201995.mp3" }, { "url": "https://mlump3player.netlify.app/Judika%20-%20Bagaimana%20Kalau%20Aku%20Tidak%20Baik%20-%20Baik%20Saja.mp3" }, { "url": "https://mlump3player.netlify.app/Judika%20-%20Putus%20atau%20Terus%20(Official%20Music%20Video).mp3" }, { "url": "https://mlump3player.netlify.app/Mahadewi%20-%20Padi%20-%201999.mp3" }, { "url": "https://mlump3player.netlify.app/Melompat%20Lebih%20Tinggi%20-%20Sheila%20on%207%20-%202003.mp3" }, { "url": "https://mlump3player.netlify.app/Mimpi%20-%20Anggun%20C.%20Sasmi%20-%201990.mp3" }, { "url": "https://mlump3player.netlify.app/Mix%20Lagu%20Pop%20Indonesia.mp3" }, { "url": "https://mlump3player.netlify.app/Mungkin%20Nanti.mp3" }, { "url": "https://mlump3player.netlify.app/No%20Doubt%20-%20Don't%20Speak.mp3" }, { "url": "https://mlump3player.netlify.app/PADI%20-%20Kasih%20Tak%20Sampai.mp3" }, { "url": "https://mlump3player.netlify.app/PADI%20-%20Semua%20Tak%20Sama.mp3" }, { "url": "https://mlump3player.netlify.app/Pelangi%20Di%20Matamu.mp3" }, { "url": "https://mlump3player.netlify.app/Pesawat%20Tempurku%20-%20Iwan%20Fals%20-%201987.mp3" }, { "url": "https://mlump3player.netlify.app/Sarjana%20Muda%20-%20Iwan%20Fals%20-%201981.mp3" }, { "url": "https://mlump3player.netlify.app/Sheila%20On%207%20-%20Saat%20Aku%20Lanjut%20Usia%20(Official%20Music%20Video)%20(320).mp3" }, { "url": "https://mlump3player.netlify.app/Slank%20-%20Terlalu%20Manis.mp3" }, { "url": "https://mlump3player.netlify.app/Sobat%20-%20Padi%20-%201999.mp3" }, { "url": "https://mlump3player.netlify.app/Sore%20Tugu%20Pancoran.mp3" }, { "url": "https://mlump3player.netlify.app/Stevie%20B-Dream%20About%20You.mp3" }, { "url": "https://mlump3player.netlify.app/Stinky%20-%20Mungkinkah%20(Official%20Lyric%20Video).mp3" }, { "url": "https://mlump3player.netlify.app/Surat%20Buat%20Wakil%20Rakyat.mp3" }, { "url": "https://mlump3player.netlify.app/Surat%20Buat%20Wakil%20Rakyat%20-%20Iwan%20Fals%20-%201981.mp3" }, { "url": "https://mlump3player.netlify.app/Surti%20Tejo%20(Acoustic).mp3" }, { "url": "https://mlump3player.netlify.app/Terbang%20-%20Gigi%20-%201997.mp3" }, { "url": "https://mlump3player.netlify.app/Terbunuh%20Sepi%20-%20Slank%20-%201994.mp3" }, { "url": "https://mlump3player.netlify.app/Terima%20Kasih.mp3" }, { "url": "https://mlump3player.netlify.app/Ujung%20Aspal%20Pondok%20Gede.mp3" }, { "url": "https://mlump3player.netlify.app/Virgoun%20-%20Surat%20Cinta%20Untuk%20Starla.mp3" }
+        ];
 
-        // === VARIABLES ===
-        let localSlots = [null,null,null]; 
-        let localQueue = []; 
-        let myPlat = localStorage.getItem('myPlat'); 
-        let myIP = "";
-        window.activeSlotIdx = -1; 
-        let isDashboardMinimized = false; 
-        let amIInQueue = false; 
-        let tempEntryTime = 0; 
-        let hasNotifiedTurn = false;
-
-        const $ = (id) => document.getElementById(id);
-        const vibrate = () => { if(navigator.vibrate) navigator.vibrate([50]); };
-        
-        fetch('https://api.ipify.org?format=json').then(res => res.json()).then(data => myIP = data.ip).catch(e => {});
-
-        function showMsg(title, body) { $('msgTitle').innerText=title; $('msgBody').innerText=body; $('msgModal').style.display='flex'; }
-        function showConfirm(text, cb) { $('confirmText').innerText = text; $('confirmModal').style.display='flex'; $('btnConfirmYes').onclick = () => { $('confirmModal').style.display='none'; cb(); }; }
-        function getDist(lat1,lon1,lat2,lon2) { const R=6371; const dLat=(lat2-lat1)*Math.PI/180; const dLon=(lon2-lon1)*Math.PI/180; const a=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)*Math.sin(dLon/2); return R*(2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a))); }
-
-        // === SAFETY FEATURES ===
-        function safeRequestNotif() { if ('Notification' in window) Notification.requestPermission().catch(()=>{}); } document.addEventListener('click', safeRequestNotif, {once:true});
-        function safeSendNotif(t, b) { 
-            if(!('Notification' in window)) return; 
-            if(Notification.permission==='granted'){ 
-                if(navigator.serviceWorker && navigator.serviceWorker.controller){
-                    navigator.serviceWorker.ready.then(r=>r.showNotification(t,{body:b,icon:'icon-192.png',vibrate:[200],tag:'q-alert'})).catch(()=>{});
-                } else {
-                    try{new Notification(t,{body:b,icon:'icon-192.png'});}catch(e){}
-                } 
-            } 
-        }
-        function safeSpeak(txt) { 
-            if('speechSynthesis' in window){ 
-                window.speechSynthesis.cancel(); 
-                const m=new SpeechSynthesisUtterance(txt); m.lang='id-ID'; 
-                window.speechSynthesis.speak(m); 
-            } 
-        }
-
-        // === DATABASE SYNC ===
-        onSnapshot(mainRef, (snap) => {
-            if (!snap.exists()) {
-                setDoc(mainRef, { chargingSlots: [null, null, null], waitingQueue: [], lastTicket: 0 });
-                return;
-            }
-            const d = snap.data();
-            localSlots = d.chargingSlots || [null,null,null]; 
-            localQueue = (d.waitingQueue || []);
-            
-            if(localStorage.getItem('adm_ok')) document.body.classList.add('admin-mode');
-            
-            updateUI(); 
-            // Jika dashboard antrian sedang terbuka, render ulang animasinya
-            if($('waitingDashboard').style.display !== 'none') renderFocusedQueue();
+        const playlist = rawMusicList.map(item => {
+            let cleanTitle = decodeURIComponent(item.url.split('/').pop());
+            cleanTitle = cleanTitle.replace(/.mp3/gi, '').replace(/_/g, ' ').replace(/-/g, ' ');
+            return { title: cleanTitle.toUpperCase(), url: item.url };
         });
 
-        // === UI LOGIC ===
+        // === 4. CUSTOM MODAL LOGIC ===
+        function showModal(msg, type = 'alert') {
+            return new Promise((resolve) => {
+                const modal = $('customModal');
+                const txt = $('modalMsg');
+                const acts = $('modalActions');
+                const input = $('modalInput');
+                
+                txt.innerText = msg;
+                acts.innerHTML = '';
+                input.style.display = 'none';
+                input.value = '';
+
+                if (type === 'confirm') {
+                    acts.innerHTML = `
+                        <button class="btn-modal btn-no" id="mBtnNo">TIDAK</button>
+                        <button class="btn-modal btn-yes" id="mBtnYes">YA</button>
+                    `;
+                    $('mBtnNo').onclick = () => { modal.style.display='none'; resolve(false); };
+                    $('mBtnYes').onclick = () => { modal.style.display='none'; resolve(true); };
+                } else if (type === 'prompt') {
+                    input.style.display = 'block';
+                    input.focus();
+                    acts.innerHTML = `<button class="btn-modal btn-yes" id="mBtnOk">OK</button>`;
+                    $('mBtnOk').onclick = () => { modal.style.display='none'; resolve(input.value); };
+                } else {
+                    acts.innerHTML = `<button class="btn-modal btn-yes" id="mBtnOk">TUTUP</button>`;
+                    $('mBtnOk').onclick = () => { modal.style.display='none'; resolve(true); };
+                }
+                modal.style.display = 'flex';
+            });
+        }
+
+        const customAlert = (msg) => showModal(msg, 'alert');
+        const customConfirm = (msg) => showModal(msg, 'confirm');
+        const customPrompt = (msg) => showModal(msg, 'prompt');
+
+
+        // === 5. MUSIC PLAYER ENGINE ===
+        let currentTrack = 0;
+        const audio = $('audioPlayer');
+        const disc = document.querySelector('.cp-disc');
+        
+        const pContainer = $('cpListContainer');
+        playlist.forEach((s, i) => {
+            const div = document.createElement('div');
+            div.className = `cp-item`;
+            div.id = `track-${i}`;
+            div.innerText = `${i+1}. ${s.title}`;
+            div.onclick = () => window.playSong(i);
+            pContainer.appendChild(div);
+        });
+
+        window.togglePlayerPanel = () => {
+            $('cpPanel').classList.toggle('show');
+        };
+
+        window.playSong = (idx) => {
+            if (idx !== undefined) currentTrack = idx;
+            document.querySelectorAll('.cp-item').forEach(el => el.classList.remove('active'));
+            const activeItem = $('track-' + currentTrack);
+            if(activeItem) {
+                activeItem.classList.add('active');
+                activeItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+
+            audio.src = playlist[currentTrack].url;
+            const playPromise = audio.play();
+
+            if (playPromise !== undefined) {
+                playPromise.then(() => {
+                    disc.classList.add('playing');
+                    $('cpTitle').innerText = playlist[currentTrack].title;
+                }).catch(error => {
+                    console.log("Autoplay blocked, waiting interaction.");
+                    disc.classList.remove('playing');
+                    $('cpTitle').innerText = "TAP TO PLAY";
+                });
+            }
+        };
+
+        window.nextSong = () => {
+            currentTrack = (currentTrack + 1) % playlist.length;
+            window.playSong();
+        };
+
+        window.prevSong = () => {
+            currentTrack = (currentTrack - 1 + playlist.length) % playlist.length;
+            window.playSong();
+        };
+
+
+        // === 6. CORE SYSTEM LOGIC ===
+        let localSlots = [null, null, null];
+        let localQueue = [];
+        let myPlat = localStorage.getItem('myPlat');
+        window.activeSlotIdx = -1;
+        let isDashboardMinimized = false;
+        let amIInQueue = false;
+        let chargeTimerInterval;
+        const STATION_LAT = -6.171583; const STATION_LNG = 106.899844; const MAX_DIST_KM = 0.2;
+
+        onSnapshot(mainRef, (snap) => {
+            if (!snap.exists()) { setDoc(mainRef, { chargingSlots: [null, null, null], waitingQueue: [], lastTicket: 0 }); return; }
+            const d = snap.data();
+            localSlots = d.chargingSlots || [null,null,null];
+            localQueue = d.waitingQueue || [];
+            updateUI();
+        });
+
         function updateUI() {
-            if($('screen-login').classList.contains('active') || $('screen-queue').classList.contains('active')) return;
+            const container = $('slotsContainer');
+            container.innerHTML = '';
+            let amICharging = false;
 
-            if($('slotCountVal')) $('slotCountVal').innerText = localSlots.filter(s => s === null).length + "/3";
-            if($('qCountVal')) $('qCountVal').innerText = localQueue.length;
-            if($('hud-q')) $('hud-q').innerText = localQueue.length;
-
-            let amICharging = false; 
-            amIInQueue = localQueue.some(q => q.plat === myPlat);
-            const iAmFirst = (localQueue.length > 0 && localQueue[0].plat === myPlat);
-            const hasEmptySlot = localSlots.some(s => s === null);
-
-            // Auto Switch saat Giliran
-            if (iAmFirst && hasEmptySlot) {
-                $('waitingDashboard').style.display = 'none'; 
-                if (!isDashboardMinimized) { 
-                    isDashboardMinimized = true; 
-                    switchScreen('screen-slots'); 
-                    document.getElementById('screen-slots').scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }
-                if (!hasNotifiedTurn) {
-                    safeSpeak("Halo, Giliran Anda."); vibrate();
-                    safeSendNotif("⚡ GILIRAN ANDA! ⚡", "Slot kosong tersedia!");
-                    hasNotifiedTurn = true; 
-                }
-            } else if (!iAmFirst) { hasNotifiedTurn = false; }
-
-            // Render Slot
             localSlots.forEach((s, i) => {
-                const c = $(`card-${i}`); const waBtn = $(`wa-${i}`);
-                if(s) {
-                    if(c) { c.classList.remove('empty'); c.classList.add('filled'); }
-                    if($(`n-${i}`)) $(`n-${i}`).innerText = s.userName;
-                    if($(`p-${i}`)) $(`p-${i}`).innerText = s.plat;
-                    if($(`no-${i}`)) $(`no-${i}`).innerText = "#" + s.qNo;
-                    if(waBtn) { 
-                        let num = s.wa; if(num && num.startsWith('0')) num = '62' + num.substring(1); 
-                        if(num) waBtn.href = `https://wa.me/${num}`; 
-                    }
-                    if(myPlat === s.plat) { 
-                        amICharging = true; window.activeSlotIdx = i; 
-                        if(!isDashboardMinimized) switchScreen('screen-active-dashboard'); 
-                        $('ad-slot-val').innerText = "SLOT " + (i+1); 
-                        $('ad-name-val').innerText = s.userName; 
-                        $('ad-plat-val').innerText = s.plat; 
-                        $('ad-no-val').innerText = "#" + s.qNo; 
-                        $('waitingDashboard').style.display='none'; 
-                        hasNotifiedTurn = false; 
+                const div = document.createElement('div');
+                if (s) {
+                    const isMe = (s.plat === myPlat);
+                    if(isMe) { amICharging = true; window.activeSlotIdx = i; }
+                    div.className = `slot-card active`;
+                    div.innerHTML = `
+                        <div class="sc-info">
+                            <div class="sc-label">SLOT 0${i+1}</div>
+                            <div class="sc-plat">${s.plat}</div>
+                            <div class="sc-user">${s.userName}</div>
+                        </div>
+                        <div class="status-pill" style="background:var(--cyan); color:#000;">${isMe ? 'ANDA' : 'CHARGING'}</div>
+                    `;
+                    if(isMe) {
+                        if($('ad-plat-val')) $('ad-plat-val').innerText = s.plat;
+                        if($('ad-name-val')) $('ad-name-val').innerText = s.userName;
+                        startChargeTimer(s.startTime || s.entryTime || Date.now());
+                        if(!isDashboardMinimized) $('screen-active-dashboard').classList.add('active');
                     }
                 } else {
-                    if(c) { c.classList.remove('filled'); c.classList.add('empty'); }
-                    if($(`n-${i}`)) $(`n-${i}`).innerText = "SLOT " + (i+1);
-                    if($(`p-${i}`)) $(`p-${i}`).innerText = "";
-                    if($(`no-${i}`)) $(`no-${i}`).innerText = ["M","L","U"][i];
+                    div.className = `slot-card empty`;
+                    let btn = '';
+                    if(amIInQueue && localQueue.length>0 && localQueue[0].plat===myPlat) {
+                        btn = `<button class="btn-pilih" onclick="window.selectSlot(${i})">PILIH</button>`;
+                    }
+                    div.innerHTML = `
+                        <div class="sc-info"><div class="sc-label">SLOT 0${i+1}</div><div class="sc-plat">OPEN</div></div>
+                        <div style="display:flex; align-items:center;"><div class="status-pill">AVAILABLE</div>${btn}</div>
+                    `;
                 }
+                container.appendChild(div);
             });
-            
-            if(!amICharging) window.activeSlotIdx = -1;
-            
-            // TOMBOL UTAMA (Label)
-            const btn = $('fpBtn'); const txt = $('mainBtnText'); if(btn) btn.className = 'fp-btn';
-            
-            if(window.activeSlotIdx !== -1) { 
-                if(isDashboardMinimized) { txt.innerText = "KE DASHBOARD"; btn.classList.add('back-mode'); } 
-                else { txt.innerText = "STATUS AKTIF"; } 
-            } 
-            else if(amIInQueue) { 
-                txt.innerText = "LIHAT ANTRIAN"; btn.classList.add('back-mode'); 
-                if($('waitingDashboard').style.display !== 'none') renderFocusedQueue();
-            } 
-            else { txt.innerText = "DAFTAR"; }
+
+            if(!amICharging) {
+                window.activeSlotIdx = -1;
+                $('screen-active-dashboard').classList.remove('active');
+                if(chargeTimerInterval) clearInterval(chargeTimerInterval);
+            }
+
+            $('totalQDisplay').innerText = localQueue.length;
+            if(localQueue.length > 0) $('nextQDisplay').innerHTML = `<span class="qbn-rank">#${localQueue[0].qNo}</span> ${localQueue[0].plat}`;
+            else $('nextQDisplay').innerHTML = `<span class="qbn-rank">-</span> KOSONG`;
+
+            amIInQueue = localQueue.some(q => q.plat === myPlat);
+            const lbl = $('mainBtnLabel');
+            if(window.activeSlotIdx !== -1) { lbl.innerText="DASHBOARD CHARGING"; lbl.style.color="var(--cyan)"; }
+            else if(amIInQueue) { lbl.innerText="STATUS ANTRIAN ANDA"; lbl.style.color="#FFD700"; if($('waitingDashboard').classList.contains('active')) renderQueueDashboard(); }
+            else { lbl.innerText="TAP UNTUK DAFTAR"; lbl.style.color="var(--cyan)"; }
         }
 
-        window.switchScreen = (id) => { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); const t=$(id); if(t)t.classList.add('active'); if(id==='screen-login'||id==='screen-queue')document.body.classList.add('login-mode'); else document.body.classList.remove('login-mode'); };
-        window.toggleMusicDrawer = () => { const d = document.getElementById('musicDrawer'); d.classList.toggle('open'); vibrate(); };
+        window.handleMainAction = () => {
+            if(audio.paused && playlist.length > 0) window.playSong();
 
-        // === TOMBOL UTAMA (SIDIK JARI) ===
-        const fpBtn = document.getElementById('fpCont');
-        fpBtn.onclick = () => { vibrate(); window.handleMainAction(); };
-
-        window.handleMainAction = () => { 
-            if(window.activeSlotIdx !== -1 && isDashboardMinimized) {
-                window.toggleDashboard(true);
-            } else if(amIInQueue){
-                $('waitingDashboard').style.display='flex';
-                renderFocusedQueue();
-            } else {
-                window.checkLocAndRegister();
-            }
-        };
-
-        // === REGISTER LOGIC ===
-        const STATION_LAT = -6.171583; const STATION_LNG = 106.899844; const MAX_DIST_KM = 0.2; 
-
-        window.checkLocAndRegister = () => {
+            if(window.activeSlotIdx !== -1) { $('screen-active-dashboard').classList.add('active'); isDashboardMinimized=false; return; }
+            if(amIInQueue) { openWaitingDashboard(); return; }
             if(localStorage.getItem('adm_ok')) { runLogin(); return; }
+            
             if(navigator.geolocation) {
-                $('fpBtn').style.opacity = 0.5;
-                const geoOptions = { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 }; 
-                navigator.geolocation.getCurrentPosition((pos) => {
-                    $('fpBtn').style.opacity = 1;
-                    const dist = getDist(pos.coords.latitude, pos.coords.longitude, STATION_LAT, STATION_LNG);
-                    if(dist > MAX_DIST_KM) { 
-                        $('msgModal').style.display='none'; 
-                        alert(`GAGAL: KEJAUHAN (${dist.toFixed(2)} KM)\n\nWajib radius 200m.`); vibrate();
-                    } else { 
-                        $('msgModal').style.display='none'; 
-                        runLogin(); 
-                    }
-                }, (err) => { 
-                    $('fpBtn').style.opacity = 1; $('msgModal').style.display='none'; 
-                    alert(`GAGAL: GPS Error/Izin Ditolak.`);
-                }, geoOptions);
-            } else { alert("HP tidak support GPS."); }
+                navigator.geolocation.getCurrentPosition(p => {
+                    if(getDist(p.coords.latitude, p.coords.longitude, STATION_LAT, STATION_LNG) > MAX_DIST_KM) customAlert("Kejauhan (Max 200m)");
+                    else runLogin();
+                }, () => customAlert("GPS Error / Tidak Aktif"));
+            } else customAlert("Browser tidak support GPS");
         };
 
-        function runLogin() { vibrate(); tempEntryTime = Date.now(); switchScreen('screen-login'); currentStep = 0; tempUserData = {}; $('terminal-box').innerHTML=''; terminalPrompt(); }
+        // === LOGIN STEPS & AUTO FORMAT PLAT ===
+        let formStep=0; let formData={};
+        const formConfig = [
+            {l:"LANGKAH 1/2", q:"PLAT NOMOR?", k:"plat", p:"CONTOH: B 1234 XYZ"},
+            {l:"LANGKAH 2/2", q:"NAMA ANDA?", k:"name", p:"NAMA LENGKAP"}
+        ];
 
-        let tempUserData = {}; let currentStep = 0;
-        const steps = [ {q: "PLAT NOMOR", k: "plat"}, {q: "NAMA LENGKAP", k: "name"}, {q: "NOMOR WHATSAPP", k: "wa"} ];
+        window.runLogin = () => { formStep=0; formData={}; $('screen-login').classList.add('active'); renderStep(); };
+        window.cancelLogin = () => { $('screen-login').classList.remove('active'); };
 
-        function terminalPrompt() {
-            const line = document.createElement("div"); line.className = "term-line";
-            line.innerHTML = `> ${steps[currentStep].q}: <input class="term-input" autofocus>`;
-            $('terminal-box').appendChild(line);
-            const input = line.querySelector("input"); input.focus();
-            const btn = document.createElement("button"); btn.className = "term-enter-btn"; btn.innerText = "ENTER";
-            const next = () => {
-                if(!input.value) return; 
-                const val = input.value.toUpperCase();
-                if(steps[currentStep].k === "plat") {
-                    if(!localStorage.getItem('adm_ok')) {
-                        const today = new Date().toDateString();
-                        const lockData = JSON.parse(localStorage.getItem('device_lock') || '{}');
-                        if(lockData.date === today && lockData.plat && lockData.plat !== val) {
-                            alert(`AKSES DITOLAK!\nHP ini terkunci untuk plat: ${lockData.plat}`); window.location.reload(); return;
-                        }
-                    }
-                }
-                tempUserData[steps[currentStep].k] = val; input.disabled = true; btn.remove();
-                currentStep++; if(currentStep < steps.length) terminalPrompt(); else startQueueAnim();
-            };
-            btn.onclick = next; line.appendChild(btn);
-            if(steps[currentStep].k === "plat") {
-                input.oninput = async (e) => { 
-                    e.target.value = e.target.value.toUpperCase().replace(/\s/g, ''); 
-                    if(e.target.value.length > 3) {
-                        const s = await getDocs(query(historyRef, where("plat","==",e.target.value), limit(1)));
-                        if(!s.empty) { const d = s.docs[0].data(); tempUserData.name = d.userName; tempUserData.wa = d.wa; }
-                    }
-                };
-            }
-            if(steps[currentStep].k === "name" && tempUserData.name) input.value = tempUserData.name;
-            if(steps[currentStep].k === "wa" && tempUserData.wa) input.value = tempUserData.wa;
-            input.onkeydown = e => { if (e.key === "Enter") next(); };
+        function renderStep() {
+            const c=formConfig[formStep]; $('stepLabel').innerText=c.l; $('questionText').innerText=c.q;
+            $('holoInput').value=""; $('holoInput').placeholder=c.p; $('holoInput').focus();
         }
 
-        function startQueueAnim() {
-            switchScreen('screen-queue'); 
-            const line = $('scanLine'); const colorImg = $('scanColorImg'); const txt = $('scanTextStatus');
-            if(line){
-                line.style.transition = 'none'; colorImg.style.transition = 'none'; line.style.top = '100%'; colorImg.style.clipPath = 'inset(100% 0 0 0)'; txt.innerText = "CHECKING..."; txt.style.color = "var(--cyan)";
-                void line.offsetWidth; line.style.transition = 'top 1.5s linear'; colorImg.style.transition = 'clip-path 1.5s linear';
+        // === LOGIC FORMATTER PLAT INDONESIA ===
+        function formatPlatNomor(raw) {
+            let clean = raw.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+            const match = clean.match(/^([A-Z]{1,2})(\d{1,4})([A-Z]{1,3})$/);
+
+            if (match) {
+                return `${match[1]} ${match[2]} ${match[3]}`; 
+            } else {
+                return clean.replace(/([A-Z]+)(\d+)([A-Z]*)/, '$1 $2 $3').trim();
             }
-            setTimeout(() => { if(line){line.style.top = '0%'; colorImg.style.clipPath = 'inset(0 0 0 0)'; txt.innerText = "DEVICE ID...";} }, 100);
-            setTimeout(() => { if(line){line.style.top = '100%'; colorImg.style.clipPath = 'inset(100% 0 0 0)'; txt.innerText = "VALIDATING...";} }, 1600);
-            setTimeout(() => { if(line){line.style.top = '0%'; colorImg.style.clipPath = 'inset(0 0 0 0)'; txt.innerText = "ACCESS GRANTED"; txt.style.color = "var(--accent)";} }, 3200);
-            setTimeout(() => { executeRegistration(); }, 4800);
         }
 
-        function executeRegistration() {
+        window.nextStepAction = () => {
+            let rawVal = $('holoInput').value;
+            if(!rawVal) return;
+
+            if(formConfig[formStep].k === 'plat') {
+                rawVal = formatPlatNomor(rawVal);
+                if(rawVal.length < 3) { customAlert("Plat nomor tidak valid!"); return; }
+            } else {
+                rawVal = rawVal.toUpperCase();
+            }
+
+            formData[formConfig[formStep].k] = rawVal; 
+            formStep++;
+            
+            if(formStep < 2) renderStep(); else { $('screen-login').classList.remove('active'); startScan(); }
+        };
+
+        function startScan() {
+            $('screen-scan').classList.add('active');
+            $('scanLogoImg').style.filter="grayscale(100%) opacity(0.5)"; $('scanText').innerText="MENGHUBUNGKAN...";
+            setTimeout(()=>{ $('scanLogoImg').style.filter="grayscale(0%) opacity(1)"; $('scanText').innerText="AKSES DITERIMA"; }, 1500);
+            setTimeout(()=>{ executeReg(); }, 2500);
+        }
+
+        function executeReg() {
             runTransaction(db, async(t) => {
-                const docSnap = await t.get(mainRef);
-                let d = docSnap.exists() ? docSnap.data() : { chargingSlots: [null,null,null], waitingQueue: [], lastTicket: 0 };
-                if(!docSnap.exists()) t.set(mainRef, d);
-
-                const all = [...(d.chargingSlots||[]), ...(d.waitingQueue||[])].filter(u => u !== null);
-                const duplicate = all.find(x => x.plat === tempUserData.plat);
-                if(duplicate) {
-                    if(confirm(`HALO ${duplicate.userName}!\nPlat ${tempUserData.plat} sudah aktif.\nMasuk Dashboard?`)) {
-                        localStorage.setItem('myPlat', tempUserData.plat);
-                        location.reload(); return "RECOVERED";
-                    } else throw "PLAT SUDAH DIGUNAKAN";
+                const d = (await t.get(mainRef)).data();
+                if([...d.chargingSlots, ...d.waitingQueue].find(x=>x && x.plat===formData.plat)) return "DUPLICATE";
+                let n = (d.lastTicket||0)+1;
+                
+                d.waitingQueue.push({
+                    plat: formData.plat, 
+                    userName: formData.name, 
+                    qNo: n, 
+                    entryTime: Date.now()
+                });
+                
+                t.update(mainRef, {waitingQueue:d.waitingQueue, lastTicket:n});
+            }).then(async (r) => {
+                $('screen-scan').classList.remove('active');
+                if(r==="DUPLICATE") { 
+                    const reLogin = await customConfirm("Plat sudah terdaftar. Login ulang?");
+                    if(reLogin) { runLogin(); } 
                 }
-
-                let newNo = (d.lastTicket||0)+1;
-                const u = { plat: tempUserData.plat, userName: tempUserData.name, wa: tempUserData.wa, qNo: newNo, entryTime: tempEntryTime || Date.now(), ip: myIP };
-                d.waitingQueue.push(u);
-                t.update(mainRef, { waitingQueue:d.waitingQueue, lastTicket: newNo });
-                return newNo;
-            }).then((no) => {
-                if(no==="RECOVERED") return;
-                localStorage.setItem('myPlat', tempUserData.plat); 
-                localStorage.setItem('device_lock', JSON.stringify({ date: new Date().toDateString(), plat: tempUserData.plat }));
-                myPlat = tempUserData.plat;
-                addLog("REGISTER", `User ${tempUserData.plat} joined #${no}`);
-                safeSendNotif("✅ BERHASIL", `Anda antrian #${no}.`);
-                showMsg("BERHASIL", `Antrian #${no}. Silakan tunggu.`); 
-                switchScreen('screen-slots');
-            }).catch(e => { if(e!=="RECOVERED") showMsg("GAGAL", e); setTimeout(()=>switchScreen('screen-slots'), 2000); });
+                else { 
+                    localStorage.setItem('myPlat',formData.plat); 
+                    myPlat=formData.plat; 
+                    openWaitingDashboard(); 
+                }
+            });
         }
 
-        window.cancelLogin = () => { $('terminal-box').innerHTML=''; switchScreen('screen-slots'); tempEntryTime = 0; };
-        window.toggleDashboard = (show) => { if(show){isDashboardMinimized=false;switchScreen('screen-active-dashboard');}else{isDashboardMinimized=true;switchScreen('screen-slots');} updateUI(); };
-        window.closeConfirmModal = () => { $('confirmModal').style.display='none'; };
-        
-        window.handleSlotClick = (idx) => {
-            if(!myPlat) return showMsg("INFO", "DAFTAR DULU.");
-            showConfirm(`PILIH SLOT ${idx+1}?`, ()=>{
-                runTransaction(db, async(t)=>{
-                    const d = (await t.get(mainRef)).data();
-                    if(d.chargingSlots[idx]) throw "Diambil.";
-                    let q=d.waitingQueue; const i=q.findIndex(x=>x.plat===myPlat);
-                    if (i !== -1) { const u=q.splice(i,1)[0]; u.startTime=Date.now(); d.chargingSlots[idx]=u; t.update(mainRef, {chargingSlots:d.chargingSlots, waitingQueue:q}); } else location.reload();
-                }).then(() => addLog("SELECT_SLOT", `Slot ${idx+1}`));
+        // QUEUE DASHBOARD
+        window.openWaitingDashboard = () => { $('waitingDashboard').classList.add('active'); renderQueueDashboard(); };
+        function renderQueueDashboard() {
+            const list=$('wdListContainer'); list.innerHTML='';
+            const idx = localQueue.findIndex(q=>q.plat===myPlat);
+            if(idx!==-1) { $('wdMyRank').innerText="#"+(idx+1); $('wdMyPlat').innerText=myPlat; $('wdEstTime').innerText="Est: "+((idx+1)*20)+" Menit"; }
+            else { $('wdMyRank').innerText="#?"; $('wdMyPlat').innerText="--"; }
+            
+            localQueue.forEach((q,i)=>{
+                const isMe = q.plat === myPlat;
+                const div=document.createElement('div'); 
+                div.className=`ql-item ${isMe?'active':''}`;
+                if(isMe) div.id = 'myQItem'; 
+
+                div.innerHTML=`
+                    <div class="ql-rank-box">#${i+1}</div>
+                    <div class="ql-info-box">
+                        <div class="ql-plat">${q.plat}</div>
+                        <div class="ql-name">${q.userName}</div>
+                    </div>
+                `;
+                list.appendChild(div);
+            });
+
+            setTimeout(() => {
+                const myItem = document.getElementById('myQItem');
+                if(myItem) myItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 300);
+        }
+
+        window.cancelQueue = async () => {
+            const ok = await customConfirm("Batal antri?");
+            if(!ok) return;
+            runTransaction(db, async(t)=>{
+                const d=(await t.get(mainRef)).data(); const i=d.waitingQueue.findIndex(x=>x.plat===myPlat);
+                if(i!==-1){ d.waitingQueue.splice(i,1); t.update(mainRef,{waitingQueue:d.waitingQueue}); }
+            }).then(()=>{ 
+                localStorage.removeItem('myPlat'); 
+                myPlat = null; 
+                amIInQueue = false;
+                $('waitingDashboard').classList.remove('active'); 
+                updateUI(); 
             });
         };
 
-        window.stopCharging = (idx) => { 
-            showConfirm("SELESAI?", ()=>{ 
-                runTransaction(db, async(t)=>{ 
-                    const d=(await t.get(mainRef)).data(); 
-                    const u=d.chargingSlots[idx]; d.chargingSlots[idx]=null; 
-                    if(u) addDoc(historyRef,{...u,finishTime:new Date()}); 
-                    t.update(mainRef,{chargingSlots:d.chargingSlots}); 
-                }).then(()=>{
-                    addLog("STOP", "Finished"); localStorage.removeItem('myPlat'); location.reload();
-                }); 
-            }); 
+        window.selectSlot = async (i) => {
+            const ok = await customConfirm("Masuk Slot "+(i+1)+"?");
+            if(!ok) return;
+            runTransaction(db, async(t)=>{
+                const d=(await t.get(mainRef)).data();
+                if(d.chargingSlots[i]) throw "Penuh"; if(d.waitingQueue[0].plat!==myPlat) throw "Bukan Giliran";
+                const u=d.waitingQueue.shift(); u.startTime=Date.now(); d.chargingSlots[i]=u;
+                t.update(mainRef,{chargingSlots:d.chargingSlots, waitingQueue:d.waitingQueue});
+            }).catch(e => customAlert(e));
         };
 
-        window.cancelQueue = () => { 
-            showConfirm("BATAL?", ()=>{ 
-                runTransaction(db, async(t)=>{ 
-                    const d=(await t.get(mainRef)).data(); 
-                    let q=d.waitingQueue; const i=q.findIndex(x=>x.plat===myPlat); 
-                    if(i!==-1){ q.splice(i,1); t.update(mainRef,{waitingQueue:q}); } 
-                }).then(()=>{
-                    addLog("CANCEL", "Queue"); localStorage.removeItem('myPlat'); location.reload();
-                }); 
-            }); 
+        window.stopCharging = async (i) => {
+            const ok = await customConfirm("Stop pengisian?");
+            if(!ok) return;
+            runTransaction(db, async(t)=>{
+                const d=(await t.get(mainRef)).data();
+                const u=d.chargingSlots[i]; d.chargingSlots[i]=null;
+                if(u) addDoc(historyRef, {...u, finishTime:new Date()});
+                t.update(mainRef,{chargingSlots:d.chargingSlots});
+            }).then(()=>{ 
+                localStorage.removeItem('myPlat'); 
+                myPlat = null; 
+                window.activeSlotIdx = -1;
+                toggleDashboard(false); 
+                updateUI();
+            });
         };
-
-        window.toggleAdmin = () => { const pass = prompt("MASUKKAN KODE ADMIN:"); if(pass === "1131") { localStorage.setItem('adm_ok', '1'); document.body.classList.add('admin-mode'); window.location.href = 'admin.html'; } };
-        window.showQueueList = () => { const el=$('queueListDetail'); if(!el)return; el.innerHTML=''; if(localQueue.length===0) el.innerHTML='<div style="padding:20px;text-align:center;color:#555;">KOSONG</div>'; else localQueue.forEach(q=>{const isMe=(q.plat===myPlat)?'color:var(--accent);font-weight:bold;':'color:#aaa;'; el.innerHTML+=`<div style="padding:10px;border-bottom:1px solid #333;display:flex;justify-content:space-between;"><span style="color:var(--cyan);">#${q.qNo}</span><div style="text-align:right;"><div style="${isMe}">${q.plat}</div><div style="font-size:10px;color:#555;">${q.userName}</div></div></div>`;}); $('queueModal').style.display='flex'; };
         
-        // === CINEMATIC QUEUE RENDERER ===
-        window.renderFocusedQueue = function() {
-            const roadLayer = document.getElementById('roadVehiclesLayer');
-            const listEl = document.getElementById('wdList');
-            const breakIcon = document.getElementById('visualBreakIcon');
-            const roadContainer = document.getElementById('cinematicRoad');
-            const bipRank = document.getElementById('bipRank');
-            const bipTotal = document.getElementById('bipTotal');
-            const bipEst = document.getElementById('bipEst');
-            
-            if (!roadLayer || !listEl) return;
+        window.toggleDashboard = (s) => { if(s) $('screen-active-dashboard').classList.add('active'); else $('screen-active-dashboard').classList.remove('active'); isDashboardMinimized=!s; };
+        function startChargeTimer(s){ if(chargeTimerInterval) clearInterval(chargeTimerInterval); chargeTimerInterval=setInterval(()=>{ const d=Math.floor((Date.now()-s)/1000); $('timerVal').innerText=`${Math.floor(d/60).toString().padStart(2,'0')}:${(d%60).toString().padStart(2,'0')}`; },1000); }
+        function getDist(lat1,lon1,lat2,lon2){const R=6371;const dLat=(lat2-lat1)*Math.PI/180;const dLon=(lon2-lon1)*Math.PI/180;const a=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)*Math.sin(dLon/2);return R*(2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a)));}
+        
+        window.toggleAdmin = async () => { 
+            const code = await customPrompt("KODE ADMIN:");
+            if(code==="1131"){
+                localStorage.setItem('adm_ok','1'); 
+                await customAlert("ADMIN MODE ON"); 
+            }
+        };
 
-            // Cek Posisi Saya
-            const totalQ = localQueue.length;
-            const myIndex = localQueue.findIndex(q => q.plat === myPlat);
+        // === UPDATE: GANTI MOTOR (ADMIN PROTECTED) ===
+        window.gantiMotor = async () => {
+            const code = await customPrompt("MASUKKAN KODE ADMIN UNTUK UBAH PLAT:");
             
-            if (myIndex === -1 && !amIInQueue) { document.getElementById('waitingDashboard').style.display = 'none'; return; }
-
-            // UPDATE BIG INFO PANEL (ATAS MOTOR)
-            if (bipRank) bipRank.innerText = myIndex + 1;
-            if (bipTotal) bipTotal.innerText = totalQ;
-            if (bipEst && CINEMATIC_CONFIG.SHOW_ESTIMATION) {
-                const totalMins = (myIndex + 1) * CINEMATIC_CONFIG.MINUTES_PER_QUEUE;
-                let timeText = totalMins >= 60 ? `${Math.floor(totalMins/60)} Jam ${totalMins%60} Mnt` : `${totalMins} Menit`;
-                bipEst.innerText = `ESTIMASI WAKTU TUNGGU: ± ${timeText}`;
+            if(code !== "1131") {
+                await customAlert("AKSES DITOLAK! Hanya admin yang boleh ubah data.");
+                return;
             }
 
-            // Bersihkan Render
-            roadLayer.innerHTML = '';
-            listEl.innerHTML = '';
-
-            // RENDER JALAN RAYA
-            const roadWidth = roadContainer ? roadContainer.clientWidth : window.innerWidth;
-            const finishLineX = roadWidth - 80; 
-            let isUserPinned = false; 
-
-            localQueue.forEach((q, index) => {
-                const isMe = (q.plat === myPlat);
-                const isTop3 = index < 3;
-                const isBehindMe = (index === myIndex + 1);
-                
-                if (!isTop3 && !isMe && !isBehindMe) return;
-
-                let realPos = finishLineX - (index * CINEMATIC_CONFIG.ROAD_GAP_PX);
-                let finalLeft = realPos;
-                let isPinned = false;
-
-                if (isMe) {
-                    if (index >= CINEMATIC_CONFIG.STICKY_THRESHOLD && realPos < 50) {
-                        finalLeft = 20; isPinned = true; isUserPinned = true;
-                    }
-                } else {
-                    if (realPos < -60) return; 
-                }
-
-                const bikeDiv = document.createElement('div');
-                bikeDiv.className = `bike-unit ${isMe ? 'is-me' : ''} ${isPinned ? 'pinned' : ''}`;
-                bikeDiv.style.left = finalLeft + 'px';
-                
-                // HAPUS BADGE LAMA (KARENA SUDAH ADA BIG INFO PANEL)
-                // Kita hanya render motor
-                bikeDiv.innerHTML = `<div class="bike-visual">🏍️</div><div class="bike-plate">${q.plat}</div>${!isPinned ? '<div class="dust-fx"></div>' : ''}`;
-                roadLayer.appendChild(bikeDiv);
-            });
-
-            // Visual Break
-            if (breakIcon) {
-                if (isUserPinned) { breakIcon.classList.add('active'); breakIcon.style.left = '110px'; } else { breakIcon.classList.remove('active'); }
+            if (window.activeSlotIdx !== -1) {
+                const confirm = await customConfirm("User ini sedang charging. Stop paksa?");
+                if (!confirm) return;
+                await stopCharging(window.activeSlotIdx);
+                return;
             }
 
-            // Render List
-            localQueue.forEach((q, i) => {
-                const isMe = (q.plat === myPlat);
-                const item = document.createElement("div");
-                item.className = `wd-item-glass ${isMe ? 'me' : ''}`;
-                let statusText = (i === 0) ? "Persiapan Masuk" : (isMe ? "<strong>ANDA</strong>" : "Menunggu");
-                item.innerHTML = `<div style="display:flex; align-items:center; gap:12px;"><div style="font-family:'Teko'; font-size:24px; color:${isMe ? 'var(--cyan)' : '#888'}; width:35px;">#${q.qNo}</div><div><div style="font-family:'JetBrains Mono'; font-size:14px; color:#fff; font-weight:bold;">${q.plat}</div><div style="font-size:10px; color:#aaa;">${q.userName}</div></div></div><div style="font-family:'JetBrains Mono'; font-size:10px; color:${isMe ? 'var(--accent)' : '#666'}; text-align:right;">${statusText}</div>`;
-                listEl.appendChild(item);
-            });
-            
-            if(listEl.children[myIndex]) { setTimeout(() => { listEl.children[myIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }, 500); }
+            if (amIInQueue) {
+                const confirm = await customConfirm("User ini ada di antrian. Hapus antrian?");
+                if (!confirm) return;
+                await cancelQueue();
+                return;
+            }
+
+            const reset = await customConfirm("Reset Login di HP ini?");
+            if (reset) {
+                localStorage.removeItem('myPlat');
+                myPlat = null; 
+                window.activeSlotIdx = -1;
+                amIInQueue = false;
+                toggleDashboard(false);
+                $('waitingDashboard').classList.remove('active');
+                $('screen-login').classList.remove('active');
+                updateUI();
+                await customAlert("HP berhasil di-reset. Silakan daftar ulang.");
+            }
         };
-
-        const rawMusicList = [ { "url": "https://mlump3player.netlify.app/Ada%20Apa%20Denganmu.mp3" }, { "url": "https://mlump3player.netlify.app/anji-menunggu-kamu.mp3" }, { "url": "https://mlump3player.netlify.app/Anugerah%20Terindah%20Yang%20Pernah%20Kumiliki.mp3" }, { "url": "https://mlump3player.netlify.app/armada_asalkan_kau_bahagia.mp3" }, { "url": "https://mlump3player.netlify.app/armada_harusnya_aku.mp3" }, { "url": "https://mlump3player.netlify.app/Bendera%20-%20Cokelat%20-%202003.mp3" }, { "url": "https://mlump3player.netlify.app/Bintang%20Di%20Surga.mp3" }, { "url": "https://mlump3player.netlify.app/Bon%20Jovi%20-%20Always%20.MP3" }, { "url": "https://mlump3player.netlify.app/Bon%20Jovi%20-%20I'll%20Be%20There%20For%20You%20.MP3" }, { "url": "https://mlump3player.netlify.app/Bon%20Jovi%20-%20Its%20My%20Life%20.mp3" }, { "url": "https://mlump3player.netlify.app/Bon%20Jovi%20-%20Lay%20Your%20Hands%20On%20Me.MP3" }, { "url": "https://mlump3player.netlify.app/Bon%20Jovi%20-%20Livin'%20On%20A%20Prayer%20.MP3" }, { "url": "https://mlump3player.netlify.app/Bon%20Jovi%20-%20This%20house%20is%20not%20for%20sale.mp3" }, { "url": "https://mlump3player.netlify.app/Bon%20Jovi%20-%20Who%20Says%20You%20Can't%20Go%20Home%20%5BDuet%5D.mp3" }, { "url": "https://mlump3player.netlify.app/Bon%20Jovi%20-%20You%20Give%20Love%20A%20Bad%20Name.mp3" }, { "url": "https://mlump3player.netlify.app/Bunda%20-%20Potret%20-%201997.mp3" }, { "url": "https://mlump3player.netlify.app/Cukup%20Siti%20Nurbaya%20-%20Dewa%2019%20-%201995.mp3" }, { "url": "https://mlump3player.netlify.app/Dan%20-%20Sheila%20On%207%20-%201999.mp3" }, { "url": "https://mlump3player.netlify.app/Fourtwnty%20-%20Mangu%20(Official%20Lyric%20Visualizer).mp3" }, { "url": "https://mlump3player.netlify.app/Galang%20Rambu%20Anarki%20-%20Iwan%20Fals%20-%201982.mp3" }, { "url": "https://mlump3player.netlify.app/Guru%20Oemar%20Bakri%20-%20Iwan%20Fals%20-%201981.mp3" }, { "url": "https://mlump3player.netlify.app/Janji%20-%20Gigi%20-%201995.mp3" }, { "url": "https://mlump3player.netlify.app/Judika%20-%20Bagaimana%20Kalau%20Aku%20Tidak%20Baik%20-%20Baik%20Saja.mp3" }, { "url": "https://mlump3player.netlify.app/Judika%20-%20Putus%20atau%20Terus%20(Official%20Music%20Video).mp3" }, { "url": "https://mlump3player.netlify.app/Mahadewi%20-%20Padi%20-%201999.mp3" }, { "url": "https://mlump3player.netlify.app/Melompat%20Lebih%20Tinggi%20-%20Sheila%20on%207%20-%202003.mp3" }, { "url": "https://mlump3player.netlify.app/Mimpi%20-%20Anggun%20C.%20Sasmi%20-%201990.mp3" }, { "url": "https://mlump3player.netlify.app/Mix%20Lagu%20Pop%20Indonesia.mp3" }, { "url": "https://mlump3player.netlify.app/Mungkin%20Nanti.mp3" }, { "url": "https://mlump3player.netlify.app/No%20Doubt%20-%20Don't%20Speak.mp3" }, { "url": "https://mlump3player.netlify.app/PADI%20-%20Kasih%20Tak%20Sampai.mp3" }, { "url": "https://mlump3player.netlify.app/PADI%20-%20Semua%20Tak%20Sama.mp3" }, { "url": "https://mlump3player.netlify.app/Pelangi%20Di%20Matamu.mp3" }, { "url": "https://mlump3player.netlify.app/Pesawat%20Tempurku%20-%20Iwan%20Fals%20-%201987.mp3" }, { "url": "https://mlump3player.netlify.app/Sarjana%20Muda%20-%20Iwan%20Fals%20-%201981.mp3" }, { "url": "https://mlump3player.netlify.app/Sheila%20On%207%20-%20Saat%20Aku%20Lanjut%20Usia%20(Official%20Music%20Video)%20(320).mp3" }, { "url": "https://mlump3player.netlify.app/Slank%20-%20Terlalu%20Manis.mp3" }, { "url": "https://mlump3player.netlify.app/Sobat%20-%20Padi%20-%201999.mp3" }, { "url": "https://mlump3player.netlify.app/Sore%20Tugu%20Pancoran.mp3" }, { "url": "https://mlump3player.netlify.app/Stevie%20B-Dream%20About%20You.mp3" }, { "url": "https://mlump3player.netlify.app/Stinky%20-%20Mungkinkah%20(Official%20Lyric%20Video).mp3" }, { "url": "https://mlump3player.netlify.app/Surat%20Buat%20Wakil%20Rakyat.mp3" }, { "url": "https://mlump3player.netlify.app/Surat%20Buat%20Wakil%20Rakyat%20-%20Iwan%20Fals%20-%201981.mp3" }, { "url": "https://mlump3player.netlify.app/Surti%20Tejo%20(Acoustic).mp3" }, { "url": "https://mlump3player.netlify.app/Terbang%20-%20Gigi%20-%201997.mp3" }, { "url": "https://mlump3player.netlify.app/Terbunuh%20Sepi%20-%20Slank%20-%201994.mp3" }, { "url": "https://mlump3player.netlify.app/Terima%20Kasih.mp3" }, { "url": "https://mlump3player.netlify.app/Ujung%20Aspal%20Pondok%20Gede.mp3" }, { "url": "https://mlump3player.netlify.app/Virgoun%20-%20Surat%20Cinta%20Untuk%20Starla.mp3" } ];
-        const playlistData = rawMusicList.map(item => { let cleanTitle = decodeURIComponent(item.url.split('/').pop().replace(/\.mp3$/i, '').replace(/\.MP3$/i, '')); return { title: cleanTitle, url: item.url }; });
-        const audio = $('audio'); let curTrk=0;
-        window.openPlaylist = () => { const cont = $('playlistContainer'); if(!cont) return; cont.innerHTML = ''; playlistData.forEach((item, idx) => { const div = document.createElement('div'); div.className = `pl-item ${idx === curTrk ? 'active' : ''}`; div.innerHTML = `<span class="pl-icon">🎵</span><span class="pl-title">${item.title}</span>`; div.onclick = () => { window.playTrack(idx); $('playlistModal').style.display='none'; }; cont.appendChild(div); }); $('playlistModal').style.display = 'flex'; };
-        window.playTrack=(i)=>{ if(!audio || !playlistData[i])return; curTrk=i; audio.src=playlistData[i].url; if($('mpTitle')) $('mpTitle').innerText=playlistData[i].title; if($('mpTitle2')) $('mpTitle2').innerText=playlistData[i].title; audio.play().catch(e=>{}); if($('mpPlayBtn')) $('mpPlayBtn').innerText="⏸"; if($('mpPlayBtn2')) $('mpPlayBtn2').innerText="⏸"; };
-        window.togglePlay=()=>{ if(!audio) return; let i = "⏯"; if(audio.paused){ if(!audio.src)window.playTrack(0); else audio.play(); i="⏸"; } else{ audio.pause(); i="⏯"; } if($('mpPlayBtn')) $('mpPlayBtn').innerText=i; if($('mpPlayBtn2')) $('mpPlayBtn2').innerText=i; };
-        window.nextTrack=()=>{ curTrk=(curTrk+1)%playlistData.length; window.playTrack(curTrk); }; window.prevTrack=()=>{ curTrk=(curTrk-1+playlistData.length)%playlistData.length; window.playTrack(curTrk); }; if(audio) audio.addEventListener('ended', window.nextTrack);
-
-        if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js').catch(e=>{}); }); }
-        let wakeLock = null; async function requestWakeLock() { try { if ('wakeLock' in navigator) { wakeLock = await navigator.wakeLock.request('screen'); document.addEventListener('visibilitychange', async () => { if (wakeLock !== null && document.visibilityState === 'visible') wakeLock = await navigator.wakeLock.request('screen'); }); } } catch (err) {} } document.addEventListener('click', requestWakeLock, {once:true});
-        let deferredPrompt; const installOverlay = document.getElementById('installOverlay'); const btnInstallNow = document.getElementById('btnInstallNow');
-        window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; installOverlay.style.display = 'flex'; });
-        btnInstallNow.addEventListener('click', async () => { if (deferredPrompt) { deferredPrompt.prompt(); const { outcome } = await deferredPrompt.userChoice; deferredPrompt = null; installOverlay.style.display = 'none'; } });
-        window.addEventListener('appinstalled', () => { installOverlay.style.display = 'none'; });
     </script>
 </body>
 </html>
