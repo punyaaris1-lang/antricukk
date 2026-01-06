@@ -282,7 +282,7 @@
 
     <div id="screen-scan" class="screen-overlay">
         <div class="scan-wrapper">
-            <img src="logo.jpg" class="scan-logo" id="scanLogoImg">
+            <img src="logo.png" class="scan-logo" id="scanLogoImg">
             <div class="scan-beam"></div>
         </div>
         <div class="scan-status" id="scanText">MENGHUBUNGKAN...</div>
@@ -307,7 +307,7 @@
             </div>
         </div>
 
-        <div class="lbl-list">Daftar Menunggu</div>
+        <div class="lbl-list" style="margin-bottom:10px; color:#888; font-size:12px;">Daftar Menunggu</div>
 
         <div class="queue-list-wrapper">
             <div id="wdListContainer"></div>
@@ -361,17 +361,17 @@
         const mainRef = doc(db, "antrian", "utama");
         const historyRef = collection(db, "riwayatCharging");
 
-        // === 2. WELCOME SCREEN LOGIC (MODIFIED: ONE TIME ONLY) ===
+        // === 2. WELCOME SCREEN LOGIC (FIX: HANYA MUNCUL 1 KALI) ===
         const $ = (id) => document.getElementById(id);
         
         // Cek LocalStorage saat load: Apakah 'welcome_done' sudah ada?
-        // Jika BELUM ada (!), maka munculkan layar welcome (tambah class active).
         if (!localStorage.getItem('welcome_done')) {
+            // Jika belum ada, munculkan layar welcome
             $('screen-welcome').classList.add('active');
         }
 
         window.closeWelcome = () => {
-            // Saat tombol ditekan, simpan data ke HP user
+            // Simpan status ke memori HP agar tidak muncul lagi
             localStorage.setItem('welcome_done', 'true');
             
             const screen = $('screen-welcome');
@@ -382,9 +382,9 @@
             }, 300);
         };
 
-        // === 3. PLAYLIST DATA ===
+        // === 3. MUSIC PLAYER DATA & LOGIC ===
         const rawMusicList = [
-          { "url": "https://mlump3player.netlify.app/Ada%20Apa%20Denganmu.mp3" }, { "url": "https://mlump3player.netlify.app/anji-menunggu-kamu.mp3" }, { "url": "https://mlump3player.netlify.app/Anugerah%20Terindah%20Yang%20Pernah%20Kumiliki.mp3" }, { "url": "https://mlump3player.netlify.app/armada_asalkan_kau_bahagia.mp3" }, { "url": "https://mlump3player.netlify.app/armada_harusnya_aku.mp3" }, { "url": "https://mlump3player.netlify.app/Bendera%20-%20Cokelat%20-%202003.mp3" }, { "url": "https://mlump3player.netlify.app/Bintang%20Di%20Surga.mp3" }, { "url": "https://mlump3player.netlify.app/Bon%20Jovi%20-%20Always%20.MP3" }, { "url": "https://mlump3player.netlify.app/Bon%20Jovi%20-%20I'll%20Be%20There%20For%20You%20.MP3" }, { "url": "https://mlump3player.netlify.app/Bon%20Jovi%20-%20Its%20My%20Life%20.mp3" }, { "url": "https://mlump3player.netlify.app/Bon%20Jovi%20-%20Lay%20Your%20Hands%20On%20Me.MP3" }, { "url": "https://mlump3player.netlify.app/Bon%20Jovi%20-%20Livin'%20On%20A%20Prayer%20.MP3" }, { "url": "https://mlump3player.netlify.app/Bon%20Jovi%20-%20This%20house%20is%20not%20for%20sale.mp3" }, { "url": "https://mlump3player.netlify.app/Bon%20Jovi%20-%20Who%20Says%20You%20Can't%20Go%20Home%20%5BDuet%5D.mp3" }, { "url": "https://mlump3player.netlify.app/Bon%20Jovi%20-%20You%20Give%20Love%20A%20Bad%20Name.mp3" }, { "url": "https://mlump3player.netlify.app/Bunda%20-%20Potret%20-%201997.mp3" }, { "url": "https://mlump3player.netlify.app/Cukup%20Siti%20Nurbaya%20-%20Dewa%2019%20-%201995.mp3" }, { "url": "https://mlump3player.netlify.app/Dan%20-%20Sheila%20On%207%20-%201999.mp3" }, { "url": "https://mlump3player.netlify.app/Fourtwnty%20-%20Mangu%20(Official%20Lyric%20Visualizer).mp3" }, { "url": "https://mlump3player.netlify.app/Galang%20Rambu%20Anarki%20-%20Iwan%20Fals%20-%201982.mp3" }, { "url": "https://mlump3player.netlify.app/Guru%20Oemar%20Bakri%20-%20Iwan%20Fals%20-%201981.mp3" }, { "url": "https://mlump3player.netlify.app/Janji%20-%20Gigi%20-%201995.mp3" }, { "url": "https://mlump3player.netlify.app/Judika%20-%20Bagaimana%20Kalau%20Aku%20Tidak%20Baik%20-%20Baik%20Saja.mp3" }, { "url": "https://mlump3player.netlify.app/Judika%20-%20Putus%20atau%20Terus%20(Official%20Music%20Video).mp3" }, { "url": "https://mlump3player.netlify.app/Mahadewi%20-%20Padi%20-%201999.mp3" }, { "url": "https://mlump3player.netlify.app/Melompat%20Lebih%20Tinggi%20-%20Sheila%20on%207%20-%202003.mp3" }, { "url": "https://mlump3player.netlify.app/Mimpi%20-%20Anggun%20C.%20Sasmi%20-%201990.mp3" }, { "url": "https://mlump3player.netlify.app/Mix%20Lagu%20Pop%20Indonesia.mp3" }, { "url": "https://mlump3player.netlify.app/Mungkin%20Nanti.mp3" }, { "url": "https://mlump3player.netlify.app/No%20Doubt%20-%20Don't%20Speak.mp3" }, { "url": "https://mlump3player.netlify.app/PADI%20-%20Kasih%20Tak%20Sampai.mp3" }, { "url": "https://mlump3player.netlify.app/PADI%20-%20Semua%20Tak%20Sama.mp3" }, { "url": "https://mlump3player.netlify.app/Pelangi%20Di%20Matamu.mp3" }, { "url": "https://mlump3player.netlify.app/Pesawat%20Tempurku%20-%20Iwan%20Fals%20-%201987.mp3" }, { "url": "https://mlump3player.netlify.app/Sarjana%20Muda%20-%20Iwan%20Fals%20-%201981.mp3" }, { "url": "https://mlump3player.netlify.app/Sheila%20On%207%20-%20Saat%20Aku%20Lanjut%20Usia%20(Official%20Music%20Video)%20(320).mp3" }, { "url": "https://mlump3player.netlify.app/Slank%20-%20Terlalu%20Manis.mp3" }, { "url": "https://mlump3player.netlify.app/Sobat%20-%20Padi%20-%201999.mp3" }, { "url": "https://mlump3player.netlify.app/Sore%20Tugu%20Pancoran.mp3" }, { "url": "https://mlump3player.netlify.app/Stevie%20B-Dream%20About%20You.mp3" }, { "url": "https://mlump3player.netlify.app/Stinky%20-%20Mungkinkah%20(Official%20Lyric%20Video).mp3" }, { "url": "https://mlump3player.netlify.app/Surat%20Buat%20Wakil%20Rakyat.mp3" }, { "url": "https://mlump3player.netlify.app/Surat%20Buat%20Wakil%20Rakyat%20-%20Iwan%20Fals%20-%201981.mp3" }, { "url": "https://mlump3player.netlify.app/Surti%20Tejo%20(Acoustic).mp3" }, { "url": "https://mlump3player.netlify.app/Terbang%20-%20Gigi%20-%201997.mp3" }, { "url": "https://mlump3player.netlify.app/Terbunuh%20Sepi%20-%20Slank%20-%201994.mp3" }, { "url": "https://mlump3player.netlify.app/Terima%20Kasih.mp3" }, { "url": "https://mlump3player.netlify.app/Ujung%20Aspal%20Pondok%20Gede.mp3" }, { "url": "https://mlump3player.netlify.app/Virgoun%20-%20Surat%20Cinta%20Untuk%20Starla.mp3" }
+          { "url": "https://mlump3player.netlify.app/Ada%20Apa%20Denganmu.mp3" }, { "url": "https://mlump3player.netlify.app/anji-menunggu-kamu.mp3" }, { "url": "https://mlump3player.netlify.app/Anugerah%20Terindah%20Yang%20Pernah%20Kumiliki.mp3" }, { "url": "https://mlump3player.netlify.app/armada_asalkan_kau_bahagia.mp3" }, { "url": "https://mlump3player.netlify.app/armada_harusnya_aku.mp3" }, { "url": "https://mlump3player.netlify.app/Bendera%20-%20Cokelat%20-%202003.mp3" }, { "url": "https://mlump3player.netlify.app/Bintang%20Di%20Surga.mp3" }, { "url": "https://mlump3player.netlify.app/Bon%20Jovi%20-%20Always%20.MP3" }, { "url": "https://mlump3player.netlify.app/Bon%20Jovi%20-%20Its%20My%20Life%20.mp3" }, { "url": "https://mlump3player.netlify.app/Bon%20Jovi%20-%20Livin'%20On%20A%20Prayer%20.MP3" }, { "url": "https://mlump3player.netlify.app/Bon%20Jovi%20-%20You%20Give%20Love%20A%20Bad%20Name.mp3" }, { "url": "https://mlump3player.netlify.app/Bunda%20-%20Potret%20-%201997.mp3" }, { "url": "https://mlump3player.netlify.app/Cukup%20Siti%20Nurbaya%20-%20Dewa%2019%20-%201995.mp3" }, { "url": "https://mlump3player.netlify.app/Dan%20-%20Sheila%20On%207%20-%201999.mp3" }, { "url": "https://mlump3player.netlify.app/Janji%20-%20Gigi%20-%201995.mp3" }, { "url": "https://mlump3player.netlify.app/Mungkin%20Nanti.mp3" }, { "url": "https://mlump3player.netlify.app/PADI%20-%20Kasih%20Tak%20Sampai.mp3" }, { "url": "https://mlump3player.netlify.app/PADI%20-%20Semua%20Tak%20Sama.mp3" }, { "url": "https://mlump3player.netlify.app/Pelangi%20Di%20Matamu.mp3" }, { "url": "https://mlump3player.netlify.app/Pesawat%20Tempurku%20-%20Iwan%20Fals%20-%201987.mp3" }, { "url": "https://mlump3player.netlify.app/Slank%20-%20Terlalu%20Manis.mp3" }, { "url": "https://mlump3player.netlify.app/Sobat%20-%20Padi%20-%201999.mp3" }, { "url": "https://mlump3player.netlify.app/Stinky%20-%20Mungkinkah%20(Official%20Lyric%20Video).mp3" }, { "url": "https://mlump3player.netlify.app/Surat%20Buat%20Wakil%20Rakyat%20-%20Iwan%20Fals%20-%201981.mp3" }, { "url": "https://mlump3player.netlify.app/Terbang%20-%20Gigi%20-%201997.mp3" }, { "url": "https://mlump3player.netlify.app/Terbunuh%20Sepi%20-%20Slank%20-%201994.mp3" }, { "url": "https://mlump3player.netlify.app/Virgoun%20-%20Surat%20Cinta%20Untuk%20Starla.mp3" }
         ];
 
         const playlist = rawMusicList.map(item => {
@@ -393,7 +393,48 @@
             return { title: cleanTitle.toUpperCase(), url: item.url };
         });
 
-        // === 4. CUSTOM MODAL LOGIC ===
+        // Player UI Logic
+        let currentTrack = 0;
+        const audio = $('audioPlayer');
+        const disc = document.querySelector('.cp-disc');
+        const pContainer = $('cpListContainer');
+        
+        playlist.forEach((s, i) => {
+            const div = document.createElement('div');
+            div.className = `cp-item`;
+            div.id = `track-${i}`;
+            div.innerText = `${i+1}. ${s.title}`;
+            div.onclick = () => window.playSong(i);
+            pContainer.appendChild(div);
+        });
+
+        window.togglePlayerPanel = () => { $('cpPanel').classList.toggle('show'); };
+
+        window.playSong = (idx) => {
+            if (idx !== undefined) currentTrack = idx;
+            document.querySelectorAll('.cp-item').forEach(el => el.classList.remove('active'));
+            const activeItem = $('track-' + currentTrack);
+            if(activeItem) {
+                activeItem.classList.add('active');
+                activeItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+            audio.src = playlist[currentTrack].url;
+            const playPromise = audio.play();
+            if (playPromise !== undefined) {
+                playPromise.then(() => {
+                    disc.classList.add('playing');
+                    $('cpTitle').innerText = playlist[currentTrack].title;
+                }).catch(error => {
+                    disc.classList.remove('playing');
+                    $('cpTitle').innerText = "TAP TO PLAY";
+                });
+            }
+        };
+
+        window.nextSong = () => { currentTrack = (currentTrack + 1) % playlist.length; window.playSong(); };
+        window.prevSong = () => { currentTrack = (currentTrack - 1 + playlist.length) % playlist.length; window.playSong(); };
+
+        // === 4. MODAL UTILS ===
         function showModal(msg, type = 'alert') {
             return new Promise((resolve) => {
                 const modal = $('customModal');
@@ -425,67 +466,12 @@
                 modal.style.display = 'flex';
             });
         }
-
         const customAlert = (msg) => showModal(msg, 'alert');
         const customConfirm = (msg) => showModal(msg, 'confirm');
         const customPrompt = (msg) => showModal(msg, 'prompt');
 
 
-        // === 5. MUSIC PLAYER ENGINE ===
-        let currentTrack = 0;
-        const audio = $('audioPlayer');
-        const disc = document.querySelector('.cp-disc');
-        
-        const pContainer = $('cpListContainer');
-        playlist.forEach((s, i) => {
-            const div = document.createElement('div');
-            div.className = `cp-item`;
-            div.id = `track-${i}`;
-            div.innerText = `${i+1}. ${s.title}`;
-            div.onclick = () => window.playSong(i);
-            pContainer.appendChild(div);
-        });
-
-        window.togglePlayerPanel = () => {
-            $('cpPanel').classList.toggle('show');
-        };
-
-        window.playSong = (idx) => {
-            if (idx !== undefined) currentTrack = idx;
-            document.querySelectorAll('.cp-item').forEach(el => el.classList.remove('active'));
-            const activeItem = $('track-' + currentTrack);
-            if(activeItem) {
-                activeItem.classList.add('active');
-                activeItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            }
-
-            audio.src = playlist[currentTrack].url;
-            const playPromise = audio.play();
-
-            if (playPromise !== undefined) {
-                playPromise.then(() => {
-                    disc.classList.add('playing');
-                    $('cpTitle').innerText = playlist[currentTrack].title;
-                }).catch(error => {
-                    console.log("Autoplay blocked, waiting interaction.");
-                    disc.classList.remove('playing');
-                    $('cpTitle').innerText = "TAP TO PLAY";
-                });
-            }
-        };
-
-        window.nextSong = () => {
-            currentTrack = (currentTrack + 1) % playlist.length;
-            window.playSong();
-        };
-
-        window.prevSong = () => {
-            currentTrack = (currentTrack - 1 + playlist.length) % playlist.length;
-            window.playSong();
-        };
-
-
-        // === 6. CORE SYSTEM LOGIC ===
+        // === 5. CORE SYSTEM LOGIC ===
         let localSlots = [null, null, null];
         let localQueue = [];
         let myPlat = localStorage.getItem('myPlat');
@@ -574,7 +560,7 @@
             } else customAlert("Browser tidak support GPS");
         };
 
-        // === LOGIN STEPS & AUTO FORMAT PLAT ===
+        // === LOGIN FLOW ===
         let formStep=0; let formData={};
         const formConfig = [
             {l:"LANGKAH 1/2", q:"PLAT NOMOR?", k:"plat", p:"CONTOH: B 1234 XYZ"},
@@ -589,16 +575,11 @@
             $('holoInput').value=""; $('holoInput').placeholder=c.p; $('holoInput').focus();
         }
 
-        // === LOGIC FORMATTER PLAT INDONESIA ===
         function formatPlatNomor(raw) {
             let clean = raw.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
             const match = clean.match(/^([A-Z]{1,2})(\d{1,4})([A-Z]{1,3})$/);
-
-            if (match) {
-                return `${match[1]} ${match[2]} ${match[3]}`; 
-            } else {
-                return clean.replace(/([A-Z]+)(\d+)([A-Z]*)/, '$1 $2 $3').trim();
-            }
+            if (match) return `${match[1]} ${match[2]} ${match[3]}`; 
+            else return clean.replace(/([A-Z]+)(\d+)([A-Z]*)/, '$1 $2 $3').trim();
         }
 
         window.nextStepAction = () => {
@@ -614,7 +595,6 @@
 
             formData[formConfig[formStep].k] = rawVal; 
             formStep++;
-            
             if(formStep < 2) renderStep(); else { $('screen-login').classList.remove('active'); startScan(); }
         };
 
@@ -730,11 +710,16 @@
         function startChargeTimer(s){ if(chargeTimerInterval) clearInterval(chargeTimerInterval); chargeTimerInterval=setInterval(()=>{ const d=Math.floor((Date.now()-s)/1000); $('timerVal').innerText=`${Math.floor(d/60).toString().padStart(2,'0')}:${(d%60).toString().padStart(2,'0')}`; },1000); }
         function getDist(lat1,lon1,lat2,lon2){const R=6371;const dLat=(lat2-lat1)*Math.PI/180;const dLon=(lon2-lon1)*Math.PI/180;const a=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)*Math.sin(dLon/2);return R*(2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a)));}
         
+        // === FIX ADMIN REDIRECT ===
         window.toggleAdmin = async () => { 
             const code = await customPrompt("KODE ADMIN:");
-            if(code==="1131"){
+            if(code === "1131"){
                 localStorage.setItem('adm_ok','1'); 
-                await customAlert("ADMIN MODE ON"); 
+                await customAlert("LOGIN SUKSES! MENGALIHKAN...");
+                // FIX: PINDAH KE HALAMAN ADMIN
+                window.location.href = 'admin.html';
+            } else {
+                await customAlert("KODE SALAH!");
             }
         };
 
