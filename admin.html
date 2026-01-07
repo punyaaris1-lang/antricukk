@@ -6,7 +6,7 @@
     <title>ADMIN SUPER - FC KG (ULTIMATE)</title>
     <link href="https://fonts.googleapis.com/css2?family=Teko:wght@300;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        /* === STYLE DASAR & TERMINAL THEME === */
+        /* === STYLE DASAR === */
         :root { 
             --bg: #050505; --panel: #111; --border: #333; 
             --accent: #CCFF00; --cyan: #00F0FF; --red: #FF003C; 
@@ -41,21 +41,21 @@
         
         /* === TERMUX / BRUTAL LOG STYLE === */
         .term-container {
-            background: var(--term-bg); border: 1px solid #333; height: 400px; 
+            background: var(--term-bg); border: 1px solid #333; height: 300px; 
             overflow-y: auto; padding: 10px; font-family: 'JetBrains Mono', monospace; 
             font-size: 10px; color: #ccc; border-radius: 5px;
-            display: flex; flex-direction: column-reverse; /* Log baru di bawah */
+            display: flex; flex-direction: column-reverse; 
         }
         .log-line { margin-bottom: 4px; border-bottom: 1px solid #111; padding-bottom: 2px; line-height: 1.4; word-wrap: break-word; }
         .ts { color: #666; margin-right: 5px; }
-        
-        /* WARNA ACTOR */
-        .act-admin { color: var(--red); font-weight: bold; }   /* Merah */
-        .act-system { color: var(--cyan); font-weight: bold; } /* Cyan */
-        .act-user { color: var(--accent); font-weight: bold; } /* Hijau Stabilo */
-        
+        .act-admin { color: var(--red); font-weight: bold; }
+        .act-system { color: var(--cyan); font-weight: bold; }
+        .act-user { color: var(--accent); font-weight: bold; }
         .cmd { color: #fff; font-weight: bold; margin-right: 5px; }
         .dtl { color: #aaa; font-style: italic; }
+
+        /* RECOVERY STYLE */
+        .rec-item { display:flex; justify-content:space-between; padding:5px; border-bottom:1px solid #333; font-size:10px; }
 
         /* MODAL & LOGIN */
         #customModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 9999; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
@@ -137,6 +137,7 @@
             </div>
         </div>
     </div>
+
     <div class="box" style="border-top: 3px solid #fff;">
         <h3 style="display:flex; justify-content:space-between; align-items:center;">
             STATISTIK HARI INI
@@ -151,7 +152,7 @@
     </div>
 
     <div class="box">
-        <h3>3. LAPORAN & RESET</h3>
+        <h3>4. LAPORAN & RESET</h3>
         <div style="display:flex; gap:5px; margin-bottom:10px;">
             <select id="reportRange" onchange="toggleCustomDate()" style="flex:2;">
                 <option value="today">HARI INI</option>
@@ -165,16 +166,26 @@
             <input type="date" id="dateStart" style="margin-bottom:5px;">
             <input type="date" id="dateEnd">
         </div>
-        
-        <button onclick="askConfirm('RESET NOMOR JADI 1 (NEW DAY)?', resetDaily)" class="btn-yellow" style="width:100%; margin-bottom:10px;">
-            ☀ RESET TIKET HARIAN (NEW DAY) ☀
-        </button>
-
+        <button onclick="askConfirm('RESET NOMOR JADI 1 (NEW DAY)?', resetDaily)" class="btn-yellow" style="width:100%; margin-bottom:10px;">☀ RESET TIKET HARIAN (NEW DAY) ☀</button>
         <button onclick="askConfirm('RESET SEMUA?? (MANUAL)', resetTotal)" class="btn-red" style="width:100%;">⚠ RESET TOTAL MANUAL ⚠</button>
     </div>
 
+    <div class="box" style="border: 2px dashed var(--accent);">
+        <h3 style="color:var(--accent);">5. EMERGENCY RECOVERY</h3>
+        <div style="font-size:10px; color:#aaa; margin-bottom:10px;">
+            Gunakan ini jika data antrian utama HILANG/RESET. Ini mengambil data dari Log Pendaftaran Hari Ini.
+        </div>
+        <button onclick="checkRecovery()" class="btn-blue" style="width:100%; margin-bottom:10px;">🔍 CEK DATA BACKUP (HARI INI)</button>
+        
+        <div id="recoveryPanel" style="display:none; background:#111; padding:10px;">
+            <div style="border-bottom:1px solid #333; margin-bottom:5px;">DITEMUKAN: <b id="recCount" style="color:var(--accent)">0</b></div>
+            <div id="recList" style="max-height:150px; overflow-y:auto; margin-bottom:10px;"></div>
+            <button onclick="askConfirm('TIMPA ANTRIAN SAAT INI DGN DATA BACKUP?', executeRestore)" class="btn-green" style="width:100%;">♻️ PULIHKAN KE ANTRIAN</button>
+        </div>
+    </div>
+
     <div class="box">
-        <h3>4. SYSTEM LOGS (TERMINAL VIEW)</h3>
+        <h3>6. SYSTEM LOGS</h3>
         <div class="term-container" id="termLog">
             <div class="log-line">Waiting for logs...</div>
         </div>
@@ -195,7 +206,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, doc, onSnapshot, runTransaction, collection, addDoc, query, orderBy, limit, getDocs, where, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // === CONFIG SAMA DENGAN USER (JANGAN UBAH) ===
+        // FIREBASE
         const firebaseConfig = {
             apiKey: "AIzaSyB666i9lYWIpxOdkwpoX9EvFvHLmHczeq8",
             authDomain: "fcgadingnew22.firebaseapp.com",
@@ -211,14 +222,15 @@
         const mainRef = doc(db, "antrian", "utama");
         const logRef = collection(db, "activityLog");
         const histRef = collection(db, "riwayatCharging");
+        const backupRef = collection(db, "backupHarian"); // INI KUNCINYA
 
         let cachedSlots = [null, null, null];
         let cachedQueue = [];
+        let recoveredData = [];
 
-        // === LOGIN LOGIC ===
+        // AUTH & UTILS
         const SESSION_KEY = 'adm_sess_v5';
         const currentAdmin = localStorage.getItem(SESSION_KEY);
-        
         if(currentAdmin) {
             document.getElementById('loginOverlay').style.display = 'none';
             document.getElementById('displayAdminName').innerText = "User: " + currentAdmin;
@@ -231,16 +243,12 @@
                 localStorage.setItem(SESSION_KEY, name.trim());
                 document.getElementById('loginOverlay').style.display = 'none';
                 document.getElementById('displayAdminName').innerText = "User: " + name.trim();
-                addLog("ADMIN", "LOGIN", "Login success (New Session)");
+                addLog("ADMIN", "LOGIN", "Session Started");
             } else { alert("PIN Salah!"); }
         };
 
-        window.logout = () => { 
-            localStorage.removeItem(SESSION_KEY); 
-            window.location.href='index.html'; 
-        };
+        window.logout = () => { localStorage.removeItem(SESSION_KEY); window.location.href='index.html'; };
 
-        // === MODAL UTILS ===
         let currentCallback = null;
         window.askConfirm = (text, callback) => {
             document.getElementById('modalText').innerText = text;
@@ -249,17 +257,15 @@
         };
         document.getElementById('btnYes').onclick = () => { if(currentCallback) currentCallback(); closeModal(); };
         window.closeModal = () => { document.getElementById('customModal').style.display = 'none'; currentCallback = null; };
-
         function getTodayString() { return new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jakarta' }); }
 
-        // === REALTIME LISTENER ===
+        // === 1. REALTIME MONITOR ===
         onSnapshot(mainRef, (snap) => {
             if (!snap.exists()) return;
             const d = snap.data();
             cachedSlots = d.chargingSlots || [null,null,null];
             cachedQueue = d.waitingQueue || [];
 
-            // Render Slot
             cachedSlots.forEach((s, i) => {
                 const el = document.getElementById(`slot${i+1}`);
                 if(s) {
@@ -281,16 +287,13 @@
             document.getElementById('stat-active').innerText = cachedQueue.length;
         });
 
-        // Render Tabel Antrian dengan Panah Naik/Turun
         function renderQueueTable() {
             let h = `<table><tr><th width="20">#</th><th>USER</th><th>AKSI</th></tr>`;
             if(cachedQueue.length === 0) h += `<tr><td colspan="3" style="text-align:center; color:#444;">KOSONG</td></tr>`;
             
-            // Urutkan manual (FIFO/Array Order) - JANGAN DISORTIR OTOMATIS SUPAYA BISA NAIK TURUN
             cachedQueue.forEach((q, idx) => {
                 const upDisabled = (idx === 0) ? 'disabled style="opacity:0.3"' : '';
                 const downDisabled = (idx === cachedQueue.length - 1) ? 'disabled style="opacity:0.3"' : '';
-
                 h += `<tr>
                     <td>${q.qNo}</td>
                     <td><b style="color:var(--accent)">${q.plat}</b><br>${q.userName}</td>
@@ -309,22 +312,14 @@
             document.getElementById('queueTable').innerHTML = h + `</table>`;
         }
 
-        // === ACTIONS (NAIK TURUN DLL) ===
-        
-        // FUNGSI NAIK TURUN ANTRIAN (SWAP ARRAY)
+        // === 2. CORE ACTIONS ===
         window.switchQueue = (idx, direction) => {
             runTransaction(db, async(t) => {
                 const d = (await t.get(mainRef)).data();
                 let q = d.waitingQueue || [];
-                
                 const targetIdx = idx + direction;
-                if (targetIdx < 0 || targetIdx >= q.length) return; // Validasi batas
-                
-                // Swap Posisi
-                const temp = q[idx];
-                q[idx] = q[targetIdx];
-                q[targetIdx] = temp;
-                
+                if (targetIdx < 0 || targetIdx >= q.length) return;
+                const temp = q[idx]; q[idx] = q[targetIdx]; q[targetIdx] = temp;
                 t.update(mainRef, { waitingQueue: q });
                 addLog("ADMIN", "SWAP_QUEUE", `Swapped Q#${idx+1} with Q#${targetIdx+1}`);
             });
@@ -338,15 +333,12 @@
                 const docSnap = await t.get(mainRef);
                 let d = docSnap.exists() ? docSnap.data() : { chargingSlots: [null,null,null], waitingQueue: [], recycledNumbers: [], lastTicket: 0, lastResetDate: getTodayString() };
                 if(!docSnap.exists()) t.set(mainRef, d);
-
                 if([...(d.chargingSlots||[]), ...d.waitingQueue].some(u => u && u.plat === p)) throw "Plat Exist";
                 let newNo = (d.recycledNumbers||[]).length>0 ? d.recycledNumbers.sort((a,b)=>a-b).shift() : (d.lastTicket||0)+1;
                 const u = { plat:p, userName:n, wa:'ADMIN', qNo:newNo, entryTime:Date.now() };
-
                 let loc = "";
                 if(target === 'queue') { d.waitingQueue.push(u); loc="QUEUE"; } 
                 else { if(d.chargingSlots[target]) throw "Penuh"; u.startTime=Date.now(); d.chargingSlots[target]=u; loc=`SLOT ${target+1}`; }
-
                 t.set(mainRef, { waitingQueue:d.waitingQueue, chargingSlots:d.chargingSlots, recycledNumbers:d.recycledNumbers||[], lastTicket:Math.max(d.lastTicket||0,newNo), lastResetDate: getTodayString() }, {merge:true});
                 addLog("ADMIN", "MANUAL_ADD", `Input ${p} (${n}) to ${loc}`);
             }).then(()=>{ document.getElementById('newPlat').value=''; }).catch(e=>alert(e));
@@ -414,26 +406,63 @@
             });
         };
 
-        // === FUNGSI RESET HARIAN (AMAN) ===
         window.resetDaily = () => {
             runTransaction(db, async(t) => {
                 const docSnap = await t.get(mainRef);
                 const d = docSnap.data();
                 const currentSlots = d.chargingSlots || [null, null, null];
-                t.set(mainRef, { 
-                    chargingSlots: currentSlots, 
-                    waitingQueue: [], recycledNumbers: [], lastTicket: 0, lastResetDate: getTodayString() 
-                });
-                addLog("ADMIN", "NEW_DAY", "Reset Nomor Antrian ke 1 (Daily Reset)");
+                t.set(mainRef, { chargingSlots: currentSlots, waitingQueue: [], recycledNumbers: [], lastTicket: 0, lastResetDate: getTodayString() });
+                addLog("ADMIN", "NEW_DAY", "Reset Daily Ticket");
             }).then(() => { alert("BERHASIL! Nomor Antrian kembali ke 1. Slot aman."); }).catch(e => alert("Error: " + e));
         };
 
-        // === FUNGSI RESET TOTAL (BAHAYA) ===
         window.resetTotal = () => {
             setDoc(mainRef, { chargingSlots:[null,null,null], waitingQueue:[], recycledNumbers:[], lastTicket:0, lastResetDate: getTodayString() })
             .then(() => { addLog("ADMIN", "RESET_ALL", "System Reset Triggered"); });
         };
 
+        // === 3. RECOVERY SYSTEM (NEW!!) ===
+        window.checkRecovery = async () => {
+            const todayStart = new Date(); todayStart.setHours(0,0,0,0);
+            // Ambil data dari backupHarian yang dibuat hari ini
+            const q = query(backupRef, where("time", ">=", todayStart), orderBy("time", "asc"));
+            const snap = await getDocs(q);
+            
+            recoveredData = [];
+            const listDiv = document.getElementById('recList'); listDiv.innerHTML = '';
+
+            snap.forEach(doc => {
+                const d = doc.data();
+                if(d.type === "REGISTER_ATTEMPT") {
+                    recoveredData.push(d);
+                    const div = document.createElement('div');
+                    div.className = 'rec-item';
+                    const jam = d.time.toDate().toLocaleTimeString('id-ID');
+                    div.innerHTML = `<span>${jam}</span> <b style="color:var(--cyan)">${d.plat}</b> <span>${d.name}</span>`;
+                    listDiv.appendChild(div);
+                }
+            });
+
+            document.getElementById('recCount').innerText = recoveredData.length;
+            document.getElementById('recoveryPanel').style.display = 'block';
+        };
+
+        window.executeRestore = async () => {
+            if(recoveredData.length === 0) return alert("Data kosong");
+            const newQ = recoveredData.map((d, i) => ({
+                plat: d.plat, userName: d.name, qNo: i+1, entryTime: d.time.toMillis()
+            }));
+            
+            await runTransaction(db, async(t) => {
+                // Restore antrian, reset tiket terakhir ke jumlah restore
+                t.update(mainRef, { waitingQueue: newQ, lastTicket: newQ.length });
+                addLog("ADMIN", "RESTORE", `Restored ${newQ.length} users from backup`);
+            });
+            alert("BERHASIL DIPULIHKAN!");
+            document.getElementById('recoveryPanel').style.display = 'none';
+        };
+
+        // === 4. REPORTS & STATS ===
         window.toggleCustomDate = () => { document.getElementById('customDateArea').style.display = (document.getElementById('reportRange').value === 'custom') ? 'block' : 'none'; }
         
         window.generateReport = async () => {
@@ -473,50 +502,29 @@
         };
         setTimeout(loadAnalytics, 2000);
 
-        // === TERMINAL LOG LISTENER (BRUTAL DETAIL) ===
+        // LOG LISTENER
         onSnapshot(query(logRef, orderBy("timestamp", "desc"), limit(30)), (snap) => {
-            let h = '';
-            const docs = [];
-            snap.forEach(d => docs.push(d.data()));
-            docs.reverse(); // Urutan bawah = terbaru
-
+            let h = ''; const docs = [];
+            snap.forEach(d => docs.push(d.data())); docs.reverse();
             docs.forEach(data => {
-                let timeStr = "??:??:??";
+                let timeStr = "??:??";
                 if(data.timestamp && data.timestamp.toDate) {
                     const dt = data.timestamp.toDate();
-                    timeStr = `${dt.getHours().toString().padStart(2,'0')}:${dt.getMinutes().toString().padStart(2,'0')}:${dt.getSeconds().toString().padStart(2,'0')}.${dt.getMilliseconds().toString().padStart(3,'0')}`;
+                    timeStr = `${dt.getHours().toString().padStart(2,'0')}:${dt.getMinutes().toString().padStart(2,'0')}`;
                 }
-
-                let actorClass = 'act-system'; 
+                let c = 'act-system'; 
                 const act = (data.actor || 'SYSTEM').toUpperCase();
-                if(act.includes('ADMIN')) actorClass = 'act-admin';
-                else if(act.includes('SYSTEM')) actorClass = 'act-system';
-                else actorClass = 'act-user';
-
-                h += `<div class="log-line">
-                    <span class="ts">[${timeStr}]</span>
-                    <span class="${actorClass}">[${act}]</span>
-                    <span class="cmd">${data.action}</span>
-                    <span class="dtl">> ${data.details}</span>
-                </div>`;
+                if(act.includes('ADMIN')) c = 'act-admin'; else if(!act.includes('SYSTEM')) c = 'act-user';
+                h += `<div class="log-line"><span class="ts">[${timeStr}]</span><span class="${c}">[${act}]</span> <span class="cmd">${data.action}</span> <span class="dtl"> ${data.details}</span></div>`;
             });
-            const cont = document.getElementById('termLog');
-            cont.innerHTML = h;
-            cont.scrollTop = cont.scrollHeight; 
+            document.getElementById('termLog').innerHTML = h;
+            document.getElementById('termLog').scrollTop = document.getElementById('termLog').scrollHeight; 
         });
 
-        // Add Log Helper
         function addLog(actor, act, det) { 
             let finalActor = actor;
-            if(actor === 'ADMIN') {
-                finalActor = (localStorage.getItem(SESSION_KEY) || 'ADMIN').toUpperCase();
-            }
-            addDoc(logRef, { 
-                action: act, 
-                details: det, 
-                actor: finalActor, 
-                timestamp: new Date() 
-            }); 
+            if(actor === 'ADMIN') finalActor = (localStorage.getItem(SESSION_KEY) || 'ADMIN').toUpperCase();
+            addDoc(logRef, { action: act, details: det, actor: finalActor, timestamp: new Date() }); 
         }
     </script>
 </body>
