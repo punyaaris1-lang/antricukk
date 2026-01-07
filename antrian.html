@@ -76,7 +76,7 @@
         .btn-pilih { display: none; background: rgba(255, 215, 0, 0.2); border: 1px solid #FFD700; color: #FFD700; padding: 4px 10px; border-radius: 6px; margin-left: 10px; font-size: 10px; font-weight: bold; animation: blink 2s infinite; }
         .slot-card.empty .btn-pilih { display: inline-block; }
 
-        /* KUDETA STYLE (UPDATE) */
+        /* KUDETA STYLE */
         .kudeta-hint { font-size:9px; color:var(--danger); display:none; margin-top:2px; animation:blink 1s infinite; letter-spacing:1px; font-weight:bold; }
         .slot-card.active.can-kudeta { border-color:var(--danger); cursor:pointer; }
         .slot-card.active.can-kudeta .kudeta-hint { display:block; }
@@ -310,7 +310,7 @@
             </div>
         </div>
 
-        <div class="lbl-list" style="margin-bottom:10px; color:#888; font-size:12px;">Daftar Menunggu</div>
+        <div class="lbl-list" style="margin-bottom:10px; color:#888; font-size:12px;">Daftar Menunggu (Klik untuk detail)</div>
 
         <div class="queue-list-wrapper">
             <div id="wdListContainer"></div>
@@ -644,46 +644,109 @@
             }
         };
 
-                  // === FIX LOGIN ADMIN (VERSI SIMPLE & STABIL) ===
         window.toggleAdmin = () => { 
-            // Menggunakan prompt standar HP (Bukan custom) agar tidak macet
             let code = prompt("MASUKKAN KODE ADMIN:");
-            
             if(code === "1131"){
                 localStorage.setItem('adm_ok','1'); 
-                
-                // Pindah ke admin.html
-                // Pastikan file admin.html ada di folder yang sama!
                 window.location.assign("admin.html");
             } 
             else if (code !== null) {
                 alert("KODE SALAH!");
             }
         };
-      
 
+        // FUNGSI BARU: MEMBUKA WAITING DASHBOARD (Agar tombol TOTAL berfungsi)
+        window.openWaitingDashboard = () => {
+            $('waitingDashboard').classList.add('active');
+            renderQueueDashboard();
+        };
 
         // === HELPERS ===
         function getDist(lat1,lon1,lat2,lon2){const R=6371;const dLat=(lat2-lat1)*Math.PI/180;const dLon=(lon2-lon1)*Math.PI/180;const a=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)*Math.sin(dLon/2);return R*(2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a)));}
         function startChargeTimer(s){ if(chargeTimerInterval) clearInterval(chargeTimerInterval); chargeTimerInterval=setInterval(()=>{ const d=Math.floor((Date.now()-s)/1000); $('timerVal').innerText=`${Math.floor(d/60).toString().padStart(2,'0')}:${(d%60).toString().padStart(2,'0')}`; },1000); }
         window.toggleDashboard = (s) => { if(!s) $('screen-active-dashboard').classList.add('minimized'); else $('screen-active-dashboard').classList.remove('minimized'); if(s===false) $('screen-active-dashboard').classList.remove('active'); };
         
-        function showModal(msg,type){return new Promise(r=>{const m=$('customModal');$('modalMsg').innerText=msg;const acts=$('modalActions');const inp=$('modalInput');inp.style.display=type==='prompt'?'block':'none';inp.value='';acts.innerHTML='';if(type==='confirm'){acts.innerHTML=`<button class="btn-modal" onclick="mRes(false)" style="background:#333;color:#fff;">BATAL</button><button class="btn-modal" onclick="mRes(true)" style="background:var(--cyan);color:#000;">YA</button>`;}else if(type==='prompt'){acts.innerHTML=`<button class="btn-modal" onclick="mRes(inp.value)" style="background:var(--cyan);color:#000;">OK</button>`;}else{acts.innerHTML=`<button class="btn-modal" onclick="mRes(true)" style="background:#333;color:#fff;">TUTUP</button>`;}m.style.display='flex';window.mRes=(v)=>{m.style.display='none';r(v);};});}
+        // FUNGSI MODAL (UPDATED: SUPPORT HTML innerHTML)
+        function showModal(msg,type){
+            return new Promise(r=>{
+                const m=$('customModal');
+                $('modalMsg').innerHTML=msg; // Gunakan innerHTML agar bisa baris baru <br>
+                const acts=$('modalActions');
+                const inp=$('modalInput');
+                inp.style.display=type==='prompt'?'block':'none';
+                inp.value='';
+                acts.innerHTML='';
+                if(type==='confirm'){
+                    acts.innerHTML=`<button class="btn-modal" onclick="mRes(false)" style="background:#333;color:#fff;">BATAL</button><button class="btn-modal" onclick="mRes(true)" style="background:var(--cyan);color:#000;">YA</button>`;
+                }else if(type==='prompt'){
+                    acts.innerHTML=`<button class="btn-modal" onclick="mRes(inp.value)" style="background:var(--cyan);color:#000;">OK</button>`;
+                }else{
+                    acts.innerHTML=`<button class="btn-modal" onclick="mRes(true)" style="background:#333;color:#fff;">TUTUP</button>`;
+                }
+                m.style.display='flex';
+                window.mRes=(v)=>{m.style.display='none';r(v);};
+            });
+        }
         const customAlert=m=>showModal(m,'alert'); const customConfirm=m=>showModal(m,'confirm'); const customPrompt=m=>showModal(m,'prompt');
         
+        // FUNGSI RENDER ANTRIAN (UPDATED: CLICKABLE LIST)
         function renderQueueDashboard() {
             const c=$('wdListContainer'); c.innerHTML='';
+            
             const myIdx = localQueue.findIndex(q=>cleanStr(q.plat)===cleanStr(myPlat));
-            if(myIdx!=-1) { $('wdMyRank').innerText="#"+(myIdx+1); $('wdMyPlat').innerText=myPlat; $('wdEstTime').innerText="Est: "+((myIdx+1)*20)+" Menit"; }
+            if(myIdx!=-1) { 
+                $('wdMyRank').innerText="#"+(myIdx+1); 
+                $('wdMyPlat').innerText=myPlat; 
+                $('wdEstTime').innerText="Est: "+((myIdx+1)*20)+" Menit"; 
+            }
+
             localQueue.forEach((q,i)=>{
                 const isMe = (cleanStr(q.plat)===cleanStr(myPlat));
                 const d=document.createElement('div'); 
-                d.style.cssText=`padding:10px; border-bottom:1px solid #333; display:flex; justify-content:space-between; ${isMe ? 'background:rgba(0,240,255,0.1); border-left:3px solid var(--cyan);' : ''}`;
-                d.innerHTML=`<div><span style="color:var(--cyan); font-weight:bold;">#${i+1}</span> ${q.plat}</div><div style="font-size:10px; color:#666;">${q.userName}</div>`;
+                
+                // Tambah style cursor pointer agar terlihat bisa diklik
+                d.style.cssText=`padding:10px; border-bottom:1px solid #333; display:flex; justify-content:space-between; cursor:pointer; ${isMe ? 'background:rgba(0,240,255,0.1); border-left:3px solid var(--cyan);' : ''}`;
+                
+                // Isi konten list
+                d.innerHTML=`<div><span style="color:var(--cyan); font-weight:bold;">#${q.qNo || (i+1)}</span> ${q.plat}</div><div style="font-size:12px; color:#fff;">${q.userName} ➤</div>`;
+                
+                // Tambah event klik untuk melihat detail
+                d.onclick = () => showQueueDetail(q);
+                
                 c.appendChild(d);
             });
         }
-        
+
+        // FUNGSI BARU: MENAMPILKAN DETAIL ANTRIAN (Update: Nama Lebih Besar)
+        window.showQueueDetail = (data) => {
+            let timeStr = "--:--";
+            if(data.entryTime) {
+                const d = new Date(data.entryTime);
+                timeStr = d.toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'});
+            }
+
+            const detailHTML = `
+                <div style="text-align:center; border-bottom:1px solid #333; padding-bottom:10px; margin-bottom:10px;">
+                    <div style="font-size:12px; color:var(--cyan); letter-spacing:2px;">DETAIL ANTRIAN</div>
+                    <div style="font-family:'Teko'; font-size:42px; line-height:1; margin-top:5px;">${data.plat}</div>
+                </div>
+                
+                <div style="text-align:left; font-size:14px; line-height:1.6; color:#ccc;">
+                    <div style="margin-bottom:8px;">
+                        <span style="font-size:12px; color:#fff; text-transform:uppercase; letter-spacing:1px;">NAMA DRIVER:</span><br>
+                        <span style="color:var(--cyan); font-size:32px; font-family:'Teko'; font-weight:500; line-height:1; display:block; margin-top:2px;">
+                            ${data.userName}
+                        </span>
+                    </div>
+
+                    <div style="border-top:1px solid #333; padding-top:8px; margin-top:5px;">
+                        <b>NO TIKET:</b> <span style="color:#fff; font-weight:bold;">#${data.qNo}</span><br>
+                        <b>JAM DAFTAR:</b> <span style="color:#fff;">${timeStr} WIB</span>
+                    </div>
+                </div>
+            `;
+            customAlert(detailHTML);
+        };
         const style=document.createElement('style'); style.innerHTML=`@keyframes scanMove {0%{top:0} 100%{top:100%}} @keyframes spin {0%{transform:rotate(0deg)} 100%{transform:rotate(360deg)}} .screen-overlay.minimized {display:none !important;}`; document.head.appendChild(style);
     </script>
 </body>
