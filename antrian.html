@@ -581,7 +581,8 @@
             formStep = 0; formData = {}; // Reset juga saat batal
         };
 
-        // === ACTIONS ===
+        // === ACTIONS (UPDATED WITH LOGGING) ===
+        
         window.attemptKudeta = async (slotIdx, targetPlat) => {
             const confirm = await customConfirm(`SLOT ${slotIdx+1} DIPAKAI ${targetPlat}.\nUsernya sudah selesai tapi lupa klik stop?\nAMBIL ALIH SEKARANG?`);
             if(!confirm) return;
@@ -593,7 +594,9 @@
                 // Validasi Kudeta
                 if(d.waitingQueue.length === 0 || cleanStr(d.waitingQueue[0].plat) !== cleanStr(myPlat)) throw "Anda bukan antrian No 1!";
 
-                addDoc(historyRef, {...targetSlot, finishTime:new Date(), status: "KUDETA_BY_" + myPlat});
+                // LOG KUDETA
+                addDoc(historyRef, {...targetSlot, finishTime:new Date(), status: "KUDETA_BY_" + myPlat, action: "KUDETA"});
+                
                 const me = d.waitingQueue.shift();
                 me.startTime = Date.now();
                 d.chargingSlots[slotIdx] = me;
@@ -606,6 +609,10 @@
         window.selectSlot = async (i) => {
             const ok = await customConfirm("Masuk Slot "+(i+1)+"?");
             if(!ok) return;
+            
+            // Simpan data dulu untuk log
+            const myData = localQueue.find(q => cleanStr(q.plat) === cleanStr(myPlat));
+            
             runTransaction(db, async(t)=>{
                 const d=(await t.get(mainRef)).data();
                 if(d.chargingSlots[i]) throw "Maaf, Slot baru saja diambil orang lain."; 
@@ -613,6 +620,17 @@
                 
                 const u=d.waitingQueue.shift(); u.startTime=Date.now(); d.chargingSlots[i]=u;
                 t.update(mainRef,{chargingSlots:d.chargingSlots, waitingQueue:d.waitingQueue});
+            }).then(() => {
+                // LOG START CHARGING (NEW)
+                if(myData) {
+                    addDoc(historyRef, {
+                        plat: myData.plat,
+                        userName: myData.userName,
+                        action: "START_CHARGING",
+                        slot: i+1,
+                        time: new Date()
+                    });
+                }
             }).catch(e => customAlert(e)); 
         };
 
@@ -622,7 +640,8 @@
             runTransaction(db, async(t)=>{
                 const d=(await t.get(mainRef)).data();
                 const u=d.chargingSlots[i]; d.chargingSlots[i]=null;
-                if(u) addDoc(historyRef, {...u, finishTime:new Date()});
+                // LOG STOP CHARGING
+                if(u) addDoc(historyRef, {...u, finishTime:new Date(), action: "STOP_CHARGING"});
                 t.update(mainRef,{chargingSlots:d.chargingSlots});
             }).then(()=>{ 
                 localStorage.removeItem('myPlat'); myPlat=null; window.activeSlotIdx=-1;
@@ -636,6 +655,15 @@
             const myData = localQueue.find(q => cleanStr(q.plat) === cleanStr(myPlat));
             if(myData) {
                 await updateDoc(mainRef, { waitingQueue: arrayRemove(myData) });
+                
+                // LOG CANCEL (NEW)
+                addDoc(historyRef, {
+                    plat: myData.plat,
+                    userName: myData.userName,
+                    action: "CANCEL_BY_USER",
+                    time: new Date()
+                });
+
                 localStorage.removeItem('myPlat'); myPlat=null; amIInQueue=false;
                 $('waitingDashboard').classList.remove('active');
             } else {
@@ -655,7 +683,6 @@
             }
         };
 
-        // FUNGSI BARU: MEMBUKA WAITING DASHBOARD (Agar tombol TOTAL berfungsi)
         window.openWaitingDashboard = () => {
             $('waitingDashboard').classList.add('active');
             renderQueueDashboard();
@@ -670,7 +697,7 @@
         function showModal(msg,type){
             return new Promise(r=>{
                 const m=$('customModal');
-                $('modalMsg').innerHTML=msg; // Gunakan innerHTML agar bisa baris baru <br>
+                $('modalMsg').innerHTML=msg; 
                 const acts=$('modalActions');
                 const inp=$('modalInput');
                 inp.style.display=type==='prompt'?'block':'none';
@@ -704,20 +731,16 @@
                 const isMe = (cleanStr(q.plat)===cleanStr(myPlat));
                 const d=document.createElement('div'); 
                 
-                // Tambah style cursor pointer agar terlihat bisa diklik
                 d.style.cssText=`padding:10px; border-bottom:1px solid #333; display:flex; justify-content:space-between; cursor:pointer; ${isMe ? 'background:rgba(0,240,255,0.1); border-left:3px solid var(--cyan);' : ''}`;
                 
-                // Isi konten list
                 d.innerHTML=`<div><span style="color:var(--cyan); font-weight:bold;">#${q.qNo || (i+1)}</span> ${q.plat}</div><div style="font-size:12px; color:#fff;">${q.userName} ➤</div>`;
                 
-                // Tambah event klik untuk melihat detail
                 d.onclick = () => showQueueDetail(q);
-                
                 c.appendChild(d);
             });
         }
 
-        // FUNGSI BARU: MENAMPILKAN DETAIL ANTRIAN (Update: Nama Lebih Besar)
+        // FUNGSI BARU: MENAMPILKAN DETAIL ANTRIAN (NAMA BESAR & NEON)
         window.showQueueDetail = (data) => {
             let timeStr = "--:--";
             if(data.entryTime) {
@@ -733,7 +756,7 @@
                 
                 <div style="text-align:left; font-size:14px; line-height:1.6; color:#ccc;">
                     <div style="margin-bottom:8px;">
-                        <span style="font-size:12px; color:#fff; text-transform:uppercase; letter-spacing:1px;">NAMA DRIVER:</span><br>
+                        <span style="font-size:10px; color:#888; text-transform:uppercase; letter-spacing:1px;">NAMA DRIVER:</span><br>
                         <span style="color:var(--cyan); font-size:32px; font-family:'Teko'; font-weight:500; line-height:1; display:block; margin-top:2px;">
                             ${data.userName}
                         </span>
@@ -747,6 +770,7 @@
             `;
             customAlert(detailHTML);
         };
+        
         const style=document.createElement('style'); style.innerHTML=`@keyframes scanMove {0%{top:0} 100%{top:100%}} @keyframes spin {0%{transform:rotate(0deg)} 100%{transform:rotate(360deg)}} .screen-overlay.minimized {display:none !important;}`; document.head.appendChild(style);
     </script>
 </body>
