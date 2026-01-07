@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Admin MLU - Database</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Rajdhani:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* STYLE KHUSUS ADMIN */
+body {
+  background-color: #050505; color: #fff; font-family: 'Rajdhani', sans-serif; padding: 20px;
+}
+h2 { color: #00f0ff; font-family: 'Orbitron', sans-serif; text-align: center; }
+.controls { max-width: 800px; margin: 0 auto 20px auto; display: flex; justify-content: flex-end; }
+button {
+  padding: 10px 20px; background: #00f0ff; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; font-family: 'Orbitron', sans-serif;
+}
+button:hover { background: #00c3ff; box-shadow: 0 0 10px #00f0ff; }
+
+/* TABLE STYLE */
+.table-responsive { overflow-x: auto; max-width: 800px; margin: auto; border: 1px solid #333; border-radius: 8px; }
+table { width: 100%; border-collapse: collapse; background: #111; min-width: 600px; }
+th, td { padding: 12px; text-align: left; border-bottom: 1px solid #222; }
+th { background: #1a1a1a; color: #00f0ff; font-family: 'Orbitron', sans-serif; font-size: 14px; }
+tr:hover { background: #1f1f1f; }
+.loading { text-align: center; color: #666; padding: 20px; }
+</style>
+</head>
+<body>
+
+<h2>DATABASE ANGGOTA MLU</h2>
+
+<div class="controls">
+  <button onclick="downloadExcel()">DOWNLOAD EXCEL (.CSV)</button>
+</div>
+
+<div class="table-responsive">
+  <table id="tabelAnggota">
+    <thead>
+      <tr>
+        <th>NAMA</th>
+        <th>WHATSAPP</th>
+        <th>DOMISILI</th>
+        <th>LINTAS</th>
+        <th>TGL DAFTAR</th>
+      </tr>
+    </thead>
+    <tbody id="tbody">
+      <tr><td colspan="5" class="loading">Memuat data dari Firebase...</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<script type="module">
+  // --- CONFIG FIREBASE (HARUS SAMA PERSIS DENGAN YANG DI FORM) ---
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import { getFirestore, collection, getDocs, orderBy, query } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+  const firebaseConfig = {
+    // 🔴 PASTE CONFIG DI SINI JUGA 🔴
+    apiKey: "...",
+    authDomain: "...",
+    projectId: "...",
+    storageBucket: "...",
+    messagingSenderId: "...",
+    appId: "..."
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  let allData = []; // Penampung data untuk excel
+
+  // 1. FUNGSI LOAD DATA
+  async function loadData() {
+    const tbody = document.getElementById("tbody");
+    try {
+      // Ambil data dari collection 'anggota_mlu', urutkan dari yg terbaru
+      const q = query(collection(db, "anggota_mlu"), orderBy("tgl", "desc"));
+      const snapshot = await getDocs(q);
+      
+      let html = "";
+      allData = []; // Reset penampung
+
+      snapshot.forEach(doc => {
+        const d = doc.data();
+        allData.push(d); // Simpan ke memory untuk download nanti
+        
+        // Format Tanggal
+        const tgl = new Date(d.tgl).toLocaleDateString("id-ID");
+        
+        html += `
+          <tr>
+            <td>${d.nama}</td>
+            <td><a href="https://wa.me/${d.hp.replace(/^0/, '62')}" target="_blank" style="color:#fff;text-decoration:none">${d.hp}</a></td>
+            <td>${d.alamat}</td>
+            <td>${d.lintas}</td>
+            <td>${tgl}</td>
+          </tr>
+        `;
+      });
+
+      tbody.innerHTML = html || '<tr><td colspan="5" style="text-align:center">Belum ada data.</td></tr>';
+
+    } catch (e) {
+      console.error(e);
+      tbody.innerHTML = `<tr><td colspan="5" style="color:red;text-align:center">Eror: ${e.message}</td></tr>`;
+    }
+  }
+
+  // 2. FUNGSI DOWNLOAD CSV (EXCEL)
+  window.downloadExcel = function() {
+    if(allData.length === 0) { alert("Belum ada data untuk didownload!"); return; }
+
+    let csvContent = "data:text/csv;charset=utf-8,";
+    csvContent += "Nama Lengkap,No HP,Alamat,Lintas,Tanggal Daftar\r\n"; // Header Excel
+
+    allData.forEach(d => {
+      // Bersihkan koma agar kolom tidak hancur
+      const nama = d.nama.replace(/,/g, " ");
+      const hp = "'" + d.hp; // Tanda kutip biar kebaca string di excel
+      const alamat = d.alamat.replace(/,/g, " ").replace(/\n/g, " ");
+      const lintas = d.lintas.replace(/,/g, " & ");
+      const tgl = new Date(d.tgl).toLocaleDateString("id-ID");
+
+      csvContent += `${nama},${hp},${alamat},${lintas},${tgl}\r\n`;
+    });
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "Database_Anggota_MLU.csv");
+    document.body.appendChild(link);
+    link.click();
+  }
+
+  // Load data pas halaman dibuka
+  loadData();
+</script>
+
+</body>
+</html>
