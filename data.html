@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Form Data Anggota MLU</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Rajdhani:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+/* STYLE NEON SAMA SEPERTI SEBELUMNYA */
+* { box-sizing: border-box; outline: none; }
+body {
+  background-color: #050505;
+  background-image: radial-gradient(circle at 50% 0%, #1a1a1a 0%, transparent 70%), linear-gradient(0deg, rgba(0, 240, 255, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 240, 255, 0.05) 1px, transparent 1px);
+  background-size: 100% 100%, 40px 40px, 40px 40px;
+  color: #fff;
+  font-family: 'Rajdhani', sans-serif;
+  margin: 0; padding: 20px; min-height: 100vh;
+  display: flex; align-items: center; justify-content: center;
+}
+.container {
+  width: 100%; max-width: 450px; background: rgba(20, 20, 20, 0.9);
+  border: 1px solid #333; border-radius: 12px; padding: 30px 25px;
+  box-shadow: 0 0 20px rgba(0, 240, 255, 0.1); position: relative; backdrop-filter: blur(10px);
+}
+.container::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: #00f0ff; box-shadow: 0 0 10px #00f0ff;
+}
+h2 { text-align: center; font-family: 'Orbitron', sans-serif; color: #00f0ff; margin: 0 0 25px 0; text-shadow: 0 0 10px rgba(0, 240, 255, 0.5); }
+label { font-size: 14px; color: #aaa; font-weight: 600; margin-bottom: 8px; display: block; }
+.input-group { margin-bottom: 20px; }
+input, textarea {
+  width: 100%; background: #0a0a0a; border: 1px solid #333; border-left: 3px solid #333;
+  border-radius: 4px; padding: 12px 15px; color: #fff; font-family: 'Rajdhani', sans-serif; font-size: 16px;
+}
+input:focus, textarea:focus { border-color: #00f0ff; border-left-color: #00f0ff; background: #111; box-shadow: 0 0 15px rgba(0, 240, 255, 0.15); }
+.checkbox-container { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: #111; padding: 15px; border-radius: 8px; border: 1px solid #222; }
+.checkbox-item { display: flex; align-items: center; cursor: pointer; color: #ddd; }
+.checkbox-item input { margin-right: 10px; accent-color: #00f0ff; width: 16px; height: 16px; }
+#field-lainnya { display: none; margin-top: 15px; animation: slideDown 0.3s ease forwards; }
+@keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+button {
+  width: 100%; margin-top: 10px; padding: 15px; border: none; border-radius: 4px;
+  background: linear-gradient(45deg, #00c3ff, #00f0ff); color: #000;
+  font-family: 'Orbitron', sans-serif; font-size: 16px; font-weight: bold; cursor: pointer;
+}
+.msg { text-align: center; margin-top: 20px; font-weight: bold; min-height: 20px; font-size: 14px; }
+.success { color: #00f0ff; text-shadow: 0 0 5px #00f0ff; }
+.error { color: #ff3333; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h2>DATA ANGGOTA MLU</h2>
+  <div class="input-group"><label>NAMA LENGKAP</label><input type="text" id="nama" placeholder="Ketik nama sesuai KTP..."></div>
+  <div class="input-group"><label>NO. WHATSAPP</label><input type="tel" id="hp" placeholder="Contoh: 0812xxxxxxxx"></div>
+  <div class="input-group"><label>ALAMAT DOMISILI</label><textarea id="alamat" rows="2" placeholder="Jalan, RT/RW, Kelurahan..."></textarea></div>
+  <div class="input-group">
+    <label>LINTAS LAIN (Jika ada)</label>
+    <div class="checkbox-container">
+      <label class="checkbox-item"><input type="checkbox" value="Lintas Selatan"> Selatan</label>
+      <label class="checkbox-item"><input type="checkbox" value="Lintas Timur"> Timur</label>
+      <label class="checkbox-item"><input type="checkbox" value="Lintas Jakarta"> Jakarta</label>
+      <label class="checkbox-item"><input type="checkbox" value="Lintas Depok"> Depok</label>
+      <label class="checkbox-item"><input type="checkbox" value="Lintas Bekasi"> Bekasi</label>
+      <label class="checkbox-item"><input type="checkbox" value="Lintas Tangerang"> Tangerang</label>
+      <label class="checkbox-item"><input type="checkbox" value="Lintas Bogor"> Bogor</label>
+      <label class="checkbox-item"><input type="checkbox" value="Lainnya" id="cb-lainnya"> Lainnya</label>
+    </div>
+    <div id="field-lainnya"><input type="text" id="lintasLain" placeholder="Sebutkan lintas lainnya..."></div>
+  </div>
+  <button onclick="kirimData()" id="btn-simpan">SIMPAN DATA</button>
+  <div id="msg" class="msg"></div>
+</div>
+
+<script type="module">
+  // --- CONFIG FIREBASE (PASTE PUNYA KAMU DI SINI) ---
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+  const firebaseConfig = {
+    // 🔴 PASTE CONFIG DARI PROJECT LAMA KAMU DI SINI 🔴
+    apiKey: "...",
+    authDomain: "...",
+    projectId: "...",
+    storageBucket: "...",
+    messagingSenderId: "...",
+    appId: "..."
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  // Logic Tampilan Lainnya
+  const cbLainnya = document.getElementById('cb-lainnya');
+  cbLainnya.addEventListener('change', function() {
+    document.getElementById('field-lainnya').style.display = this.checked ? 'block' : 'none';
+  });
+
+  // Fungsi Kirim ke Firebase
+  window.kirimData = async function() {
+    const btn = document.getElementById("btn-simpan");
+    const msg = document.getElementById("msg");
+    
+    const nama = document.getElementById("nama").value.trim();
+    const hp = document.getElementById("hp").value.trim();
+    const alamat = document.getElementById("alamat").value.trim();
+    const txtLain = document.getElementById("lintasLain").value.trim();
+    
+    // Ambil Checkbox
+    let lintasArr = [...document.querySelectorAll('.checkbox-item input:checked')].map(e => e.value);
+
+    if(!nama || !hp || !alamat) {
+      msg.innerText = "⚠ DATA BELUM LENGKAP"; msg.className = "msg error"; return;
+    }
+
+    // Rapihkan data Lintas
+    if(cbLainnya.checked && txtLain) {
+      lintasArr = lintasArr.filter(i => i !== "Lainnya");
+      lintasArr.push(txtLain);
+    }
+    const lintasStr = lintasArr.join(", ");
+
+    btn.innerHTML = "MENYIMPAN..."; btn.disabled = true;
+
+    try {
+      // 🟢 PERHATIKAN: Nama Collectionnya 'anggota_mlu' (Beda dengan antrian)
+      await addDoc(collection(db, "anggota_mlu"), {
+        nama: nama,
+        hp: hp,
+        alamat: alamat,
+        lintas: lintasStr || "-",
+        tgl: new Date().toISOString()
+      });
+
+      msg.innerText = "BERHASIL TERDAFTAR ✔"; msg.className = "msg success";
+      setTimeout(() => location.reload(), 2000); // Reload otomatis
+
+    } catch (e) {
+      console.error(e);
+      msg.innerText = "GAGAL: " + e.message; msg.className = "msg error";
+      btn.innerHTML = "SIMPAN DATA"; btn.disabled = false;
+    }
+  }
+</script>
+</body>
+</html>
