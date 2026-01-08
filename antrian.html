@@ -22,6 +22,7 @@
         body { 
             font-family: 'Rajdhani', sans-serif;
             background: #000;
+            /* Pastikan file logo.png ada di folder yang sama */
             background-image: linear-gradient(to bottom, rgba(0,0,0,0.9), #000), url('logo.png'); 
             background-size: cover; 
             background-position: center;
@@ -48,10 +49,10 @@
         /* === 3. SLOT AREA === */
         .slot-section { display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px; flex: 0 0 auto; }
         .slot-card {
-            position: relative; height: 85px; 
+            position: relative; height: auto; min-height: 85px; 
             background: var(--glass-card); backdrop-filter: blur(10px);
             border: 1px solid var(--glass-border); border-radius: 16px;
-            padding: 0 20px; display: flex; align-items: center; justify-content: space-between;
+            padding: 15px 20px; display: flex; align-items: center; justify-content: space-between;
             transition: 0.3s; box-shadow: 0 5px 15px rgba(0,0,0,0.5);
         }
         .slot-card::before {
@@ -65,7 +66,7 @@
         .status-pill {
             font-size: 10px; padding: 6px 12px; border-radius: 20px;
             background: rgba(255,255,255,0.05); color: #888; font-weight: bold; letter-spacing: 1px;
-            border: 1px solid rgba(255,255,255,0.1); white-space: nowrap;
+            border: 1px solid rgba(255,255,255,0.1); white-space: nowrap; align-self: center;
         }
         .slot-card.active { background: linear-gradient(90deg, rgba(0,240,255,0.1), rgba(20,25,30,0.9)); border-color: var(--cyan); box-shadow: 0 0 20px rgba(0,240,255,0.15); }
         .slot-card.active::before { background: var(--cyan); box-shadow: 0 0 15px var(--cyan); }
@@ -73,13 +74,19 @@
         .slot-card.active .sc-user { opacity: 1; }
         .slot-card.active .status-pill { color: #000; background: var(--cyan); border-color: var(--cyan); box-shadow: 0 0 10px var(--cyan); }
         .slot-card.empty .sc-plat { color: #555; font-size: 28px; letter-spacing: 2px; }
+        
         .btn-pilih { display: none; background: rgba(255, 215, 0, 0.2); border: 1px solid #FFD700; color: #FFD700; padding: 4px 10px; border-radius: 6px; margin-left: 10px; font-size: 10px; font-weight: bold; animation: blink 2s infinite; }
         .slot-card.empty .btn-pilih { display: inline-block; }
 
-        /* KUDETA STYLE */
-        .kudeta-hint { font-size:9px; color:var(--danger); display:none; margin-top:2px; animation:blink 1s infinite; letter-spacing:1px; font-weight:bold; }
-        .slot-card.active.can-kudeta { border-color:var(--danger); cursor:pointer; }
-        .slot-card.active.can-kudeta .kudeta-hint { display:block; }
+        /* KUDETA STYLE UPDATE */
+        .kudeta-btn { 
+            display:none; margin-top:5px; padding:6px; width:100%;
+            background:var(--danger); color:#fff; font-weight:bold; 
+            font-size:10px; border:none; border-radius:4px; 
+            cursor:pointer; animation: pulseBtn 1s infinite;
+        }
+        .slot-card.active.can-kudeta { border: 1px solid var(--danger); }
+        .slot-card.active.can-kudeta .kudeta-btn { display:block; }
 
         /* === 4. MIDDLE BUTTON & LOGO === */
         .mid-action-area { 
@@ -243,8 +250,8 @@
     </div>
 
     <div class="slot-section" id="slotsContainer">
-        <div class="slot-card empty"><div class="sc-info"><div class="sc-label">SLOT --</div><div class="sc-plat">LOADING...</div></div></div>
-    </div>
+        </div>
+    
     <div class="mid-action-area">
         <div class="logo-btn" onclick="window.handleMainAction()">
             <img src="logo.png" class="logo-img" alt="LOGO">
@@ -274,7 +281,12 @@
             <div style="font-size:12px; color:var(--cyan); letter-spacing:2px; margin-bottom:10px;" id="stepLabel">LANGKAH 1</div>
             <div style="font-family:'Teko'; font-size:24px; color:#fff;" id="questionText">PLAT NOMOR</div>
             
-            <input type="text" id="holoInputLogin" class="holo-input" placeholder="..." autocomplete="off">
+            <input type="text" id="holoInputLogin" class="holo-input" 
+                   placeholder="B 1234 XYZ" 
+                   autocomplete="off" 
+                   autocapitalize="characters" 
+                   spellcheck="false"
+                   style="text-transform:uppercase;">
             
             <button class="btn-next" onclick="nextStepAction()" style="background:#00F0FF; color:#000; border:none; margin-top:10px;">LANJUT</button>
             
@@ -370,6 +382,13 @@
         if (!localStorage.getItem('welcome_done')) $('screen-welcome').classList.add('active');
         window.closeWelcome = () => { localStorage.setItem('welcome_done','1'); $('screen-welcome').classList.remove('active'); };
 
+        // Security Helper
+        function escapeHtml(text) {
+            if (!text) return "";
+            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+        function cleanStr(s) { return s ? s.replace(/[^A-Z0-9]/gi, '').toUpperCase() : ''; }
+
         // Core Vars
         let localSlots = [null,null,null];
         let localQueue = [];
@@ -379,9 +398,6 @@
         let chargeTimerInterval;
         const STATION_LAT = -6.171583; const STATION_LNG = 106.899844; 
         const MAX_DIST_KM = 0.2; 
-
-        // HELPER PENTING: Clean String (Abaikan Spasi/Huruf Kecil)
-        function cleanStr(s) { return s ? s.replace(/[^A-Z0-9]/gi, '').toUpperCase() : ''; }
 
         // === REALTIME UPDATE ===
         onSnapshot(mainRef, (snap) => {
@@ -395,48 +411,77 @@
         function updateUI() {
             const container = $('slotsContainer'); container.innerHTML = '';
             let amICharging = false;
-            
-            // Logic Pintar: Cek apakah saya Antrian No 1 (Smart Compare)
+            let currentMyPlat = localStorage.getItem('myPlat');
+
+            // Logic Pintar: Cek apakah saya Antrian No 1
             let amIQueue1 = false;
-            if(localQueue.length > 0 && myPlat) {
-                if(cleanStr(localQueue[0].plat) === cleanStr(myPlat)) amIQueue1 = true;
+            if(localQueue.length > 0 && currentMyPlat) {
+                // Optional chaining untuk safety
+                if(cleanStr(localQueue[0]?.plat) === cleanStr(currentMyPlat)) amIQueue1 = true;
+            }
+
+            // AUTO CLOSE DASHBOARD: Jika giliran saya & ada slot kosong
+            if(amIQueue1 && $('waitingDashboard').classList.contains('active')) {
+                const isSlotAvailable = localSlots.some(s => s === null);
+                if(isSlotAvailable) {
+                    $('waitingDashboard').classList.remove('active');
+                    customAlert("GILIRAN ANDA! SILAHKAN PILIH SLOT.");
+                }
             }
 
             localSlots.forEach((s, i) => {
                 const div = document.createElement('div');
                 if (s) {
-                    const isMe = (cleanStr(s.plat) === cleanStr(myPlat));
+                    const isMe = (cleanStr(s.plat) === cleanStr(currentMyPlat));
                     if(isMe) { amICharging = true; window.activeSlotIdx = i; }
                     
-                    // Slot Merah (Active)
-                    div.className = `slot-card active ${amIQueue1 && !isMe ? 'can-kudeta' : ''}`;
+                    // --- LOGIC KUDETA BARU ---
+                    const durationMs = Date.now() - s.startTime;
+                    const durationMins = Math.floor(durationMs / 60000);
+                    const MIN_KUDETA_TIME = 25; 
+                    
+                    // Tombol muncul jika: Saya Queue 1 + Bukan Slot Saya + Durasi > 25 Menit
+                    const canKudeta = amIQueue1 && !isMe && (durationMins >= MIN_KUDETA_TIME);
+                    
+                    let kudetaStatusHTML = '';
+                    if(amIQueue1 && !isMe) {
+                        if(canKudeta) {
+                             kudetaStatusHTML = `<button class="kudeta-btn" onclick="attemptKudeta(${i}, '${s.plat}')">⚡ AMBIL ALIH (SUDAH ${durationMins} MENIT)</button>`;
+                        } else {
+                             const sisa = MIN_KUDETA_TIME - durationMins;
+                             kudetaStatusHTML = `<div style="font-size:9px; color:#555; margin-top:5px;">🔒 KUDETA TERBUKA DALAM ${sisa} MENIT</div>`;
+                        }
+                    }
+                    // -------------------------
+
+                    div.className = `slot-card active ${canKudeta ? 'can-kudeta' : ''}`;
                     div.innerHTML = `
                         <div class="sc-info">
                             <div class="sc-label">SLOT 0${i+1}</div>
                             <div class="sc-plat">${s.plat}</div>
-                            <div class="sc-user">${s.userName}</div>
-                            ${amIQueue1 && !isMe ? '<div class="kudeta-hint">KLIK 2X UNTUK AMBIL ALIH</div>' : ''}
+                            <div class="sc-user">${escapeHtml(s.userName)}</div>
+                            ${kudetaStatusHTML}
                         </div>
                         <div class="status-pill" style="background:${isMe?'var(--cyan)':'#000'}; color:${isMe?'#000':'var(--cyan)'}; border-color:var(--cyan);">${isMe?'ANDA':'CHARGING'}</div>
                     `;
-                    
-                    // Event Kudeta (Hanya jika saya antrian 1 & bukan saya yg ngecas)
-                    if (amIQueue1 && !isMe) {
-                        div.ondblclick = () => attemptKudeta(i, s.plat);
-                    }
                     
                     if(isMe) {
                         $('ad-plat-val').innerText = s.plat;
                         $('ad-name-val').innerText = s.userName;
                         startChargeTimer(s.startTime);
-                        if(!$('screen-active-dashboard').classList.contains('minimized')) $('screen-active-dashboard').classList.add('active');
+                        // Jika tidak diminimize, tampilkan dashboard charging
+                        if(!$('screen-active-dashboard').classList.contains('minimized')) {
+                            $('screen-active-dashboard').classList.add('active');
+                        }
                     }
                 } else {
                     // Slot Kosong
                     div.className = `slot-card empty`;
                     let btn = '';
-                    // Paksa tombol pilih muncul jika sistem mendeteksi saya antrian 1
-                    if(amIQueue1) btn = `<button class="btn-pilih" onclick="window.selectSlot(${i})">PILIH</button>`;
+                    if(amIQueue1) {
+                        btn = `<button class="btn-pilih" onclick="window.selectSlot(${i})">PILIH SLOT INI</button>`;
+                        div.style.border = "1px solid #FFD700";
+                    }
                     div.innerHTML = `
                         <div class="sc-info"><div class="sc-label">SLOT 0${i+1}</div><div class="sc-plat">OPEN</div></div>
                         <div style="display:flex; align-items:center;"><div class="status-pill">AVAILABLE</div>${btn}</div>
@@ -445,30 +490,44 @@
                 container.appendChild(div);
             });
 
-            // Reset UI jika selesai
+            // Reset UI Logic
             if(!amICharging) {
                 window.activeSlotIdx = -1;
                 $('screen-active-dashboard').classList.remove('active');
                 if(chargeTimerInterval) clearInterval(chargeTimerInterval);
+                
+                const lbl = $('mainBtnLabel');
+                amIInQueue = localQueue.some(q => cleanStr(q.plat) === cleanStr(currentMyPlat));
+                
+                if(amIInQueue) { 
+                    lbl.innerText="LIHAT ANTRIAN ANDA"; 
+                    lbl.style.color="#FFD700"; 
+                    if($('waitingDashboard').classList.contains('active')) renderQueueDashboard(); 
+                } else { 
+                    lbl.innerText="TAP UNTUK DAFTAR"; 
+                    lbl.style.color="var(--cyan)"; 
+                }
+            } else {
+                $('mainBtnLabel').innerText = "BUKA DASHBOARD CHARGING";
+                $('mainBtnLabel').style.color = "var(--cyan)";
             }
 
             $('totalQDisplay').innerText = localQueue.length;
             if(localQueue.length > 0) $('nextQDisplay').innerHTML = `<span class="qbn-rank">#${localQueue[0].qNo}</span> ${localQueue[0].plat}`;
             else $('nextQDisplay').innerHTML = `<span class="qbn-rank">-</span> KOSONG`;
-            
-            // Cek status antrian saya
-            amIInQueue = localQueue.some(q => cleanStr(q.plat) === cleanStr(myPlat));
-            
-            const lbl = $('mainBtnLabel');
-            if(window.activeSlotIdx !== -1) { lbl.innerText="DASHBOARD CHARGING"; lbl.style.color="var(--cyan)"; }
-            else if(amIInQueue) { lbl.innerText="LIHAT ANTRIAN ANDA"; lbl.style.color="#FFD700"; if($('waitingDashboard').classList.contains('active')) renderQueueDashboard(); }
-            else { lbl.innerText="TAP UNTUK DAFTAR"; lbl.style.color="var(--cyan)"; }
         }
 
         // === GPS & LOGIN LOGIC ===
         window.handleMainAction = () => {
-            if(window.activeSlotIdx !== -1) { $('screen-active-dashboard').classList.add('active'); $('screen-active-dashboard').classList.remove('minimized'); return; }
+            // Priority 1: Sedang Charging (Buka Dashboard jika diminimize)
+            if(window.activeSlotIdx !== -1) { 
+                $('screen-active-dashboard').classList.add('active'); 
+                $('screen-active-dashboard').classList.remove('minimized'); 
+                return; 
+            }
+            // Priority 2: Sedang Antri
             if(amIInQueue) { $('waitingDashboard').classList.add('active'); renderQueueDashboard(); return; }
+            // Priority 3: Login Admin
             if(localStorage.getItem('adm_ok')) { runLogin(); return; }
             
             if(navigator.geolocation) {
@@ -476,7 +535,6 @@
                 $('scanText').innerText = "MENCARI LOKASI...";
                 $('btnRetryGPS').style.display = 'none';
                 
-                // Logic GPS dengan Timeout & No Cache (Anti Nyangkut)
                 const options = { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 };
                 
                 navigator.geolocation.getCurrentPosition(
@@ -491,58 +549,72 @@
                     }, 
                     (err) => {
                         $('scanText').innerText = "GPS LEMAH / ERROR";
-                        $('btnRetryGPS').style.display = 'block'; // Munculkan tombol Retry
+                        $('btnRetryGPS').style.display = 'block';
                     }, 
                     options
                 );
             } else customAlert("Browser tidak support GPS");
         };
 
-        // Fungsi Login (Reset Step Agar Tidak Auto Submit)
         window.runLogin = (lowAccuracy = false) => {
             if(lowAccuracy) {
-                // Mode ringan untuk HP Kentang
                 navigator.geolocation.getCurrentPosition(
                     (p) => { 
                         if(getDist(p.coords.latitude, p.coords.longitude, STATION_LAT, STATION_LNG) > 0.5) {
                             $('screen-scan').classList.remove('active'); customAlert("MASIH KEJAUHAN.");
-                        } else {
-                            showLoginForm();
-                        }
+                        } else { showLoginForm(); }
                     },
                     () => { $('screen-scan').classList.remove('active'); customAlert("GPS GAGAL TOTAL. MINTA ADMIN DAFTARKAN."); },
                     { enableHighAccuracy: false, timeout: 15000, maximumAge: 0 }
                 );
-            } else {
-                showLoginForm();
-            }
+            } else { showLoginForm(); }
         };
 
         function showLoginForm() {
             $('screen-scan').classList.remove('active');
             $('screen-login').classList.add('active');
-            // FIX: RESET STEP SETIAP KALI BUKA FORM
-            formStep = 0; 
-            formData = {};
+            formStep = 0; formData = {};
             renderStep();
         }
 
-        // === FORM HANDLING ===
+        // === FORM HANDLING & FORMATTER ===
         let formStep=0; let formData={};
         const formConfig = [{l:"LANGKAH 1/2",q:"PLAT NOMOR",k:"plat"},{l:"LANGKAH 2/2",q:"NAMA ANDA",k:"name"}];
         
-        window.nextStepAction = () => {
-            let val = $('holoInputLogin').value.toUpperCase();
-            if(!val) return;
-            if(formConfig[formStep].k === 'plat') {
-                val = val.replace(/[^A-Z0-9]/g, ''); 
-                if(val.length < 3) { customAlert("Plat tidak valid"); return; }
-                const m = val.match(/^([A-Z]{1,2})(\d{1,4})([A-Z]{1,3})$/);
-                if(m) val = `${m[1]} ${m[2]} ${m[3]}`;
+        // FORMATTER LISTENER
+        const inputField = $('holoInputLogin');
+        inputField.addEventListener('input', function(e) {
+            if(formStep !== 0) return;
+            let v = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+            let formatted = v;
+            const match = v.match(/^([A-Z]{1,2})(\d{1,4})?([A-Z]{1,3})?$/);
+            if (match) {
+                formatted = match[1]; 
+                if (match[2]) formatted += " " + match[2];
+                if (match[3]) formatted += " " + match[3];
             }
+            this.value = formatted;
+        });
+
+        window.nextStepAction = () => {
+            let rawVal = $('holoInputLogin').value;
+            // Sanitasi Input HTML
+            let val = rawVal.replace(/[<>'"/\\;]/g, '').trim().toUpperCase(); 
+            
+            if(!val) return;
+
+            if(formConfig[formStep].k === 'plat') {
+                const cleanPlat = val.replace(/\s/g, '');
+                if(cleanPlat.length < 3) { customAlert("Plat nomor terlalu pendek!"); return; }
+                val = $('holoInputLogin').value; // Gunakan yg diformat
+            }
+            if(formConfig[formStep].k === 'name') {
+                val = val.replace(/[^A-Z0-9 .]/g, ''); // Hapus symbol
+                if(val.length < 3) { customAlert("Nama terlalu pendek"); return; }
+            }
+
             formData[formConfig[formStep].k] = val;
             formStep++;
-            // Cek apakah step masih ada?
             if(formStep < formConfig.length) renderStep(); else executeReg();
         };
 
@@ -552,85 +624,90 @@
             $('holoInputLogin').value = ""; $('holoInputLogin').focus();
         }
 
+        window.cancelLogin = () => { $('screen-login').classList.remove('active'); formStep = 0; formData = {}; };
+
+        // === ACTIONS (RECOVERY & KUDETA UPDATE) ===
+        
         async function executeReg() {
             $('screen-login').classList.remove('active');
-            // Kirim ke backup dulu (Recovery Feature)
-            addDoc(backupRef, { plat: formData.plat, name: formData.name, time: new Date(), type: "REGISTER_ATTEMPT" });
+            const cleanInput = cleanStr(formData.plat);
+            addDoc(backupRef, { plat: formData.plat, name: formData.name, time: new Date(), type: "LOGIN_ATTEMPT" });
 
             runTransaction(db, async(t) => {
                 const d = (await t.get(mainRef)).data();
-                if([...d.chargingSlots, ...d.waitingQueue].find(x=>x && cleanStr(x.plat)===cleanStr(formData.plat))) return "DUPLICATE";
                 
+                // 1. CEK RECOVERY
+                const activeSlot = d.chargingSlots.find(s => s && cleanStr(s.plat) === cleanInput);
+                if(activeSlot) return { status: "RECOVER_ACTIVE", data: activeSlot };
+                
+                const queueSlot = d.waitingQueue.find(q => cleanStr(q.plat) === cleanInput);
+                if(queueSlot) return { status: "RECOVER_QUEUE", data: queueSlot };
+
+                // 2. USER BARU
                 const n = (d.lastTicket||0)+1;
                 const newUser = { plat: formData.plat, userName: formData.name, qNo: n, entryTime: Date.now() };
                 t.update(mainRef, { waitingQueue: arrayUnion(newUser), lastTicket: n });
+                return { status: "NEW_REGISTER", data: newUser };
+
             }).then((res) => {
-                if(res==="DUPLICATE") {
-                    customConfirm("Plat sudah ada. Login ulang?").then(ok => {
-                        if(ok) { localStorage.setItem('myPlat',formData.plat); myPlat=formData.plat; updateUI(); }
-                    });
-                } else {
-                    localStorage.setItem('myPlat',formData.plat); myPlat=formData.plat;
-                    updateUI();
-                }
-            });
+                localStorage.setItem('myPlat', formData.plat); 
+                myPlat = formData.plat;
+
+                if(res.status === "RECOVER_ACTIVE") customAlert(`Halo ${res.data.userName}, Sesi charging dipulihkan.`);
+                else if(res.status === "RECOVER_QUEUE") customAlert(`Halo ${res.data.userName}, Antrian dipulihkan.`);
+                
+                updateUI();
+            }).catch(e => { console.error(e); customAlert("Gagal memproses data."); });
         }
 
-        window.cancelLogin = () => {
-            $('screen-login').classList.remove('active');
-            formStep = 0; formData = {}; // Reset juga saat batal
-        };
-
-        // === ACTIONS (UPDATED WITH LOGGING) ===
-        
         window.attemptKudeta = async (slotIdx, targetPlat) => {
-            const confirm = await customConfirm(`SLOT ${slotIdx+1} DIPAKAI ${targetPlat}.\nUsernya sudah selesai tapi lupa klik stop?\nAMBIL ALIH SEKARANG?`);
+            const confirm = await customConfirm(`YAKIN AMBIL ALIH SLOT ${slotIdx+1}?\n\nUser ${targetPlat} harus sudah selesai.\nTindakan ini dicatat sistem.`);
             if(!confirm) return;
+
+            const currentMyPlat = localStorage.getItem('myPlat'); 
+            if(!currentMyPlat) { customAlert("Sesi habis. Login ulang."); return; }
 
             runTransaction(db, async(t) => {
                 const d = (await t.get(mainRef)).data();
                 const targetSlot = d.chargingSlots[slotIdx];
-                if(!targetSlot || cleanStr(targetSlot.plat) !== cleanStr(targetPlat)) throw "Slot sudah berubah!";
-                // Validasi Kudeta
-                if(d.waitingQueue.length === 0 || cleanStr(d.waitingQueue[0].plat) !== cleanStr(myPlat)) throw "Anda bukan antrian No 1!";
-
-                // LOG KUDETA
-                addDoc(historyRef, {...targetSlot, finishTime:new Date(), status: "KUDETA_BY_" + myPlat, action: "KUDETA"});
                 
-                const me = d.waitingQueue.shift();
-                me.startTime = Date.now();
+                if(!targetSlot) throw "Slot sudah kosong! Klik 'PILIH'.";
+                if(cleanStr(targetSlot.plat) !== cleanStr(targetPlat)) throw "User slot sudah berubah!";
+                
+                if(!d.waitingQueue || d.waitingQueue.length === 0) throw "Antrian kosong.";
+                const meInDb = d.waitingQueue[0];
+                if(cleanStr(meInDb.plat) !== cleanStr(currentMyPlat)) throw "Posisi antrian Anda berubah.";
+
+                // VALIDASI WAKTU (SERVER SIDE)
+                const durationMs = Date.now() - targetSlot.startTime;
+                if(durationMs/60000 < 25) throw `Belum 25 Menit! (Baru ${Math.floor(durationMs/60000)} menit)`;
+
+                const victim = targetSlot;
+                addDoc(historyRef, {...victim, finishTime:new Date(), status: "KUDETA_BY_" + currentMyPlat, action: "KICKED_OUT"});
+                
+                const me = d.waitingQueue.shift(); me.startTime = Date.now();
                 d.chargingSlots[slotIdx] = me;
                 t.update(mainRef, { chargingSlots: d.chargingSlots, waitingQueue: d.waitingQueue });
-            }).then(() => {
-                customAlert("BERHASIL AMBIL ALIH SLOT!");
-            }).catch(e => customAlert("GAGAL: " + e));
+            }).then(() => { customAlert("BERHASIL AMBIL ALIH!"); }).catch(e => customAlert("GAGAL: " + e));
         };
 
         window.selectSlot = async (i) => {
             const ok = await customConfirm("Masuk Slot "+(i+1)+"?");
             if(!ok) return;
-            
-            // Simpan data dulu untuk log
-            const myData = localQueue.find(q => cleanStr(q.plat) === cleanStr(myPlat));
-            
+            let currentMyPlat = localStorage.getItem('myPlat');
+
             runTransaction(db, async(t)=>{
-                const d=(await t.get(mainRef)).data();
-                if(d.chargingSlots[i]) throw "Maaf, Slot baru saja diambil orang lain."; 
-                if(cleanStr(d.waitingQueue[0].plat) !== cleanStr(myPlat)) throw "Bukan Giliran Anda! (Cek Antrian)";
+                const d = (await t.get(mainRef)).data();
+                if(!d.waitingQueue || d.waitingQueue.length === 0) throw "Antrian kosong.";
+                const topUserPlat = d.waitingQueue[0]?.plat || "";
                 
-                const u=d.waitingQueue.shift(); u.startTime=Date.now(); d.chargingSlots[i]=u;
+                if(d.chargingSlots[i]) throw "Slot diambil orang lain."; 
+                if(cleanStr(topUserPlat) !== cleanStr(currentMyPlat)) throw "Bukan Giliran Anda!";
+                
+                const u = d.waitingQueue.shift(); u.startTime = Date.now(); d.chargingSlots[i] = u;
                 t.update(mainRef,{chargingSlots:d.chargingSlots, waitingQueue:d.waitingQueue});
             }).then(() => {
-                // LOG START CHARGING (NEW)
-                if(myData) {
-                    addDoc(historyRef, {
-                        plat: myData.plat,
-                        userName: myData.userName,
-                        action: "START_CHARGING",
-                        slot: i+1,
-                        time: new Date()
-                    });
-                }
+                addDoc(historyRef, { plat: currentMyPlat, action: "START_CHARGING", slot: i+1, time: new Date() });
             }).catch(e => customAlert(e)); 
         };
 
@@ -640,7 +717,6 @@
             runTransaction(db, async(t)=>{
                 const d=(await t.get(mainRef)).data();
                 const u=d.chargingSlots[i]; d.chargingSlots[i]=null;
-                // LOG STOP CHARGING
                 if(u) addDoc(historyRef, {...u, finishTime:new Date(), action: "STOP_CHARGING"});
                 t.update(mainRef,{chargingSlots:d.chargingSlots});
             }).then(()=>{ 
@@ -652,116 +728,115 @@
         window.cancelQueue = async () => {
             const ok = await customConfirm("Batal antri?");
             if(!ok) return;
-            const myData = localQueue.find(q => cleanStr(q.plat) === cleanStr(myPlat));
+            let currentMyPlat = localStorage.getItem('myPlat');
+            
+            // Cari data di localQueue sebelum hapus
+            const myData = localQueue.find(q => cleanStr(q.plat) === cleanStr(currentMyPlat));
+            
             if(myData) {
                 await updateDoc(mainRef, { waitingQueue: arrayRemove(myData) });
-                
-                // LOG CANCEL (NEW)
-                addDoc(historyRef, {
-                    plat: myData.plat,
-                    userName: myData.userName,
-                    action: "CANCEL_BY_USER",
-                    time: new Date()
-                });
-
+                addDoc(historyRef, { plat: myData.plat, userName: myData.userName, action: "CANCEL_BY_USER", time: new Date() });
                 localStorage.removeItem('myPlat'); myPlat=null; amIInQueue=false;
                 $('waitingDashboard').classList.remove('active');
             } else {
-                customAlert("Data antrian tidak ditemukan.");
-                localStorage.removeItem('myPlat'); myPlat=null; $('waitingDashboard').classList.remove('active');
+                localStorage.removeItem('myPlat'); $('waitingDashboard').classList.remove('active');
             }
+        };
+
+        // === FUNGSI TAMBAHAN (Ganti Motor, Music, Admin) ===
+        window.gantiMotor = () => {
+            if(!localStorage.getItem('adm_ok')) { customAlert("Hanya Admin yang boleh reset."); return; }
+            customConfirm("Force Logout & Hapus Sesi?").then(ok => {
+                if(ok) { localStorage.removeItem('myPlat'); location.reload(); }
+            });
         };
 
         window.toggleAdmin = () => { 
-            let code = prompt("MASUKKAN KODE ADMIN:");
-            if(code === "1131"){
-                localStorage.setItem('adm_ok','1'); 
-                window.location.assign("admin.html");
-            } 
-            else if (code !== null) {
-                alert("KODE SALAH!");
-            }
+            let code = prompt("KODE ADMIN:");
+            if(code === "1131"){ localStorage.setItem('adm_ok','1'); window.location.assign("admin.html"); } 
+            else if (code !== null) alert("SALAH!");
         };
 
-        window.openWaitingDashboard = () => {
-            $('waitingDashboard').classList.add('active');
-            renderQueueDashboard();
-        };
+        window.openWaitingDashboard = () => { $('waitingDashboard').classList.add('active'); renderQueueDashboard(); };
 
-        // === HELPERS ===
+        // MUSIC PLAYER LOGIC
+        const songs = [
+            {title: "CYBERPUNK THEME", file: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"},
+            {title: "SYNTHWAVE CHILL", file: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-15.mp3"}
+        ];
+        let currentSongIdx = 0; const audio = $('audioPlayer');
+        
+        window.togglePlayerPanel = () => {
+            const p = $('cpPanel');
+            if(p.classList.contains('show')) p.classList.remove('show');
+            else { p.classList.add('show'); renderSongList(); }
+        };
+        window.nextSong = () => { currentSongIdx = (currentSongIdx + 1) % songs.length; playSong(currentSongIdx); };
+        window.prevSong = () => { currentSongIdx = (currentSongIdx - 1 + songs.length) % songs.length; playSong(currentSongIdx); };
+        function playSong(idx) {
+            currentSongIdx = idx; audio.src = songs[idx].file; audio.play();
+            $('cpTitle').innerText = songs[idx].title;
+            document.querySelector('.cp-disc').classList.add('playing');
+            renderSongList();
+        }
+        function renderSongList() {
+            const c = $('cpListContainer'); c.innerHTML = '';
+            songs.forEach((s, i) => {
+                const div = document.createElement('div');
+                div.className = `cp-item ${i === currentSongIdx ? 'active' : ''}`;
+                div.innerText = s.title; div.onclick = () => playSong(i);
+                c.appendChild(div);
+            });
+        }
+
+        // === HELPERS & RENDERERS ===
         function getDist(lat1,lon1,lat2,lon2){const R=6371;const dLat=(lat2-lat1)*Math.PI/180;const dLon=(lon2-lon1)*Math.PI/180;const a=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)*Math.sin(dLon/2);return R*(2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a)));}
         function startChargeTimer(s){ if(chargeTimerInterval) clearInterval(chargeTimerInterval); chargeTimerInterval=setInterval(()=>{ const d=Math.floor((Date.now()-s)/1000); $('timerVal').innerText=`${Math.floor(d/60).toString().padStart(2,'0')}:${(d%60).toString().padStart(2,'0')}`; },1000); }
         window.toggleDashboard = (s) => { if(!s) $('screen-active-dashboard').classList.add('minimized'); else $('screen-active-dashboard').classList.remove('minimized'); if(s===false) $('screen-active-dashboard').classList.remove('active'); };
         
-        // FUNGSI MODAL (UPDATED: SUPPORT HTML innerHTML)
         function showModal(msg,type){
             return new Promise(r=>{
-                const m=$('customModal');
-                $('modalMsg').innerHTML=msg; 
-                const acts=$('modalActions');
-                const inp=$('modalInput');
-                inp.style.display=type==='prompt'?'block':'none';
-                inp.value='';
-                acts.innerHTML='';
-                if(type==='confirm'){
-                    acts.innerHTML=`<button class="btn-modal" onclick="mRes(false)" style="background:#333;color:#fff;">BATAL</button><button class="btn-modal" onclick="mRes(true)" style="background:var(--cyan);color:#000;">YA</button>`;
-                }else if(type==='prompt'){
-                    acts.innerHTML=`<button class="btn-modal" onclick="mRes(inp.value)" style="background:var(--cyan);color:#000;">OK</button>`;
-                }else{
-                    acts.innerHTML=`<button class="btn-modal" onclick="mRes(true)" style="background:#333;color:#fff;">TUTUP</button>`;
-                }
-                m.style.display='flex';
-                window.mRes=(v)=>{m.style.display='none';r(v);};
+                const m=$('customModal'); $('modalMsg').innerHTML=msg; const acts=$('modalActions'); const inp=$('modalInput');
+                inp.style.display=type==='prompt'?'block':'none'; inp.value=''; acts.innerHTML='';
+                if(type==='confirm'){ acts.innerHTML=`<button class="btn-modal" onclick="mRes(false)" style="background:#333;color:#fff;">BATAL</button><button class="btn-modal" onclick="mRes(true)" style="background:var(--cyan);color:#000;">YA</button>`; }
+                else if(type==='prompt'){ acts.innerHTML=`<button class="btn-modal" onclick="mRes(inp.value)" style="background:var(--cyan);color:#000;">OK</button>`; }
+                else{ acts.innerHTML=`<button class="btn-modal" onclick="mRes(true)" style="background:#333;color:#fff;">TUTUP</button>`; }
+                m.style.display='flex'; window.mRes=(v)=>{m.style.display='none';r(v);};
             });
         }
-        const customAlert=m=>showModal(m,'alert'); const customConfirm=m=>showModal(m,'confirm'); const customPrompt=m=>showModal(m,'prompt');
-        
-        // FUNGSI RENDER ANTRIAN (UPDATED: CLICKABLE LIST)
+        const customAlert=m=>showModal(m,'alert'); const customConfirm=m=>showModal(m,'confirm');
+
         function renderQueueDashboard() {
             const c=$('wdListContainer'); c.innerHTML='';
-            
-            const myIdx = localQueue.findIndex(q=>cleanStr(q.plat)===cleanStr(myPlat));
-            if(myIdx!=-1) { 
-                $('wdMyRank').innerText="#"+(myIdx+1); 
-                $('wdMyPlat').innerText=myPlat; 
-                $('wdEstTime').innerText="Est: "+((myIdx+1)*20)+" Menit"; 
-            }
+            let currentMyPlat = localStorage.getItem('myPlat');
+            const myIdx = localQueue.findIndex(q=>cleanStr(q.plat)===cleanStr(currentMyPlat));
+            if(myIdx!=-1) { $('wdMyRank').innerText="#"+(myIdx+1); $('wdMyPlat').innerText=currentMyPlat; $('wdEstTime').innerText="Est: "+((myIdx+1)*20)+" Menit"; }
 
             localQueue.forEach((q,i)=>{
-                const isMe = (cleanStr(q.plat)===cleanStr(myPlat));
+                const isMe = (cleanStr(q.plat)===cleanStr(currentMyPlat));
                 const d=document.createElement('div'); 
-                
                 d.style.cssText=`padding:10px; border-bottom:1px solid #333; display:flex; justify-content:space-between; cursor:pointer; ${isMe ? 'background:rgba(0,240,255,0.1); border-left:3px solid var(--cyan);' : ''}`;
-                
-                d.innerHTML=`<div><span style="color:var(--cyan); font-weight:bold;">#${q.qNo || (i+1)}</span> ${q.plat}</div><div style="font-size:12px; color:#fff;">${q.userName} ➤</div>`;
-                
+                d.innerHTML=`<div><span style="color:var(--cyan); font-weight:bold;">#${q.qNo || (i+1)}</span> ${q.plat}</div><div style="font-size:12px; color:#fff;">${escapeHtml(q.userName)} ➤</div>`;
                 d.onclick = () => showQueueDetail(q);
                 c.appendChild(d);
             });
         }
 
-        // FUNGSI BARU: MENAMPILKAN DETAIL ANTRIAN (NAMA BESAR & NEON)
         window.showQueueDetail = (data) => {
             let timeStr = "--:--";
-            if(data.entryTime) {
-                const d = new Date(data.entryTime);
-                timeStr = d.toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'});
-            }
-
+            if(data.entryTime) { const d = new Date(data.entryTime); timeStr = d.toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'}); }
             const detailHTML = `
                 <div style="text-align:center; border-bottom:1px solid #333; padding-bottom:10px; margin-bottom:10px;">
                     <div style="font-size:12px; color:var(--cyan); letter-spacing:2px;">DETAIL ANTRIAN</div>
                     <div style="font-family:'Teko'; font-size:42px; line-height:1; margin-top:5px;">${data.plat}</div>
                 </div>
-                
                 <div style="text-align:left; font-size:14px; line-height:1.6; color:#ccc;">
                     <div style="margin-bottom:8px;">
                         <span style="font-size:10px; color:#888; text-transform:uppercase; letter-spacing:1px;">NAMA DRIVER:</span><br>
                         <span style="color:var(--cyan); font-size:32px; font-family:'Teko'; font-weight:500; line-height:1; display:block; margin-top:2px;">
-                            ${data.userName}
+                            ${escapeHtml(data.userName)}
                         </span>
                     </div>
-
                     <div style="border-top:1px solid #333; padding-top:8px; margin-top:5px;">
                         <b>NO TIKET:</b> <span style="color:#fff; font-weight:bold;">#${data.qNo}</span><br>
                         <b>JAM DAFTAR:</b> <span style="color:#fff;">${timeStr} WIB</span>
