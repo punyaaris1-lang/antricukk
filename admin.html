@@ -267,23 +267,57 @@
         }
 
         // === ACTIONS ===
-        window.manualAdd = (target) => {
+        
+        // FIX PENTING: CEK JABATAN SEBELUM INPUT
+        window.manualAdd = async (target) => {
             const p = document.getElementById('newPlat').value.toUpperCase();
             const n = document.getElementById('newName').value.toUpperCase();
             if(!p) return alert("PLAT KOSONG");
+
+            // 1. CEK DULU: Apakah Plat ini punya jabatan di database?
+            let userRole = null;
+            try {
+                const cleanP = p.replace(/[^A-Z0-9]/g, '');
+                const memberSnap = await getDoc(doc(db, "members", cleanP));
+                if(memberSnap.exists()) {
+                    userRole = memberSnap.data().role; // Ambil jabatannya (KETUM, dll)
+                }
+            } catch(e) { console.log("Cek member gagal:", e); }
+
+            // 2. LANJUT PROSES MASUK
             runTransaction(db, async(t) => {
                 const docSnap = await t.get(mainRef);
                 let d = docSnap.exists() ? docSnap.data() : { chargingSlots: [null,null,null], waitingQueue: [], recycledNumbers: [], lastTicket: 0 };
-                if([...(d.chargingSlots||[]), ...d.waitingQueue].some(u => u && u.plat === p)) throw "Plat Exist";
-                let newNo = (d.recycledNumbers||[]).length>0 ? d.recycledNumbers.sort((a,b)=>a-b).shift() : (d.lastTicket||0)+1;
-                const u = { plat:p, userName:n, wa:'ADMIN', qNo:newNo, entryTime:Date.now() };
-                if(target === 'queue') { d.waitingQueue.push(u); } 
-                else { if(d.chargingSlots[target]) throw "Penuh"; u.startTime=Date.now(); d.chargingSlots[target]=u; }
                 
-                t.set(snapshotRef, { ...d, backupTime: new Date() }); // SNAPSHOT
+                if([...(d.chargingSlots||[]), ...d.waitingQueue].some(u => u && u.plat === p)) throw "Plat Sudah Ada!";
+                
+                let newNo = (d.recycledNumbers||[]).length>0 ? d.recycledNumbers.sort((a,b)=>a-b).shift() : (d.lastTicket||0)+1;
+                
+                // Masukkan Role/Jabatan ke data user
+                const u = { 
+                    plat:p, 
+                    userName:n, 
+                    wa:'ADMIN', 
+                    qNo:newNo, 
+                    entryTime:Date.now(),
+                    role: userRole // <--- INI KUNCINYA (Badge akan muncul)
+                };
+
+                if(target === 'queue') { d.waitingQueue.push(u); } 
+                else { 
+                    if(d.chargingSlots[target]) throw "Slot Penuh"; 
+                    u.startTime=Date.now(); 
+                    d.chargingSlots[target]=u; 
+                }
+                
+                t.set(snapshotRef, { ...d, backupTime: new Date() });
                 t.set(mainRef, { waitingQueue:d.waitingQueue, chargingSlots:d.chargingSlots, recycledNumbers:d.recycledNumbers||[], lastTicket:Math.max(d.lastTicket||0,newNo) }, {merge:true});
-                addLog("ADMIN", "MANUAL_ADD", `Input ${p}`);
-            }).then(()=>{ document.getElementById('newPlat').value=''; }).catch(e=>alert(e));
+                
+                addLog("ADMIN", "MANUAL_ADD", `Input ${p} (${userRole || 'User Biasa'})`);
+            
+            }).then(()=>{ 
+                document.getElementById('newPlat').value=''; 
+            }).catch(e=>alert("GAGAL: " + e));
         };
 
         window.pushToSlot = (p, sIdx) => {
