@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>FC KELAPA GADING - LIVE SYSTEM</title>
     
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#000000">
+    <link rel="apple-touch-icon" href="logo.png">
+    
     <link href="https://fonts.googleapis.com/css2?family=Teko:wght@300;400;500;600&family=Rajdhani:wght@500;600;700&family=Outfit:wght@300;400;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     
     <style>
@@ -22,7 +26,6 @@
         body { 
             font-family: 'Rajdhani', sans-serif;
             background: #000;
-            /* Pastikan file logo.png ada di folder yang sama */
             background-image: linear-gradient(to bottom, rgba(0,0,0,0.9), #000), url('logo.png'); 
             background-size: cover; 
             background-position: center;
@@ -38,7 +41,7 @@
             padding: 10px 20px 40px 20px;
         }
 
-        /* === 2. HEADER === */
+        /* === 2. HEADER & INSTALL BTN === */
         .header { flex: 0 0 auto; text-align: center; padding-top: 40px; margin-bottom: 20px; cursor: pointer; }
         .main-title { 
             font-family: 'Teko'; font-size: 42px; line-height: 0.9; color: #fff; 
@@ -46,7 +49,18 @@
         }
         .sub-title { font-size: 10px; color: var(--cyan); letter-spacing: 4px; font-weight: 700; text-transform: uppercase; }
 
-        /* === 3. SLOT AREA === */
+        /* TOMBOL INSTALL PWA */
+        #btnInstallPWA {
+            display: none; 
+            position: absolute; top: 10px; right: 10px; z-index: 999;
+            background: rgba(255, 255, 255, 0.1); border: 1px solid var(--cyan);
+            color: var(--cyan); padding: 5px 10px; border-radius: 20px;
+            font-size: 9px; font-weight: bold; cursor: pointer;
+            box-shadow: 0 0 10px rgba(0, 240, 255, 0.2);
+            animation: pulseBtn 2s infinite;
+        }
+
+        /* === 3. SLOT AREA & BADGES === */
         .slot-section { display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px; flex: 0 0 auto; }
         .slot-card {
             position: relative; height: auto; min-height: 85px; 
@@ -63,6 +77,7 @@
         .sc-label { font-size: 9px; color: var(--text-dim); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 2px; }
         .sc-plat { font-family: 'Teko'; font-size: 38px; color: #fff; line-height: 0.9; letter-spacing: 0.5px; }
         .sc-user { font-size: 11px; color: var(--cyan); margin-top: -2px; opacity: 0; transition: 0.3s; font-weight: bold; }
+        
         .status-pill {
             font-size: 10px; padding: 6px 12px; border-radius: 20px;
             background: rgba(255,255,255,0.05); color: #888; font-weight: bold; letter-spacing: 1px;
@@ -78,7 +93,7 @@
         .btn-pilih { display: none; background: rgba(255, 215, 0, 0.2); border: 1px solid #FFD700; color: #FFD700; padding: 4px 10px; border-radius: 6px; margin-left: 10px; font-size: 10px; font-weight: bold; animation: blink 2s infinite; }
         .slot-card.empty .btn-pilih { display: inline-block; }
 
-        /* KUDETA STYLE UPDATE */
+        /* KUDETA STYLE */
         .kudeta-btn { 
             display:none; margin-top:5px; padding:6px; width:100%;
             background:var(--danger); color:#fff; font-weight:bold; 
@@ -88,24 +103,32 @@
         .slot-card.active.can-kudeta { border: 1px solid var(--danger); }
         .slot-card.active.can-kudeta .kudeta-btn { display:block; }
 
-        /* === 4. MIDDLE BUTTON & LOGO === */
-        .mid-action-area { 
-            flex: 1 0 auto; 
-            display: flex; flex-direction: column; align-items: center; justify-content: center; 
-            position: relative; z-index: 50; 
-            min-height: 150px; 
-            margin-bottom: 20px;
+        /* BADGE JABATAN STYLE */
+        .role-badge {
+            display: inline-flex; align-items: center; justify-content: center;
+            font-family: 'Teko', sans-serif; font-weight: 500; font-size: 10px;
+            padding: 2px 8px; border-radius: 4px; margin-left: 5px;
+            text-transform: uppercase; letter-spacing: 0.5px;
+            box-shadow: 0 0 5px rgba(0,0,0,0.5); vertical-align: middle;
+            line-height: 1; border: 1px solid rgba(255,255,255,0.2);
         }
+        .role-ketum { background: #FF0000; color: #fff; box-shadow: 0 0 10px #FF0000; border-color: #ff5555; }
+        .role-waketum { background: #FF4500; color: #fff; }
+        .role-sekretaris { background: #008000; color: #fff; }
+        .role-pembina { background: #800080; color: #fff; border-color: #d600d6; }
+        .role-penasehat { background: #4B0082; color: #fff; }
+        .role-humas { background: #008080; color: #fff; }
+        .role-korlap { background: #0000FF; color: #fff; border-color: #00F0FF; }
+        .role-keluarga { background: linear-gradient(90deg, #FFD700, #FDB931); color: #000; font-weight: 700; border-color: #FFD700; box-shadow: 0 0 8px rgba(255, 215, 0, 0.4); }
+        .sc-user .role-badge { font-size: 8px; padding: 1px 5px; }
+
+        /* === 4. UI ELEMENTS === */
+        .mid-action-area { flex: 1 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; z-index: 50; min-height: 150px; margin-bottom: 20px; }
         .logo-btn { width: 100px; height: 100px; position: relative; cursor: pointer; transition: transform 0.2s; display: flex; justify-content: center; align-items: center; }
-        .logo-img { 
-            width: 100%; height: 100%; object-fit: contain; 
-            filter: drop-shadow(0 0 15px rgba(0, 240, 255, 0.6)); 
-            animation: breatheLogo 3s infinite ease-in-out; 
-        }
+        .logo-img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 0 15px rgba(0, 240, 255, 0.6)); animation: breatheLogo 3s infinite ease-in-out; }
         .tap-hint { font-size: 11px; color: var(--cyan); letter-spacing: 2px; margin-top: 10px; font-weight: bold; text-shadow: 0 0 10px rgba(0,240,255,0.5); animation: blink 2s infinite; }
         .logo-btn:active { transform: scale(0.9); }
 
-        /* === 5. QUEUE INFO === */
         .queue-section { flex: 0 0 auto; display: flex; gap: 10px; align-items: stretch; margin-bottom: 10px; }
         .q-box-next { flex: 2; background: #0a0a0a; border: 1px solid #333; border-radius: 16px; padding: 15px 20px; display: flex; flex-direction: column; justify-content: center; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
         .qbn-lbl { font-size: 9px; color: #888; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 5px; }
@@ -115,34 +138,9 @@
         .qbt-lbl { font-size: 8px; color: #aaa; letter-spacing: 1px; text-align: center; }
         .qbt-val { font-family: 'Teko'; font-size: 42px; line-height: 0.8; color: #fff; margin-top: 2px; }
 
-        /* === 6. SCREENS & OVERLAYS === */
-        .welcome-card {
-            width: 90%; max-width: 400px;
-            background: linear-gradient(180deg, rgba(20, 25, 30, 0.98), rgba(10, 10, 15, 0.98));
-            border: 1px solid var(--cyan); border-radius: 24px;
-            padding: 30px 25px; display: flex; flex-direction: column;
-            box-shadow: 0 0 60px rgba(0, 240, 255, 0.15);
-        }
-        .rules-list { display: flex; flex-direction: column; gap: 12px; margin: 20px 0; max-height: 50vh; overflow-y: auto; }
-        .rule-item {
-            display: flex; gap: 12px; align-items: center;
-            padding: 12px 15px; border-radius: 12px;
-            background: rgba(0, 240, 255, 0.05);
-            border-left: 2px solid var(--cyan);
-            font-size: 14px; line-height: 1.4; color: #ddd;
-        }
-        .rule-icon { font-size: 18px; min-width: 25px; text-align: center; }
-        .btn-agree {
-            width: 100%; padding: 15px; border-radius: 50px; border: none;
-            background: var(--cyan); color: #000;
-            font-family: 'Teko'; font-size: 22px; font-weight: 600; letter-spacing: 1px;
-            cursor: pointer; box-shadow: 0 0 20px rgba(0,240,255,0.4);
-            animation: pulseBtn 2s infinite;
-        }
-
+        /* SCREENS & OVERLAYS */
         .screen-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); backdrop-filter: blur(15px); z-index: 9999; display: none; flex-direction: column; align-items: center; justify-content: center; overflow-y: auto; padding: 20px;}
         .screen-overlay.active { display: flex; animation: fadeIn 0.3s forwards; }
-        
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 10000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(5px); animation: fadeIn 0.2s; }
         .modal-box { width: 85%; max-width: 350px; background: #111; border: 1px solid var(--cyan); border-radius: 15px; padding: 25px; text-align: center; box-shadow: 0 0 30px rgba(0, 240, 255, 0.3); transform: scale(0.9); animation: popUp 0.3s forwards; }
         .modal-msg { font-size: 18px; color: #fff; margin-bottom: 25px; font-family: 'Rajdhani'; font-weight: 600; line-height: 1.4; }
@@ -150,27 +148,17 @@
         .btn-modal { flex: 1; padding: 12px; border: none; border-radius: 8px; font-family: 'Teko'; font-size: 20px; cursor: pointer; text-transform: uppercase; }
         .btn-yes { background: var(--cyan); color: #000; box-shadow: 0 0 15px rgba(0,240,255,0.3); }
         .btn-no { background: #222; color: #888; border: 1px solid #444; }
-        
         .login-card { width: 100%; max-width: 320px; background: rgba(20, 25, 30, 0.95); border: 1px solid var(--cyan); border-radius: 20px; padding: 30px 20px; text-align: center; box-shadow: 0 0 50px rgba(0, 240, 255, 0.2); }
         .holo-input { background: transparent; border: none; border-bottom: 2px solid #333; width: 100%; color: #fff; font-family: 'Teko'; font-size: 42px; text-align: center; outline: none; margin: 20px 0; text-transform: uppercase; }
         .btn-next { width: 100%; padding: 15px; background: var(--cyan); color: #000; font-family: 'Rajdhani'; font-weight: bold; font-size: 18px; border-radius: 50px; border:none; cursor: pointer; box-shadow: 0 0 20px rgba(0,240,255,0.4); }
 
-        /* DASHBOARDS */
         #waitingDashboard { justify-content: flex-start !important; padding-top: 50px; }
         .queue-status-card { flex: 0 0 auto; width: 100%; max-width: 400px; background: rgba(20, 25, 30, 0.9); border: 1px solid var(--glass-border); border-radius: 20px; padding: 20px; display: flex; flex-direction: column; align-items: center; position: relative; margin-bottom: 15px; box-shadow: 0 10px 40px rgba(0,0,0,0.5); z-index: 2; }
         .qsc-ring { width: 130px; height: 130px; border-radius: 50%; border: 4px solid rgba(255,255,255,0.05); border-top: 4px solid var(--cyan); display: flex; flex-direction: column; justify-content: center; align-items: center; box-shadow: 0 0 30px rgba(0, 240, 255, 0.15); animation: spinRing 4s infinite linear; margin-bottom: 10px; position: relative; flex-shrink: 0; }
         .qsc-content { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; animation: counterSpin 4s infinite linear; }
         .qsc-rank-big { font-family: 'Teko'; font-size: 60px; line-height: 0.8; color: #fff; text-shadow: 0 0 20px var(--cyan); }
         .queue-list-wrapper { flex: 1; width: 100%; max-width: 400px; overflow-y: auto; min-height: 0; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px; margin-bottom: 10px; scrollbar-width: none; }
-        .ql-item { display: grid; grid-template-columns: 50px 1fr; align-items: center; padding: 12px 15px; border-bottom: 1px solid rgba(255,255,255,0.08); gap: 15px; }
-        .ql-rank-box { font-family: 'Teko'; font-size: 24px; color: #666; text-align: center; background: rgba(255,255,255,0.05); border-radius: 8px; padding: 5px 0; }
-        .ql-info-box { display: flex; flex-direction: column; justify-content: center; text-align: left; }
-        .ql-plat { font-weight: bold; font-size: 16px; color: #fff; letter-spacing: 1px; }
-        .ql-name { font-size: 12px; color: var(--cyan); margin-top: 2px; text-transform: uppercase; font-weight: bold; letter-spacing: 1px; }
-        .ql-item.active { background: linear-gradient(90deg, rgba(0,240,255,0.15), transparent); border-left: 4px solid var(--cyan); padding-left: 11px; }
-        .ql-item.active .ql-rank-box { color: #000; background: var(--cyan); box-shadow: 0 0 10px var(--cyan); }
-
-        /* MUSIC PLAYER */
+        
         #cyberPlayer { position: fixed; top: 20px; left: 20px; z-index: 9000; display: flex; flex-direction: column; align-items: flex-start; }
         .cp-disc { width: 45px; height: 45px; background: rgba(0,0,0,0.8); border: 2px solid #333; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.5); transition: 0.3s; position: relative; z-index: 2; }
         .cp-disc.playing { border-color: var(--cyan); box-shadow: 0 0 15px var(--cyan); animation: spinDisc 3s infinite linear; }
@@ -185,7 +173,6 @@
         .cp-item { font-size: 11px; padding: 8px; background: rgba(255,255,255,0.05); border-radius: 6px; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #aaa; }
         .cp-item.active { border-left: 2px solid var(--cyan); color: var(--cyan); background: rgba(0,240,255,0.1); }
 
-        /* SCAN SCREEN */
         .scan-wrapper { position: relative; width: 200px; height: 200px; margin-bottom: 20px; border-radius: 20px; overflow: hidden; border: 2px solid var(--cyan); box-shadow: 0 0 30px rgba(0, 240, 255, 0.2); }
         .scan-logo { width: 100%; height: 100%; object-fit: cover; }
         .scan-beam { position: absolute; top: 0; left: 0; right: 0; height: 5px; background: var(--cyan); box-shadow: 0 0 15px var(--cyan); animation: scanMove 2s infinite ease-in-out; }
@@ -204,11 +191,12 @@
 </head>
 <body>
 
+    <button id="btnInstallPWA" onclick="installPWA()">⬇ INSTALL APP</button>
+
     <div id="screen-welcome" class="screen-overlay" style="z-index: 20000;">
         <div class="welcome-card">
             <div class="main-title" style="text-align: center; font-size: 36px; margin-bottom: 5px;">PERATURAN</div>
             <div class="sub-title" style="text-align: center; margin-bottom: 20px;">SHOWROOM FC KELAPA GADING</div>
-
             <div class="rules-list">
                 <div class="rule-item"> <div class="rule-icon">🔌</div> <div>Cas di dalam showroom? HP wajib ditinggal.</div> </div>
                 <div class="rule-item"> <div class="rule-icon">🛵</div> <div>Parkir yang rapi, kepala motor saling berhadapan.</div> </div>
@@ -216,7 +204,6 @@
                 <div class="rule-item"> <div class="rule-icon">🚫</div> <div>Dilarang makan & minum di dalam area showroom.</div> </div>
                 <div class="rule-item"> <div class="rule-icon">📲</div> <div>Wajib scan barcode/daftar sebelum cas motor.</div> </div>
             </div>
-
             <button class="btn-agree" onclick="closeWelcome()">SAYA PAHAM & SETUJU</button>
         </div>
     </div>
@@ -249,15 +236,13 @@
         <div class="sub-title">SELAMAT DATANG DI RUMAH MLU</div>
     </div>
 
-    <div class="slot-section" id="slotsContainer">
-        </div>
+    <div class="slot-section" id="slotsContainer"></div>
     
     <div class="mid-action-area">
         <div class="logo-btn" onclick="window.handleMainAction()">
             <img src="logo.png" class="logo-img" alt="LOGO">
         </div>
         <div class="tap-hint" id="mainBtnLabel">TAP UNTUK DAFTAR</div>
-
         <div onclick="window.gantiMotor()" style="margin-top:15px; cursor:pointer; opacity:0.6; padding: 10px;">
             <span style="font-size:10px; color:#666; letter-spacing:1px; border-bottom:1px solid #444; padding-bottom:2px;">
                 GANTI PLAT / RESET (ADMIN ONLY)
@@ -280,16 +265,8 @@
         <div class="login-card">
             <div style="font-size:12px; color:var(--cyan); letter-spacing:2px; margin-bottom:10px;" id="stepLabel">LANGKAH 1</div>
             <div style="font-family:'Teko'; font-size:24px; color:#fff;" id="questionText">PLAT NOMOR</div>
-            
-            <input type="text" id="holoInputLogin" class="holo-input" 
-                   placeholder="B 1234 XYZ" 
-                   autocomplete="off" 
-                   autocapitalize="characters" 
-                   spellcheck="false"
-                   style="text-transform:uppercase;">
-            
+            <input type="text" id="holoInputLogin" class="holo-input" placeholder="B 1234 XYZ" autocomplete="off" autocapitalize="characters" spellcheck="false" style="text-transform:uppercase;">
             <button class="btn-next" onclick="nextStepAction()" style="background:#00F0FF; color:#000; border:none; margin-top:10px;">LANJUT</button>
-            
             <button class="btn-cancel" onclick="cancelLogin()" style="margin-top:15px; background:none; border:none; color:#666; cursor:pointer;">BATAL</button>
         </div>
     </div>
@@ -308,7 +285,6 @@
             <div class="main-title" style="font-size:32px;">LIVE MONITOR</div>
             <div class="sub-title">STATUS ANTRIAN ANDA</div>
         </div>
-        
         <div class="queue-status-card">
             <div class="qsc-ring">
                 <div class="qsc-content">
@@ -321,13 +297,10 @@
                 <div style="font-size:11px; color:#888; margin-top:5px;" id="wdEstTime">Estimasi: -- Menit</div>
             </div>
         </div>
-
         <div class="lbl-list" style="margin-bottom:10px; color:#888; font-size:12px;">Daftar Menunggu (Klik untuk detail)</div>
-
         <div class="queue-list-wrapper">
             <div id="wdListContainer"></div>
         </div>
-        
         <div style="flex:0 0 auto; width:100%; max-width:400px; display:flex; gap:10px; padding-bottom: 10px;">
             <button onclick="document.getElementById('waitingDashboard').classList.remove('active')" style="flex:1; padding:15px; background:#111; color:#888; border:1px solid #333; border-radius:12px; font-family:'Teko'; font-size:18px;">▼ SEMBUNYIKAN</button>
             <button onclick="cancelQueue()" style="flex:1; padding:15px; background:rgba(255,0,0,0.1); color:red; border:1px solid red; border-radius:12px; font-family:'Teko'; font-size:18px;">BATALKAN</button>
@@ -358,7 +331,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, doc, onSnapshot, runTransaction, collection, addDoc, setDoc, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, doc, onSnapshot, runTransaction, collection, addDoc, setDoc, updateDoc, arrayUnion, arrayRemove, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         // === FIREBASE ===
         const firebaseConfig = {
@@ -374,22 +347,37 @@
         const mainRef = doc(db, "antrian", "utama");
         const historyRef = collection(db, "riwayatCharging");
         const backupRef = collection(db, "backupHarian");
+        const membersRef = collection(db, "members");
+        const snapshotRef = doc(db, "antrian", "snapshot"); 
+        const logRef = collection(db, "activityLog"); 
 
         // === UTILS ===
         const $ = (id) => document.getElementById(id);
         
-        // Welcome 1 Kali
         if (!localStorage.getItem('welcome_done')) $('screen-welcome').classList.add('active');
         window.closeWelcome = () => { localStorage.setItem('welcome_done','1'); $('screen-welcome').classList.remove('active'); };
 
-        // Security Helper
         function escapeHtml(text) {
             if (!text) return "";
             return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
         }
         function cleanStr(s) { return s ? s.replace(/[^A-Z0-9]/gi, '').toUpperCase() : ''; }
+        
+        function saveSnapshot(transaction, data) {
+            const backupData = { ...data, backupTime: new Date(), valid: true };
+            transaction.set(snapshotRef, backupData);
+        }
 
-        // Core Vars
+        function addUserLog(action, details) {
+            const actor = "USER " + (localStorage.getItem('myPlat') || "GUEST");
+            addDoc(logRef, {
+                actor: actor,
+                action: action,
+                details: details,
+                timestamp: new Date()
+            }).catch(e => console.log("Log error:", e));
+        }
+
         let localSlots = [null,null,null];
         let localQueue = [];
         let myPlat = localStorage.getItem('myPlat');
@@ -398,6 +386,24 @@
         let chargeTimerInterval;
         const STATION_LAT = -6.171583; const STATION_LNG = 106.899844; 
         const MAX_DIST_KM = 0.2; 
+
+        // === PWA INSTALL LOGIC ===
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            $('btnInstallPWA').style.display = 'block';
+        });
+
+        window.installPWA = async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') { deferredPrompt = null; $('btnInstallPWA').style.display = 'none'; }
+            }
+        };
+
+        if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js'); }
 
         // === REALTIME UPDATE ===
         onSnapshot(mainRef, (snap) => {
@@ -412,15 +418,12 @@
             const container = $('slotsContainer'); container.innerHTML = '';
             let amICharging = false;
             let currentMyPlat = localStorage.getItem('myPlat');
-
-            // Logic Pintar: Cek apakah saya Antrian No 1
             let amIQueue1 = false;
+            
             if(localQueue.length > 0 && currentMyPlat) {
-                // Optional chaining untuk safety
                 if(cleanStr(localQueue[0]?.plat) === cleanStr(currentMyPlat)) amIQueue1 = true;
             }
 
-            // AUTO CLOSE DASHBOARD: Jika giliran saya & ada slot kosong
             if(amIQueue1 && $('waitingDashboard').classList.contains('active')) {
                 const isSlotAvailable = localSlots.some(s => s === null);
                 if(isSlotAvailable) {
@@ -435,78 +438,46 @@
                     const isMe = (cleanStr(s.plat) === cleanStr(currentMyPlat));
                     if(isMe) { amICharging = true; window.activeSlotIdx = i; }
                     
-                    // --- LOGIC KUDETA BARU ---
                     const durationMs = Date.now() - s.startTime;
                     const durationMins = Math.floor(durationMs / 60000);
-                    const MIN_KUDETA_TIME = 25; 
+                    if (durationMins >= 60 && !s.isAutoStopping) { autoStopSlot(i, s); }
                     
-                    // Tombol muncul jika: Saya Queue 1 + Bukan Slot Saya + Durasi > 25 Menit
+                    const MIN_KUDETA_TIME = 25; 
                     const canKudeta = amIQueue1 && !isMe && (durationMins >= MIN_KUDETA_TIME);
                     
                     let kudetaStatusHTML = '';
                     if(amIQueue1 && !isMe) {
-                        if(canKudeta) {
-                             kudetaStatusHTML = `<button class="kudeta-btn" onclick="attemptKudeta(${i}, '${s.plat}')">⚡ AMBIL ALIH (SUDAH ${durationMins} MENIT)</button>`;
-                        } else {
-                             const sisa = MIN_KUDETA_TIME - durationMins;
-                             kudetaStatusHTML = `<div style="font-size:9px; color:#555; margin-top:5px;">🔒 KUDETA TERBUKA DALAM ${sisa} MENIT</div>`;
-                        }
+                        if(canKudeta) kudetaStatusHTML = `<button class="kudeta-btn" onclick="attemptKudeta(${i}, '${s.plat}')">⚡ AMBIL ALIH (SUDAH ${durationMins} MENIT)</button>`;
+                        else { const sisa = MIN_KUDETA_TIME - durationMins; kudetaStatusHTML = `<div style="font-size:9px; color:#555; margin-top:5px;">🔒 KUDETA TERBUKA DALAM ${sisa} MENIT</div>`; }
                     }
-                    // -------------------------
 
+                    const badgeHTML = getBadgeHTML(s.role);
                     div.className = `slot-card active ${canKudeta ? 'can-kudeta' : ''}`;
                     div.innerHTML = `
-                        <div class="sc-info">
-                            <div class="sc-label">SLOT 0${i+1}</div>
-                            <div class="sc-plat">${s.plat}</div>
-                            <div class="sc-user">${escapeHtml(s.userName)}</div>
-                            ${kudetaStatusHTML}
-                        </div>
+                        <div class="sc-info"><div class="sc-label">SLOT 0${i+1}</div><div class="sc-plat">${s.plat}</div><div class="sc-user">${escapeHtml(s.userName)} ${badgeHTML}</div>${kudetaStatusHTML}</div>
                         <div class="status-pill" style="background:${isMe?'var(--cyan)':'#000'}; color:${isMe?'#000':'var(--cyan)'}; border-color:var(--cyan);">${isMe?'ANDA':'CHARGING'}</div>
                     `;
                     
                     if(isMe) {
-                        $('ad-plat-val').innerText = s.plat;
-                        $('ad-name-val').innerText = s.userName;
-                        startChargeTimer(s.startTime);
-                        // Jika tidak diminimize, tampilkan dashboard charging
-                        if(!$('screen-active-dashboard').classList.contains('minimized')) {
-                            $('screen-active-dashboard').classList.add('active');
-                        }
+                        $('ad-plat-val').innerText = s.plat; $('ad-name-val').innerText = s.userName; startChargeTimer(s.startTime);
+                        if(!$('screen-active-dashboard').classList.contains('minimized')) $('screen-active-dashboard').classList.add('active');
                     }
                 } else {
-                    // Slot Kosong
                     div.className = `slot-card empty`;
-                    let btn = '';
-                    if(amIQueue1) {
-                        btn = `<button class="btn-pilih" onclick="window.selectSlot(${i})">PILIH SLOT INI</button>`;
-                        div.style.border = "1px solid #FFD700";
-                    }
-                    div.innerHTML = `
-                        <div class="sc-info"><div class="sc-label">SLOT 0${i+1}</div><div class="sc-plat">OPEN</div></div>
-                        <div style="display:flex; align-items:center;"><div class="status-pill">AVAILABLE</div>${btn}</div>
-                    `;
+                    let btn = ''; if(amIQueue1) { btn = `<button class="btn-pilih" onclick="window.selectSlot(${i})">PILIH SLOT INI</button>`; div.style.border = "1px solid #FFD700"; }
+                    div.innerHTML = `<div class="sc-info"><div class="sc-label">SLOT 0${i+1}</div><div class="sc-plat">OPEN</div></div><div style="display:flex; align-items:center;"><div class="status-pill">AVAILABLE</div>${btn}</div>`;
                 }
                 container.appendChild(div);
             });
 
-            // Reset UI Logic
             if(!amICharging) {
                 window.activeSlotIdx = -1;
                 $('screen-active-dashboard').classList.remove('active');
                 if(chargeTimerInterval) clearInterval(chargeTimerInterval);
-                
                 const lbl = $('mainBtnLabel');
                 amIInQueue = localQueue.some(q => cleanStr(q.plat) === cleanStr(currentMyPlat));
-                
-                if(amIInQueue) { 
-                    lbl.innerText="LIHAT ANTRIAN ANDA"; 
-                    lbl.style.color="#FFD700"; 
-                    if($('waitingDashboard').classList.contains('active')) renderQueueDashboard(); 
-                } else { 
-                    lbl.innerText="TAP UNTUK DAFTAR"; 
-                    lbl.style.color="var(--cyan)"; 
-                }
+                if(amIInQueue) { lbl.innerText="LIHAT ANTRIAN ANDA"; lbl.style.color="#FFD700"; if($('waitingDashboard').classList.contains('active')) renderQueueDashboard(); } 
+                else { lbl.innerText="TAP UNTUK DAFTAR"; lbl.style.color="var(--cyan)"; }
             } else {
                 $('mainBtnLabel').innerText = "BUKA DASHBOARD CHARGING";
                 $('mainBtnLabel').style.color = "var(--cyan)";
@@ -517,41 +488,21 @@
             else $('nextQDisplay').innerHTML = `<span class="qbn-rank">-</span> KOSONG`;
         }
 
-        // === GPS & LOGIN LOGIC ===
         window.handleMainAction = () => {
-            // Priority 1: Sedang Charging (Buka Dashboard jika diminimize)
-            if(window.activeSlotIdx !== -1) { 
-                $('screen-active-dashboard').classList.add('active'); 
-                $('screen-active-dashboard').classList.remove('minimized'); 
-                return; 
-            }
-            // Priority 2: Sedang Antri
+            if(window.activeSlotIdx !== -1) { $('screen-active-dashboard').classList.add('active'); $('screen-active-dashboard').classList.remove('minimized'); return; }
             if(amIInQueue) { $('waitingDashboard').classList.add('active'); renderQueueDashboard(); return; }
-            // Priority 3: Login Admin
             if(localStorage.getItem('adm_ok')) { runLogin(); return; }
             
             if(navigator.geolocation) {
-                $('screen-scan').classList.add('active');
-                $('scanText').innerText = "MENCARI LOKASI...";
-                $('btnRetryGPS').style.display = 'none';
-                
+                $('screen-scan').classList.add('active'); $('scanText').innerText = "MENCARI LOKASI..."; $('btnRetryGPS').style.display = 'none';
                 const options = { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 };
-                
                 navigator.geolocation.getCurrentPosition(
                     (p) => {
                         const dist = getDist(p.coords.latitude, p.coords.longitude, STATION_LAT, STATION_LNG);
-                        if(dist > MAX_DIST_KM) {
-                            $('screen-scan').classList.remove('active');
-                            customAlert(`KEJAUHAN (${dist.toFixed(2)} KM). WAJIB < 200M.`);
-                        } else {
-                            runLogin(); 
-                        }
+                        if(dist > MAX_DIST_KM) { $('screen-scan').classList.remove('active'); customAlert(`KEJAUHAN (${dist.toFixed(2)} KM). WAJIB < 200M.`); } 
+                        else { runLogin(); }
                     }, 
-                    (err) => {
-                        $('scanText').innerText = "GPS LEMAH / ERROR";
-                        $('btnRetryGPS').style.display = 'block';
-                    }, 
-                    options
+                    (err) => { $('scanText').innerText = "GPS LEMAH / ERROR"; $('btnRetryGPS').style.display = 'block'; }, options
                 );
             } else customAlert("Browser tidak support GPS");
         };
@@ -560,9 +511,8 @@
             if(lowAccuracy) {
                 navigator.geolocation.getCurrentPosition(
                     (p) => { 
-                        if(getDist(p.coords.latitude, p.coords.longitude, STATION_LAT, STATION_LNG) > 0.5) {
-                            $('screen-scan').classList.remove('active'); customAlert("MASIH KEJAUHAN.");
-                        } else { showLoginForm(); }
+                        if(getDist(p.coords.latitude, p.coords.longitude, STATION_LAT, STATION_LNG) > 0.5) { $('screen-scan').classList.remove('active'); customAlert("MASIH KEJAUHAN."); } 
+                        else { showLoginForm(); }
                     },
                     () => { $('screen-scan').classList.remove('active'); customAlert("GPS GAGAL TOTAL. MINTA ADMIN DAFTARKAN."); },
                     { enableHighAccuracy: false, timeout: 15000, maximumAge: 0 }
@@ -570,145 +520,101 @@
             } else { showLoginForm(); }
         };
 
-        function showLoginForm() {
-            $('screen-scan').classList.remove('active');
-            $('screen-login').classList.add('active');
-            formStep = 0; formData = {};
-            renderStep();
-        }
+        function showLoginForm() { $('screen-scan').classList.remove('active'); $('screen-login').classList.add('active'); formStep = 0; formData = {}; renderStep(); }
 
-        // === FORM HANDLING & FORMATTER ===
         let formStep=0; let formData={};
         const formConfig = [{l:"LANGKAH 1/2",q:"PLAT NOMOR",k:"plat"},{l:"LANGKAH 2/2",q:"NAMA ANDA",k:"name"}];
         
-        // FORMATTER LISTENER
         const inputField = $('holoInputLogin');
         inputField.addEventListener('input', function(e) {
-            if(formStep !== 0) return;
+            if(formConfig[formStep].k !== 'plat') return;
             let v = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
             let formatted = v;
             const match = v.match(/^([A-Z]{1,2})(\d{1,4})?([A-Z]{1,3})?$/);
-            if (match) {
-                formatted = match[1]; 
-                if (match[2]) formatted += " " + match[2];
-                if (match[3]) formatted += " " + match[3];
-            }
+            if (match) { formatted = match[1]; if (match[2]) formatted += " " + match[2]; if (match[3]) formatted += " " + match[3]; }
             this.value = formatted;
         });
 
         window.nextStepAction = () => {
-            let rawVal = $('holoInputLogin').value;
-            // Sanitasi Input HTML
-            let val = rawVal.replace(/[<>'"/\\;]/g, '').trim().toUpperCase(); 
-            
+            let rawVal = $('holoInputLogin').value; let val = rawVal.replace(/[<>'"/\\;]/g, '').trim().toUpperCase(); 
             if(!val) return;
-
-            if(formConfig[formStep].k === 'plat') {
-                const cleanPlat = val.replace(/\s/g, '');
-                if(cleanPlat.length < 3) { customAlert("Plat nomor terlalu pendek!"); return; }
-                val = $('holoInputLogin').value; // Gunakan yg diformat
-            }
-            if(formConfig[formStep].k === 'name') {
-                val = val.replace(/[^A-Z0-9 .]/g, ''); // Hapus symbol
-                if(val.length < 3) { customAlert("Nama terlalu pendek"); return; }
-            }
-
-            formData[formConfig[formStep].k] = val;
-            formStep++;
+            if(formConfig[formStep].k === 'plat') { const cleanPlat = val.replace(/\s/g, ''); if(cleanPlat.length < 3) { customAlert("Plat nomor terlalu pendek!"); return; } val = $('holoInputLogin').value; }
+            if(formConfig[formStep].k === 'name') { val = val.replace(/[^A-Z0-9 .]/g, ''); if(val.length < 3) { customAlert("Nama terlalu pendek"); return; } }
+            formData[formConfig[formStep].k] = val; formStep++;
             if(formStep < formConfig.length) renderStep(); else executeReg();
         };
 
         function renderStep() {
-            $('stepLabel').innerText = formConfig[formStep].l;
-            $('questionText').innerText = formConfig[formStep].q;
-            $('holoInputLogin').value = ""; $('holoInputLogin').focus();
+            $('stepLabel').innerText = formConfig[formStep].l; $('questionText').innerText = formConfig[formStep].q;
+            $('holoInputLogin').value = ""; $('holoInputLogin').focus(); $('holoInputLogin').setAttribute('type', 'text');
         }
 
         window.cancelLogin = () => { $('screen-login').classList.remove('active'); formStep = 0; formData = {}; };
 
-        // === ACTIONS (RECOVERY & KUDETA UPDATE) ===
-        
         async function executeReg() {
             $('screen-login').classList.remove('active');
             const cleanInput = cleanStr(formData.plat);
             addDoc(backupRef, { plat: formData.plat, name: formData.name, time: new Date(), type: "LOGIN_ATTEMPT" });
 
+            let userRole = null;
+            try { const memberSnap = await getDoc(doc(db, "members", cleanInput)); if(memberSnap.exists()) userRole = memberSnap.data().role || "MEMBER"; } catch(e){}
+
             runTransaction(db, async(t) => {
                 const d = (await t.get(mainRef)).data();
-                
-                // 1. CEK RECOVERY
                 const activeSlot = d.chargingSlots.find(s => s && cleanStr(s.plat) === cleanInput);
                 if(activeSlot) return { status: "RECOVER_ACTIVE", data: activeSlot };
-                
                 const queueSlot = d.waitingQueue.find(q => cleanStr(q.plat) === cleanInput);
                 if(queueSlot) return { status: "RECOVER_QUEUE", data: queueSlot };
 
-                // 2. USER BARU
                 const n = (d.lastTicket||0)+1;
-                const newUser = { plat: formData.plat, userName: formData.name, qNo: n, entryTime: Date.now() };
+                const newUser = { plat: formData.plat, userName: formData.name, qNo: n, entryTime: Date.now(), role: userRole };
+                saveSnapshot(t, d);
                 t.update(mainRef, { waitingQueue: arrayUnion(newUser), lastTicket: n });
                 return { status: "NEW_REGISTER", data: newUser };
-
             }).then((res) => {
-                localStorage.setItem('myPlat', formData.plat); 
-                myPlat = formData.plat;
-
-                if(res.status === "RECOVER_ACTIVE") customAlert(`Halo ${res.data.userName}, Sesi charging dipulihkan.`);
-                else if(res.status === "RECOVER_QUEUE") customAlert(`Halo ${res.data.userName}, Antrian dipulihkan.`);
-                
+                localStorage.setItem('myPlat', formData.plat); myPlat = formData.plat;
+                if(res.status === "NEW_REGISTER") addUserLog("REGISTER", `User Baru: ${formData.plat}`);
+                else { addUserLog("RECOVERY", `Login Ulang: ${formData.plat}`); customAlert(`Halo ${res.data.userName}, Sesi dipulihkan.`); }
                 updateUI();
             }).catch(e => { console.error(e); customAlert("Gagal memproses data."); });
         }
 
         window.attemptKudeta = async (slotIdx, targetPlat) => {
-            const confirm = await customConfirm(`YAKIN AMBIL ALIH SLOT ${slotIdx+1}?\n\nUser ${targetPlat} harus sudah selesai.\nTindakan ini dicatat sistem.`);
+            const confirm = await customConfirm(`AMBIL ALIH SLOT ${slotIdx+1}?\nUser ${targetPlat} harus sudah selesai.`);
             if(!confirm) return;
-
             const currentMyPlat = localStorage.getItem('myPlat'); 
             if(!currentMyPlat) { customAlert("Sesi habis. Login ulang."); return; }
 
             runTransaction(db, async(t) => {
                 const d = (await t.get(mainRef)).data();
                 const targetSlot = d.chargingSlots[slotIdx];
-                
-                if(!targetSlot) throw "Slot sudah kosong! Klik 'PILIH'.";
-                if(cleanStr(targetSlot.plat) !== cleanStr(targetPlat)) throw "User slot sudah berubah!";
-                
-                if(!d.waitingQueue || d.waitingQueue.length === 0) throw "Antrian kosong.";
+                if(!targetSlot || cleanStr(targetSlot.plat) !== cleanStr(targetPlat)) throw "Slot berubah!";
                 const meInDb = d.waitingQueue[0];
-                if(cleanStr(meInDb.plat) !== cleanStr(currentMyPlat)) throw "Posisi antrian Anda berubah.";
-
-                // VALIDASI WAKTU (SERVER SIDE)
+                if(cleanStr(meInDb?.plat) !== cleanStr(currentMyPlat)) throw "Posisi antrian berubah.";
                 const durationMs = Date.now() - targetSlot.startTime;
-                if(durationMs/60000 < 25) throw `Belum 25 Menit! (Baru ${Math.floor(durationMs/60000)} menit)`;
+                if(durationMs/60000 < 25) throw `Belum 25 Menit!`;
 
                 const victim = targetSlot;
                 addDoc(historyRef, {...victim, finishTime:new Date(), status: "KUDETA_BY_" + currentMyPlat, action: "KICKED_OUT"});
-                
-                const me = d.waitingQueue.shift(); me.startTime = Date.now();
-                d.chargingSlots[slotIdx] = me;
+                const me = d.waitingQueue.shift(); me.startTime = Date.now(); d.chargingSlots[slotIdx] = me;
+                saveSnapshot(t, d);
                 t.update(mainRef, { chargingSlots: d.chargingSlots, waitingQueue: d.waitingQueue });
-            }).then(() => { customAlert("BERHASIL AMBIL ALIH!"); }).catch(e => customAlert("GAGAL: " + e));
+            }).then(() => { addUserLog("KUDETA", `Ambil Alih Slot ${slotIdx+1} dari ${targetPlat}`); customAlert("BERHASIL AMBIL ALIH!"); }).catch(e => customAlert("GAGAL: " + e));
         };
 
         window.selectSlot = async (i) => {
             const ok = await customConfirm("Masuk Slot "+(i+1)+"?");
             if(!ok) return;
             let currentMyPlat = localStorage.getItem('myPlat');
-
             runTransaction(db, async(t)=>{
                 const d = (await t.get(mainRef)).data();
-                if(!d.waitingQueue || d.waitingQueue.length === 0) throw "Antrian kosong.";
                 const topUserPlat = d.waitingQueue[0]?.plat || "";
-                
-                if(d.chargingSlots[i]) throw "Slot diambil orang lain."; 
+                if(d.chargingSlots[i]) throw "Slot penuh."; 
                 if(cleanStr(topUserPlat) !== cleanStr(currentMyPlat)) throw "Bukan Giliran Anda!";
-                
                 const u = d.waitingQueue.shift(); u.startTime = Date.now(); d.chargingSlots[i] = u;
+                saveSnapshot(t, d);
                 t.update(mainRef,{chargingSlots:d.chargingSlots, waitingQueue:d.waitingQueue});
-            }).then(() => {
-                addDoc(historyRef, { plat: currentMyPlat, action: "START_CHARGING", slot: i+1, time: new Date() });
-            }).catch(e => customAlert(e)); 
+            }).then(() => { addDoc(historyRef, { plat: currentMyPlat, action: "START_CHARGING", slot: i+1, time: new Date() }); addUserLog("START_CHARGE", `Masuk Slot ${i+1}`); }).catch(e => customAlert(e)); 
         };
 
         window.stopCharging = async (i) => {
@@ -718,93 +624,84 @@
                 const d=(await t.get(mainRef)).data();
                 const u=d.chargingSlots[i]; d.chargingSlots[i]=null;
                 if(u) addDoc(historyRef, {...u, finishTime:new Date(), action: "STOP_CHARGING"});
+                saveSnapshot(t, d);
                 t.update(mainRef,{chargingSlots:d.chargingSlots});
-            }).then(()=>{ 
-                localStorage.removeItem('myPlat'); myPlat=null; window.activeSlotIdx=-1;
-                toggleDashboard(false); updateUI();
-            });
+            }).then(()=>{ addUserLog("STOP_CHARGE", `Stop Slot ${i+1}`); localStorage.removeItem('myPlat'); myPlat=null; window.activeSlotIdx=-1; toggleDashboard(false); updateUI(); });
         };
+
+        async function autoStopSlot(i, slotData) {
+            if(localSlots[i] && localSlots[i].isAutoStopping) return; 
+            localSlots[i].isAutoStopping = true;
+            runTransaction(db, async(t)=>{
+                const d=(await t.get(mainRef)).data();
+                const currentSlot = d.chargingSlots[i];
+                if(currentSlot && cleanStr(currentSlot.plat) === cleanStr(slotData.plat)) {
+                     const dur = (Date.now() - currentSlot.startTime)/60000;
+                     if(dur >= 60) {
+                         d.chargingSlots[i]=null;
+                         saveSnapshot(t, d);
+                         t.update(mainRef,{chargingSlots:d.chargingSlots});
+                         const logRef = doc(collection(db, "riwayatCharging"));
+                         t.set(logRef, {...currentSlot, finishTime:new Date(), action: "AUTO_STOP_LIMIT"});
+                     }
+                }
+            }).catch(e => console.log(e));
+        }
 
         window.cancelQueue = async () => {
             const ok = await customConfirm("Batal antri?");
             if(!ok) return;
             let currentMyPlat = localStorage.getItem('myPlat');
-            
-            // Cari data di localQueue sebelum hapus
             const myData = localQueue.find(q => cleanStr(q.plat) === cleanStr(currentMyPlat));
-            
             if(myData) {
                 await updateDoc(mainRef, { waitingQueue: arrayRemove(myData) });
                 addDoc(historyRef, { plat: myData.plat, userName: myData.userName, action: "CANCEL_BY_USER", time: new Date() });
-                localStorage.removeItem('myPlat'); myPlat=null; amIInQueue=false;
-                $('waitingDashboard').classList.remove('active');
-            } else {
-                localStorage.removeItem('myPlat'); $('waitingDashboard').classList.remove('active');
-            }
+                addUserLog("CANCEL_QUEUE", `Keluar Antrian`);
+                localStorage.removeItem('myPlat'); myPlat=null; amIInQueue=false; $('waitingDashboard').classList.remove('active');
+            } else { localStorage.removeItem('myPlat'); $('waitingDashboard').classList.remove('active'); }
         };
 
-        // === FUNGSI TAMBAHAN (Ganti Motor, Music, Admin) ===
         window.gantiMotor = () => {
             if(!localStorage.getItem('adm_ok')) { customAlert("Hanya Admin yang boleh reset."); return; }
-            customConfirm("Force Logout & Hapus Sesi?").then(ok => {
-                if(ok) { localStorage.removeItem('myPlat'); location.reload(); }
-            });
+            customConfirm("Force Logout & Hapus Sesi?").then(ok => { if(ok) { localStorage.removeItem('myPlat'); location.reload(); } });
         };
 
         window.toggleAdmin = () => { 
-            let code = prompt("KODE ADMIN:");
+            let code = prompt("KODE AKSES:");
             if(code === "1131"){ localStorage.setItem('adm_ok','1'); window.location.assign("admin.html"); } 
+            else if(code === "090815"){ window.location.assign("superadmin.html"); }
             else if (code !== null) alert("SALAH!");
         };
 
         window.openWaitingDashboard = () => { $('waitingDashboard').classList.add('active'); renderQueueDashboard(); };
 
-        // MUSIC PLAYER LOGIC
-        const songs = [
-            {title: "CYBERPUNK THEME", file: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"},
-            {title: "SYNTHWAVE CHILL", file: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-15.mp3"}
-        ];
+        const songs = [{title: "CYBERPUNK THEME", file: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"}, {title: "SYNTHWAVE CHILL", file: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-15.mp3"}];
         let currentSongIdx = 0; const audio = $('audioPlayer');
-        
-        window.togglePlayerPanel = () => {
-            const p = $('cpPanel');
-            if(p.classList.contains('show')) p.classList.remove('show');
-            else { p.classList.add('show'); renderSongList(); }
-        };
+        window.togglePlayerPanel = () => { const p = $('cpPanel'); if(p.classList.contains('show')) p.classList.remove('show'); else { p.classList.add('show'); renderSongList(); } };
         window.nextSong = () => { currentSongIdx = (currentSongIdx + 1) % songs.length; playSong(currentSongIdx); };
         window.prevSong = () => { currentSongIdx = (currentSongIdx - 1 + songs.length) % songs.length; playSong(currentSongIdx); };
-        function playSong(idx) {
-            currentSongIdx = idx; audio.src = songs[idx].file; audio.play();
-            $('cpTitle').innerText = songs[idx].title;
-            document.querySelector('.cp-disc').classList.add('playing');
-            renderSongList();
-        }
-        function renderSongList() {
-            const c = $('cpListContainer'); c.innerHTML = '';
-            songs.forEach((s, i) => {
-                const div = document.createElement('div');
-                div.className = `cp-item ${i === currentSongIdx ? 'active' : ''}`;
-                div.innerText = s.title; div.onclick = () => playSong(i);
-                c.appendChild(div);
-            });
-        }
+        function playSong(idx) { currentSongIdx = idx; audio.src = songs[idx].file; audio.play(); $('cpTitle').innerText = songs[idx].title; document.querySelector('.cp-disc').classList.add('playing'); renderSongList(); }
+        function renderSongList() { const c = $('cpListContainer'); c.innerHTML = ''; songs.forEach((s, i) => { const div = document.createElement('div'); div.className = `cp-item ${i === currentSongIdx ? 'active' : ''}`; div.innerText = s.title; div.onclick = () => playSong(i); c.appendChild(div); }); }
 
-        // === HELPERS & RENDERERS ===
         function getDist(lat1,lon1,lat2,lon2){const R=6371;const dLat=(lat2-lat1)*Math.PI/180;const dLon=(lon2-lon1)*Math.PI/180;const a=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)*Math.sin(dLon/2);return R*(2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a)));}
         function startChargeTimer(s){ if(chargeTimerInterval) clearInterval(chargeTimerInterval); chargeTimerInterval=setInterval(()=>{ const d=Math.floor((Date.now()-s)/1000); $('timerVal').innerText=`${Math.floor(d/60).toString().padStart(2,'0')}:${(d%60).toString().padStart(2,'0')}`; },1000); }
         window.toggleDashboard = (s) => { if(!s) $('screen-active-dashboard').classList.add('minimized'); else $('screen-active-dashboard').classList.remove('minimized'); if(s===false) $('screen-active-dashboard').classList.remove('active'); };
         
-        function showModal(msg,type){
-            return new Promise(r=>{
-                const m=$('customModal'); $('modalMsg').innerHTML=msg; const acts=$('modalActions'); const inp=$('modalInput');
-                inp.style.display=type==='prompt'?'block':'none'; inp.value=''; acts.innerHTML='';
-                if(type==='confirm'){ acts.innerHTML=`<button class="btn-modal" onclick="mRes(false)" style="background:#333;color:#fff;">BATAL</button><button class="btn-modal" onclick="mRes(true)" style="background:var(--cyan);color:#000;">YA</button>`; }
-                else if(type==='prompt'){ acts.innerHTML=`<button class="btn-modal" onclick="mRes(inp.value)" style="background:var(--cyan);color:#000;">OK</button>`; }
-                else{ acts.innerHTML=`<button class="btn-modal" onclick="mRes(true)" style="background:#333;color:#fff;">TUTUP</button>`; }
-                m.style.display='flex'; window.mRes=(v)=>{m.style.display='none';r(v);};
-            });
-        }
+        function showModal(msg,type){ return new Promise(r=>{ const m=$('customModal'); $('modalMsg').innerHTML=msg; const acts=$('modalActions'); const inp=$('modalInput'); inp.style.display=type==='prompt'?'block':'none'; inp.value=''; acts.innerHTML=''; if(type==='confirm'){ acts.innerHTML=`<button class="btn-modal" onclick="mRes(false)" style="background:#333;color:#fff;">BATAL</button><button class="btn-modal" onclick="mRes(true)" style="background:var(--cyan);color:#000;">YA</button>`; } else if(type==='prompt'){ acts.innerHTML=`<button class="btn-modal" onclick="mRes(inp.value)" style="background:var(--cyan);color:#000;">OK</button>`; } else{ acts.innerHTML=`<button class="btn-modal" onclick="mRes(true)" style="background:#333;color:#fff;">TUTUP</button>`; } m.style.display='flex'; window.mRes=(v)=>{m.style.display='none';r(v);}; }); }
         const customAlert=m=>showModal(m,'alert'); const customConfirm=m=>showModal(m,'confirm');
+
+        function getBadgeHTML(role) {
+            if(!role) return "";
+            let cssClass = "role-keluarga"; let label = "KELUARGA MLU";
+            if(role === "KETUM") { cssClass = "role-ketum"; label="KETUM"; }
+            else if(role === "WAKETUM") { cssClass = "role-waketum"; label="WAKETUM"; }
+            else if(role === "SEKRETARIS") { cssClass = "role-sekretaris"; label="SEKRETARIS"; }
+            else if(role === "PEMBINA") { cssClass = "role-pembina"; label="PEMBINA"; }
+            else if(role === "PENASEHAT") { cssClass = "role-penasehat"; label="PENASEHAT"; }
+            else if(role === "HUMAS") { cssClass = "role-humas"; label="HUMAS"; }
+            else if(role === "KORLAP") { cssClass = "role-korlap"; label="KORLAP"; }
+            return `<span class="role-badge ${cssClass}">${label}</span>`;
+        }
 
         function renderQueueDashboard() {
             const c=$('wdListContainer'); c.innerHTML='';
@@ -814,9 +711,10 @@
 
             localQueue.forEach((q,i)=>{
                 const isMe = (cleanStr(q.plat)===cleanStr(currentMyPlat));
+                const badgeHTML = getBadgeHTML(q.role);
                 const d=document.createElement('div'); 
                 d.style.cssText=`padding:10px; border-bottom:1px solid #333; display:flex; justify-content:space-between; cursor:pointer; ${isMe ? 'background:rgba(0,240,255,0.1); border-left:3px solid var(--cyan);' : ''}`;
-                d.innerHTML=`<div><span style="color:var(--cyan); font-weight:bold;">#${q.qNo || (i+1)}</span> ${q.plat}</div><div style="font-size:12px; color:#fff;">${escapeHtml(q.userName)} ➤</div>`;
+                d.innerHTML=`<div><span style="color:var(--cyan); font-weight:bold;">#${q.qNo || (i+1)}</span> ${q.plat}</div><div style="font-size:12px; color:#fff; display:flex; align-items:center;">${escapeHtml(q.userName)} ${badgeHTML} <span style="margin-left:5px;">➤</span></div>`;
                 d.onclick = () => showQueueDetail(q);
                 c.appendChild(d);
             });
@@ -825,14 +723,17 @@
         window.showQueueDetail = (data) => {
             let timeStr = "--:--";
             if(data.entryTime) { const d = new Date(data.entryTime); timeStr = d.toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'}); }
+            let memberStatusRow = "";
+            if(data.role) memberStatusRow = `<div style="margin-bottom:10px; transform:scale(1.5);">${getBadgeHTML(data.role)}</div>`;
             const detailHTML = `
                 <div style="text-align:center; border-bottom:1px solid #333; padding-bottom:10px; margin-bottom:10px;">
+                    ${memberStatusRow}
                     <div style="font-size:12px; color:var(--cyan); letter-spacing:2px;">DETAIL ANTRIAN</div>
                     <div style="font-family:'Teko'; font-size:42px; line-height:1; margin-top:5px;">${data.plat}</div>
                 </div>
                 <div style="text-align:left; font-size:14px; line-height:1.6; color:#ccc;">
                     <div style="margin-bottom:8px;">
-                        <span style="font-size:10px; color:#888; text-transform:uppercase; letter-spacing:1px;">NAMA DRIVER:</span><br>
+                        <span style="font-size:10px; color:#888; text-transform:uppercase; letter-spacing:1px;">NAMA:</span><br>
                         <span style="color:var(--cyan); font-size:32px; font-family:'Teko'; font-weight:500; line-height:1; display:block; margin-top:2px;">
                             ${escapeHtml(data.userName)}
                         </span>

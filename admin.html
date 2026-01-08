@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ADMIN SUPER - FC KG (ULTIMATE)</title>
+    <title>ADMIN PANEL - FC KG</title>
     <link href="https://fonts.googleapis.com/css2?family=Teko:wght@300;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        /* === STYLE DASAR === */
+        /* === STYLE ULTIMATE (ASLI) === */
         :root { 
             --bg: #050505; --panel: #111; --border: #333; 
             --accent: #CCFF00; --cyan: #00F0FF; --red: #FF003C; 
@@ -19,7 +19,6 @@
         
         button { cursor: pointer; padding: 8px 12px; margin: 0; font-weight: bold; font-family: 'Teko'; font-size: 14px; letter-spacing: 0.5px; border-radius: 4px; transition: 0.2s; border: none; text-transform: uppercase; }
         button:hover { filter: brightness(1.2); transform: translateY(-1px); }
-        button:active { transform: translateY(1px); }
         
         .btn-red { background: linear-gradient(45deg, #900, #d00); color: #fff; border: 1px solid #f00; }
         .btn-green { background: linear-gradient(45deg, #050, #090); color: #fff; border: 1px solid #0f0; }
@@ -35,25 +34,17 @@
         .slot-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 10px; }
         .slot-item { border: 1px solid #333; padding: 10px; background: #050505; text-align: center; border-radius: 5px; min-height: 120px; display: flex; flex-direction: column; justify-content: space-between; }
         
-        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; text-align: center; }
-        .stat-card { background: #111; padding: 10px; border: 1px solid #333; border-radius: 5px; }
-        .stat-val { font-size: 20px; color: var(--accent); font-family: 'Teko'; }
-        
-        /* === TERMUX / BRUTAL LOG STYLE === */
+        /* LOG STYLE */
         .term-container {
-            background: var(--term-bg); border: 1px solid #333; height: 300px; 
+            background: var(--term-bg); border: 1px solid #333; height: 200px; 
             overflow-y: auto; padding: 10px; font-family: 'JetBrains Mono', monospace; 
             font-size: 10px; color: #ccc; border-radius: 5px;
             display: flex; flex-direction: column-reverse; 
         }
         .log-line { margin-bottom: 4px; border-bottom: 1px solid #111; padding-bottom: 2px; line-height: 1.4; word-wrap: break-word; }
-        .ts { color: #666; margin-right: 5px; }
-        .act-admin { color: var(--red); font-weight: bold; }
-        .act-system { color: var(--cyan); font-weight: bold; }
-        .act-user { color: var(--accent); font-weight: bold; }
-        .cmd { color: #fff; font-weight: bold; margin-right: 5px; }
-        .dtl { color: #aaa; font-style: italic; }
-
+        .act-super { color: var(--red); font-weight: bold; }
+        .act-admin { color: var(--cyan); font-weight: bold; }
+        
         /* RECOVERY STYLE */
         .rec-item { display:flex; justify-content:space-between; padding:5px; border-bottom:1px solid #333; font-size:10px; }
 
@@ -76,14 +67,14 @@
             <h2 style="font-family:'Teko'; color:var(--accent); margin-top:0;">LOGIN ADMIN</h2>
             <div style="margin-bottom:15px; text-align:left;">
                 <label style="color:#888;">NAMA ADMIN:</label>
-                <input type="text" id="loginName" placeholder="Contoh: Admin Budi" style="margin-top:5px; border-color:var(--accent);">
+                <input type="text" id="loginName" placeholder="Nama Anda" style="margin-top:5px; border-color:var(--accent);">
             </div>
             <div style="margin-bottom:20px; text-align:left;">
                 <label style="color:#888;">PIN AKSES:</label>
                 <input type="password" id="loginPin" placeholder="****" style="margin-top:5px; border-color:var(--accent);">
             </div>
             <button onclick="attemptLogin()" class="btn-green" style="width:100%; font-size:18px;">MASUK</button>
-            <div style="margin-top:15px; font-size:10px; color:#555;">SYSTEM V5.0 SUPER LOG</div>
+            <div style="margin-top:15px; font-size:10px; color:#555;">SYSTEM V5.0 STANDARD</div>
         </div>
     </div>
 
@@ -138,49 +129,17 @@
         </div>
     </div>
 
-    <div class="box" style="border-top: 3px solid #fff;">
-        <h3 style="display:flex; justify-content:space-between; align-items:center;">
-            STATISTIK HARI INI
-            <button onclick="loadAnalytics()" class="btn-blue btn-mini">REFRESH</button>
-        </h3>
-        <div class="stat-grid">
-            <div class="stat-card"><div class="stat-val" id="stat-total">0</div><div style="font-size:9px; color:#666">SELESAI</div></div>
-            <div class="stat-card"><div class="stat-val" id="stat-busy">-</div><div style="font-size:9px; color:#666">JAM SIBUK</div></div>
-            <div class="stat-card"><div class="stat-val" id="stat-avg">0m</div><div style="font-size:9px; color:#666">AVG DURASI</div></div>
-            <div class="stat-card"><div class="stat-val" id="stat-active">0</div><div style="font-size:9px; color:#666">QUEUE</div></div>
-        </div>
-    </div>
-
-    <div class="box">
-        <h3>4. LAPORAN & RESET</h3>
-        <div style="display:flex; gap:5px; margin-bottom:10px;">
-            <select id="reportRange" onchange="toggleCustomDate()" style="flex:2;">
-                <option value="today">HARI INI</option>
-                <option value="yesterday">KEMARIN</option>
-                <option value="7days">7 HARI</option>
-                <option value="custom">CUSTOM...</option>
-            </select>
-            <button onclick="generateReport()" class="btn-green" style="flex:1;">CSV</button>
-        </div>
-        <div id="customDateArea" style="display:none; margin-bottom:10px; background:#222; padding:5px;">
-            <input type="date" id="dateStart" style="margin-bottom:5px;">
-            <input type="date" id="dateEnd">
-        </div>
-        <button onclick="askConfirm('RESET NOMOR JADI 1 (NEW DAY)?', resetDaily)" class="btn-yellow" style="width:100%; margin-bottom:10px;">☀ RESET TIKET HARIAN (NEW DAY) ☀</button>
-        <button onclick="askConfirm('RESET SEMUA?? (MANUAL)', resetTotal)" class="btn-red" style="width:100%;">⚠ RESET TOTAL MANUAL ⚠</button>
-    </div>
-
     <div class="box" style="border: 2px dashed var(--accent);">
         <h3 style="color:var(--accent);">5. EMERGENCY RECOVERY</h3>
         <div style="font-size:10px; color:#aaa; margin-bottom:10px;">
-            Gunakan ini jika data antrian utama HILANG/RESET. Ini mengambil data dari Log Pendaftaran Hari Ini.
+            Pulihkan data antrian terakhir yang tersimpan otomatis (Snapshot).
         </div>
-        <button onclick="checkRecovery()" class="btn-blue" style="width:100%; margin-bottom:10px;">🔍 CEK DATA BACKUP (HARI INI)</button>
+        <button onclick="checkRecovery()" class="btn-blue" style="width:100%; margin-bottom:10px;">🔍 CEK SNAPSHOT TERAKHIR</button>
         
         <div id="recoveryPanel" style="display:none; background:#111; padding:10px;">
             <div style="border-bottom:1px solid #333; margin-bottom:5px;">DITEMUKAN: <b id="recCount" style="color:var(--accent)">0</b></div>
             <div id="recList" style="max-height:150px; overflow-y:auto; margin-bottom:10px;"></div>
-            <button onclick="askConfirm('TIMPA ANTRIAN SAAT INI DGN DATA BACKUP?', executeRestore)" class="btn-green" style="width:100%;">♻️ PULIHKAN KE ANTRIAN</button>
+            <button onclick="askConfirm('TIMPA ANTRIAN DGN SNAPSHOT?', executeRestore)" class="btn-green" style="width:100%;">♻️ PULIHKAN SEKARANG</button>
         </div>
     </div>
 
@@ -204,7 +163,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, doc, onSnapshot, runTransaction, collection, addDoc, query, orderBy, limit, getDocs, where, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, doc, onSnapshot, runTransaction, collection, addDoc, query, orderBy, limit, getDocs, where, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         // FIREBASE
         const firebaseConfig = {
@@ -215,20 +174,18 @@
             messagingSenderId: "537736846678",
             appId: "1:537736846678:web:53788d71a196423ac08af7"
         };
-
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-        
         const mainRef = doc(db, "antrian", "utama");
         const logRef = collection(db, "activityLog");
         const histRef = collection(db, "riwayatCharging");
-        const backupRef = collection(db, "backupHarian"); // INI KUNCINYA
+        const snapshotRef = doc(db, "antrian", "snapshot"); // RECOVERY SNAPSHOT
 
         let cachedSlots = [null, null, null];
         let cachedQueue = [];
-        let recoveredData = [];
+        let snapshotData = null;
 
-        // AUTH & UTILS
+        // AUTH
         const SESSION_KEY = 'adm_sess_v5';
         const currentAdmin = localStorage.getItem(SESSION_KEY);
         if(currentAdmin) {
@@ -246,9 +203,9 @@
                 addLog("ADMIN", "LOGIN", "Session Started");
             } else { alert("PIN Salah!"); }
         };
+        window.logout = () => { localStorage.removeItem(SESSION_KEY); window.location.href='antrian.html'; };
 
-        window.logout = () => { localStorage.removeItem(SESSION_KEY); window.location.href='index.html'; };
-
+        // MODAL
         let currentCallback = null;
         window.askConfirm = (text, callback) => {
             document.getElementById('modalText').innerText = text;
@@ -257,9 +214,8 @@
         };
         document.getElementById('btnYes').onclick = () => { if(currentCallback) currentCallback(); closeModal(); };
         window.closeModal = () => { document.getElementById('customModal').style.display = 'none'; currentCallback = null; };
-        function getTodayString() { return new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jakarta' }); }
 
-        // === 1. REALTIME MONITOR ===
+        // === MONITOR ===
         onSnapshot(mainRef, (snap) => {
             if (!snap.exists()) return;
             const d = snap.data();
@@ -273,8 +229,8 @@
                         <div style="color:var(--cyan); font-weight:bold; font-size:14px;">${s.plat}</div>
                         <div style="font-size:10px; color:#ccc;">${s.userName} (#${s.qNo})</div>
                         <div style="margin-top:auto; display:grid; grid-template-columns:1fr 1fr; gap:2px;">
-                            <button class="btn-red btn-mini" onclick="askConfirm('Stop Charging?', ()=>forceStop(${i}))">STOP</button>
-                            <button class="btn-yellow btn-mini" onclick="askConfirm('Turunkan ke Antrian?', ()=>kickToQueue(${i}))">TURUN KE ANTRIAN</button>
+                            <button class="btn-red btn-mini" onclick="askConfirm('Reset/Kick Paksa?', ()=>forceStop(${i}))" style="grid-column: span 2;">STOP/RESET</button>
+                            <button class="btn-yellow btn-mini" onclick="askConfirm('Turunkan ke Antrian?', ()=>kickToQueue(${i}))" style="grid-column: span 2;">TURUN KE Q</button>
                         </div>
                     `;
                     el.style.border = "1px solid var(--cyan)";
@@ -284,13 +240,11 @@
                 }
             });
             renderQueueTable();
-            document.getElementById('stat-active').innerText = cachedQueue.length;
         });
 
         function renderQueueTable() {
             let h = `<table><tr><th width="20">#</th><th>USER</th><th>AKSI</th></tr>`;
             if(cachedQueue.length === 0) h += `<tr><td colspan="3" style="text-align:center; color:#444;">KOSONG</td></tr>`;
-            
             cachedQueue.forEach((q, idx) => {
                 const upDisabled = (idx === 0) ? 'disabled style="opacity:0.3"' : '';
                 const downDisabled = (idx === cachedQueue.length - 1) ? 'disabled style="opacity:0.3"' : '';
@@ -312,35 +266,23 @@
             document.getElementById('queueTable').innerHTML = h + `</table>`;
         }
 
-        // === 2. CORE ACTIONS ===
-        window.switchQueue = (idx, direction) => {
-            runTransaction(db, async(t) => {
-                const d = (await t.get(mainRef)).data();
-                let q = d.waitingQueue || [];
-                const targetIdx = idx + direction;
-                if (targetIdx < 0 || targetIdx >= q.length) return;
-                const temp = q[idx]; q[idx] = q[targetIdx]; q[targetIdx] = temp;
-                t.update(mainRef, { waitingQueue: q });
-                addLog("ADMIN", "SWAP_QUEUE", `Swapped Q#${idx+1} with Q#${targetIdx+1}`);
-            });
-        };
-
+        // === ACTIONS ===
         window.manualAdd = (target) => {
             const p = document.getElementById('newPlat').value.toUpperCase();
             const n = document.getElementById('newName').value.toUpperCase();
             if(!p) return alert("PLAT KOSONG");
             runTransaction(db, async(t) => {
                 const docSnap = await t.get(mainRef);
-                let d = docSnap.exists() ? docSnap.data() : { chargingSlots: [null,null,null], waitingQueue: [], recycledNumbers: [], lastTicket: 0, lastResetDate: getTodayString() };
-                if(!docSnap.exists()) t.set(mainRef, d);
+                let d = docSnap.exists() ? docSnap.data() : { chargingSlots: [null,null,null], waitingQueue: [], recycledNumbers: [], lastTicket: 0 };
                 if([...(d.chargingSlots||[]), ...d.waitingQueue].some(u => u && u.plat === p)) throw "Plat Exist";
                 let newNo = (d.recycledNumbers||[]).length>0 ? d.recycledNumbers.sort((a,b)=>a-b).shift() : (d.lastTicket||0)+1;
                 const u = { plat:p, userName:n, wa:'ADMIN', qNo:newNo, entryTime:Date.now() };
-                let loc = "";
-                if(target === 'queue') { d.waitingQueue.push(u); loc="QUEUE"; } 
-                else { if(d.chargingSlots[target]) throw "Penuh"; u.startTime=Date.now(); d.chargingSlots[target]=u; loc=`SLOT ${target+1}`; }
-                t.set(mainRef, { waitingQueue:d.waitingQueue, chargingSlots:d.chargingSlots, recycledNumbers:d.recycledNumbers||[], lastTicket:Math.max(d.lastTicket||0,newNo), lastResetDate: getTodayString() }, {merge:true});
-                addLog("ADMIN", "MANUAL_ADD", `Input ${p} (${n}) to ${loc}`);
+                if(target === 'queue') { d.waitingQueue.push(u); } 
+                else { if(d.chargingSlots[target]) throw "Penuh"; u.startTime=Date.now(); d.chargingSlots[target]=u; }
+                
+                t.set(snapshotRef, { ...d, backupTime: new Date() }); // SNAPSHOT
+                t.set(mainRef, { waitingQueue:d.waitingQueue, chargingSlots:d.chargingSlots, recycledNumbers:d.recycledNumbers||[], lastTicket:Math.max(d.lastTicket||0,newNo) }, {merge:true});
+                addLog("ADMIN", "MANUAL_ADD", `Input ${p}`);
             }).then(()=>{ document.getElementById('newPlat').value=''; }).catch(e=>alert(e));
         };
 
@@ -352,9 +294,22 @@
                 if(i<0) throw "Hilang";
                 const u = d.waitingQueue.splice(i,1)[0];
                 u.startTime = Date.now(); d.chargingSlots[sIdx] = u;
+                t.set(snapshotRef, { ...d, backupTime: new Date() }); // SNAPSHOT
                 t.update(mainRef, { waitingQueue:d.waitingQueue, chargingSlots:d.chargingSlots });
-                addLog("ADMIN", "FORCE_IN", `Pushed ${p} to Slot ${sIdx+1}`);
+                addLog("ADMIN", "FORCE_IN", `Pushed ${p} to S${sIdx+1}`);
             }).catch(e=>alert(e));
+        };
+
+        window.switchQueue = (idx, direction) => {
+            runTransaction(db, async(t) => {
+                const d = (await t.get(mainRef)).data();
+                let q = d.waitingQueue || [];
+                const targetIdx = idx + direction;
+                if (targetIdx < 0 || targetIdx >= q.length) return;
+                const temp = q[idx]; q[idx] = q[targetIdx]; q[targetIdx] = temp;
+                t.set(snapshotRef, { ...d, backupTime: new Date() }); // SNAPSHOT
+                t.update(mainRef, { waitingQueue: q });
+            });
         };
 
         window.kickToQueue = (i) => {
@@ -363,8 +318,9 @@
                 const u = d.chargingSlots[i];
                 if(!u) return;
                 d.chargingSlots[i]=null; delete u.startTime; d.waitingQueue.unshift(u);
+                t.set(snapshotRef, { ...d, backupTime: new Date() }); // SNAPSHOT
                 t.update(mainRef, { chargingSlots:d.chargingSlots, waitingQueue:d.waitingQueue });
-                addLog("ADMIN", "KICK_TO_QUEUE", `Moved ${u.plat} from S${i+1} down to Queue`);
+                addLog("ADMIN", "KICK_TO_QUEUE", `Moved ${u.plat} to Q`);
             });
         };
 
@@ -374,9 +330,10 @@
                 const u = d.chargingSlots[i];
                 if(u) { 
                     addDoc(histRef, {...u, finishTime:new Date(), timestamp:new Date(), by:'ADMIN'}); 
-                    d.chargingSlots[i]=null; 
+                    d.chargingSlots[i]=null;
+                    t.set(snapshotRef, { ...d, backupTime: new Date() }); // SNAPSHOT 
                     t.update(mainRef, {chargingSlots:d.chargingSlots}); 
-                    addLog("ADMIN", "STOP_CHARGE", `Stopped ${u.plat} at S${i+1}`);
+                    addLog("ADMIN", "STOP_RESET", `Reset S${i+1}`);
                 }
             });
         };
@@ -388,6 +345,7 @@
             runTransaction(db, async(t) => {
                 const d = (await t.get(mainRef)).data();
                 const t1 = d.chargingSlots[s1]; d.chargingSlots[s1] = d.chargingSlots[s2]; d.chargingSlots[s2] = t1;
+                t.set(snapshotRef, { ...d, backupTime: new Date() }); // SNAPSHOT
                 t.update(mainRef, { chargingSlots:d.chargingSlots });
                 addLog("ADMIN", "SWAP_SLOT", `Swapped S${parseInt(s1)+1} <-> S${parseInt(s2)+1}`);
             });
@@ -400,125 +358,63 @@
                 if(i>-1) {
                     const u = d.waitingQueue.splice(i,1)[0];
                     let r = d.recycledNumbers||[]; r.push(u.qNo);
+                    t.set(snapshotRef, { ...d, backupTime: new Date() }); // SNAPSHOT
                     t.update(mainRef, { waitingQueue:d.waitingQueue, recycledNumbers:r });
-                    addLog("ADMIN", "DELETE_Q", `Removed ${p} from queue`);
+                    addLog("ADMIN", "DELETE_Q", `Removed ${p}`);
                 }
             });
         };
 
-        window.resetDaily = () => {
-            runTransaction(db, async(t) => {
-                const docSnap = await t.get(mainRef);
-                const d = docSnap.data();
-                const currentSlots = d.chargingSlots || [null, null, null];
-                t.set(mainRef, { chargingSlots: currentSlots, waitingQueue: [], recycledNumbers: [], lastTicket: 0, lastResetDate: getTodayString() });
-                addLog("ADMIN", "NEW_DAY", "Reset Daily Ticket");
-            }).then(() => { alert("BERHASIL! Nomor Antrian kembali ke 1. Slot aman."); }).catch(e => alert("Error: " + e));
-        };
-
-        window.resetTotal = () => {
-            setDoc(mainRef, { chargingSlots:[null,null,null], waitingQueue:[], recycledNumbers:[], lastTicket:0, lastResetDate: getTodayString() })
-            .then(() => { addLog("ADMIN", "RESET_ALL", "System Reset Triggered"); });
-        };
-
-        // === 3. RECOVERY SYSTEM (NEW!!) ===
+        // === SNAPSHOT RECOVERY ===
         window.checkRecovery = async () => {
-            const todayStart = new Date(); todayStart.setHours(0,0,0,0);
-            // Ambil data dari backupHarian yang dibuat hari ini
-            const q = query(backupRef, where("time", ">=", todayStart), orderBy("time", "asc"));
-            const snap = await getDocs(q);
+            const docSnap = await getDoc(snapshotRef);
+            const listDiv = document.getElementById('recList'); 
+            listDiv.innerHTML = ''; snapshotData = null;
+
+            if(!docSnap.exists()) {
+                document.getElementById('recCount').innerText = "0";
+                listDiv.innerHTML = '<div style="padding:10px;">Snapshot kosong.</div>';
+                document.getElementById('recoveryPanel').style.display = 'block';
+                return;
+            }
+
+            const d = docSnap.data(); snapshotData = d;
+            const total = (d.chargingSlots||[]).filter(x=>x).length + (d.waitingQueue||[]).length;
             
-            recoveredData = [];
-            const listDiv = document.getElementById('recList'); listDiv.innerHTML = '';
-
-            snap.forEach(doc => {
-                const d = doc.data();
-                if(d.type === "REGISTER_ATTEMPT") {
-                    recoveredData.push(d);
-                    const div = document.createElement('div');
-                    div.className = 'rec-item';
-                    const jam = d.time.toDate().toLocaleTimeString('id-ID');
-                    div.innerHTML = `<span>${jam}</span> <b style="color:var(--cyan)">${d.plat}</b> <span>${d.name}</span>`;
-                    listDiv.appendChild(div);
-                }
-            });
-
-            document.getElementById('recCount').innerText = recoveredData.length;
+            let html = `<div style="font-size:10px;color:#aaa;background:#222;padding:5px;">BACKUP: ${d.backupTime?d.backupTime.toDate().toLocaleTimeString():'-'}</div>`;
+            (d.chargingSlots||[]).forEach((s,i) => { if(s) html+=`<div class="rec-item"><span style="color:var(--cyan)">SLOT ${i+1}</span> <b>${s.plat}</b></div>`; });
+            (d.waitingQueue||[]).forEach(q => { html+=`<div class="rec-item"><span>#${q.qNo}</span> <b>${q.plat}</b></div>`; });
+            
+            listDiv.innerHTML = html;
+            document.getElementById('recCount').innerText = total;
             document.getElementById('recoveryPanel').style.display = 'block';
         };
 
         window.executeRestore = async () => {
-            if(recoveredData.length === 0) return alert("Data kosong");
-            const newQ = recoveredData.map((d, i) => ({
-                plat: d.plat, userName: d.name, qNo: i+1, entryTime: d.time.toMillis()
-            }));
-            
+            if(!snapshotData) return alert("Snapshot Invalid");
             await runTransaction(db, async(t) => {
-                // Restore antrian, reset tiket terakhir ke jumlah restore
-                t.update(mainRef, { waitingQueue: newQ, lastTicket: newQ.length });
-                addLog("ADMIN", "RESTORE", `Restored ${newQ.length} users from backup`);
+                t.set(mainRef, { 
+                    chargingSlots: snapshotData.chargingSlots||[null,null,null],
+                    waitingQueue: snapshotData.waitingQueue||[],
+                    lastTicket: snapshotData.lastTicket||0,
+                    recycledNumbers: snapshotData.recycledNumbers||[],
+                    lastResetDate: snapshotData.lastResetDate|| new Date().toLocaleDateString('en-CA')
+                });
+                addLog("ADMIN", "RESTORE", "Restored Snapshot");
             });
-            alert("BERHASIL DIPULIHKAN!");
+            alert("SUKSES!");
             document.getElementById('recoveryPanel').style.display = 'none';
         };
 
-        // === 4. REPORTS & STATS ===
-        window.toggleCustomDate = () => { document.getElementById('customDateArea').style.display = (document.getElementById('reportRange').value === 'custom') ? 'block' : 'none'; }
-        
-        window.generateReport = async () => {
-            const range = document.getElementById('reportRange').value;
-            let start = new Date(); start.setHours(0,0,0,0); let end = new Date(); end.setHours(23,59,59,999);
-            if(range === 'yesterday') { start.setDate(start.getDate()-1); end.setDate(end.getDate()-1); }
-            else if(range === '7days') { start.setDate(start.getDate()-6); }
-            else if(range === 'custom') { start = new Date(document.getElementById('dateStart').value); end = new Date(document.getElementById('dateEnd').value); end.setHours(23,59,59,999); }
-            
-            const q = query(histRef, orderBy("timestamp", "desc"));
-            const snap = await getDocs(q);
-            let csv = "TANGGAL,MASUK,KELUAR,DURASI,PLAT,NAMA\n";
-            snap.forEach(d => {
-                const x = d.data(); const dt = x.timestamp.toDate();
-                if(dt >= start && dt <= end) {
-                    const dur = (x.startTime && x.finishTime) ? Math.round((x.finishTime.toDate()-x.startTime)/60000) : 0;
-                    csv += `${dt.toLocaleDateString()},${x.entryTime?new Date(x.entryTime).toLocaleTimeString():'-'},${x.finishTime?x.finishTime.toDate().toLocaleTimeString():'-'},${dur},${x.plat},${x.userName}\n`;
-                }
-            });
-            const blob = new Blob([csv], { type: 'text/csv' });
-            const a = document.createElement('a'); a.href = window.URL.createObjectURL(blob); a.download = 'Report.csv'; a.click();
-        };
-
-        window.loadAnalytics = async () => {
-            const today = new Date(); today.setHours(0,0,0,0);
-            const snap = await getDocs(query(histRef, where("timestamp", ">=", today)));
-            let tot=0, dur=0, hMap={};
-            snap.forEach(d => {
-                const x = d.data(); tot++;
-                if(x.startTime && x.finishTime) dur += (x.finishTime.toDate()-x.startTime)/60000;
-                if(x.entryTime) { const h=new Date(x.entryTime).getHours(); hMap[h]=(hMap[h]||0)+1; }
-            });
-            let busy='-', mx=0; for(const[k,v] of Object.entries(hMap)) if(v>mx){mx=v; busy=`${k}:00`;}
-            document.getElementById('stat-total').innerText = tot;
-            document.getElementById('stat-avg').innerText = (tot>0?Math.round(dur/tot):0) + "m";
-            document.getElementById('stat-busy').innerText = busy;
-        };
-        setTimeout(loadAnalytics, 2000);
-
-        // LOG LISTENER
+        // LOGS
         onSnapshot(query(logRef, orderBy("timestamp", "desc"), limit(30)), (snap) => {
-            let h = ''; const docs = [];
-            snap.forEach(d => docs.push(d.data())); docs.reverse();
-            docs.forEach(data => {
-                let timeStr = "??:??";
-                if(data.timestamp && data.timestamp.toDate) {
-                    const dt = data.timestamp.toDate();
-                    timeStr = `${dt.getHours().toString().padStart(2,'0')}:${dt.getMinutes().toString().padStart(2,'0')}`;
-                }
-                let c = 'act-system'; 
-                const act = (data.actor || 'SYSTEM').toUpperCase();
-                if(act.includes('ADMIN')) c = 'act-admin'; else if(!act.includes('SYSTEM')) c = 'act-user';
-                h += `<div class="log-line"><span class="ts">[${timeStr}]</span><span class="${c}">[${act}]</span> <span class="cmd">${data.action}</span> <span class="dtl"> ${data.details}</span></div>`;
+            let h = '';
+            snap.forEach(d => {
+                const x = d.data();
+                const c = (x.actor||'').includes('SUPER') ? 'act-super' : 'act-admin';
+                h += `<div class="log-line"><span class="${c}">[${x.actor}]</span> ${x.action} - ${x.details}</div>`;
             });
             document.getElementById('termLog').innerHTML = h;
-            document.getElementById('termLog').scrollTop = document.getElementById('termLog').scrollHeight; 
         });
 
         function addLog(actor, act, det) { 
