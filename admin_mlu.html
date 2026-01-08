@@ -6,50 +6,22 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Rajdhani:wght@400;600&display=swap" rel="stylesheet">
 <style>
-/* STYLE NEON KHUSUS ADMIN */
-body {
-  background-color: #050505; color: #fff; font-family: 'Rajdhani', sans-serif; padding: 20px;
-}
-h2 { color: #00f0ff; font-family: 'Orbitron', sans-serif; text-align: center; margin-bottom: 30px; }
-
-.controls {
-  max-width: 950px; margin: 0 auto 20px auto; 
-  display: flex; justify-content: space-between; align-items: center;
-  background: #111; padding: 15px; border-radius: 8px; border: 1px solid #333;
-}
+/* STYLE ADMIN */
+body { background-color: #050505; color: #fff; font-family: 'Rajdhani', sans-serif; padding: 20px; }
+h2 { color: #00f0ff; font-family: 'Orbitron', sans-serif; text-align: center; margin-bottom: 20px; }
+.controls { max-width: 1000px; margin: 0 auto 20px auto; display: flex; justify-content: space-between; align-items: center; background: #111; padding: 15px; border-radius: 8px; border: 1px solid #333; }
 .count { font-weight: bold; color: #aaa; font-family: 'Orbitron', sans-serif; }
-
-button {
-  padding: 12px 25px; background: linear-gradient(45deg, #00c3ff, #00f0ff); 
-  border: none; border-radius: 4px; font-weight: bold; cursor: pointer; 
-  font-family: 'Orbitron', sans-serif; color: #000;
-}
+button { padding: 10px 20px; background: linear-gradient(45deg, #00c3ff, #00f0ff); border: none; border-radius: 4px; font-weight: bold; cursor: pointer; font-family: 'Orbitron', sans-serif; color: #000; }
 button:hover { transform: translateY(-2px); box-shadow: 0 0 15px rgba(0, 240, 255, 0.6); }
 
-/* TABLE STYLE */
-.table-responsive { 
-  overflow-x: auto; max-width: 950px; margin: auto; 
-  border: 1px solid #333; border-radius: 8px; box-shadow: 0 0 20px rgba(0,0,0,0.5);
-}
-table { width: 100%; border-collapse: collapse; background: #111; min-width: 800px; }
-
-th, td { padding: 15px; text-align: left; border-bottom: 1px solid #222; }
-th { 
-  background: #1a1a1a; color: #00f0ff; 
-  font-family: 'Orbitron', sans-serif; font-size: 14px; letter-spacing: 1px;
-}
+.table-responsive { overflow-x: auto; max-width: 1000px; margin: auto; border: 1px solid #333; border-radius: 8px; }
+table { width: 100%; border-collapse: collapse; background: #111; min-width: 900px; }
+th, td { padding: 12px; text-align: left; border-bottom: 1px solid #222; }
+th { background: #1a1a1a; color: #00f0ff; font-family: 'Orbitron', sans-serif; font-size: 13px; letter-spacing: 1px; }
 tr:hover { background: #1f1f1f; }
-
-/* Warna Khusus Plat Nomor */
-.plat-cell {
-  font-family: 'Orbitron', sans-serif;
-  color: #ffcc00; /* Kuning Emas */
-  font-weight: bold;
-  letter-spacing: 1px;
-}
-
+.plat-cell { font-family: 'Orbitron', sans-serif; color: #ffcc00; font-weight: bold; }
+.prog-cell { color: #0f0; font-weight: bold; }
 .loading { text-align: center; color: #666; padding: 30px; }
-.error-msg { color: #ff3333; text-align: center; padding: 20px; font-weight: bold; }
 </style>
 </head>
 <body>
@@ -67,19 +39,19 @@ tr:hover { background: #1f1f1f; }
       <tr>
         <th>NAMA</th>
         <th>WHATSAPP</th>
-        <th>PLAT NOMOR</th> <th>DOMISILI</th>
+        <th>PLAT NOMOR</th>
+        <th>PROGRAM</th> <th>DOMISILI</th>
         <th>LINTAS</th>
         <th>WAKTU DAFTAR</th>
       </tr>
     </thead>
     <tbody id="tbody">
-      <tr><td colspan="6" class="loading">Menghubungkan ke Database...</td></tr>
+      <tr><td colspan="7" class="loading">Memuat data...</td></tr>
     </tbody>
   </table>
 </div>
 
 <script type="module">
-  // --- CONFIG SUDAH SESUAI PUNYA KAMU ---
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
   import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
@@ -96,11 +68,9 @@ tr:hover { background: #1f1f1f; }
   const db = getFirestore(app);
   let allData = [];
 
-  // 1. FUNGSI LOAD DATA
   async function loadData() {
     const tbody = document.getElementById("tbody");
     try {
-      // Ambil semua data dari laci 'anggota_mlu'
       const q = collection(db, "anggota_mlu");
       const snapshot = await getDocs(q);
       
@@ -109,37 +79,23 @@ tr:hover { background: #1f1f1f; }
       let count = 0;
 
       if (snapshot.empty) {
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:30px;">DATABASE MASIH KOSONG</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:30px;">DATABASE KOSONG</td></tr>';
         return;
       }
 
-      // Loop data satu per satu
       snapshot.forEach(doc => {
         const d = doc.data();
-        
-        // Simpan data mentah buat Excel nanti
-        // Kita pastikan field 'plat' ada, kalau kosong dikasih strip (-)
-        d.plat = d.plat || "-"; 
-        
         allData.push(d);
         count++;
         
-        // Format Tanggal biar enak dibaca
-        let tglTampil = "-";
-        if (d.tgl) {
-            const dateObj = new Date(d.tgl);
-            tglTampil = dateObj.toLocaleDateString("id-ID") + " " + dateObj.toLocaleTimeString("id-ID").slice(0,5);
-        }
+        const tglTampil = d.tgl ? new Date(d.tgl).toLocaleDateString("id-ID") : "-";
         
         html += `
           <tr>
             <td><strong>${d.nama || '-'}</strong></td>
-            <td>
-              <a href="https://wa.me/${d.hp ? d.hp.replace(/^0/, '62').replace(/[^0-9]/g, '') : ''}" target="_blank" style="color:#00f0ff;text-decoration:none">
-                ${d.hp || '-'}
-              </a>
-            </td>
-            <td class="plat-cell">${d.plat}</td> <td>${d.alamat || '-'}</td>
+            <td><a href="https://wa.me/${d.hp ? d.hp.replace(/^0/, '62').replace(/[^0-9]/g, '') : ''}" target="_blank" style="color:#00f0ff;text-decoration:none">${d.hp || '-'}</a></td>
+            <td class="plat-cell">${d.plat || '-'}</td>
+            <td class="prog-cell">${d.program || 'Umum'}</td> <td>${d.alamat || '-'}</td>
             <td>${d.lintas || '-'}</td>
             <td style="font-size:12px; color:#888;">${tglTampil}</td>
           </tr>
@@ -150,46 +106,37 @@ tr:hover { background: #1f1f1f; }
       document.getElementById("totalData").innerText = "Total: " + count + " Anggota";
 
     } catch (e) {
-      console.error("ERROR ADMIN:", e);
-      tbody.innerHTML = `<tr><td colspan="6" class="error-msg">
-        GAGAL MEMUAT DATA!<br>
-        <small>${e.message}</small>
-      </td></tr>`;
+      console.error(e);
+      tbody.innerHTML = `<tr><td colspan="7" style="color:red;text-align:center">Error: ${e.message}</td></tr>`;
     }
   }
 
-  // 2. FUNGSI DOWNLOAD EXCEL
   window.downloadExcel = function() {
-    if(allData.length === 0) { alert("Data masih kosong!"); return; }
+    if(allData.length === 0) { alert("Data kosong!"); return; }
 
-    // Header Excel (Baris Paling Atas)
     let csvContent = "data:text/csv;charset=utf-8,";
-    csvContent += "Nama Lengkap,No HP,Plat Nomor,Alamat,Lintas,Waktu Daftar\r\n";
+    csvContent += "Nama Lengkap,No HP,Plat Nomor,Program,Alamat,Lintas,Waktu Daftar\r\n";
 
-    // Isi Data
     allData.forEach(d => {
-      // Bersihkan koma (,) supaya tabel Excel gak berantakan
       const nama = (d.nama || "").replace(/,/g, " ");
-      const hp = "'" + (d.hp || ""); // Tanda kutip biar gak jadi angka ilmiah
+      const hp = "'" + (d.hp || "");
       const plat = (d.plat || "").replace(/,/g, " ");
+      const program = (d.program || "Umum").replace(/,/g, " "); // PROGRAM
       const alamat = (d.alamat || "").replace(/,/g, " ").replace(/\n/g, " ");
       const lintas = (d.lintas || "").replace(/,/g, " & ");
       const tgl = d.tgl ? new Date(d.tgl).toLocaleString("id-ID") : "-";
 
-      // Gabung jadi satu baris
-      csvContent += `${nama},${hp},${plat},${alamat},${lintas},${tgl}\r\n`;
+      csvContent += `${nama},${hp},${plat},${program},${alamat},${lintas},${tgl}\r\n`;
     });
 
-    // Proses Download
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "Database_MLU_Lengkap.csv");
+    link.setAttribute("download", "Database_MLU_Program.csv");
     document.body.appendChild(link);
     link.click();
   }
 
-  // Jalankan saat halaman dibuka
   loadData();
 </script>
 
