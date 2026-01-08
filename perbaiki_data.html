@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>TOOLS PERBAIKAN DATA MLU</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Rajdhani:wght@400;600&display=swap" rel="stylesheet">
+<style>
+body {
+  background-color: #050505; color: #fff; font-family: 'Rajdhani', sans-serif; padding: 20px;
+  display: flex; flex-direction: column; align-items: center;
+}
+.container {
+  width: 100%; max-width: 600px; background: #111; border: 1px solid #333; 
+  padding: 20px; border-radius: 10px; box-shadow: 0 0 20px rgba(0,255,0,0.1);
+}
+h2 { color: #0f0; text-align: center; font-family: 'Orbitron', sans-serif; }
+p { color: #aaa; text-align: center; margin-bottom: 20px; }
+
+button {
+  width: 100%; padding: 15px; background: #0f0; color: #000; border: none; 
+  font-weight: bold; font-family: 'Orbitron', sans-serif; font-size: 16px; cursor: pointer;
+  border-radius: 5px; margin-bottom: 20px;
+}
+button:hover { background: #0c0; box-shadow: 0 0 15px #0f0; }
+button:disabled { background: #333; color: #555; cursor: not-allowed; box-shadow: none; }
+
+#log-area {
+  background: #000; border: 1px solid #222; padding: 10px; height: 300px; 
+  overflow-y: auto; font-family: monospace; font-size: 12px; color: #ccc;
+}
+.log-item { margin-bottom: 5px; border-bottom: 1px solid #111; padding-bottom: 2px; }
+.success { color: #0f0; }
+.warn { color: #ffcc00; }
+.err { color: #f00; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h2>SISTEM PATCHING DATA</h2>
+  <p>Tools ini akan mencari anggota yang <b>Plat Nomor-nya KOSONG</b>, lalu mencarikan datanya di database Antrian lama berdasarkan No HP.</p>
+  
+  <button id="btn-start" onclick="mulaiPerbaikan()">MULAI SCAN & PERBAIKI</button>
+  
+  <div id="log-area">Log aktivitas akan muncul di sini...</div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import { getFirestore, collection, getDocs, query, where, updateDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+  // CONFIG ASLI KAMU
+  const firebaseConfig = {
+      apiKey: "AIzaSyB666i9lYWIpxOdkwpoX9EvFvHLmHczeq8",
+      authDomain: "fcgadingnew22.firebaseapp.com",
+      projectId: "fcgadingnew22",
+      storageBucket: "fcgadingnew22.firebasestorage.app",
+      messagingSenderId: "537736846678",
+      appId: "1:537736846678:web:53788d71a196423ac08af7"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  function log(msg, type="normal") {
+    const area = document.getElementById("log-area");
+    let color = "#ccc";
+    if(type=="success") color = "#0f0";
+    if(type=="warn") color = "#ffcc00";
+    if(type=="err") color = "#f33";
+    
+    area.innerHTML += `<div class='log-item' style='color:${color}'>${msg}</div>`;
+    area.scrollTop = area.scrollHeight; // Auto scroll ke bawah
+  }
+
+  window.mulaiPerbaikan = async function() {
+    if(!confirm("Yakin ingin menjalankan perbaikan data?")) return;
+
+    const btn = document.getElementById("btn-start");
+    btn.disabled = true;
+    btn.innerText = "SEDANG MEMPROSES...";
+    log("=== MEMULAI PROSES SCAN ===", "normal");
+
+    try {
+      // 1. AMBIL SEMUA DATA ANGGOTA MLU
+      const anggotaRef = collection(db, "anggota_mlu");
+      const snapshot = await getDocs(anggotaRef);
+      
+      if(snapshot.empty) {
+        log("Database Anggota MLU Kosong.", "err");
+        btn.disabled = false; return;
+      }
+
+      let countFixed = 0;
+      let countSkipped = 0;
+      let countNotFound = 0;
+
+      // 2. LOOP SETIAP ANGGOTA
+      // Kita pakai for...of biar bisa await (proses satu per satu)
+      for (const d of snapshot.docs) {
+        const data = d.data();
+        const docId = d.id;
+
+        // Cek apakah Plat Nomor Kosong / Strip / Undefined
+        if (!data.plat || data.plat === "-" || data.plat === "") {
+            
+            log(`🔍 Mengecek: ${data.nama} (${data.hp})...`, "normal");
+
+            // 3. CARI DI DATABASE LAMA (ANTRIAN)
+            const q = query(collection(db, "antrian"), where("hp", "==", data.hp));
+            const oldSnap = await getDocs(q);
+
+            if (!oldSnap.empty) {
+                // DATA KETEMU DI LAMA!
+                const dataLama = oldSnap.docs[0].data();
+                
+                // Cek nama field di db lama (jaga-jaga namanya beda)
+                const platLama = dataLama.plat || dataLama.nopol || dataLama.plat_nomor;
+
+                if (platLama) {
+                    // 4. UPDATE DATA ANGGOTA MLU
+                    await updateDoc(doc(db, "anggota_mlu", docId), {
+                        plat: platLama.toUpperCase()
+                    });
+                    
+                    log(`✅ UPDATE SUKSES! Plat: ${platLama}`, "success");
+                    countFixed++;
+                } else {
+                    log(`⚠ User ada di db lama, tapi platnya juga kosong.`, "warn");
+                    countNotFound++;
+                }
+
+            } else {
+                log(`❌ Tidak ditemukan di database lama.`, "err");
+                countNotFound++;
+            }
+
+        } else {
+            // Plat sudah ada, skip
+            countSkipped++;
+        }
+      }
+
+      log("=================================", "normal");
+      log(`SELESAI!`, "success");
+      log(`Data Diperbaiki: ${countFixed}`);
+      log(`Data Lewat (Sudah ada): ${countSkipped}`);
+      log(`Data Tidak Ketemu (Tetap kosong): ${countNotFound}`);
+
+    } catch (e) {
+      console.error(e);
+      log(`ERROR SYSTEM: ${e.message}`, "err");
+    }
+
+    btn.disabled = false;
+    btn.innerText = "SELESAI - KLIK UNTUK SCAN ULANG";
+  }
+</script>
+
+</body>
+</html>
