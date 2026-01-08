@@ -160,7 +160,6 @@
             </div>
         </div>
     </div>
-
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, doc, onSnapshot, runTransaction, collection, addDoc, query, orderBy, limit, getDocs, where, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -268,7 +267,6 @@
 
         // === ACTIONS ===
         
-        // FIX PENTING: CEK JABATAN SEBELUM INPUT
         window.manualAdd = async (target) => {
             const p = document.getElementById('newPlat').value.toUpperCase();
             const n = document.getElementById('newName').value.toUpperCase();
@@ -280,27 +278,33 @@
                 const cleanP = p.replace(/[^A-Z0-9]/g, '');
                 const memberSnap = await getDoc(doc(db, "members", cleanP));
                 if(memberSnap.exists()) {
-                    userRole = memberSnap.data().role; // Ambil jabatannya (KETUM, dll)
+                    userRole = memberSnap.data().role; 
                 }
             } catch(e) { console.log("Cek member gagal:", e); }
 
             // 2. LANJUT PROSES MASUK
             runTransaction(db, async(t) => {
                 const docSnap = await t.get(mainRef);
-                let d = docSnap.exists() ? docSnap.data() : { chargingSlots: [null,null,null], waitingQueue: [], recycledNumbers: [], lastTicket: 0 };
+                
+                // === BUG FIX: PENCEGAHAN BLIND OVERWRITE ===
+                // Jika data gagal dibaca/koneksi jelek, JANGAN buat data kosong baru.
+                if(!docSnap.exists()) {
+                    throw "DATA TIDAK TERBACA! Cek Koneksi internet atau Init dulu.";
+                }
+
+                let d = docSnap.data();
                 
                 if([...(d.chargingSlots||[]), ...d.waitingQueue].some(u => u && u.plat === p)) throw "Plat Sudah Ada!";
                 
                 let newNo = (d.recycledNumbers||[]).length>0 ? d.recycledNumbers.sort((a,b)=>a-b).shift() : (d.lastTicket||0)+1;
                 
-                // Masukkan Role/Jabatan ke data user
                 const u = { 
                     plat:p, 
                     userName:n, 
                     wa:'ADMIN', 
                     qNo:newNo, 
                     entryTime:Date.now(),
-                    role: userRole // <--- INI KUNCINYA (Badge akan muncul)
+                    role: userRole 
                 };
 
                 if(target === 'queue') { d.waitingQueue.push(u); } 

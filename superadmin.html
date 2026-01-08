@@ -42,7 +42,7 @@
     </div>
     <div style="display:flex; justify-content:space-between; margin-bottom:15px; align-items:center;">
         <div><span style="font-family:'Teko'; font-size:28px; color:var(--gold);">SUPER ADMIN <span style="color:#fff; font-size:12px;">(GOD MODE)</span></span></div>
-        <div style="display:flex; gap:5px;"><button onclick="window.location.href='index.html'" class="btn-blue">DEPAN</button><button onclick="logout()" class="btn-red">KELUAR</button></div>
+        <div style="display:flex; gap:5px;"><button onclick="window.location.href='antrian.html'" class="btn-blue">DEPAN</button><button onclick="logout()" class="btn-red">KELUAR</button></div>
     </div>
     <div class="box">
         <h3>1. LIVE EDIT (GANTI PLAT/NAMA)</h3>
@@ -61,7 +61,7 @@
                 <option value="MEMBER">KELUARGA MLU</option>
                 <option value="KETUM">KETUM</option>
                 <option value="WAKETUM">WAKETUM</option>
-                <option value="SEKRETARIS">SEKRETARIS</option>
+                <option value="KACAB">KACAB (KEPALA CABANG)</option> <option value="SEKRETARIS">SEKRETARIS</option>
                 <option value="PEMBINA">PEMBINA</option>
                 <option value="PENASEHAT">PENASEHAT</option>
                 <option value="HUMAS">HUMAS</option>
@@ -90,10 +90,26 @@
         const mainRef = doc(db, "antrian", "utama");
         const logRef = collection(db, "activityLog");
         let cachedData = null;
+        
+        // === LOGIN PERSISTENT (AGAR GAK LOGIN MULU) ===
+        if(localStorage.getItem('sa_sess')) {
+            document.getElementById('loginOverlay').style.display = 'none';
+        }
+
         window.attemptLogin = () => {
-            if(document.getElementById('loginPin').value === "090815") { document.getElementById('loginOverlay').style.display = 'none'; addLog("SUPER_ADMIN", "LOGIN", "God Mode Accessed"); } else { alert("PIN SALAH!"); }
+            if(document.getElementById('loginPin').value === "090815") { 
+                localStorage.setItem('sa_sess', '1'); // SIMPAN SESI
+                document.getElementById('loginOverlay').style.display = 'none'; 
+                addLog("SUPER_ADMIN", "LOGIN", "God Mode Accessed"); 
+            } else { alert("PIN SALAH!"); }
         };
-        window.logout = () => window.location.href='index.html';
+
+        window.logout = () => { 
+            localStorage.removeItem('sa_sess'); // HAPUS SESI
+            window.location.href='antrian.html'; // Balik ke depan
+        };
+        // ===============================================
+
         onSnapshot(mainRef, (snap) => {
             if(!snap.exists()) return;
             const d = snap.data(); cachedData = d;
@@ -110,6 +126,7 @@
                 qList.appendChild(div);
             });
         });
+
         window.editData = (type, id) => {
             let oldP = "", oldN = "";
             if(type === 'slot') { if(!cachedData.chargingSlots[id]) return alert("Slot Kosong"); oldP = cachedData.chargingSlots[id].plat; oldN = cachedData.chargingSlots[id].userName; } 
@@ -124,6 +141,7 @@
                 addLog("SUPER_ADMIN", "EDIT_DATA", `${oldP} -> ${newP}`);
             });
         };
+
         window.setJabatan = () => {
             const p = document.getElementById('rolePlat').value.toUpperCase(); const r = document.getElementById('roleSelect').value; if(!p) return alert("Isi Plat!"); const cleanP = p.replace(/[^A-Z0-9]/g, '');
             setDoc(doc(db, "members", cleanP), { plat: p, role: r, verified: true }, {merge:true});
@@ -134,8 +152,10 @@
                 if(updated) t.update(mainRef, { waitingQueue: newQ, chargingSlots: newS });
             }).then(() => { alert(`BERHASIL! ${p} sekarang ${r}`); addLog("SUPER_ADMIN", "SET_ROLE", `Set ${p} as ${r}`); document.getElementById('rolePlat').value = ''; });
         };
+
         window.resetDaily = () => { runTransaction(db, async(t) => { t.update(mainRef, { waitingQueue: [], recycledNumbers: [], lastTicket: 0 }); addLog("SUPER_ADMIN", "RESET_DAILY", "Reset Queue Numbers"); }); };
         window.resetTotal = () => { setDoc(mainRef, { chargingSlots:[null,null,null], waitingQueue:[], recycledNumbers:[], lastTicket:0 }).then(() => addLog("SUPER_ADMIN", "RESET_TOTAL", "Wiped Everything")); };
+        
         onSnapshot(query(logRef, orderBy("timestamp", "desc"), limit(50)), (snap) => {
             let h = ''; snap.forEach(d => { const x = d.data(); const time = x.timestamp ? x.timestamp.toDate().toLocaleTimeString() : '-'; h += `<div class="log-line"><span style="color:#666">[${time}]</span> <b style="color:var(--gold)">${x.actor}</b>: ${x.action} - ${x.details}</div>`; });
             document.getElementById('termLog').innerHTML = h;
