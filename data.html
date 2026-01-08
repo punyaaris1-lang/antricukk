@@ -7,7 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Rajdhani:wght@400;600&display=swap" rel="stylesheet">
 
 <style>
-/* STYLE IDENTIK DENGAN SEBELUMNYA */
+/* STYLE ASLI */
 * { box-sizing: border-box; outline: none; }
 body {
   background-color: #050505;
@@ -22,10 +22,7 @@ body {
   border: 1px solid #333; border-radius: 12px; padding: 30px 25px;
   box-shadow: 0 0 20px rgba(0, 240, 255, 0.1); position: relative; backdrop-filter: blur(10px);
 }
-.container::before {
-  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
-  background: #00f0ff; box-shadow: 0 0 10px #00f0ff;
-}
+.container::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: #00f0ff; box-shadow: 0 0 10px #00f0ff; }
 h2 { text-align: center; font-family: 'Orbitron', sans-serif; color: #00f0ff; margin: 0 0 25px 0; text-shadow: 0 0 10px rgba(0, 240, 255, 0.5); }
 label { font-size: 14px; color: #aaa; font-weight: 600; margin-bottom: 8px; display: block; }
 .input-group { margin-bottom: 20px; }
@@ -33,10 +30,23 @@ input, textarea {
   width: 100%; background: #0a0a0a; border: 1px solid #333; border-left: 3px solid #333;
   border-radius: 4px; padding: 12px 15px; color: #fff; font-family: 'Rajdhani', sans-serif; font-size: 16px;
 }
-/* Input Plat Nomor Font Keren */
+input:focus, textarea:focus { border-color: #00f0ff; border-left-color: #00f0ff; background: #111; box-shadow: 0 0 15px rgba(0, 240, 255, 0.15); }
 #plat { text-transform: uppercase; font-family: 'Orbitron', sans-serif; letter-spacing: 2px; font-weight: bold; color: #ffcc00; }
 
-input:focus, textarea:focus { border-color: #00f0ff; border-left-color: #00f0ff; background: #111; box-shadow: 0 0 15px rgba(0, 240, 255, 0.15); }
+/* STYLE UNTUK PILIHAN PROGRAM (RADIO BUTTON) */
+.radio-container { display: flex; gap: 10px; margin-bottom: 5px; }
+.radio-box {
+  flex: 1; border: 1px solid #333; background: #111; padding: 12px; border-radius: 6px;
+  cursor: pointer; text-align: center; font-weight: bold; color: #888; transition: 0.3s;
+}
+.radio-box:hover { border-color: #555; }
+/* Sembunyikan radio asli */
+.radio-box input { display: none; }
+/* Saat dipilih */
+.radio-box.active {
+  border-color: #00f0ff; background: rgba(0, 240, 255, 0.1); color: #00f0ff; box-shadow: 0 0 10px rgba(0, 240, 255, 0.2);
+}
+
 .checkbox-container { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: #111; padding: 15px; border-radius: 8px; border: 1px solid #222; }
 .checkbox-item { display: flex; align-items: center; cursor: pointer; color: #ddd; }
 .checkbox-item input { margin-right: 10px; accent-color: #00f0ff; width: 16px; height: 16px; }
@@ -57,13 +67,31 @@ button {
 <div class="container">
   <h2>DATA ANGGOTA MLU</h2>
 
+  <div class="input-group">
+    <label>NO. WHATSAPP</label>
+    <input type="tel" id="hp" placeholder="Contoh: 0812xxxxxxxx">
+  </div>
+
   <div class="input-group"><label>NAMA LENGKAP</label><input type="text" id="nama" placeholder="Ketik nama sesuai KTP..."></div>
-  
-  <div class="input-group"><label>NO. WHATSAPP</label><input type="tel" id="hp" placeholder="Contoh: 0812xxxxxxxx"></div>
 
   <div class="input-group">
     <label>PLAT NOMOR KENDARAAN</label>
     <input type="text" id="plat" placeholder="CONTOH: B 1234 XYZ" maxlength="11">
+  </div>
+
+  <div class="input-group">
+    <label style="color:#00f0ff;">PROGRAM KEPEMILIKAN (Wajib Pilih)</label>
+    <div class="radio-container">
+      <label class="radio-box" onclick="selectProgram(this)">
+        <input type="radio" name="program" value="TransGO"> TransGO
+      </label>
+      <label class="radio-box" onclick="selectProgram(this)">
+        <input type="radio" name="program" value="RTO Maka"> RTO Maka
+      </label>
+      <label class="radio-box active" onclick="selectProgram(this)">
+        <input type="radio" name="program" value="Umum" checked> Umum
+      </label>
+    </div>
   </div>
 
   <div class="input-group"><label>ALAMAT DOMISILI</label><textarea id="alamat" rows="2" placeholder="Jalan, RT/RW, Kelurahan..."></textarea></div>
@@ -91,7 +119,6 @@ button {
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
   import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-  // CONFIG FIREBASE KAMU
   const firebaseConfig = {
       apiKey: "AIzaSyB666i9lYWIpxOdkwpoX9EvFvHLmHczeq8",
       authDomain: "fcgadingnew22.firebaseapp.com",
@@ -104,44 +131,27 @@ button {
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
-  // === 1. LOGIC FORMAT PLAT NOMOR OTOMATIS ===
-  const platInput = document.getElementById("plat");
-  
-  platInput.addEventListener("input", function(e) {
-      // Ambil nilai, paksa uppercase, buang karakter aneh (selain huruf & angka)
+  // Logic Radio Button UI
+  window.selectProgram = function(el) {
+    document.querySelectorAll('.radio-box').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+    el.querySelector('input').checked = true;
+  }
+
+  // Logic Plat Nomor
+  document.getElementById("plat").addEventListener("input", function(e) {
       let val = this.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
-      
-      let formatted = "";
-
-      // LOGIC: Format Standar Plat Indonesia (Huruf - Angka - Huruf)
-      // Contoh: B 1234 ABC
-      
-      // Cek apakah ada angka di dalam string
+      let formatted = val;
       const match = val.match(/^([A-Z]{1,2})(\d{1,4})([A-Z]{0,3})$/);
-      const matchPartial = val.match(/^([A-Z]{1,2})(\d+)$/); // Baru ngetik sampai angka
-
-      if (match) {
-          // Format lengkap: Huruf Spasi Angka (Spasi Huruf Belakang jika ada)
-          formatted = match[1] + " " + match[2];
-          if (match[3]) formatted += " " + match[3];
-      } else if (matchPartial) {
-          // Format baru sampai angka: Huruf Spasi Angka
-          formatted = matchPartial[1] + " " + matchPartial[2];
-      } else {
-          // Kalau belum match pola (misal baru ketik huruf awal), biarkan apa adanya tapi uppercase
-          formatted = val;
-      }
-
+      if (match) { formatted = match[1] + " " + match[2] + (match[3] ? " " + match[3] : ""); }
+      else if (val.match(/^([A-Z]{1,2})(\d+)$/)) { formatted = val.replace(/^([A-Z]{1,2})(\d+)$/, "$1 $2"); }
       this.value = formatted;
   });
 
-  // === 2. LOGIC TAMPILAN LAINNYA ===
-  const cbLainnya = document.getElementById('cb-lainnya');
-  cbLainnya.addEventListener('change', function() {
+  document.getElementById('cb-lainnya').addEventListener('change', function() {
     document.getElementById('field-lainnya').style.display = this.checked ? 'block' : 'none';
   });
 
-  // === 3. KIRIM DATA ===
   window.kirimData = async function() {
     const btn = document.getElementById("btn-simpan");
     const msg = document.getElementById("msg");
@@ -150,42 +160,44 @@ button {
     const hp = document.getElementById("hp").value.trim();
     const plat = document.getElementById("plat").value.trim();
     const alamat = document.getElementById("alamat").value.trim();
-    const txtLain = document.getElementById("lintasLain").value.trim();
     
+    // Ambil Program (Radio)
+    const programEl = document.querySelector('input[name="program"]:checked');
+    const program = programEl ? programEl.value : "Umum";
+
+    // Ambil Lintas
+    const txtLain = document.getElementById("lintasLain").value.trim();
     let lintasArr = [...document.querySelectorAll('.checkbox-item input:checked')].map(e => e.value);
 
-    // Validasi
     if(!nama || !hp || !plat || !alamat) {
-      msg.innerText = "⚠ LENGKAPI NAMA, HP, PLAT, & ALAMAT!"; 
-      msg.className = "msg error"; 
-      return;
+      msg.innerText = "⚠ DATA BELUM LENGKAP!"; msg.className = "msg error"; return;
     }
 
-    if(cbLainnya.checked && txtLain) {
+    if(document.getElementById('cb-lainnya').checked && txtLain) {
       lintasArr = lintasArr.filter(i => i !== "Lainnya");
       lintasArr.push(txtLain);
     }
     const lintasStr = lintasArr.length > 0 ? lintasArr.join(", ") : "-";
 
-    btn.innerHTML = "MENYIMPAN..."; btn.disabled = true; msg.innerText = "";
+    btn.innerHTML = "MENYIMPAN..."; btn.disabled = true;
 
     try {
       await addDoc(collection(db, "anggota_mlu"), {
         nama: nama,
         hp: hp,
         plat: plat,
+        program: program, // <--- DISIMPAN KE DATABASE
         alamat: alamat,
         lintas: lintasStr,
         tgl: new Date().toISOString()
       });
 
       msg.innerText = "BERHASIL TERDAFTAR ✔"; msg.className = "msg success";
-      setTimeout(() => { location.reload(); }, 2000);
+      setTimeout(() => location.reload(), 2000);
 
     } catch (e) {
       console.error(e);
-      msg.innerText = "GAGAL: " + e.message; 
-      msg.className = "msg error";
+      msg.innerText = "GAGAL: " + e.message; msg.className = "msg error";
       btn.innerHTML = "SIMPAN DATA"; btn.disabled = false;
     }
   }
