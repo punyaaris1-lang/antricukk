@@ -2,28 +2,29 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<title>TOOLS PERBAIKAN DATA MLU</title>
+<title>TOOLS PERBAIKAN DATA (LINTAS DATABASE)</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Rajdhani:wght@400;600&display=swap" rel="stylesheet">
 <style>
+/* STYLE SAMA SEPERTI SEBELUMNYA */
 body {
   background-color: #050505; color: #fff; font-family: 'Rajdhani', sans-serif; padding: 20px;
   display: flex; flex-direction: column; align-items: center;
 }
 .container {
   width: 100%; max-width: 600px; background: #111; border: 1px solid #333; 
-  padding: 20px; border-radius: 10px; box-shadow: 0 0 20px rgba(0,255,0,0.1);
+  padding: 20px; border-radius: 10px; box-shadow: 0 0 20px rgba(0,240,255,0.1);
 }
-h2 { color: #0f0; text-align: center; font-family: 'Orbitron', sans-serif; }
+h2 { color: #00f0ff; text-align: center; font-family: 'Orbitron', sans-serif; }
 p { color: #aaa; text-align: center; margin-bottom: 20px; }
 
 button {
-  width: 100%; padding: 15px; background: #0f0; color: #000; border: none; 
+  width: 100%; padding: 15px; background: linear-gradient(45deg, #00c3ff, #00f0ff); color: #000; border: none; 
   font-weight: bold; font-family: 'Orbitron', sans-serif; font-size: 16px; cursor: pointer;
   border-radius: 5px; margin-bottom: 20px;
 }
-button:hover { background: #0c0; box-shadow: 0 0 15px #0f0; }
-button:disabled { background: #333; color: #555; cursor: not-allowed; box-shadow: none; }
+button:hover { transform: translateY(-2px); box-shadow: 0 0 15px rgba(0,240,255,0.5); }
+button:disabled { background: #333; color: #555; cursor: not-allowed; box-shadow: none; transform: none; }
 
 #log-area {
   background: #000; border: 1px solid #222; padding: 10px; height: 300px; 
@@ -33,25 +34,29 @@ button:disabled { background: #333; color: #555; cursor: not-allowed; box-shadow
 .success { color: #0f0; }
 .warn { color: #ffcc00; }
 .err { color: #f00; }
+.info { color: #00f0ff; }
 </style>
 </head>
 <body>
 
 <div class="container">
-  <h2>SISTEM PATCHING DATA</h2>
-  <p>Tools ini akan mencari anggota yang <b>Plat Nomor-nya KOSONG</b>, lalu mencarikan datanya di database Antrian lama berdasarkan No HP.</p>
+  <h2>PATCHING DATA LINTAS SERVER</h2>
+  <p>
+    Tools ini akan membaca data di <b>fcgadingnew22</b> (Baru).<br>
+    Jika Plat Nomor kosong, akan dicari di <b>fcgadingbaru</b> (Lama).
+  </p>
   
-  <button id="btn-start" onclick="mulaiPerbaikan()">MULAI SCAN & PERBAIKI</button>
+  <button id="btn-start" onclick="mulaiPerbaikan()">MULAI SCAN LINTAS DATABASE</button>
   
-  <div id="log-area">Log aktivitas akan muncul di sini...</div>
+  <div id="log-area">Menunggu perintah...</div>
 </div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
   import { getFirestore, collection, getDocs, query, where, updateDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-  // CONFIG ASLI KAMU
-  const firebaseConfig = {
+  // === 1. CONFIG DATABASE BARU (TUJUAN / ANGGOTA MLU) ===
+  const configBaru = {
       apiKey: "AIzaSyB666i9lYWIpxOdkwpoX9EvFvHLmHczeq8",
       authDomain: "fcgadingnew22.firebaseapp.com",
       projectId: "fcgadingnew22",
@@ -60,8 +65,22 @@ button:disabled { background: #333; color: #555; cursor: not-allowed; box-shadow
       appId: "1:537736846678:web:53788d71a196423ac08af7"
   };
 
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
+  // === 2. CONFIG DATABASE LAMA (SUMBER / ANTRIAN) ===
+  const configLama = {
+      apiKey: "AIzaSyDIUivobLNDIsbK7ilqfe7fLAL8LnM4Hk8",
+      authDomain: "fcgadingbaru.firebaseapp.com",
+      projectId: "fcgadingbaru",
+      storageBucket: "fcgadingbaru.firebasestorage.app",
+      messagingSenderId: "193138253272",
+      appId: "1:193138253272:web:e183a3e455ec357ec7a6ad"
+  };
+
+  // INISIALISASI DUA APLIKASI SEKALIGUS
+  const appTarget = initializeApp(configBaru, "appTarget"); // Project Baru
+  const appSource = initializeApp(configLama, "appSource"); // Project Lama
+
+  const dbTarget = getFirestore(appTarget); // DB Tujuan (MLU)
+  const dbSource = getFirestore(appSource); // DB Sumber (Antrian Lama)
 
   function log(msg, type="normal") {
     const area = document.getElementById("log-area");
@@ -69,26 +88,27 @@ button:disabled { background: #333; color: #555; cursor: not-allowed; box-shadow
     if(type=="success") color = "#0f0";
     if(type=="warn") color = "#ffcc00";
     if(type=="err") color = "#f33";
+    if(type=="info") color = "#00f0ff";
     
     area.innerHTML += `<div class='log-item' style='color:${color}'>${msg}</div>`;
-    area.scrollTop = area.scrollHeight; // Auto scroll ke bawah
+    area.scrollTop = area.scrollHeight;
   }
 
   window.mulaiPerbaikan = async function() {
-    if(!confirm("Yakin ingin menjalankan perbaikan data?")) return;
+    if(!confirm("Mulai proses scan data lama?")) return;
 
     const btn = document.getElementById("btn-start");
     btn.disabled = true;
-    btn.innerText = "SEDANG MEMPROSES...";
-    log("=== MEMULAI PROSES SCAN ===", "normal");
+    btn.innerText = "MENGHUBUNGKAN DUA DATABASE...";
+    log("=== MEMULAI KONEKSI GANDA ===", "info");
 
     try {
-      // 1. AMBIL SEMUA DATA ANGGOTA MLU
-      const anggotaRef = collection(db, "anggota_mlu");
+      // 1. AMBIL DATA DARI DB BARU (YANG MAU DIPERBAIKI)
+      const anggotaRef = collection(dbTarget, "anggota_mlu");
       const snapshot = await getDocs(anggotaRef);
       
       if(snapshot.empty) {
-        log("Database Anggota MLU Kosong.", "err");
+        log("Database Anggota MLU (Baru) Kosong.", "err");
         btn.disabled = false; return;
       }
 
@@ -96,65 +116,78 @@ button:disabled { background: #333; color: #555; cursor: not-allowed; box-shadow
       let countSkipped = 0;
       let countNotFound = 0;
 
-      // 2. LOOP SETIAP ANGGOTA
-      // Kita pakai for...of biar bisa await (proses satu per satu)
+      // 2. LOOP DATA
       for (const d of snapshot.docs) {
         const data = d.data();
         const docId = d.id;
 
-        // Cek apakah Plat Nomor Kosong / Strip / Undefined
+        // Cek apakah Plat Nomor Kosong
         if (!data.plat || data.plat === "-" || data.plat === "") {
             
-            log(`🔍 Mengecek: ${data.nama} (${data.hp})...`, "normal");
+            // Format Nomor HP untuk pencarian (hapus spasi/karakter aneh)
+            const cleanHP = data.hp.replace(/[^0-9]/g, ''); 
+            
+            log(`🔍 ${data.nama} (HP: ${cleanHP}) Plat Kosong. Mencari di DB Lama...`, "normal");
 
-            // 3. CARI DI DATABASE LAMA (ANTRIAN)
-            const q = query(collection(db, "antrian"), where("hp", "==", data.hp));
-            const oldSnap = await getDocs(q);
+            // 3. CARI DI DB LAMA (ANTRIAN)
+            // Kita coba cari pakai variasi nomor HP (Jaga-jaga format beda: 08 vs 628)
+            let q = query(collection(dbSource, "antrian"), where("hp", "==", data.hp)); // Coba exact match dulu
+            let oldSnap = await getDocs(q);
+
+            // Kalau gak ketemu, coba cari pakai 08... atau 62... (Logic sederhana)
+            if(oldSnap.empty && data.hp.startsWith("0")) {
+                 const hp62 = "62" + data.hp.substring(1);
+                 q = query(collection(dbSource, "antrian"), where("hp", "==", hp62));
+                 oldSnap = await getDocs(q);
+            }
 
             if (!oldSnap.empty) {
-                // DATA KETEMU DI LAMA!
+                // KETEMU!
                 const dataLama = oldSnap.docs[0].data();
                 
-                // Cek nama field di db lama (jaga-jaga namanya beda)
-                const platLama = dataLama.plat || dataLama.nopol || dataLama.plat_nomor;
+                // Ambil field plat dari db lama (cek berbagai kemungkinan nama field)
+                const platLama = dataLama.plat || dataLama.nopol || dataLama.plat_nomor || dataLama.kendaraan;
 
                 if (platLama) {
-                    // 4. UPDATE DATA ANGGOTA MLU
-                    await updateDoc(doc(db, "anggota_mlu", docId), {
+                    // 4. UPDATE KE DB BARU
+                    await updateDoc(doc(dbTarget, "anggota_mlu", docId), {
                         plat: platLama.toUpperCase()
                     });
                     
-                    log(`✅ UPDATE SUKSES! Plat: ${platLama}`, "success");
+                    log(`✅ SUKSES! Mengisi plat: ${platLama}`, "success");
                     countFixed++;
                 } else {
-                    log(`⚠ User ada di db lama, tapi platnya juga kosong.`, "warn");
+                    log(`⚠ User ditemukan, tapi di DB lama platnya juga kosong.`, "warn");
                     countNotFound++;
                 }
 
             } else {
-                log(`❌ Tidak ditemukan di database lama.`, "err");
+                log(`❌ Tidak ada riwayat di DB Lama.`, "err");
                 countNotFound++;
             }
 
         } else {
-            // Plat sudah ada, skip
+            // Plat sudah ada
             countSkipped++;
         }
       }
 
-      log("=================================", "normal");
+      log("=================================", "info");
       log(`SELESAI!`, "success");
-      log(`Data Diperbaiki: ${countFixed}`);
-      log(`Data Lewat (Sudah ada): ${countSkipped}`);
-      log(`Data Tidak Ketemu (Tetap kosong): ${countNotFound}`);
+      log(`Berhasil Diperbaiki: ${countFixed}`);
+      log(`Sudah Lengkap: ${countSkipped}`);
+      log(`Tidak Ditemukan: ${countNotFound}`);
 
     } catch (e) {
       console.error(e);
       log(`ERROR SYSTEM: ${e.message}`, "err");
+      if(e.code === "permission-denied") {
+          log("⚠ IZIN DITOLAK: Pastikan Rules di KEDUA Project Firebase sudah dibuka (allow read/write).", "err");
+      }
     }
 
     btn.disabled = false;
-    btn.innerText = "SELESAI - KLIK UNTUK SCAN ULANG";
+    btn.innerText = "SELESAI - SCAN LAGI";
   }
 </script>
 
