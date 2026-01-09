@@ -9,6 +9,8 @@
     <meta name="theme-color" content="#000000">
     <link rel="apple-touch-icon" href="logo.png">
     
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    
     <link href="https://fonts.googleapis.com/css2?family=Teko:wght@300;400;500;600;700&family=Rajdhani:wght@500;600;700&family=Outfit:wght@300;400;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     
     <style>
@@ -101,20 +103,19 @@
         .slot-card.active.can-kudeta { border: 1px solid var(--danger); }
         .slot-card.active.can-kudeta .kudeta-btn { display:block; }
 
-        /* === BADGE JABATAN UPDATE (LEBIH KEREN & JELAS) === */
+        /* === BADGE JABATAN UPDATE === */
         .role-badge {
             display: inline-flex; align-items: center; justify-content: center;
-            font-family: 'Teko', sans-serif; font-weight: 700; /* LEBIH TEBAL */
-            font-size: 13px; /* LEBIH BESAR */
+            font-family: 'Teko', sans-serif; font-weight: 700;
+            font-size: 13px;
             padding: 2px 10px; border-radius: 6px; margin-left: 6px;
             text-transform: uppercase; letter-spacing: 0.5px;
             vertical-align: middle; line-height: 1; 
             border: 1px solid rgba(255,255,255,0.3);
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.8); /* TEXT SHADOW AGAR JELAS */
-            box-shadow: 0 0 10px rgba(0,0,0,0.5); /* GLOW EFFECT */
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
         }
         
-        /* WARNA BADGE KEREN (GRADIENT) */
         .role-ketum { background: linear-gradient(135deg, #FF0000, #b30000); color: #fff; box-shadow: 0 0 15px rgba(255,0,0,0.6); border-color: #ff5555; }
         .role-waketum { background: linear-gradient(135deg, #FF4500, #cc3700); color: #fff; }
         .role-kacab { background: linear-gradient(135deg, #FF8C00, #B8860B); color: #fff; box-shadow: 0 0 15px rgba(255, 140, 0, 0.5); border-color: #FFA500; }
@@ -123,10 +124,43 @@
         .role-penasehat { background: linear-gradient(135deg, #4B0082, #2a004a); color: #fff; }
         .role-humas { background: linear-gradient(135deg, #008080, #004d4d); color: #fff; }
         .role-korlap { background: linear-gradient(135deg, #0000FF, #000099); color: #fff; border-color: #00F0FF; }
-        /* Role Keluarga (MEMBER) - EMAS */
         .role-keluarga { background: linear-gradient(90deg, #FFD700, #FDB931); color: #000; text-shadow:none; border-color: #FFD700; box-shadow: 0 0 8px rgba(255, 215, 0, 0.4); }
         
-        /* UKURAN BADGE SAAT DI DALAM SLOT (AGAR MUAT TAPI TETAP JELAS) */
+        /* === BADGE SPECIAL: PELAN TAPI KENCENG === */
+        .role-pelan {
+            background: #000;
+            border: 1px solid #39FF14; /* Hijau Neon */
+            color: #39FF14;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 10px #39FF14;
+        }
+        .speed-lines-fx {
+            position: absolute;
+            top: 0; left: 0; width: 200%; height: 100%;
+            background: repeating-linear-gradient(
+                90deg,
+                transparent,
+                transparent 10px,
+                rgba(57, 255, 20, 0.3) 10px,
+                rgba(57, 255, 20, 0.3) 20px
+            );
+            transform: skewX(-20deg);
+            animation: moveSpeedLines 0.5s infinite linear;
+            z-index: 0;
+        }
+        .turtle-turbo {
+            display: inline-block;
+            margin-right: 3px;
+            animation: vibration 0.05s infinite; 
+            position: relative; 
+            z-index: 2;
+        }
+        .badge-text-top { position: relative; z-index: 2; }
+
+        @keyframes moveSpeedLines { from { left: -100%; } to { left: 0%; } }
+        @keyframes vibration { 0% { transform: translate(0,0); } 25% { transform: translate(1px,1px); } 50% { transform: translate(-1px,-1px); } 75% { transform: translate(-1px,1px); } 100% { transform: translate(1px,-1px); } }
+
         .sc-user .role-badge { font-size: 11px; padding: 2px 6px; margin-top: 2px; }
 
         /* === 4. UI ELEMENTS === */
@@ -356,6 +390,11 @@
         const snapshotRef = doc(db, "antrian", "snapshot"); 
         const logRef = collection(db, "activityLog"); 
 
+        // === CONFIG LOKASI (UNTUK MODE GPS) ===
+        const STATION_LAT = -6.171583; 
+        const STATION_LNG = 106.899844; 
+        const MAX_DIST_KM = 0.2; // 200 Meter
+
         // === UTILS ===
         const $ = (id) => document.getElementById(id);
         
@@ -386,11 +425,14 @@
         let localSlots = [null,null,null];
         let localQueue = [];
         let myPlat = localStorage.getItem('myPlat');
+        
+        // === VARIABEL SAKLAR (HYBRID) ===
+        // Kalau "OFF" = Pakai GPS. Kalau "FC-CODE-A" = Wajib Scan.
+        let currentValidQR = "OFF"; 
+        
         window.activeSlotIdx = -1;
         let amIInQueue = false;
         let chargeTimerInterval;
-        const STATION_LAT = -6.171583; const STATION_LNG = 106.899844; 
-        const MAX_DIST_KM = 0.2; 
 
         // === PWA INSTALL LOGIC ===
         let deferredPrompt;
@@ -412,13 +454,19 @@
 
         // === REALTIME UPDATE ===
         onSnapshot(mainRef, (snap) => {
-            if (!snap.exists()) { 
-                console.log("Menunggu Data...");
-                return; 
-            }
+            if (!snap.exists()) { console.log("Menunggu Data..."); return; }
             const d = snap.data();
             localSlots = d.chargingSlots || [null,null,null];
             localQueue = d.waitingQueue || [];
+            
+            // === CEK STATUS SAKLAR DARI SUPER ADMIN ===
+            // Jika tidak ada data atau OFF, maka Mode GPS.
+            if(d.activeQrCode && d.activeQrCode !== "OFF") {
+                currentValidQR = d.activeQrCode;
+            } else {
+                currentValidQR = "OFF";
+            }
+
             updateUI();
         });
 
@@ -495,39 +543,54 @@
             else $('nextQDisplay').innerHTML = `<span class="qbn-rank">-</span> KOSONG`;
         }
 
+        // === LOGIKA SMART BUTTON (GPS vs SCANNER) ===
         window.handleMainAction = () => {
             if(window.activeSlotIdx !== -1) { $('screen-active-dashboard').classList.add('active'); $('screen-active-dashboard').classList.remove('minimized'); return; }
             if(amIInQueue) { $('waitingDashboard').classList.add('active'); renderQueueDashboard(); return; }
-            if(localStorage.getItem('adm_ok')) { runLogin(); return; }
+            if(localStorage.getItem('adm_ok')) { showLoginForm(); return; }
             
-            if(navigator.geolocation) {
-                $('screen-scan').classList.add('active'); $('scanText').innerText = "MENCARI LOKASI..."; $('btnRetryGPS').style.display = 'none';
-                const options = { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 };
-                navigator.geolocation.getCurrentPosition(
-                    (p) => {
-                        const dist = getDist(p.coords.latitude, p.coords.longitude, STATION_LAT, STATION_LNG);
-                        if(dist > MAX_DIST_KM) { $('screen-scan').classList.remove('active'); customAlert(`KEJAUHAN (${dist.toFixed(2)} KM). WAJIB < 200M.`); } 
-                        else { runLogin(); }
-                    }, 
-                    (err) => { $('scanText').innerText = "GPS LEMAH / ERROR"; $('btnRetryGPS').style.display = 'block'; }, options
-                );
-            } else customAlert("Browser tidak support GPS");
+            // CEK SAKLAR
+            if(currentValidQR === "OFF") {
+                // === MODE GPS (METODE LAMA) ===
+                if(navigator.geolocation) {
+                    $('screen-scan').classList.add('active'); $('scanText').innerText = "MENCARI LOKASI..."; $('btnRetryGPS').style.display = 'none';
+                    const options = { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 };
+                    navigator.geolocation.getCurrentPosition(
+                        (p) => {
+                            const dist = getDist(p.coords.latitude, p.coords.longitude, STATION_LAT, STATION_LNG);
+                            if(dist > MAX_DIST_KM) { $('screen-scan').classList.remove('active'); customAlert(`KEJAUHAN (${dist.toFixed(2)} KM). WAJIB < 200M.`); } 
+                            else { showLoginForm(); }
+                        }, 
+                        (err) => { $('scanText').innerText = "GPS LEMAH / ERROR"; $('btnRetryGPS').style.display = 'block'; }, options
+                    );
+                } else customAlert("Browser tidak support GPS");
+            
+            } else {
+                // === MODE BARCODE (METODE BARU) ===
+                // Langsung buka form, nanti di akhir form baru minta scan
+                showLoginForm();
+            }
         };
 
         window.runLogin = (lowAccuracy = false) => {
+            // Hanya dipanggil kalau GPS Error di Mode GPS
             if(lowAccuracy) {
                 navigator.geolocation.getCurrentPosition(
                     (p) => { 
                         if(getDist(p.coords.latitude, p.coords.longitude, STATION_LAT, STATION_LNG) > 0.5) { $('screen-scan').classList.remove('active'); customAlert("MASIH KEJAUHAN."); } 
                         else { showLoginForm(); }
                     },
-                    () => { $('screen-scan').classList.remove('active'); customAlert("GPS GAGAL TOTAL. MINTA ADMIN DAFTARKAN."); },
+                    () => { $('screen-scan').classList.remove('active'); customAlert("GPS GAGAL TOTAL. HUBUNGI ADMIN."); },
                     { enableHighAccuracy: false, timeout: 15000, maximumAge: 0 }
                 );
             } else { showLoginForm(); }
         };
 
-        function showLoginForm() { $('screen-scan').classList.remove('active'); $('screen-login').classList.add('active'); formStep = 0; formData = {}; renderStep(); }
+        function showLoginForm() { 
+            $('screen-scan').classList.remove('active'); 
+            $('screen-login').classList.add('active'); 
+            formStep = 0; formData = {}; renderStep(); 
+        }
 
         let formStep=0; let formData={};
         const formConfig = [{l:"LANGKAH 1/2",q:"PLAT NOMOR",k:"plat"},{l:"LANGKAH 2/2",q:"NAMA ANDA",k:"name"}];
@@ -545,21 +608,94 @@
         window.nextStepAction = () => {
             let rawVal = $('holoInputLogin').value; let val = rawVal.replace(/[<>'"/\\;]/g, '').trim().toUpperCase(); 
             if(!val) return;
-            if(formConfig[formStep].k === 'plat') { const cleanPlat = val.replace(/\s/g, ''); if(cleanPlat.length < 3) { customAlert("Plat nomor terlalu pendek!"); return; } val = $('holoInputLogin').value; }
-            if(formConfig[formStep].k === 'name') { val = val.replace(/[^A-Z0-9 .]/g, ''); if(val.length < 3) { customAlert("Nama terlalu pendek"); return; } }
-            formData[formConfig[formStep].k] = val; formStep++;
-            if(formStep < formConfig.length) renderStep(); else executeReg();
+            
+            if(formConfig[formStep].k === 'plat') { 
+                const cleanPlat = val.replace(/\s/g, ''); 
+                if(cleanPlat.length < 3) { customAlert("Plat nomor terlalu pendek!"); return; } 
+                formData['plat'] = $('holoInputLogin').value;
+                formStep++;
+                renderStep();
+            }
+            else if(formConfig[formStep].k === 'name') { 
+                val = val.replace(/[^A-Z0-9 .]/g, ''); 
+                if(val.length < 3) { customAlert("Nama terlalu pendek"); return; } 
+                formData['name'] = val;
+                
+                // === CABANG LOGIKA (GPS vs SCAN) ===
+                if(currentValidQR === "OFF") {
+                    executeReg(); // Mode GPS: Langsung Daftar
+                } else {
+                    startScanner(); // Mode Barcode: Buka Kamera
+                }
+            }
         };
 
         function renderStep() {
             $('stepLabel').innerText = formConfig[formStep].l; $('questionText').innerText = formConfig[formStep].q;
             $('holoInputLogin').value = ""; $('holoInputLogin').focus(); $('holoInputLogin').setAttribute('type', 'text');
+            
+            // Ubah teks tombol sesuai Mode
+            const btn = document.querySelector('.btn-next');
+            if(formStep === 1) {
+                if(currentValidQR === "OFF") {
+                    btn.innerText = "DAFTAR SEKARANG"; // GPS Mode
+                } else {
+                    btn.innerText = "SCAN QR LOKASI"; // Barcode Mode
+                    btn.style.background = "#00F0FF";
+                }
+            } else {
+                btn.innerText = "LANJUT";
+            }
         }
+
+        // === LOGIKA SCANNER KAMERA ===
+        let html5QrCode;
+        window.startScanner = () => {
+            $('screen-login').classList.remove('active');
+            
+            // UI SCANNER
+            const scannerDiv = document.createElement('div');
+            scannerDiv.id = 'scannerOverlay';
+            scannerDiv.style.cssText = "position:fixed; inset:0; background:#000; z-index:25000; display:flex; flex-direction:column; align-items:center; justify-content:center;";
+            scannerDiv.innerHTML = `
+                <div style="font-family:'Teko'; font-size:24px; color:var(--cyan); margin-bottom:10px; z-index:2; text-align:center; text-shadow:0 0 10px var(--cyan);">ARAHKAN KE QR CODE<br>YANG DITEMPEL DI TEMBOK</div>
+                <div id="reader" style="width:300px; height:300px; border:2px solid var(--cyan); box-shadow:0 0 30px rgba(0,240,255,0.2);"></div>
+                <button onclick="stopScanner()" style="margin-top:20px; padding:10px 30px; background:#000; color:var(--cyan); border:1px solid var(--cyan); z-index:2; font-family:'Teko'; font-size:18px;">BATAL</button>
+            `;
+            document.body.appendChild(scannerDiv);
+
+            html5QrCode = new Html5Qrcode("reader");
+            const config = { fps: 10, qrbox: { width: 200, height: 200 } };
+            
+            html5QrCode.start({ facingMode: "environment" }, config, (decodedText) => {
+                
+                // Validasi Kode
+                if(decodedText === currentValidQR) {
+                    stopScanner();
+                    executeReg(); // SUKSES
+                } else {
+                    alert("QR Code SALAH / KADALUARSA!\nKode di tembok sudah diganti Admin.");
+                }
+
+            }, (errorMessage) => {
+                // error scanning
+            }).catch(err => {
+                alert("Error Kamera: " + err);
+                stopScanner();
+            });
+        };
+
+        window.stopScanner = () => {
+            if(html5QrCode) { 
+                html5QrCode.stop().then(() => { html5QrCode.clear(); }).catch(err=>{});
+            }
+            const el = document.getElementById('scannerOverlay');
+            if(el) el.remove();
+        };
 
         window.cancelLogin = () => { $('screen-login').classList.remove('active'); formStep = 0; formData = {}; };
 
         async function executeReg() {
-            $('screen-login').classList.remove('active');
             const cleanInput = cleanStr(formData.plat);
             addDoc(backupRef, { plat: formData.plat, name: formData.name, time: new Date(), type: "LOGIN_ATTEMPT" });
 
@@ -682,11 +818,9 @@
         function showModal(msg,type){ return new Promise(r=>{ const m=$('customModal'); $('modalMsg').innerHTML=msg; const acts=$('modalActions'); const inp=$('modalInput'); inp.style.display=type==='prompt'?'block':'none'; inp.value=''; acts.innerHTML=''; if(type==='confirm'){ acts.innerHTML=`<button class="btn-modal" onclick="mRes(false)" style="background:#333;color:#fff;">BATAL</button><button class="btn-modal" onclick="mRes(true)" style="background:var(--cyan);color:#000;">YA</button>`; } else if(type==='prompt'){ acts.innerHTML=`<button class="btn-modal" onclick="mRes(inp.value)" style="background:var(--cyan);color:#000;">OK</button>`; } else{ acts.innerHTML=`<button class="btn-modal" onclick="mRes(true)" style="background:#333;color:#fff;">TUTUP</button>`; } m.style.display='flex'; window.mRes=(v)=>{m.style.display='none';r(v);}; }); }
         const customAlert=m=>showModal(m,'alert'); const customConfirm=m=>showModal(m,'confirm');
 
-        // === FUNGSI BADGE DIPERBAHARUI: MEMBER = KELUARGA MLU (EMAS) ===
+        // === FUNGSI BADGE: PELAN TAPI KENCENG (TURBO) ===
         function getBadgeHTML(role) {
             if(!role) return ""; 
-            
-            // Default untuk MEMBER / KELUARGA MLU
             let cssClass = "role-keluarga"; 
             let label = "KELUARGA MLU";
             
@@ -698,8 +832,15 @@
             else if(role === "PENASEHAT") { cssClass = "role-penasehat"; label="PENASEHAT"; }
             else if(role === "HUMAS") { cssClass = "role-humas"; label="HUMAS"; }
             else if(role === "KORLAP") { cssClass = "role-korlap"; label="KORLAP"; }
-            else if(role === "MEMBER") { cssClass = "role-keluarga"; label="KELUARGA MLU"; } // Pastikan MEMBER kena style
-            
+            else if(role === "MEMBER") { cssClass = "role-keluarga"; label="KELUARGA MLU"; }
+            else if(role === "PELAN") { 
+                cssClass = "role-pelan";
+                // EFEK TURBO KURA-KURA
+                return `<span class="role-badge role-pelan">
+                            <div class="speed-lines-fx"></div>
+                            <span class="badge-text-top"><span class="turtle-turbo">🐢</span> PELAN TAPI KENCENG</span>
+                        </span>`;
+            }
             return `<span class="role-badge ${cssClass}">${label}</span>`;
         }
 
