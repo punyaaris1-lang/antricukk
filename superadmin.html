@@ -32,14 +32,14 @@
         #loginOverlay { display: flex; position: fixed; inset: 0; background: #000; z-index: 10000; justify-content: center; align-items: center; flex-direction: column; }
         .login-box { width: 300px; padding: 30px; border: 1px solid var(--gold); border-radius: 10px; background: #111; text-align: center; box-shadow: 0 0 30px rgba(255, 215, 0, 0.15); }
         
-        /* CSS Tambahan Generator QR */
+        /* QR GENERATOR STYLE */
         .qr-display-box { 
             margin-top: 15px; background: #fff; padding: 15px; border-radius: 10px; 
             display: none; flex-direction: column; align-items: center; 
             box-shadow: 0 0 20px rgba(0,240,255,0.3);
         }
         .qr-display-box img { width: 180px; height: 180px; }
-        .qr-label { color: #000; font-family: 'Teko'; font-size: 18px; margin-top: 5px; text-transform: uppercase; }
+        .qr-label { color: #000; font-family: 'Teko'; font-size: 24px; margin-top: 5px; text-transform: uppercase; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -73,11 +73,11 @@
             <input id="rolePlat" placeholder="PLAT NOMOR (Cth: B 1 ILHAM)" style="flex:2; text-transform:uppercase;">
             <select id="roleSelect" style="flex:2;">
                 <option value="MEMBER">KELUARGA MLU</option>
-                <option value="PELAN">PELAN TAPI KENCENG 🐢</option> <option value="KETUM">KETUM</option>
+                <option value="PELAN">PELAN TAPI KENCENG 🐢</option>
+                <option value="OFFICE">OFFICE MAKA KG (NEW)</option> <option value="KETUM">KETUM</option>
                 <option value="WAKETUM">WAKETUM</option>
                 <option value="KACAB">KACAB (KEPALA CABANG)</option> 
-                <option value="SEKRETARIS">SEKRETARIS</option>
-                <option value="PEMBINA">PEMBINA</option>
+                <option value="SEKRETARIS">SEKJEN</option> <option value="PEMBINA">PEMBINA</option>
                 <option value="PENASEHAT">PENASEHAT</option>
                 <option value="HUMAS">HUMAS</option>
                 <option value="KORLAP">KORLAP</option>
@@ -94,7 +94,7 @@
             <div id="activeQRDisplay" style="font-family:'Teko'; font-size:32px; color:#fff; font-weight:bold; text-shadow:0 0 10px rgba(255,255,255,0.3);">LOADING...</div>
             
             <div id="qrContainer" class="qr-display-box">
-                <div style="color:#666; font-size:9px; margin-bottom:5px;">TAMPILKAN QR INI KE USER</div>
+                <div style="color:#666; font-size:9px; margin-bottom:5px;">TAMPILKAN QR INI KE USER UNTUK SCAN</div>
                 <img id="qrImg" src="" alt="QR CODE">
                 <div id="qrTextLabel" class="qr-label"></div>
             </div>
@@ -185,8 +185,8 @@
                 displayEl.innerText = "SECURE MODE: " + activeCode.replace("FC-CODE-", "KODE ");
                 displayEl.style.color = "var(--purple)";
                 qrBox.style.display = 'flex';
-                // Gunakan API eksternal gratis untuk generate QR gambar
-                qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${activeCode}`;
+                // Generator QR Otomatis
+                qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${activeCode}`;
                 qrText.innerText = activeCode.replace("FC-CODE-", "KODE ");
             }
         });
@@ -236,12 +236,21 @@
                     const d = doc.data();
                     if (d.role) {
                         count++; let color = '#fff'; let label = d.role;
+                        
+                        // LOGIKA WARNA ADMIN PANEL
                         if(d.role === 'KETUM' || d.role === 'WAKETUM') color = 'var(--red)';
                         else if(d.role === 'KORLAP') color = 'var(--blue)';
                         else if(d.role === 'KACAB') color = 'orange';
-                        else if(d.role === 'SEKRETARIS' || d.role === 'HUMAS') color = 'var(--green)';
+                        
+                        // SEKJEN (Hijau)
+                        else if(d.role === 'SEKRETARIS') { color = 'var(--green)'; label = 'SEKJEN'; }
+                        
+                        // OFFICE (Silver/Putih)
+                        else if(d.role === 'OFFICE') { color = '#ddd'; label = 'OFFICE MAKA KG'; }
+                        
                         else if(d.role === 'MEMBER') { color = 'var(--gold)'; label = 'KELUARGA MLU'; }
                         else if(d.role === 'PELAN') { color = 'var(--neon)'; label = 'PELAN TAPI KENCENG 🐢'; }
+                        
                         html += `<tr style="border-bottom:1px solid #222;"><td style="padding:5px;">${d.plat}</td><td style="padding:5px; color:${color}; font-weight:bold;">${label}</td><td style="padding:5px; text-align:center;"><button onclick="hapusBadge('${d.plat}')" class="btn-red btn-mini">X</button></td></tr>`;
                     }
                 });

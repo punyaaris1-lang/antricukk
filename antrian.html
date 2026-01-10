@@ -103,6 +103,7 @@
         .slot-card.active.can-kudeta { border: 1px solid var(--danger); }
         .slot-card.active.can-kudeta .kudeta-btn { display:block; }
 
+        /* === BADGE JABATAN UPDATE === */
         .role-badge {
             display: inline-flex; align-items: center; justify-content: center;
             font-family: 'Teko', sans-serif; font-weight: 700;
@@ -118,13 +119,25 @@
         .role-ketum { background: linear-gradient(135deg, #FF0000, #b30000); color: #fff; box-shadow: 0 0 15px rgba(255,0,0,0.6); border-color: #ff5555; }
         .role-waketum { background: linear-gradient(135deg, #FF4500, #cc3700); color: #fff; }
         .role-kacab { background: linear-gradient(135deg, #FF8C00, #B8860B); color: #fff; box-shadow: 0 0 15px rgba(255, 140, 0, 0.5); border-color: #FFA500; }
+        
+        /* UPDATE: SEKRETARIS MENJADI HIJAU (SEKJEN) */
         .role-sekretaris { background: linear-gradient(135deg, #008000, #005500); color: #fff; }
+        
         .role-pembina { background: linear-gradient(135deg, #800080, #550055); color: #fff; border-color: #d600d6; }
         .role-penasehat { background: linear-gradient(135deg, #4B0082, #2a004a); color: #fff; }
         .role-humas { background: linear-gradient(135deg, #008080, #004d4d); color: #fff; }
         .role-korlap { background: linear-gradient(135deg, #0000FF, #000099); color: #fff; border-color: #00F0FF; }
         .role-keluarga { background: linear-gradient(90deg, #FFD700, #FDB931); color: #000; text-shadow:none; border-color: #FFD700; box-shadow: 0 0 8px rgba(255, 215, 0, 0.4); }
         
+        /* NEW BADGE: OFFICE MAKA KG (PLATINUM/SILVER) */
+        .role-office { 
+            background: linear-gradient(135deg, #bdc3c7, #2c3e50); 
+            border: 1px solid #fff; 
+            color: #fff; 
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.3); 
+            text-shadow: 0 0 5px rgba(0,0,0,0.8);
+        }
+
         .role-pelan {
             background: #000;
             border: 1px solid #39FF14;
@@ -365,12 +378,11 @@
             <button onclick="stopCharging(activeSlotIdx)" style="width:100%; max-width:320px; padding:15px; background:linear-gradient(90deg, rgba(255,0,60,0.1), rgba(255,0,60,0.2)); border:1px solid #ff003c; color:#ff003c; border-radius:50px; font-family:'Rajdhani'; font-weight:bold; font-size:16px; margin-bottom:20px;">⏹ HENTIKAN PENGISIAN</button>
         </div>
     </div>
-
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, doc, onSnapshot, runTransaction, collection, addDoc, setDoc, updateDoc, arrayUnion, arrayRemove, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // === FIREBASE ===
+        // === FIREBASE CONFIG ===
         const firebaseConfig = {
             apiKey: "AIzaSyB666i9lYWIpxOdkwpoX9EvFvHLmHczeq8",
             authDomain: "fcgadingnew22.firebaseapp.com",
@@ -381,18 +393,23 @@
         };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        
+        // === REFERENCES ===
         const mainRef = doc(db, "antrian", "utama");
         const historyRef = collection(db, "riwayatCharging");
         const backupRef = collection(db, "backupHarian");
         const snapshotRef = doc(db, "antrian", "snapshot"); 
         const logRef = collection(db, "activityLog"); 
 
+        // === CONFIG LOKASI ===
         const STATION_LAT = -6.171583; 
         const STATION_LNG = 106.899844; 
         const MAX_DIST_KM = 0.2; 
 
+        // === HELPER UTILS ===
         const $ = (id) => document.getElementById(id);
         
+        // WELCOME SCREEN LOGIC
         if (!localStorage.getItem('welcome_done')) $('screen-welcome').classList.add('active');
         window.closeWelcome = () => { localStorage.setItem('welcome_done','1'); $('screen-welcome').classList.remove('active'); };
 
@@ -406,6 +423,7 @@
             addDoc(logRef, { actor: actor, action: action, details: details, timestamp: new Date() }).catch(e => console.log("Log error:", e));
         }
 
+        // === STATE VARIABLES ===
         let localSlots = [null,null,null];
         let localQueue = [];
         let myPlat = localStorage.getItem('myPlat');
@@ -414,15 +432,19 @@
         let amIInQueue = false;
         let chargeTimerInterval;
 
+        // === REALTIME LISTENER ===
         onSnapshot(mainRef, (snap) => {
             if (!snap.exists()) return;
             const d = snap.data();
             localSlots = d.chargingSlots || [null,null,null];
             localQueue = d.waitingQueue || [];
+            
+            // Cek Mode Keamanan (GPS vs SCAN)
             currentValidQR = (d.activeQrCode && d.activeQrCode !== "OFF") ? d.activeQrCode : "OFF";
             updateUI();
         });
 
+        // === UI RENDERER ===
         function updateUI() {
             const container = $('slotsContainer'); container.innerHTML = '';
             let amICharging = false;
@@ -430,8 +452,16 @@
             let amIQueue1 = false;
             
             if(localQueue.length > 0 && currentMyPlat) { if(cleanStr(localQueue[0]?.plat) === cleanStr(currentMyPlat)) amIQueue1 = true; }
-            if(amIQueue1 && $('waitingDashboard').classList.contains('active')) { if(localSlots.some(s => s === null)) { $('waitingDashboard').classList.remove('active'); customAlert("GILIRAN ANDA! SILAHKAN PILIH SLOT."); } }
+            
+            // Auto Open Dashboard jika giliran tiba
+            if(amIQueue1 && $('waitingDashboard').classList.contains('active')) { 
+                if(localSlots.some(s => s === null)) { 
+                    $('waitingDashboard').classList.remove('active'); 
+                    customAlert("GILIRAN ANDA! SILAHKAN PILIH SLOT."); 
+                } 
+            }
 
+            // RENDER SLOT
             localSlots.forEach((s, i) => {
                 const div = document.createElement('div');
                 if (s) {
@@ -439,6 +469,7 @@
                     if(isMe) { amICharging = true; window.activeSlotIdx = i; }
                     const durationMins = Math.floor((Date.now() - s.startTime) / 60000);
                     const canKudeta = amIQueue1 && !isMe && (durationMins >= 25);
+                    
                     let kudetaHTML = '';
                     if(amIQueue1 && !isMe) {
                         if(canKudeta) kudetaHTML = `<button class="kudeta-btn" onclick="attemptKudeta(${i}, '${s.plat}')">⚡ AMBIL ALIH (SUDAH ${durationMins} MENIT)</button>`;
@@ -446,41 +477,81 @@
                     }
                     div.className = `slot-card active ${canKudeta ? 'can-kudeta' : ''}`;
                     div.innerHTML = `<div class="sc-info"><div class="sc-label">SLOT 0${i+1}</div><div class="sc-plat">${s.plat}</div><div class="sc-user">${escapeHtml(s.userName)} ${getBadgeHTML(s.role)}</div>${kudetaHTML}</div><div class="status-pill" style="background:${isMe?'var(--cyan)':'#000'}; color:${isMe?'#000':'var(--cyan)'}; border-color:var(--cyan);">${isMe?'ANDA':'CHARGING'}</div>`;
-                    if(isMe) { $('ad-plat-val').innerText = s.plat; $('ad-name-val').innerText = s.userName; startChargeTimer(s.startTime); if(!$('screen-active-dashboard').classList.contains('minimized')) $('screen-active-dashboard').classList.add('active'); }
+                    
+                    if(isMe) { 
+                        $('ad-plat-val').innerText = s.plat; $('ad-name-val').innerText = s.userName; 
+                        startChargeTimer(s.startTime); 
+                        if(!$('screen-active-dashboard').classList.contains('minimized')) $('screen-active-dashboard').classList.add('active'); 
+                    }
                 } else {
                     div.className = `slot-card empty`;
                     let btn = amIQueue1 ? `<button class="btn-pilih" onclick="window.selectSlot(${i})">PILIH SLOT INI</button>` : '';
+                    if(amIQueue1) div.style.border = "1px solid #FFD700";
                     div.innerHTML = `<div class="sc-info"><div class="sc-label">SLOT 0${i+1}</div><div class="sc-plat">OPEN</div></div><div style="display:flex; align-items:center;"><div class="status-pill">AVAILABLE</div>${btn}</div>`;
                 }
                 container.appendChild(div);
             });
 
+            // UPDATE TOMBOL UTAMA
             if(!amICharging) {
                 window.activeSlotIdx = -1; $('screen-active-dashboard').classList.remove('active');
                 if(chargeTimerInterval) clearInterval(chargeTimerInterval);
+                
                 amIInQueue = localQueue.some(q => cleanStr(q.plat) === cleanStr(currentMyPlat));
                 const lbl = $('mainBtnLabel');
-                if(amIInQueue) { lbl.innerText="LIHAT ANTRIAN ANDA"; lbl.style.color="#FFD700"; if($('waitingDashboard').classList.contains('active')) renderQueueDashboard(); } 
-                else { lbl.innerText="TAP UNTUK DAFTAR"; lbl.style.color="var(--cyan)"; }
-            } else { $('mainBtnLabel').innerText = "BUKA DASHBOARD CHARGING"; $('mainBtnLabel').style.color = "var(--cyan)"; }
+                if(amIInQueue) { 
+                    lbl.innerText="LIHAT ANTRIAN ANDA"; lbl.style.color="#FFD700"; 
+                    if($('waitingDashboard').classList.contains('active')) renderQueueDashboard(); 
+                } else { 
+                    lbl.innerText="TAP UNTUK DAFTAR"; lbl.style.color="var(--cyan)"; 
+                }
+            } else { 
+                $('mainBtnLabel').innerText = "BUKA DASHBOARD CHARGING"; $('mainBtnLabel').style.color = "var(--cyan)"; 
+            }
 
             $('totalQDisplay').innerText = localQueue.length;
             if(localQueue.length > 0) $('nextQDisplay').innerHTML = `<span class="qbn-rank">#${localQueue[0].qNo}</span> ${localQueue[0].plat}`;
             else $('nextQDisplay').innerHTML = `<span class="qbn-rank">-</span> KOSONG`;
         }
 
-        // === LOGIKA ANTI CURANG (SCAN TO UNLOCK) ===
+        // === LOGIKA BADGE UPDATE (OFFICE & SEKJEN) ===
+        function getBadgeHTML(role) {
+            if(!role) return ""; 
+            
+            // EFFECT TURTLE
+            if(role === "PELAN") return `<span class="role-badge role-pelan"><div class="speed-lines-fx"></div><span class="badge-text-top"><span class="turtle-turbo">🐢</span> PELAN TAPI KENCENG</span></span>`;
+            
+            let c = "role-keluarga", l = "KELUARGA MLU";
+            
+            if(role === "KETUM") { c="role-ketum"; l="KETUM"; } 
+            else if(role === "WAKETUM") { c="role-waketum"; l="WAKETUM"; } 
+            else if(role === "KACAB") { c="role-kacab"; l="KACAB"; } 
+            
+            // LOGIKA BARU: SEKRETARIS -> SEKJEN (Hijau)
+            else if(role === "SEKRETARIS") { c="role-sekretaris"; l="SEKJEN"; }
+            
+            // LOGIKA BARU: OFFICE MAKA KG (Platinum)
+            else if(role === "OFFICE") { c="role-office"; l="OFFICE MAKA KG"; }
+            
+            else if(role === "KORLAP") { c="role-korlap"; l="KORLAP"; }
+            else if(role === "PEMBINA") { c="role-pembina"; l="PEMBINA"; }
+            else if(role === "PENASEHAT") { c="role-penasehat"; l="PENASEHAT"; }
+            else if(role === "HUMAS") { c="role-humas"; l="HUMAS"; }
+            
+            return `<span class="role-badge ${c}">${l}</span>`;
+        }
+
+        // === MAIN ACTION HANDLER (SCAN-TO-UNLOCK) ===
         window.handleMainAction = () => {
             if(window.activeSlotIdx !== -1) { $('screen-active-dashboard').classList.add('active'); $('screen-active-dashboard').classList.remove('minimized'); return; }
             if(amIInQueue) { $('waitingDashboard').classList.add('active'); renderQueueDashboard(); return; }
             if(localStorage.getItem('adm_ok')) { showLoginForm(); return; }
             
-            // PAKSA SCAN QR FISIK UNTUK MEMBUKA FORM DAFTAR
+            // LOGIKA: Jika Scan aktif, Paksa Scan. Jika OFF, cek GPS.
             if(currentValidQR !== "OFF") {
-                startScanner(); // Hanya buka form jika scan sukses
+                startScanner(); // WAJIB SCAN DULU BARU BUKA FORM
             } else {
-                // Mode GPS Fallback (Tetap dicek agar tidak tembak dari jauh)
-                runGPSCheck();
+                runGPSCheck(); // FALLBACK KE GPS
             }
         };
 
@@ -489,16 +560,24 @@
                 $('screen-scan').classList.add('active'); $('scanText').innerText = "VERIFIKASI LOKASI...";
                 navigator.geolocation.getCurrentPosition(
                     (p) => {
-                        if(getDist(p.coords.latitude, p.coords.longitude, STATION_LAT, STATION_LNG) > MAX_DIST_KM) { $('screen-scan').classList.remove('active'); customAlert("TERLALU JAUH DARI SHOWROOM."); } 
-                        else showLoginForm();
+                        if(getDist(p.coords.latitude, p.coords.longitude, STATION_LAT, STATION_LNG) > MAX_DIST_KM) { 
+                            $('screen-scan').classList.remove('active'); customAlert("TERLALU JAUH DARI SHOWROOM."); 
+                        } else {
+                            showLoginForm();
+                        }
                     }, 
                     () => { $('scanText').innerText = "GPS ERROR"; $('btnRetryGPS').style.display = 'block'; }, { enableHighAccuracy: true, timeout: 10000 }
                 );
             } else customAlert("GPS Tidak Support.");
         }
 
-        function showLoginForm() { $('screen-scan').classList.remove('active'); $('screen-login').classList.add('active'); formStep = 0; formData = {}; renderStep(); }
+        function showLoginForm() { 
+            $('screen-scan').classList.remove('active'); 
+            $('screen-login').classList.add('active'); 
+            formStep = 0; formData = {}; renderStep(); 
+        }
 
+        // === FORM WIZARD ===
         let formStep=0; let formData={};
         const formConfig = [{l:"LANGKAH 1/2",q:"PLAT NOMOR",k:"plat"},{l:"LANGKAH 2/2",q:"NAMA ANDA",k:"name"}];
         
@@ -511,37 +590,57 @@
 
         window.nextStepAction = () => {
             let val = $('holoInputLogin').value.trim().toUpperCase(); if(!val) return;
-            if(formConfig[formStep].k === 'plat') { if(val.replace(/\s/g, '').length < 3) return customAlert("Plat invalid!"); formData['plat'] = val; formStep++; renderStep(); }
-            else { if(val.length < 3) return customAlert("Nama pendek!"); formData['name'] = val; executeReg(); }
+            if(formConfig[formStep].k === 'plat') { 
+                if(val.replace(/\s/g, '').length < 3) return customAlert("Plat invalid!"); 
+                formData['plat'] = val; formStep++; renderStep(); 
+            }
+            else { 
+                if(val.length < 3) return customAlert("Nama pendek!"); 
+                formData['name'] = val; executeReg(); 
+            }
         };
 
-        function renderStep() { $('stepLabel').innerText = formConfig[formStep].l; $('questionText').innerText = formConfig[formStep].q; $('holoInputLogin').value = ""; $('holoInputLogin').focus(); document.querySelector('.btn-next').innerText = formStep === 1 ? "DAFTAR SEKARANG" : "LANJUT"; }
+        function renderStep() { 
+            $('stepLabel').innerText = formConfig[formStep].l; $('questionText').innerText = formConfig[formStep].q; 
+            $('holoInputLogin').value = ""; $('holoInputLogin').focus(); 
+            document.querySelector('.btn-next').innerText = formStep === 1 ? "DAFTAR SEKARANG" : "LANJUT"; 
+        }
 
+        // === SCANNER LOGIC ===
         let html5QrCode;
         window.startScanner = () => {
-            const scannerDiv = document.createElement('div'); scannerDiv.id = 'scannerOverlay'; scannerDiv.style.cssText = "position:fixed; inset:0; background:#000; z-index:25000; display:flex; flex-direction:column; align-items:center; justify-content:center;";
+            const scannerDiv = document.createElement('div'); scannerDiv.id = 'scannerOverlay'; 
+            scannerDiv.style.cssText = "position:fixed; inset:0; background:#000; z-index:25000; display:flex; flex-direction:column; align-items:center; justify-content:center;";
             scannerDiv.innerHTML = `<div style="font-family:'Teko'; font-size:24px; color:var(--cyan); margin-bottom:10px; text-align:center;">ARAHKAN KE QR CODE SHOWROOM</div><div id="reader" style="width:300px; height:300px; border:2px solid var(--cyan);"></div><button onclick="stopScanner()" style="margin-top:20px; padding:10px 30px; background:#000; color:var(--cyan); border:1px solid var(--cyan); font-family:'Teko'; font-size:18px;">BATAL</button>`;
             document.body.appendChild(scannerDiv);
+            
             html5QrCode = new Html5Qrcode("reader");
             html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 200 }, (decodedText) => {
-                if(decodedText === currentValidQR) { stopScanner(); showLoginForm(); } 
-                else alert("QR CODE SALAH / EXPIRED!");
+                if(decodedText === currentValidQR) { 
+                    stopScanner(); showLoginForm(); 
+                } else {
+                    alert("QR CODE SALAH / EXPIRED!");
+                }
             }).catch(e => { alert("Error Kamera: " + e); stopScanner(); });
         };
 
         window.stopScanner = () => { if(html5QrCode) html5QrCode.stop().then(() => html5QrCode.clear()).catch(()=>{}); const el = $('scannerOverlay'); if(el) el.remove(); };
         window.cancelLogin = () => { $('screen-login').classList.remove('active'); formStep = 0; formData = {}; };
 
+        // === EXECUTE REGISTER ===
         async function executeReg() {
             const cleanInput = cleanStr(formData.plat);
             let userRole = null;
+            // Cek Member Database
             try { const m = await getDoc(doc(db, "members", cleanInput)); if(m.exists()) userRole = m.data().role || "MEMBER"; } catch(e){}
+            
             runTransaction(db, async(t) => {
                 const d = (await t.get(mainRef)).data();
                 if(d.chargingSlots.some(s => s && cleanStr(s.plat) === cleanInput) || d.waitingQueue.some(q => cleanStr(q.plat) === cleanInput)) return { status: "EXIST" };
                 const n = (d.lastTicket||0)+1;
                 const newUser = { plat: formData.plat, userName: formData.name, qNo: n, entryTime: Date.now(), role: userRole };
-                saveSnapshot(t, d); t.update(mainRef, { waitingQueue: arrayUnion(newUser), lastTicket: n });
+                saveSnapshot(t, d); 
+                t.update(mainRef, { waitingQueue: arrayUnion(newUser), lastTicket: n });
                 return { status: "NEW", data: newUser };
             }).then((res) => {
                 localStorage.setItem('myPlat', formData.plat); myPlat = formData.plat;
@@ -551,6 +650,7 @@
             }).catch(e => customAlert("Gagal: " + e));
         }
 
+        // === USER ACTIONS ===
         window.selectSlot = async (i) => {
             const ok = await customConfirm("Masuk Slot "+(i+1)+"?"); if(!ok) return;
             runTransaction(db, async(t)=>{
@@ -577,10 +677,36 @@
             localStorage.removeItem('myPlat'); myPlat=null; amIInQueue=false; $('waitingDashboard').classList.remove('active');
         };
 
+        window.attemptKudeta = async (slotIdx, targetPlat) => {
+            const confirm = await customConfirm(`AMBIL ALIH SLOT ${slotIdx+1}?\nUser ${targetPlat} harus sudah selesai.`);
+            if(!confirm) return;
+            const currentMyPlat = localStorage.getItem('myPlat'); 
+            
+            runTransaction(db, async(t) => {
+                const d = (await t.get(mainRef)).data();
+                const targetSlot = d.chargingSlots[slotIdx];
+                if(!targetSlot || cleanStr(targetSlot.plat) !== cleanStr(targetPlat)) throw "Slot berubah!";
+                const meInDb = d.waitingQueue[0];
+                if(cleanStr(meInDb?.plat) !== cleanStr(currentMyPlat)) throw "Posisi antrian berubah.";
+                
+                // VALIDASI WAKTU 25 MENIT
+                const durationMs = Date.now() - targetSlot.startTime;
+                if(durationMs/60000 < 25) throw `Belum 25 Menit!`;
+
+                const victim = targetSlot;
+                addDoc(historyRef, {...victim, finishTime:new Date(), status: "KUDETA_BY_" + currentMyPlat, action: "KICKED_OUT"});
+                const me = d.waitingQueue.shift(); me.startTime = Date.now(); d.chargingSlots[slotIdx] = me;
+                saveSnapshot(t, d);
+                t.update(mainRef, { chargingSlots: d.chargingSlots, waitingQueue: d.waitingQueue });
+            }).then(() => { addUserLog("KUDETA", `Ambil Alih Slot ${slotIdx+1} dari ${targetPlat}`); customAlert("BERHASIL AMBIL ALIH!"); }).catch(e => customAlert("GAGAL: " + e));
+        };
+
         window.gantiMotor = () => { if(!localStorage.getItem('adm_ok')) return customAlert("Admin Only!"); customConfirm("Hapus Sesi?").then(ok => { if(ok) { localStorage.removeItem('myPlat'); location.reload(); } }); };
         window.toggleAdmin = () => { let c = prompt("KODE:"); if(c === "1131"){ localStorage.setItem('adm_ok','1'); window.location.assign("admin.html"); } else if(c === "090815") window.location.assign("superadmin.html"); };
 
         window.openWaitingDashboard = () => { $('waitingDashboard').classList.add('active'); renderQueueDashboard(); };
+
+        // === MUSIC PLAYER ===
         const songs = [{title: "CYBERPUNK THEME", file: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"}, {title: "SYNTHWAVE CHILL", file: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-15.mp3"}];
         let currentSongIdx = 0; const audio = $('audioPlayer');
         window.togglePlayerPanel = () => { const p = $('cpPanel'); if(p.classList.contains('show')) p.classList.remove('show'); else { p.classList.add('show'); renderSongList(); } };
@@ -589,20 +715,13 @@
         function playSong(idx) { audio.src = songs[idx].file; audio.play(); $('cpTitle').innerText = songs[idx].title; document.querySelector('.cp-disc').classList.add('playing'); renderSongList(); }
         function renderSongList() { const c = $('cpListContainer'); c.innerHTML = ''; songs.forEach((s, i) => { const d = document.createElement('div'); d.className = `cp-item ${i === currentSongIdx ? 'active' : ''}`; d.innerText = s.title; d.onclick = () => playSong(i); c.appendChild(d); }); }
 
+        // === UTILS ===
         function getDist(lat1,lon1,lat2,lon2){const R=6371;const dLat=(lat2-lat1)*Math.PI/180;const dLon=(lon2-lon1)*Math.PI/180;const a=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)*Math.sin(dLon/2);return R*(2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a)));}
         function startChargeTimer(s){ if(chargeTimerInterval) clearInterval(chargeTimerInterval); chargeTimerInterval=setInterval(()=>{ const d=Math.floor((Date.now()-s)/1000); $('timerVal').innerText=`${Math.floor(d/60).toString().padStart(2,'0')}:${(d%60).toString().padStart(2,'0')}`; },1000); }
         window.toggleDashboard = (s) => { if(!s) $('screen-active-dashboard').classList.add('minimized'); else $('screen-active-dashboard').classList.remove('minimized'); if(s===false) $('screen-active-dashboard').classList.remove('active'); };
         
         function showModal(msg,type){ return new Promise(r=>{ const m=$('customModal'); $('modalMsg').innerHTML=msg; const acts=$('modalActions'); const inp=$('modalInput'); inp.style.display=type==='prompt'?'block':'none'; acts.innerHTML=''; if(type==='confirm') acts.innerHTML=`<button class="btn-modal" onclick="mRes(false)" style="background:#333;">BATAL</button><button class="btn-modal" onclick="mRes(true)" style="background:var(--cyan);color:#000;">YA</button>`; else acts.innerHTML=`<button class="btn-modal" onclick="mRes(true)" style="background:#333;">TUTUP</button>`; m.style.display='flex'; window.mRes=(v)=>{m.style.display='none';r(v);}; }); }
         const customAlert=m=>showModal(m,'alert'); const customConfirm=m=>showModal(m,'confirm');
-
-        function getBadgeHTML(role) {
-            if(!role) return ""; 
-            if(role === "PELAN") return `<span class="role-badge role-pelan"><div class="speed-lines-fx"></div><span class="badge-text-top"><span class="turtle-turbo">🐢</span> PELAN TAPI KENCENG</span></span>`;
-            let c = "role-keluarga", l = "KELUARGA MLU";
-            if(role === "KETUM") { c="role-ketum"; l="KETUM"; } else if(role === "WAKETUM") { c="role-waketum"; l="WAKETUM"; } else if(role === "KACAB") { c="role-kacab"; l="KACAB"; } else if(role === "KORLAP") { c="role-korlap"; l="KORLAP"; }
-            return `<span class="role-badge ${c}">${l}</span>`;
-        }
 
         function renderQueueDashboard() {
             const c=$('wdListContainer'); c.innerHTML=''; const myPlat = localStorage.getItem('myPlat');
@@ -621,6 +740,16 @@
             customAlert(`<div style="text-align:center;">${getBadgeHTML(d.role)}<div style="font-family:'Teko'; font-size:42px;">${d.plat}</div></div><div style="text-align:left;"><b>NAMA:</b> ${escapeHtml(d.userName)}<br><b>TIKET:</b> #${d.qNo}<br><b>JAM:</b> ${t} WIB</div>`);
         };
         
+        // PWA Install Prompt
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault(); deferredPrompt = e; $('btnInstallPWA').style.display = 'block';
+        });
+        window.installPWA = async () => {
+            if (deferredPrompt) { deferredPrompt.prompt(); const { outcome } = await deferredPrompt.userChoice; if (outcome === 'accepted') { deferredPrompt = null; $('btnInstallPWA').style.display = 'none'; } }
+        };
+        if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js'); }
+
         const style=document.createElement('style'); style.innerHTML=`@keyframes scanMove {0%{top:0} 100%{top:100%}} .screen-overlay.minimized {display:none !important;}`; document.head.appendChild(style);
     </script>
 </body>
