@@ -68,16 +68,21 @@
 
     <div class="box" style="border-top: 3px solid var(--blue);">
         <h3 style="color:var(--blue);">2. SET JABATAN PENGURUS</h3>
-        <div style="font-size:10px; color:#aaa; margin-bottom:10px;">Input Plat Nomor orangnya, pilih jabatan, klik Simpan. Otomatis update.</div>
+        <div style="font-size:10px; color:#aaa; margin-bottom:10px;">Pilih "INPUT MANUAL" jika jabatan tidak ada di list.</div>
         <div style="display:flex; gap:5px; margin-bottom:5px;">
             <input id="rolePlat" placeholder="PLAT NOMOR (Cth: B 1 ILHAM)" style="flex:2; text-transform:uppercase;">
             <select id="roleSelect" style="flex:2;">
+                <option value="CUSTOM">✍ INPUT MANUAL (CUSTOM)...</option>
                 <option value="MEMBER">KELUARGA MLU</option>
                 <option value="PELAN">PELAN TAPI KENCENG 🐢</option>
-                <option value="OFFICE">OFFICE MAKA KG (NEW)</option> <option value="KETUM">KETUM</option>
+                <option value="OFFICE">OFFICE MAKA KG</option>
+                
+                <option value="KETUM">KETUM</option>
                 <option value="WAKETUM">WAKETUM</option>
-                <option value="KACAB">KACAB (KEPALA CABANG)</option> 
-                <option value="SEKRETARIS">SEKJEN</option> <option value="PEMBINA">PEMBINA</option>
+                <option value="KACAB">KACAB</option> 
+                <option value="SEKRETARIS">SEKJEN</option>
+                
+                <option value="PEMBINA">PEMBINA</option>
                 <option value="PENASEHAT">PENASEHAT</option>
                 <option value="HUMAS">HUMAS</option>
                 <option value="KORLAP">KORLAP</option>
@@ -215,8 +220,19 @@
         };
 
         window.setJabatan = () => {
-            const p = document.getElementById('rolePlat').value.toUpperCase(); const r = document.getElementById('roleSelect').value; 
-            if(!p) return alert("Isi Plat!"); const cleanP = p.replace(/[^A-Z0-9]/g, '');
+            const p = document.getElementById('rolePlat').value.toUpperCase(); 
+            let r = document.getElementById('roleSelect').value; 
+            
+            if(!p) return alert("Isi Plat!"); 
+            
+            // LOGIKA INPUT MANUAL (CUSTOM)
+            if(r === "CUSTOM") {
+                const c = prompt("MASUKKAN NAMA JABATAN (BEBAS):");
+                if(!c) return;
+                r = c.toUpperCase();
+            }
+
+            const cleanP = p.replace(/[^A-Z0-9]/g, '');
             setDoc(doc(db, "members", cleanP), { plat: p, role: r, verified: true }, {merge:true});
             runTransaction(db, async(t) => {
                 const d = (await t.get(mainRef)).data(); let updated = false;
@@ -250,6 +266,9 @@
                         
                         else if(d.role === 'MEMBER') { color = 'var(--gold)'; label = 'KELUARGA MLU'; }
                         else if(d.role === 'PELAN') { color = 'var(--neon)'; label = 'PELAN TAPI KENCENG 🐢'; }
+                        
+                        // CUSTOM MANUAL (Warnanya Ungu biar beda)
+                        else { color = '#b08dff'; label = d.role + " (CUSTOM)"; }
                         
                         html += `<tr style="border-bottom:1px solid #222;"><td style="padding:5px;">${d.plat}</td><td style="padding:5px; color:${color}; font-weight:bold;">${label}</td><td style="padding:5px; text-align:center;"><button onclick="hapusBadge('${d.plat}')" class="btn-red btn-mini">X</button></td></tr>`;
                     }

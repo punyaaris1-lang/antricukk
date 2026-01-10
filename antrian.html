@@ -116,26 +116,26 @@
             box-shadow: 0 0 10px rgba(0,0,0,0.5);
         }
         
+        /* WARNA PRESET/BAKU */
         .role-ketum { background: linear-gradient(135deg, #FF0000, #b30000); color: #fff; box-shadow: 0 0 15px rgba(255,0,0,0.6); border-color: #ff5555; }
         .role-waketum { background: linear-gradient(135deg, #FF4500, #cc3700); color: #fff; }
         .role-kacab { background: linear-gradient(135deg, #FF8C00, #B8860B); color: #fff; box-shadow: 0 0 15px rgba(255, 140, 0, 0.5); border-color: #FFA500; }
-        
-        /* UPDATE: SEKRETARIS MENJADI HIJAU (SEKJEN) */
         .role-sekretaris { background: linear-gradient(135deg, #008000, #005500); color: #fff; }
-        
         .role-pembina { background: linear-gradient(135deg, #800080, #550055); color: #fff; border-color: #d600d6; }
         .role-penasehat { background: linear-gradient(135deg, #4B0082, #2a004a); color: #fff; }
         .role-humas { background: linear-gradient(135deg, #008080, #004d4d); color: #fff; }
         .role-korlap { background: linear-gradient(135deg, #0000FF, #000099); color: #fff; border-color: #00F0FF; }
         .role-keluarga { background: linear-gradient(90deg, #FFD700, #FDB931); color: #000; text-shadow:none; border-color: #FFD700; box-shadow: 0 0 8px rgba(255, 215, 0, 0.4); }
-        
-        /* NEW BADGE: OFFICE MAKA KG (PLATINUM/SILVER) */
-        .role-office { 
-            background: linear-gradient(135deg, #bdc3c7, #2c3e50); 
-            border: 1px solid #fff; 
-            color: #fff; 
-            box-shadow: 0 0 15px rgba(255, 255, 255, 0.3); 
-            text-shadow: 0 0 5px rgba(0,0,0,0.8);
+        .role-office { background: linear-gradient(135deg, #bdc3c7, #2c3e50); border: 1px solid #fff; color: #fff; box-shadow: 0 0 15px rgba(255, 255, 255, 0.3); text-shadow: 0 0 5px rgba(0,0,0,0.8); }
+
+        /* === STYLE UNIVERSAL UNTUK JABATAN MANUAL (CUSTOM) === */
+        /* Tampilannya elegan: Background gelap + Border Putih + Font terang */
+        .role-custom {
+            background: linear-gradient(135deg, #222, #444);
+            border: 1px solid rgba(255,255,255,0.5);
+            color: #fff;
+            box-shadow: 0 0 10px rgba(255,255,255,0.1);
+            letter-spacing: 1px;
         }
 
         .role-pelan {
@@ -514,29 +514,32 @@
             else $('nextQDisplay').innerHTML = `<span class="qbn-rank">-</span> KOSONG`;
         }
 
-        // === LOGIKA BADGE UPDATE (OFFICE & SEKJEN) ===
+        // === LOGIKA BADGE UNIVERSAL (CUSTOM MANUAL) ===
         function getBadgeHTML(role) {
             if(!role) return ""; 
             
-            // EFFECT TURTLE
+            // 1. JABATAN BAKU / PRESET
             if(role === "PELAN") return `<span class="role-badge role-pelan"><div class="speed-lines-fx"></div><span class="badge-text-top"><span class="turtle-turbo">🐢</span> PELAN TAPI KENCENG</span></span>`;
             
             let c = "role-keluarga", l = "KELUARGA MLU";
+            let isCustom = false; // Penanda apakah ini jabatan manual
             
-            if(role === "KETUM") { c="role-ketum"; l="KETUM"; } 
+            if(role === "MEMBER") { /* Default */ }
+            else if(role === "KETUM") { c="role-ketum"; l="KETUM"; } 
             else if(role === "WAKETUM") { c="role-waketum"; l="WAKETUM"; } 
             else if(role === "KACAB") { c="role-kacab"; l="KACAB"; } 
-            
-            // LOGIKA BARU: SEKRETARIS -> SEKJEN (Hijau)
-            else if(role === "SEKRETARIS") { c="role-sekretaris"; l="SEKJEN"; }
-            
-            // LOGIKA BARU: OFFICE MAKA KG (Platinum)
-            else if(role === "OFFICE") { c="role-office"; l="OFFICE MAKA KG"; }
-            
+            else if(role === "SEKRETARIS") { c="role-sekretaris"; l="SEKJEN"; } // HIJAU
+            else if(role === "OFFICE") { c="role-office"; l="OFFICE MAKA KG"; } // PLATINUM
             else if(role === "KORLAP") { c="role-korlap"; l="KORLAP"; }
             else if(role === "PEMBINA") { c="role-pembina"; l="PEMBINA"; }
             else if(role === "PENASEHAT") { c="role-penasehat"; l="PENASEHAT"; }
             else if(role === "HUMAS") { c="role-humas"; l="HUMAS"; }
+            
+            // 2. JIKA TIDAK DIKENAL = JABATAN MANUAL (CUSTOM)
+            else {
+                c = "role-custom"; // Pakai style universal
+                l = role; // Tampilkan teks apa adanya yg diketik admin
+            }
             
             return `<span class="role-badge ${c}">${l}</span>`;
         }
