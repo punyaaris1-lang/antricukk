@@ -31,6 +31,15 @@
         .log-line { margin-bottom: 4px; border-bottom: 1px solid #111; padding-bottom: 2px; }
         #loginOverlay { display: flex; position: fixed; inset: 0; background: #000; z-index: 10000; justify-content: center; align-items: center; flex-direction: column; }
         .login-box { width: 300px; padding: 30px; border: 1px solid var(--gold); border-radius: 10px; background: #111; text-align: center; box-shadow: 0 0 30px rgba(255, 215, 0, 0.15); }
+        
+        /* CSS Tambahan Generator QR */
+        .qr-display-box { 
+            margin-top: 15px; background: #fff; padding: 15px; border-radius: 10px; 
+            display: none; flex-direction: column; align-items: center; 
+            box-shadow: 0 0 20px rgba(0,240,255,0.3);
+        }
+        .qr-display-box img { width: 180px; height: 180px; }
+        .qr-label { color: #000; font-family: 'Teko'; font-size: 18px; margin-top: 5px; text-transform: uppercase; }
     </style>
 </head>
 <body>
@@ -83,11 +92,17 @@
         <div style="background:#111; padding:15px; border-radius:8px; text-align:center; margin-bottom:15px; border:1px solid #333;">
             <div style="color:#aaa; font-size:10px; letter-spacing:2px; margin-bottom:5px;">STATUS SAAT INI</div>
             <div id="activeQRDisplay" style="font-family:'Teko'; font-size:32px; color:#fff; font-weight:bold; text-shadow:0 0 10px rgba(255,255,255,0.3);">LOADING...</div>
+            
+            <div id="qrContainer" class="qr-display-box">
+                <div style="color:#666; font-size:9px; margin-bottom:5px;">TAMPILKAN QR INI KE USER</div>
+                <img id="qrImg" src="" alt="QR CODE">
+                <div id="qrTextLabel" class="qr-label"></div>
+            </div>
         </div>
 
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
             <button onclick="setActiveQR('OFF')" class="btn-green" style="height:50px; font-size:16px;">
-                🌍 MODE GPS (OFF)
+                🌐 MODE GPS (OFF)
                 <div style="font-size:9px; font-weight:normal;">Login bebas tanpa scan</div>
             </button>
             
@@ -104,15 +119,15 @@
 
     <div class="box" style="border-top: 3px solid var(--green);">
         <h3 style="color:var(--green);">4. INFO MEMBER VIP (BADGE)</h3>
-        <button onclick="loadMembers()" class="btn-green" style="width:100%; margin-bottom:10px;">📂 LIHAT DATA MEMBER</button>
+        <button onclick="loadMembers()" class="btn-green" style="width:100%; margin-bottom:10px;">📄 LIHAT DATA MEMBER</button>
         <div id="memberListArea" style="max-height:200px; overflow-y:auto; border:1px solid #333; display:none;"></div>
     </div>
 
     <div class="box" style="border-top: 3px solid var(--red);">
         <h3 style="color:var(--red);">5. DANGER ZONE (RESET)</h3>
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-            <button onclick="if(confirm('Reset Nomor Antrian jadi 1? Slot charging tetap aman.')) resetDaily()" class="btn-gold">☀ RESET NOMOR HARIAN</button>
-            <button onclick="if(confirm('BAHAYA: Hapus SEMUA data antrian & slot?')) resetTotal()" class="btn-red">⚠ WIPE TOTAL (0)</button>
+            <button onclick="if(confirm('Reset Nomor Antrian jadi 1? Slot charging tetap aman.')) resetDaily()" class="btn-gold">🔄 RESET NOMOR HARIAN</button>
+            <button onclick="if(confirm('BAHAYA: Hapus SEMUA data antrian & slot?')) resetTotal()" class="btn-red">☢ WIPE TOTAL (0)</button>
         </div>
     </div>
 
@@ -141,14 +156,12 @@
             if(!snap.exists()) return;
             const d = snap.data(); cachedData = d;
             
-            // Render Slots
             (d.chargingSlots || [null,null,null]).forEach((s, i) => {
                 const el = document.getElementById(`slot${i+1}`);
                 if(s) { el.innerHTML = `<div style="color:var(--blue); font-size:16px; font-weight:bold;">${s.plat}</div><div style="font-size:12px;">${s.userName}</div><div style="margin-top:auto; width:100%;"><button onclick="editData('slot', ${i})" class="btn-gold btn-mini" style="width:100%;">EDIT DATA</button></div>`; el.style.border = "1px solid var(--blue)"; } 
                 else { el.innerHTML = `<div style="color:#555; margin:auto;">KOSONG</div>`; el.style.border = "1px solid #333"; }
             });
             
-            // Render Queue
             const qList = document.getElementById('queueList'); qList.innerHTML = '';
             (d.waitingQueue || []).forEach((q, i) => {
                 const div = document.createElement('div');
@@ -157,33 +170,33 @@
                 qList.appendChild(div);
             });
 
-            // UPDATE STATUS QR AKTIF (SAKLAR DISPLAY)
+            // UPDATE SAKLAR & QR GENERATOR
             const activeCode = d.activeQrCode || 'OFF'; 
             const displayEl = document.getElementById('activeQRDisplay');
+            const qrBox = document.getElementById('qrContainer');
+            const qrImg = document.getElementById('qrImg');
+            const qrText = document.getElementById('qrTextLabel');
+
             if(activeCode === 'OFF') {
                 displayEl.innerText = "MODE GPS (TANPA BARCODE)";
                 displayEl.style.color = "var(--green)";
+                qrBox.style.display = 'none';
             } else {
                 displayEl.innerText = "SECURE MODE: " + activeCode.replace("FC-CODE-", "KODE ");
                 displayEl.style.color = "var(--purple)";
+                qrBox.style.display = 'flex';
+                // Gunakan API eksternal gratis untuk generate QR gambar
+                qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${activeCode}`;
+                qrText.innerText = activeCode.replace("FC-CODE-", "KODE ");
             }
         });
 
-        // === FUNGSI SAKLAR KEAMANAN (HYBRID) ===
         window.setActiveQR = (mode) => {
             let newVal = "OFF";
             let msg = "Matikan Barcode? Kembali ke Mode GPS?";
-            
-            if(mode !== 'OFF') {
-                newVal = "FC-CODE-" + mode;
-                msg = "Aktifkan KODE " + mode + "?\nUser WAJIB scan kertas Kode " + mode + " untuk masuk.";
-            }
-
+            if(mode !== 'OFF') { newVal = "FC-CODE-" + mode; msg = "Aktifkan KODE " + mode + "?\nUser WAJIB scan kertas Kode " + mode + " untuk masuk."; }
             if(!confirm(msg)) return;
-            
-            setDoc(mainRef, { activeQrCode: newVal }, {merge: true}).then(() => {
-                addLog("SUPER_ADMIN", "CHANGE_SECURITY", `Set Security to ${newVal}`);
-            });
+            setDoc(mainRef, { activeQrCode: newVal }, {merge: true}).then(() => { addLog("SUPER_ADMIN", "CHANGE_SECURITY", `Set Security to ${newVal}`); });
         };
 
         window.editData = (type, id) => {
@@ -228,8 +241,7 @@
                         else if(d.role === 'KACAB') color = 'orange';
                         else if(d.role === 'SEKRETARIS' || d.role === 'HUMAS') color = 'var(--green)';
                         else if(d.role === 'MEMBER') { color = 'var(--gold)'; label = 'KELUARGA MLU'; }
-                        else if(d.role === 'PELAN') { color = 'var(--neon)'; label = 'PELAN TAPI KENCENG 🐢'; } // LABEL MEMBER BARU
-                        
+                        else if(d.role === 'PELAN') { color = 'var(--neon)'; label = 'PELAN TAPI KENCENG 🐢'; }
                         html += `<tr style="border-bottom:1px solid #222;"><td style="padding:5px;">${d.plat}</td><td style="padding:5px; color:${color}; font-weight:bold;">${label}</td><td style="padding:5px; text-align:center;"><button onclick="hapusBadge('${d.plat}')" class="btn-red btn-mini">X</button></td></tr>`;
                     }
                 });
