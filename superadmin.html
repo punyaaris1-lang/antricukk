@@ -9,7 +9,7 @@
         /* === STYLE ULTIMATE (TEMA EMAS) === */
         :root { 
             --bg: #050505; --panel: #111; --border: #333; 
-            --gold: #FFD700; --red: #FF003C; --blue: #00F0FF; --green: #00FF00; --purple: #9D00FF; --neon: #39FF14;
+            --gold: #FFD700; --red: #FF003C; --blue: #00F0FF; --green: #00FF00; --purple: #9D00FF; --neon: #39FF14; --orange: #FFAA00;
             --term-bg: #000; --term-text: #0f0; 
         }
         body { background: #0a0a0a; color: #fff; font-family: 'JetBrains Mono', monospace; padding: 10px; font-size: 11px; margin: 0; }
@@ -73,19 +73,26 @@
             <input id="rolePlat" placeholder="PLAT NOMOR (Cth: B 1 ILHAM)" style="flex:2; text-transform:uppercase;">
             <select id="roleSelect" style="flex:2;">
                 <option value="CUSTOM">✍ INPUT MANUAL (CUSTOM)...</option>
-                <option value="MEMBER">KELUARGA MLU</option>
-                <option value="PELAN">PELAN TAPI KENCENG 🐢</option>
-                <option value="OFFICE">OFFICE MAKA KG</option>
+                <option value="MEMBER">👤 KELUARGA MLU (DEFAULT)</option>
                 
-                <option value="KETUM">KETUM</option>
-                <option value="WAKETUM">WAKETUM</option>
-                <option value="KACAB">KACAB</option> 
-                <option value="SEKRETARIS">SEKJEN</option>
-                
-                <option value="PEMBINA">PEMBINA</option>
-                <option value="PENASEHAT">PENASEHAT</option>
-                <option value="HUMAS">HUMAS</option>
-                <option value="KORLAP">KORLAP</option>
+                <optgroup label="--- BOARD OF DIRECTORS ---">
+                    <option value="KETUM">👑 KETUA UMUM</option>
+                    <option value="WAKETUM">⭐ WAKETUM</option>
+                    <option value="PEMBINA">📜 PEMBINA</option>
+                    <option value="SEKRETARIS">💻 SEKJEN</option>
+                </optgroup>
+
+                <optgroup label="--- OPERASIONAL ---">
+                    <option value="KORLAP">🔴 KORLAP</option>
+                    <option value="SATGAS">⚡ SATGAS</option>
+                    <option value="KACAB">📍 KACAB</option>
+                    <option value="HUMAS">📢 HUMAS</option>
+                </optgroup>
+
+                <optgroup label="--- LAINNYA ---">
+                    <option value="PELAN">🐢 SPECIAL TURTLE (SALTO)</option>
+                    <option value="OFFICE">🏢 OFFICE MAKA KG</option>
+                </optgroup>
             </select>
         </div>
         <button onclick="setJabatan()" class="btn-blue" style="width:100%;">SIMPAN & UPDATE BADGE</button>
@@ -107,7 +114,7 @@
 
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
             <button onclick="setActiveQR('OFF')" class="btn-green" style="height:50px; font-size:16px;">
-                🌐 MODE GPS (OFF)
+                🌍 MODE GPS (OFF)
                 <div style="font-size:9px; font-weight:normal;">Login bebas tanpa scan</div>
             </button>
             
@@ -124,7 +131,7 @@
 
     <div class="box" style="border-top: 3px solid var(--green);">
         <h3 style="color:var(--green);">4. INFO MEMBER VIP (BADGE)</h3>
-        <button onclick="loadMembers()" class="btn-green" style="width:100%; margin-bottom:10px;">📄 LIHAT DATA MEMBER</button>
+        <button onclick="loadMembers()" class="btn-green" style="width:100%; margin-bottom:10px;">👥 LIHAT DATA MEMBER</button>
         <div id="memberListArea" style="max-height:200px; overflow-y:auto; border:1px solid #333; display:none;"></div>
     </div>
 
@@ -132,7 +139,7 @@
         <h3 style="color:var(--red);">5. DANGER ZONE (RESET)</h3>
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
             <button onclick="if(confirm('Reset Nomor Antrian jadi 1? Slot charging tetap aman.')) resetDaily()" class="btn-gold">🔄 RESET NOMOR HARIAN</button>
-            <button onclick="if(confirm('BAHAYA: Hapus SEMUA data antrian & slot?')) resetTotal()" class="btn-red">☢ WIPE TOTAL (0)</button>
+            <button onclick="if(confirm('BAHAYA: Hapus SEMUA data antrian & slot?')) resetTotal()" class="btn-red">☣ WIPE TOTAL (0)</button>
         </div>
     </div>
 
@@ -253,21 +260,18 @@
                     if (d.role) {
                         count++; let color = '#fff'; let label = d.role;
                         
-                        // LOGIKA WARNA ADMIN PANEL
-                        if(d.role === 'KETUM' || d.role === 'WAKETUM') color = 'var(--red)';
-                        else if(d.role === 'KORLAP') color = 'var(--blue)';
-                        else if(d.role === 'KACAB') color = 'orange';
+                        // LOGIKA WARNA ADMIN PANEL BIAR GAMPANG DIKENAL
+                        if(d.role === 'KETUM') { color = 'var(--gold)'; label = '👑 KETUA UMUM'; }
+                        else if(d.role === 'WAKETUM') { color = '#ddd'; label = 'WAKETUM'; }
+                        else if(d.role === 'KORLAP') { color = 'var(--red)'; label = '🔴 KORLAP'; }
+                        else if(d.role === 'SATGAS') { color = 'var(--orange)'; label = '⚡ SATGAS'; }
+                        else if(d.role === 'SEKRETARIS') { color = 'var(--blue)'; label = '💻 SEKJEN'; }
+                        else if(d.role === 'PELAN') { color = 'var(--neon)'; label = '🐢 SPECIAL TURTLE'; }
+                        else if(d.role === 'OFFICE') { color = '#aaa'; label = '🏢 OFFICE MAKA'; }
+                        else if(d.role === 'HUMAS') { color = '#f59e0b'; label = '📢 HUMAS'; }
+                        else if(d.role === 'MEMBER') { color = '#fff'; label = 'MEMBER'; }
                         
-                        // SEKJEN (Hijau)
-                        else if(d.role === 'SEKRETARIS') { color = 'var(--green)'; label = 'SEKJEN'; }
-                        
-                        // OFFICE (Silver/Putih)
-                        else if(d.role === 'OFFICE') { color = '#ddd'; label = 'OFFICE MAKA KG'; }
-                        
-                        else if(d.role === 'MEMBER') { color = 'var(--gold)'; label = 'KELUARGA MLU'; }
-                        else if(d.role === 'PELAN') { color = 'var(--neon)'; label = 'PELAN TAPI KENCENG 🐢'; }
-                        
-                        // CUSTOM MANUAL (Warnanya Ungu biar beda)
+                        // CUSTOM MANUAL
                         else { color = '#b08dff'; label = d.role + " (CUSTOM)"; }
                         
                         html += `<tr style="border-bottom:1px solid #222;"><td style="padding:5px;">${d.plat}</td><td style="padding:5px; color:${color}; font-weight:bold;">${label}</td><td style="padding:5px; text-align:center;"><button onclick="hapusBadge('${d.plat}')" class="btn-red btn-mini">X</button></td></tr>`;
