@@ -13,115 +13,157 @@
 
         /* HEADER */
         .top-nav { height: 10vh; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; padding-top: 10px; }
-        .main-title { font-family: 'Teko'; font-size: 40px; font-weight: 700; line-height: 1; color: #fff; text-shadow: 0 0 10px rgba(0, 240, 255, 0.5); margin: 0; }
+        .main-title { font-family: 'Teko'; font-size: 36px; font-weight: 700; line-height: 1; color: #fff; text-shadow: 0 0 10px rgba(0, 240, 255, 0.5); margin: 0; }
         .brand-sub { font-size: 10px; color: var(--accent); letter-spacing: 4px; font-weight: 700; }
 
         /* --- SPLIT IMAGE CARDS --- */
         #frontView { 
-            height: 50vh; 
-            display: flex; justify-content: center; align-items: stretch; 
-            padding: 10px; gap: 4px; width: 100%; position: relative; z-index: 5;
+            height: 55vh; 
+            display: flex; justify-content: center; align-items: center; 
+            padding: 10px; gap: 6px; width: 100%; position: relative; z-index: 5;
         }
 
         .onyx-card { 
-            position: relative; width: 33.33%; border-radius: 6px; 
+            position: relative; width: 33.33%; height: 85%;
+            border-radius: 8px; 
             display: flex; flex-direction: column; justify-content: space-between; 
-            padding: 10px 5px; overflow: hidden; transition: 0.5s ease-in-out;
+            padding: 15px 5px; overflow: hidden; transition: 0.5s ease-in-out;
             
-            /* BACKGROUND LOGO PECAH 3 */
+            /* BACKGROUND LOGO - UTAMA */
             background-image: url('1763947427555.jpg'); 
             background-size: 305% 100%; background-repeat: no-repeat;
             
-            /* DARK MODE (Bright 0.5 biar agak kelihatan) */
-            filter: grayscale(100%) brightness(0.5) contrast(1.1);
+            /* STATE MATI (GELAP TAPI GAMBAR MASIH KELIATAN DIKIT) */
+            filter: grayscale(100%) brightness(0.4) contrast(1.1);
             box-shadow: inset 0 0 30px #000;
             border: 1px solid rgba(255,255,255,0.1); 
+            opacity: 0.8;
         }
 
-        /* POSISI POTONGAN */
-        #card-1 { background-position: 0% 50%; }
-        #card-2 { background-position: 50% 50%; }
-        #card-3 { background-position: 100% 50%; }
-
-        /* ACTIVE STATE (NYALA) */
-        .onyx-card.charging, .onyx-card.full {
-            filter: grayscale(0%) brightness(1.1) contrast(1.1);
-            box-shadow: 0 0 25px rgba(255, 80, 0, 0.5); /* Glow Api */
-            transform: scale(1.02); z-index: 10;
-            border: 1px solid rgba(255, 80, 0, 0.5);
+        /* POSISI GAMBAR & KARTU (SLOT 2 LEBIH TINGGI) */
+        #card-1 { background-position: 0% 50%; transform: translateY(15px); }
+        #card-3 { background-position: 100% 50%; transform: translateY(15px); }
+        
+        #card-2 { 
+            background-position: 50% 50%; 
+            transform: translateY(-15px) scale(1.05); 
+            z-index: 20;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            border: 1px solid rgba(255,255,255,0.2);
         }
+
+        /* === STATE NYALA (ACTIVE) === */
+        .onyx-card.active {
+            filter: grayscale(0%) brightness(1.2) contrast(1.1); /* GAMBAR JADI BERWARNA TERANG */
+            opacity: 1;
+            /* GLOWING BARENGAN */
+            animation: oneRhythmGlow 4s infinite ease-in-out; 
+        }
+
+        @keyframes oneRhythmGlow {
+            0%, 100% { box-shadow: 0 0 15px rgba(0, 240, 255, 0.3); border-color: rgba(0, 240, 255, 0.4); }
+            50% { box-shadow: 0 0 35px rgba(0, 240, 255, 0.7); border-color: rgba(0, 240, 255, 0.9); }
+        }
+
+        /* Fix posisi saat aktif */
+        #card-1.active, #card-3.active { transform: translateY(15px) scale(1.02); }
+        #card-2.active { transform: translateY(-15px) scale(1.08); }
 
         /* LABEL SLOT */
         .slot-tag {
-            font-family: 'Orbitron'; font-weight: 900; font-size: 12px;
-            color: rgba(255,255,255,0.8); text-align: center;
-            background: rgba(0,0,0,0.6); padding: 5px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.2);
-            letter-spacing: 2px;
-            margin-bottom: 5px;
-        }
-        
-        /* WATERMARK ANGKA BESAR */
-        .slot-watermark {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            font-family: 'Teko'; font-size: 100px; color: rgba(255,255,255,0.05);
-            z-index: 1; pointer-events: none; font-weight: bold;
+            font-family: 'Orbitron'; font-weight: 900; font-size: 10px;
+            color: rgba(255,255,255,0.6); text-align: center;
+            background: rgba(0,0,0,0.6); padding: 3px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            letter-spacing: 1px; margin-bottom: 5px;
         }
 
         /* CONTENT */
         .oc-header, .oc-body, .oc-footer { position: relative; z-index: 2; text-align: center; text-shadow: 0 2px 4px #000, 0 0 5px #000; }
-        .oc-plat { font-family:'Inter'; font-weight: 900; font-size: 20px; color: #fff; margin-bottom: 2px; }
-        .oc-user-block { min-height: 35px; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; }
-        .oc-name { font-size: 10px; color: #ddd; text-transform: uppercase; font-weight: 800; letter-spacing: 1px; line-height: 1.1; }
         
-        .mini-badge {
-            margin-top: 3px; padding: 2px 6px; font-size: 8px; font-family: 'Orbitron'; font-weight: bold;
-            background: rgba(0,0,0,0.9); border: 1px solid #777; border-radius: 4px; color: #fff; display: none;
+        .oc-plat { 
+            font-family:'Inter'; font-weight: 900; 
+            font-size: 16px; 
+            color: #fff; margin-bottom: 2px;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            text-shadow: 0 0 10px rgba(0,0,0,0.8);
         }
+        
+        .oc-name { font-size: 10px; color: #ddd; text-transform: uppercase; font-weight: 800; letter-spacing: 1px; }
 
         .oc-body { flex: 1; display: flex; flex-direction: column; justify-content: center; }
-        .oc-big-num { font-family: 'Teko', sans-serif; font-weight: 500; color: #aaa; line-height: 0.8; transition: 0.3s; }
-        .num-charging { font-size: 65px; color: #fff; text-shadow: 0 0 15px var(--red); }
-        .num-ready { font-size: 28px; letter-spacing: 2px; color: #888; } 
-
-        .oc-footer { margin-bottom: 5px; }
-        .oc-status { font-family: 'JetBrains Mono'; font-size: 9px; font-weight: 700; padding: 4px 8px; border-radius: 4px; display: inline-block; background: rgba(0,0,0,0.8); color: #888; border: 1px solid #444; }
         
-        .onyx-card.charging .oc-status { border-color: var(--blue); color: var(--blue); box-shadow: 0 0 5px var(--blue); }
-        .onyx-card.full .oc-status { border-color: var(--accent); color: var(--accent); animation: blink 1s infinite; }
+        /* STATUS TENGAH (Cuma muncul pas OFF) */
+        .oc-big-status { 
+            font-family: 'Teko', sans-serif; font-weight: 500; line-height: 0.8; 
+            font-size: 40px; color: rgba(255,255,255,0.2); 
+        }
+        .onyx-card.active .oc-big-status { display: none; } /* Pas nyala, tulisan ilang biar gambar bersih */
 
-        .oc-progress-bg { position: absolute; bottom: 0; left: 0; width: 100%; height: 4px; background: rgba(0,0,0,0.5); z-index: 5; }
-        .oc-progress-fill { height: 100%; width: 0%; background: var(--blue); transition: width 1s linear; box-shadow: 0 0 10px var(--blue); }
+        .oc-footer { margin-top: auto; padding-bottom: 10px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 50px;}
+
+        /* === 🔥 BADGE ANIMATION SYSTEM (FULL PACK) 🔥 === */
+        .role-badge {
+            position: relative; padding: 2px 8px; text-align: center; text-transform: uppercase;
+            font-family: 'Teko', sans-serif; font-size: 14px; font-weight: 700; letter-spacing: 0.5px;
+            border-radius: 4px; overflow: hidden; display: inline-flex; align-items: center; justify-content: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.8); width: auto; min-width: 60px;
+        }
+
+        /* 1. KETUM (GOLD) */
+        .badge-ketum { 
+            background: linear-gradient(45deg, #B8860B, #FFD700, #FFFACD, #FFD700, #B8860B); 
+            background-size: 200% 200%; color: #3b2a08; border: 1px solid #FFD700; 
+            animation: metalShine 3s infinite linear; 
+        }
+
+        /* 2. SATGAS (HAZARD) */
+        .badge-satgas {
+            background: repeating-linear-gradient(45deg, #000, #000 5px, #FFD700 5px, #FFD700 10px);
+            background-size: 20px 20px; color: #fff; text-shadow: 0 0 3px #000; border: 1px solid #FFD700;
+            animation: hazardMove 1s infinite linear;
+        }
+        .badge-satgas span { background: #000; padding: 0 4px; border-radius: 2px; z-index: 2; }
+
+        /* 3. FAMILY MLU (TYPING) */
+        .badge-family { background: #000; color: #fff; border: 1px solid rgba(0, 240, 255, 0.5); display: inline-flex; justify-content: center; gap: 1px; min-width: 80px; }
+        
+        /* 4. TURTLE */
+        .badge-turtle { background: #020402; border: 1px solid #39FF14; color: #39FF14; display: flex; align-items: center; }
+
+        /* ANIMASI */
+        .char { display: inline-block; font-size: 14px; font-weight: 700; opacity: 0; transform: translateY(5px); animation: typeIn 3s infinite; text-shadow: 0 0 5px #00f0ff; }
+        .char:nth-child(1) { animation-delay: 0.1s; } .char:nth-child(2) { animation-delay: 0.2s; } .char:nth-child(3) { animation-delay: 0.3s; }
+        .char:nth-child(4) { animation-delay: 0.4s; } .char:nth-child(5) { animation-delay: 0.5s; } .char:nth-child(6) { animation-delay: 0.6s; }
+        .char:nth-child(7) { animation-delay: 0.7s; } .char:nth-child(8) { animation-delay: 0.8s; } 
+
+        @keyframes metalShine { 0% { background-position: 0% 50%; } 100% { background-position: 100% 50%; } }
+        @keyframes hazardMove { 0% { background-position: 0 0; } 100% { background-position: 20px 0; } }
+        @keyframes typeIn { 0% { opacity: 0; transform: translateY(5px); } 10% { opacity: 1; transform: translateY(0); color: #00f0ff; } 20% { color: #fff; } 80% { opacity: 1; } 90%, 100% { opacity: 0; } }
+
 
         /* CONTROL AREA */
         .control-area { 
             flex: 1; width: 100%; 
-            background: linear-gradient(to top, #000 30%, transparent 100%); 
+            background: linear-gradient(to top, #000 40%, transparent 100%); 
             display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
-            padding-bottom: 20px; z-index: 50; 
+            padding-bottom: 40px; z-index: 50; 
         }
-        
-        .fp-container { position: relative; width: 80px; height: 80px; display: flex; justify-content: center; align-items: center; margin-bottom: 5px; }
-        .fp-btn { width: 65px; height: 65px; background: rgba(0,0,0,0.8); border: 2px solid var(--accent); border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; box-shadow: 0 0 20px rgba(204, 255, 0, 0.3); transition: 0.2s; }
-        .fp-btn:active { transform: scale(0.95); }
-        .fp-svg { width: 35px; height: 35px; fill: var(--accent); opacity: 0.9; }
-        .fp-text { font-family:'Orbitron'; font-size:10px; color:#aaa; margin-bottom: 5px; letter-spacing: 2px; }
-
-        .info-row { text-align: center; margin-bottom: 15px; }
-        .antrian-text { font-family: 'Orbitron'; font-size: 16px; font-weight: 900; color: #fff; text-shadow: 0 0 10px var(--blue); }
-
-        .music-wrapper { width: 90%; display: flex; align-items: center; justify-content: space-between; padding: 8px 15px; background: rgba(20, 25, 30, 0.8); border: 1px solid #333; border-radius: 50px; backdrop-filter: blur(5px); }
-        .m-btn { background:none; border:none; color:#fff; font-size:18px; cursor: pointer; padding: 0 10px; }
-        .track-info { font-family:'JetBrains Mono'; font-size:10px; font-weight:bold; color:var(--blue); width: 120px; text-align: center; white-space: nowrap; overflow: hidden; cursor: pointer; }
-        
+        .fp-container { position: relative; width: 70px; height: 70px; display: flex; justify-content: center; align-items: center; margin-bottom: 5px; }
+        .fp-btn { width: 55px; height: 55px; background: rgba(0,0,0,0.8); border: 2px solid var(--accent); border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; box-shadow: 0 0 20px rgba(204, 255, 0, 0.3); transition: 0.2s; }
+        .fp-svg { width: 30px; height: 30px; fill: var(--accent); opacity: 0.9; }
+        .fp-text { font-family:'Orbitron'; font-size:9px; color:#aaa; margin-bottom: 5px; letter-spacing: 2px; }
+        .info-row { text-align: center; margin-bottom: 10px; }
+        .antrian-text { font-family: 'Orbitron'; font-size: 14px; font-weight: 900; color: #fff; text-shadow: 0 0 10px var(--blue); }
+        .music-wrapper { width: 85%; display: flex; align-items: center; justify-content: space-between; padding: 6px 15px; background: rgba(20, 25, 30, 0.9); border: 1px solid #333; border-radius: 50px; backdrop-filter: blur(5px); box-shadow: 0 5px 20px rgba(0,0,0,0.5); }
+        .m-btn { background:none; border:none; color:#fff; font-size:16px; cursor: pointer; padding: 0 10px; }
+        .track-info { font-family:'JetBrains Mono'; font-size:9px; font-weight:bold; color:var(--blue); width: 120px; text-align: center; white-space: nowrap; overflow: hidden; cursor: pointer; }
         #playlistPopup { display: none; position: fixed; bottom: 0; left: 0; width: 100%; background: #111; border-top: 2px solid var(--blue); height: 50vh; overflow-y: auto; z-index: 2500; padding: 10px; border-radius: 20px 20px 0 0; }
         .track-item { padding: 15px; border-bottom: 1px solid #333; color: #aaa; font-size: 12px; cursor: pointer; font-family: 'Inter'; }
         .track-item.active { color: var(--accent); font-weight: bold; background: rgba(255,255,255,0.05); }
-
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 3000; justify-content: center; align-items: center; }
         .modal-box { background: #111; border: 2px solid var(--blue); padding: 30px; border-radius: 20px; width: 85%; max-width: 300px; text-align: center; box-shadow: 0 0 30px rgba(0,240,255,0.2); }
         .btn-glossy { padding: 10px 20px; border-radius: 50px; font-family: 'Orbitron'; font-weight: bold; font-size: 12px; color: #000; cursor: pointer; background: var(--blue); border: none; margin-top: 15px; width: 100%; }
-
         @keyframes blink { 50% { opacity: 0.5; } }
     </style>
 </head>
@@ -129,62 +171,43 @@
 
     <div class="top-nav">
         <h1 class="main-title">FC KELAPA GADING</h1>
-        <div class="brand-sub">LIVE MONITORING</div>
+        <div class="brand-sub">CINEMATIC MONITORING</div>
     </div>
 
     <div id="frontView">
         <div class="onyx-card" id="card-1">
             <div class="slot-tag">SLOT 01</div>
-            <div class="slot-watermark">01</div>
             <div class="oc-header">
                 <div class="oc-plat" id="p1-plat">-</div>
                 <div class="oc-user-block">
                     <div class="oc-name" id="p1-name"></div>
-                    <div class="mini-badge" id="p1-badge">MEMBER</div>
                 </div>
             </div>
-            <div class="oc-body"><div class="oc-big-num num-ready" id="p1-main">OFF</div></div>
-            <div class="oc-footer">
-                <div class="oc-status" id="p1-status">READY</div>
-                <div style="font-size:10px; margin-top:2px;" id="p1-timer"></div>
-            </div>
-            <div class="oc-progress-bg"><div class="oc-progress-fill" id="p1-bar"></div></div>
-        </div>
+            <div class="oc-body"><div class="oc-big-status" id="p1-main">OFF</div></div>
+            <div class="oc-footer" id="p1-footer"></div> </div>
 
         <div class="onyx-card" id="card-2">
             <div class="slot-tag">SLOT 02</div>
-            <div class="slot-watermark">02</div>
             <div class="oc-header">
                 <div class="oc-plat" id="p2-plat">-</div>
                 <div class="oc-user-block">
                     <div class="oc-name" id="p2-name"></div>
-                    <div class="mini-badge" id="p2-badge">MEMBER</div>
                 </div>
             </div>
-            <div class="oc-body"><div class="oc-big-num num-ready" id="p2-main">OFF</div></div>
-            <div class="oc-footer">
-                <div class="oc-status" id="p2-status">READY</div>
-                <div style="font-size:10px; margin-top:2px;" id="p2-timer"></div>
-            </div>
-            <div class="oc-progress-bg"><div class="oc-progress-fill" id="p2-bar"></div></div>
+            <div class="oc-body"><div class="oc-big-status" id="p2-main">OFF</div></div>
+            <div class="oc-footer" id="p2-footer"></div>
         </div>
 
         <div class="onyx-card" id="card-3">
             <div class="slot-tag">SLOT 03</div>
-            <div class="slot-watermark">03</div>
             <div class="oc-header">
                 <div class="oc-plat" id="p3-plat">-</div>
                 <div class="oc-user-block">
                     <div class="oc-name" id="p3-name"></div>
-                    <div class="mini-badge" id="p3-badge">MEMBER</div>
                 </div>
             </div>
-            <div class="oc-body"><div class="oc-big-num num-ready" id="p3-main">OFF</div></div>
-            <div class="oc-footer">
-                <div class="oc-status" id="p3-status">READY</div>
-                <div style="font-size:10px; margin-top:2px;" id="p3-timer"></div>
-            </div>
-            <div class="oc-progress-bg"><div class="oc-progress-fill" id="p3-bar"></div></div>
+            <div class="oc-body"><div class="oc-big-status" id="p3-main">OFF</div></div>
+            <div class="oc-footer" id="p3-footer"></div>
         </div>
     </div>
 
@@ -193,7 +216,7 @@
         <div class="fp-container">
             <div class="fp-btn" id="fp-trigger" onclick="checkLocationOnly()">
                 <svg class="fp-svg" viewBox="0 0 24 24">
-                    <path d="M17.81 4.47c-.08 0-.16-.02-.23-.06C15.66 3.42 14 3 12.01 3c-1.98 0-3.86.47-5.57 1.41-.24.13-.54.04-.68-.2-.13-.24-.04-.55.2-.68C7.82 2.52 9.86 2 12.01 2c2.13 0 3.99.47 6.03 1.52.25.13.34.43.21.67-.09.18-.26.28-.44.28zM3.5 9.72c-.1 0-.2-.03-.29-.09-.23-.16-.28-.47-.12-.7.99-1.4 2.25-2.5 3.75-3.27C9.98 4.04 14 4.03 17.15 5.65c1.5.77 2.76 1.86 3.75 3.25.16.22.11.54-.12.7-.23.16-.54.11-.7-.12-.9-1.26-2.04-2.25-3.39-2.94-2.87-1.47-6.54-1.47-9.4.01-1.36.7-2.5 1.7-3.4 2.96-.08.14-.23.21-.39.21zm6.25 12.07c-.13 0-.26-.05-.35-.15-.87-.87-1.34-1.43-2.01-2.64-.69-1.23-1.05-2.73-1.05-4.34 0-2.97 2.54-5.39 5.66-5.39s5.66 2.42 5.66 5.39c0 .28-.22.5-.5.5s-.5-.22-.5-.5c0-2.42-2.09-4.39-4.66-4.39-2.57 0-4.66 1.97-4.66 4.39 0 1.44.32 2.77.93 3.85.64 1.15 1.08 1.64 1.85 2.42.19.2.19.51 0 .71-.11.1-.24.15-.37.15zm7.17-1.85c-1.19 0-2.24-.3-3.1-.89-1.49-1.01-2.38-2.65-2.38-4.39 0-.28.22-.5.5-.5c0 1.41.72 2.74 1.94 3.56.71.48 1.54.71 2.54.71.24 0 .64-.03 1.04-.1.27-.05.53.13.58.41.05.27-.13.53-.41.58-.57.11-1.07.12-1.21.12zM14.91 22c-.04 0-.09-.01-.13-.02-1.59-.44-2.63-1.03-3.72-2.1-1.4-1.39-2.17-3.24-2.17-5.22 0-1.62 1.38-2.94 3.08-2.94 1.7 0 3.08 1.32 3.08 2.94 0 1.07.93 1.94 2.08 1.94s2.08-.87 2.08-1.94c0-3.77-3.25-6.83-7.25-6.83-2.84 0-5.44 1.58-6.45 3.94-.11.25-.41.37-.67.26-.25-.11-.37-.41-.26-.67 1.13-2.62 4.07-4.39 7.38-4.39 4.53 0 8.25 3.42 8.25 7.69 0 1.62-1.38 2.94-3.08 2.94s-3.08-1.32-3.08-2.94c0-1.07-.93-1.94-2.08-1.94s-2.08.87-2.08 1.94c0 1.71.66 3.31 1.87 4.51.95.94 1.86 1.46 3.27 1.85.27.07.42.35.35.61-.05.23-.26.38-.47.38z"/>
+                    <path d="M17.81 4.47c-.08 0-.16-.02-.23-.06C15.66 3.42 14 3 12.01 3c-1.98 0-3.86.47-5.57 1.41-.24.13-.54.04-.68-.2-.13-.24-.04-.55.2-.68C7.82 2.52 9.86 2 12.01 2c2.13 0 3.99.47 6.03 1.52.25.13.34.43.21.67-.09.18-.26.28-.44.28zM3.5 9.72c-.1 0-.2-.03-.29-.09-.23-.16-.28-.47-.12-.7.99-1.4 2.25-2.5 3.75-3.27C9.98 4.04 14 4.03 17.15 5.65c1.5.77 2.76 1.86 3.75 3.25.16.22.11.54-.12.7-.23.16-.54.11-.7-.12-.9-1.26-2.04-2.25-3.39-2.94-2.87-1.47-6.54-1.47-9.4.01-1.36.7-2.5 1.7-3.4 2.96-.08.14-.23.21-.39.21zm6.25 12.07c-.13 0-.26-.05-.35-.15-.87-.87-1.34-1.43-2.01-2.64-.69-1.23-1.05-2.73-1.05-4.34 0-2.97 2.54-5.39 5.66-5.39s5.66 2.42 5.66 5.39c0 .28-.22.5-.5.5s-.5-.22-.5-.5c0-2.42-2.09-4.39-4.66-4.39-2.57 0-4.66 1.97-4.66 4.39 0 1.44.32 2.77.93 3.85.64 1.15 1.08 1.64 1.85 2.42.19.2.19.51 0 .71-.11.1-.24.15-.37.15zm7.17-1.85c-1.19 0-2.24-.3-3.1-.89-1.49-1.01-2.38-2.65-2.38-4.39 0-.28.22-.5.5-.5s.5.22.5.5c0 1.41.72 2.74 1.94 3.56.71.48 1.54.71 2.54.71.24 0 .64-.03 1.04-.1.27-.05.53.13.58.41.05.27-.13.53-.41.58-.57.11-1.07.12-1.21.12zM14.91 22c-.04 0-.09-.01-.13-.02-1.59-.44-2.63-1.03-3.72-2.1-1.4-1.39-2.17-3.24-2.17-5.22 0-1.62 1.38-2.94 3.08-2.94 1.7 0 3.08 1.32 3.08 2.94 0 1.07.93 1.94 2.08 1.94s2.08-.87 2.08-1.94c0-3.77-3.25-6.83-7.25-6.83-2.84 0-5.44 1.58-6.45 3.94-.11.25-.41.37-.67.26-.25-.11-.37-.41-.26-.67 1.13-2.62 4.07-4.39 7.38-4.39 4.53 0 8.25 3.42 8.25 7.69 0 1.62-1.38 2.94-3.08 2.94s-3.08-1.32-3.08-2.94c0-1.07-.93-1.94-2.08-1.94s-2.08.87-2.08 1.94c0 1.71.66 3.31 1.87 4.51.95.94 1.86 1.46 3.27 1.85.27.07.42.35.35.61-.05.23-.26.38-.47.38z"/>
                 </svg>
             </div>
         </div>
@@ -231,15 +254,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // === CONFIG FIREBASE "GADINGNEW22" (REAL PROJECT) ===
-        const firebaseConfig = {
-            apiKey: "AIzaSyB666i9lYWIpxOdkwpoX9EvFvHLmHczeq8",
-            authDomain: "fcgadingnew22.firebaseapp.com",
-            projectId: "fcgadingnew22",
-            storageBucket: "fcgadingnew22.firebasestorage.app",
-            messagingSenderId: "537736846678",
-            appId: "1:537736846678:web:53788d71a196423ac08af7"
-        };
+        const firebaseConfig = { apiKey: "AIzaSyB666i9lYWIpxOdkwpoX9EvFvHLmHczeq8", authDomain: "fcgadingnew22.firebaseapp.com", projectId: "fcgadingnew22", storageBucket: "fcgadingnew22.firebasestorage.app", messagingSenderId: "537736846678", appId: "1:537736846678:web:53788d71a196423ac08af7" };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const ref = doc(db, "antrian", "utama");
@@ -302,48 +317,63 @@
         window.prevTrack = () => { currentTrackIdx = (currentTrackIdx - 1 + playlist.length) % playlist.length; window.playTrack(currentTrackIdx); }
         audio.addEventListener('ended', () => window.nextTrack());
 
+        // === 🔥 HELPER BADGE ANIMASI 🔥 ===
+        function getBadgeHTML(role) {
+            if(!role) return "";
+            const r = role.toUpperCase();
+            
+            // 1. KETUM (GOLD SHINE)
+            if(r === "KETUM") return `<div class="role-badge badge-ketum">KETUA UMUM</div>`;
+            
+            // 2. WAKETUM (SILVER SHINE)
+            if(r === "WAKETUM") return `<div class="role-badge badge-ketum">WAKIL KETUA UMUM</div>`;
+            
+            // 3. SATGAS (HAZARD STRIPES)
+            if(r === "SATGAS") return `<div class="role-badge badge-satgas"><span>⚡ SATUAN TUGAS ⚡</span></div>`;
+            
+            // 4. MEMBER / FAMILY MLU (TYPING ANIMATION)
+            if(r === "MEMBER" || r === "KELUARGA MLU") {
+                return `<div class="role-badge badge-family"><span class="char">K</span><span class="char">E</span><span class="char">L</span><span class="char">U</span><span class="char">A</span><span class="char">R</span><span class="char">G</span><span class="char">A</span><span style="width:2px; display:inline-block;"></span><span class="char">M</span><span class="char">L</span><span class="char">U</span></div>`;
+            }
+
+            // 5. TURTLE
+            if(r.includes("PELAN") || r.includes("TURTLE")) return `<div class="role-badge badge-turtle">🐢 PELAN TAPI KENCENG</div>`;
+
+            // CUSTOM
+            return `<div class="role-badge badge-family">${r}</div>`;
+        }
+
         // --- UPDATE VIEW ---
         function updateFrontView(slots) {
             slots.forEach((m, i) => {
                 const elCard = document.getElementById(`card-${i+1}`);
                 const elPlat = document.getElementById(`p${i+1}-plat`);
                 const elName = document.getElementById(`p${i+1}-name`);
-                const elBadge = document.getElementById(`p${i+1}-badge`);
+                const elFooter = document.getElementById(`p${i+1}-footer`);
                 const elMain = document.getElementById(`p${i+1}-main`);
-                const elStatus = document.getElementById(`p${i+1}-status`);
-                const elBar = document.getElementById(`p${i+1}-bar`);
-                const elTimer = document.getElementById(`p${i+1}-timer`);
 
-                elCard.classList.remove('charging', 'full'); 
-                elMain.classList.remove('num-charging', 'num-ready'); 
-                elBar.style.width = '0%';
-                elBadge.style.display = 'none';
+                // RESET SEMUA
+                elCard.classList.remove('active'); 
+                elFooter.innerHTML = ''; // Kosongin footer (badge)
 
                 if (m && m.plat) {
+                     // === STATE: ACTIVE (ISI) ===
                      elPlat.innerText = m.plat;
                      elName.innerText = m.userName || "USER";
+                     elMain.innerText = ""; // Teks OFF ilang
+                     
+                     // VISUAL NYALA
+                     elCard.classList.add('active');
+
+                     // RENDER BADGE PAKE HTML (BIAR ANIMASI JALAN)
                      if(m.role) {
-                         elBadge.innerText = m.role; elBadge.style.display = 'inline-block';
-                         if(m.role === 'KETUM') elBadge.style.borderColor = 'gold'; else elBadge.style.borderColor = '#777';
-                     }
-                     if(m.startTime) {
-                        const totalSec = m.durationMinutes * 60; 
-                        // Logic untuk handle Timestamp atau Milliseconds
-                        const st = m.startTime.toDate ? m.startTime.toDate() : new Date(m.startTime); 
-                        const elapsedSec = (new Date() - st) / 1000;
-                        let progress = elapsedSec / totalSec; if(progress > 1) progress = 1;
-                        let estBat = Math.round(m.startBattery + ((98 - m.startBattery) * progress)); if(estBat > 98) estBat = 98;
-                        elBar.style.width = (progress * 100) + "%";
-                        if(elapsedSec >= totalSec) {
-                            elMain.innerText = "FULL"; elStatus.innerText = "DONE"; elCard.classList.add('full'); elMain.classList.add('num-charging');
-                        } else {
-                            elMain.innerText = estBat + "%"; elStatus.innerText = "CHRG"; elCard.classList.add('charging'); elMain.classList.add('num-charging');
-                        }
-                     } else { 
-                        elMain.innerText = "WAIT"; elStatus.innerText = "BOOKED"; elMain.classList.add('num-ready');
+                         elFooter.innerHTML = getBadgeHTML(m.role);
                      }
                 } else { 
-                    elPlat.innerText = "-"; elName.innerText = ""; elMain.innerText = "OFF"; elStatus.innerText = "READY"; elMain.classList.add('num-ready');
+                    // === STATE: IDLE (KOSONG) ===
+                    elPlat.innerText = "-"; 
+                    elName.innerText = ""; 
+                    elMain.innerText = "OFF"; 
                 }
             });
         }
@@ -372,8 +402,6 @@
             document.getElementById('qCountDisplay').innerText = "QUEUE: " + latestQueue.length;
             updateFrontView(latestSlots);
         });
-
-        setInterval(() => { if(!latestSlots) return; latestSlots.forEach((m, i) => { if(m && m.startTime) { const st = m.startTime.toDate ? m.startTime.toDate() : new Date(m.startTime); const diffMS = (new Date(st.getTime() + m.durationMinutes*60000)) - new Date(); const remSec = diffMS / 1000; let txt = "DONE"; if(remSec > 0) { const min = Math.floor(remSec / 60); const sec = Math.floor(remSec % 60); txt = `${min}:${sec < 10 ? '0'+sec : sec}`; } const elTimer = document.getElementById(`p${i+1}-timer`); if(elTimer) elTimer.innerText = txt; } }); }, 1000);
     </script>
 </body>
 </html>
