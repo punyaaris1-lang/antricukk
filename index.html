@@ -3,113 +3,126 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FC KELAPA GADING - lCINEMATIC VIEW</title>
+    <title>FC KELAPA GADING - CINEMATIC MONITOR</title>
     <link href="https://fonts.googleapis.com/css2?family=Teko:wght@300;500;700&family=Orbitron:wght@400;700;900&family=JetBrains+Mono:wght@400;700;800&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         /* --- STYLE DASAR --- */
         :root { --bg: #000000; --accent: #CCFF00; --blue: #00F0FF; --red: #ff003c; }
-        * { box-sizing: border-box; outline: none; }
+        * { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); color: #fff; margin: 0; overflow: hidden; height: 100vh; display: flex; flex-direction: column; }
 
         /* HEADER */
-        .top-nav { height: 12vh; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; }
+        .top-nav { height: 10vh; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; padding-top: 10px; }
         .main-title { font-family: 'Teko'; font-size: 40px; font-weight: 700; line-height: 1; color: #fff; text-shadow: 0 0 10px rgba(0, 240, 255, 0.5); margin: 0; }
         .brand-sub { font-size: 10px; color: var(--accent); letter-spacing: 4px; font-weight: 700; }
 
-        /* --- KONSEP SPLIT IMAGE (CANVAS) --- */
+        /* --- SPLIT IMAGE CARDS --- */
         #frontView { 
-            height: 53vh; 
-            display: flex; 
-            justify-content: center; 
-            align-items: stretch; /* Biar tinggi sama rata */
-            padding: 20px 10px; 
-            gap: 5px; /* Jarak antar slot tipis aja biar nyatu */
-            width: 100%; 
+            height: 50vh; 
+            display: flex; justify-content: center; align-items: stretch; 
+            padding: 10px; gap: 4px; width: 100%; position: relative; z-index: 5;
         }
 
         .onyx-card { 
-            position: relative; 
-            width: 33%; /* Bagi 3 rata */
-            border-radius: 8px; /* Radius dikit aja */
-            display: flex; 
-            flex-direction: column; 
-            justify-content: space-between; 
-            padding: 15px 5px; 
-            overflow: hidden; 
-            transition: 0.5s ease-in-out; /* Transisi halus pas nyala */
+            position: relative; width: 33.33%; border-radius: 6px; 
+            display: flex; flex-direction: column; justify-content: space-between; 
+            padding: 10px 5px; overflow: hidden; transition: 0.5s ease-in-out;
             
-            /* BACKGROUND SETUP (SPLIT IMAGE) */
-            /* GANTI URL INI DENGAN NAMA FILE GAMBAR LU */
+            /* BACKGROUND LOGO PECAH 3 */
             background-image: url('1763947427555.jpg'); 
-            background-size: 305% 100%; /* Zoom biar muat 3 kartu */
-            background-repeat: no-repeat;
+            background-size: 305% 100%; background-repeat: no-repeat;
             
-            /* DEFAULT: MATI (HITAM PUTIH & GELAP) */
-            filter: grayscale(100%) brightness(0.25) contrast(1.2);
-            border: none; /* Border ilang sesuai request */
-            box-shadow: inset 0 0 20px #000; /* Shadow dalem biar depth */
+            /* DARK MODE (Bright 0.5 biar agak kelihatan) */
+            filter: grayscale(100%) brightness(0.5) contrast(1.1);
+            box-shadow: inset 0 0 30px #000;
+            border: 1px solid rgba(255,255,255,0.1); 
         }
 
-        /* POSISI POTONGAN GAMBAR */
-        #card-1 { background-position: 0% 50%; }     /* Kiri */
-        #card-2 { background-position: 50% 50%; }    /* Tengah */
-        #card-3 { background-position: 100% 50%; }   /* Kanan */
+        /* POSISI POTONGAN */
+        #card-1 { background-position: 0% 50%; }
+        #card-2 { background-position: 50% 50%; }
+        #card-3 { background-position: 100% 50%; }
 
-        /* EFEK NYALA (ACTIVE) */
+        /* ACTIVE STATE (NYALA) */
         .onyx-card.charging, .onyx-card.full {
-            /* Warna Asli Keluar */
             filter: grayscale(0%) brightness(1.1) contrast(1.1);
-            box-shadow: 0 0 30px rgba(255, 80, 0, 0.4); /* Glow Api Oranye */
-            transform: scale(1.02); /* Pop up dikit */
-            z-index: 10;
+            box-shadow: 0 0 25px rgba(255, 80, 0, 0.5); /* Glow Api */
+            transform: scale(1.02); z-index: 10;
+            border: 1px solid rgba(255, 80, 0, 0.5);
         }
-        
-        /* CONTENT DALAM KARTU (Text Shadow Wajib Tebal Biar Kebaca di atas Gambar) */
-        .oc-header, .oc-body, .oc-footer { position: relative; z-index: 2; text-align: center; text-shadow: 0 2px 4px #000, 0 0 10px #000; }
-        
-        .oc-plat { font-family:'Inter'; font-weight: 900; font-size: 18px; color: #fff; margin-bottom: 2px; }
-        
-        /* POSISI BADGE & NAMA */
-        .oc-user-block { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 40px; }
-        .oc-name { font-size: 10px; color: #ddd; text-transform: uppercase; font-weight: 800; letter-spacing: 1px; }
-        
-        /* BADGE STYLE (KECIL) */
-        .mini-badge {
-            margin-top: 4px;
-            padding: 2px 6px;
-            font-size: 8px;
-            font-family: 'Orbitron';
-            font-weight: bold;
-            background: rgba(0,0,0,0.8);
-            border: 1px solid #555;
-            border-radius: 4px;
-            color: #ccc;
-            display: none; /* Default hidden */
-        }
-        
-        .oc-body { flex: 1; display: flex; flex-direction: column; justify-content: center; }
-        
-        /* ANGKA BESAR */
-        .oc-big-num { font-family: 'Teko', sans-serif; font-weight: 500; color: #555; line-height: 0.8; transition: 0.3s; }
-        .num-charging { font-size: 70px; color: #fff; text-shadow: 0 0 20px var(--red); } /* Warna Angka Putih Glow Merah */
-        .num-ready { font-size: 30px; letter-spacing: 2px; color: #444; } 
 
-        .oc-status { font-family: 'JetBrains Mono'; font-size: 9px; font-weight: 700; padding: 4px 8px; border-radius: 4px; display: inline-block; background: rgba(0,0,0,0.8); color: #888; border: 1px solid #333; }
+        /* LABEL SLOT */
+        .slot-tag {
+            font-family: 'Orbitron'; font-weight: 900; font-size: 12px;
+            color: rgba(255,255,255,0.8); text-align: center;
+            background: rgba(0,0,0,0.6); padding: 5px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+            letter-spacing: 2px;
+            margin-bottom: 5px;
+        }
         
-        /* WARNA STATUS AKTIF */
+        /* WATERMARK ANGKA BESAR */
+        .slot-watermark {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            font-family: 'Teko'; font-size: 100px; color: rgba(255,255,255,0.05);
+            z-index: 1; pointer-events: none; font-weight: bold;
+        }
+
+        /* CONTENT */
+        .oc-header, .oc-body, .oc-footer { position: relative; z-index: 2; text-align: center; text-shadow: 0 2px 4px #000, 0 0 5px #000; }
+        .oc-plat { font-family:'Inter'; font-weight: 900; font-size: 20px; color: #fff; margin-bottom: 2px; }
+        .oc-user-block { min-height: 35px; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; }
+        .oc-name { font-size: 10px; color: #ddd; text-transform: uppercase; font-weight: 800; letter-spacing: 1px; line-height: 1.1; }
+        
+        .mini-badge {
+            margin-top: 3px; padding: 2px 6px; font-size: 8px; font-family: 'Orbitron'; font-weight: bold;
+            background: rgba(0,0,0,0.9); border: 1px solid #777; border-radius: 4px; color: #fff; display: none;
+        }
+
+        .oc-body { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+        .oc-big-num { font-family: 'Teko', sans-serif; font-weight: 500; color: #aaa; line-height: 0.8; transition: 0.3s; }
+        .num-charging { font-size: 65px; color: #fff; text-shadow: 0 0 15px var(--red); }
+        .num-ready { font-size: 28px; letter-spacing: 2px; color: #888; } 
+
+        .oc-footer { margin-bottom: 5px; }
+        .oc-status { font-family: 'JetBrains Mono'; font-size: 9px; font-weight: 700; padding: 4px 8px; border-radius: 4px; display: inline-block; background: rgba(0,0,0,0.8); color: #888; border: 1px solid #444; }
+        
         .onyx-card.charging .oc-status { border-color: var(--blue); color: var(--blue); box-shadow: 0 0 5px var(--blue); }
         .onyx-card.full .oc-status { border-color: var(--accent); color: var(--accent); animation: blink 1s infinite; }
 
-        /* PROGRESS BAR DI BAWAH */
         .oc-progress-bg { position: absolute; bottom: 0; left: 0; width: 100%; height: 4px; background: rgba(0,0,0,0.5); z-index: 5; }
         .oc-progress-fill { height: 100%; width: 0%; background: var(--blue); transition: width 1s linear; box-shadow: 0 0 10px var(--blue); }
 
-        @keyframes blink { 50% { opacity: 0.5; } }
+        /* CONTROL AREA */
+        .control-area { 
+            flex: 1; width: 100%; 
+            background: linear-gradient(to top, #000 30%, transparent 100%); 
+            display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
+            padding-bottom: 20px; z-index: 50; 
+        }
+        
+        .fp-container { position: relative; width: 80px; height: 80px; display: flex; justify-content: center; align-items: center; margin-bottom: 5px; }
+        .fp-btn { width: 65px; height: 65px; background: rgba(0,0,0,0.8); border: 2px solid var(--accent); border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; box-shadow: 0 0 20px rgba(204, 255, 0, 0.3); transition: 0.2s; }
+        .fp-btn:active { transform: scale(0.95); }
+        .fp-svg { width: 35px; height: 35px; fill: var(--accent); opacity: 0.9; }
+        .fp-text { font-family:'Orbitron'; font-size:10px; color:#aaa; margin-bottom: 5px; letter-spacing: 2px; }
 
-        /* FOOTER AREA */
-        .control-area { height: 35vh; background: linear-gradient(to top, #000 10%, transparent 100%); display: flex; flex-direction: column; align-items: center; z-index: 50; }
-        .info-row { margin-top: 10px; }
-        .antrian-text { font-family: 'Orbitron'; font-size: 18px; font-weight: 900; color: #666; }
+        .info-row { text-align: center; margin-bottom: 15px; }
+        .antrian-text { font-family: 'Orbitron'; font-size: 16px; font-weight: 900; color: #fff; text-shadow: 0 0 10px var(--blue); }
+
+        .music-wrapper { width: 90%; display: flex; align-items: center; justify-content: space-between; padding: 8px 15px; background: rgba(20, 25, 30, 0.8); border: 1px solid #333; border-radius: 50px; backdrop-filter: blur(5px); }
+        .m-btn { background:none; border:none; color:#fff; font-size:18px; cursor: pointer; padding: 0 10px; }
+        .track-info { font-family:'JetBrains Mono'; font-size:10px; font-weight:bold; color:var(--blue); width: 120px; text-align: center; white-space: nowrap; overflow: hidden; cursor: pointer; }
+        
+        #playlistPopup { display: none; position: fixed; bottom: 0; left: 0; width: 100%; background: #111; border-top: 2px solid var(--blue); height: 50vh; overflow-y: auto; z-index: 2500; padding: 10px; border-radius: 20px 20px 0 0; }
+        .track-item { padding: 15px; border-bottom: 1px solid #333; color: #aaa; font-size: 12px; cursor: pointer; font-family: 'Inter'; }
+        .track-item.active { color: var(--accent); font-weight: bold; background: rgba(255,255,255,0.05); }
+
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 3000; justify-content: center; align-items: center; }
+        .modal-box { background: #111; border: 2px solid var(--blue); padding: 30px; border-radius: 20px; width: 85%; max-width: 300px; text-align: center; box-shadow: 0 0 30px rgba(0,240,255,0.2); }
+        .btn-glossy { padding: 10px 20px; border-radius: 50px; font-family: 'Orbitron'; font-weight: bold; font-size: 12px; color: #000; cursor: pointer; background: var(--blue); border: none; margin-top: 15px; width: 100%; }
+
+        @keyframes blink { 50% { opacity: 0.5; } }
     </style>
 </head>
 <body onclick="firstInteraction()">
@@ -121,11 +134,14 @@
 
     <div id="frontView">
         <div class="onyx-card" id="card-1">
+            <div class="slot-tag">SLOT 01</div>
+            <div class="slot-watermark">01</div>
             <div class="oc-header">
                 <div class="oc-plat" id="p1-plat">-</div>
                 <div class="oc-user-block">
                     <div class="oc-name" id="p1-name"></div>
-                    <div class="mini-badge" id="p1-badge">MEMBER</div> </div>
+                    <div class="mini-badge" id="p1-badge">MEMBER</div>
+                </div>
             </div>
             <div class="oc-body"><div class="oc-big-num num-ready" id="p1-main">OFF</div></div>
             <div class="oc-footer">
@@ -136,6 +152,8 @@
         </div>
 
         <div class="onyx-card" id="card-2">
+            <div class="slot-tag">SLOT 02</div>
+            <div class="slot-watermark">02</div>
             <div class="oc-header">
                 <div class="oc-plat" id="p2-plat">-</div>
                 <div class="oc-user-block">
@@ -152,6 +170,8 @@
         </div>
 
         <div class="onyx-card" id="card-3">
+            <div class="slot-tag">SLOT 03</div>
+            <div class="slot-watermark">03</div>
             <div class="oc-header">
                 <div class="oc-plat" id="p3-plat">-</div>
                 <div class="oc-user-block">
@@ -169,26 +189,120 @@
     </div>
 
     <div class="control-area">
+        <div class="fp-text">SCAN LOCATION</div>
+        <div class="fp-container">
+            <div class="fp-btn" id="fp-trigger" onclick="checkLocationOnly()">
+                <svg class="fp-svg" viewBox="0 0 24 24">
+                    <path d="M17.81 4.47c-.08 0-.16-.02-.23-.06C15.66 3.42 14 3 12.01 3c-1.98 0-3.86.47-5.57 1.41-.24.13-.54.04-.68-.2-.13-.24-.04-.55.2-.68C7.82 2.52 9.86 2 12.01 2c2.13 0 3.99.47 6.03 1.52.25.13.34.43.21.67-.09.18-.26.28-.44.28zM3.5 9.72c-.1 0-.2-.03-.29-.09-.23-.16-.28-.47-.12-.7.99-1.4 2.25-2.5 3.75-3.27C9.98 4.04 14 4.03 17.15 5.65c1.5.77 2.76 1.86 3.75 3.25.16.22.11.54-.12.7-.23.16-.54.11-.7-.12-.9-1.26-2.04-2.25-3.39-2.94-2.87-1.47-6.54-1.47-9.4.01-1.36.7-2.5 1.7-3.4 2.96-.08.14-.23.21-.39.21zm6.25 12.07c-.13 0-.26-.05-.35-.15-.87-.87-1.34-1.43-2.01-2.64-.69-1.23-1.05-2.73-1.05-4.34 0-2.97 2.54-5.39 5.66-5.39s5.66 2.42 5.66 5.39c0 .28-.22.5-.5.5s-.5-.22-.5-.5c0-2.42-2.09-4.39-4.66-4.39-2.57 0-4.66 1.97-4.66 4.39 0 1.44.32 2.77.93 3.85.64 1.15 1.08 1.64 1.85 2.42.19.2.19.51 0 .71-.11.1-.24.15-.37.15zm7.17-1.85c-1.19 0-2.24-.3-3.1-.89-1.49-1.01-2.38-2.65-2.38-4.39 0-.28.22-.5.5-.5c0 1.41.72 2.74 1.94 3.56.71.48 1.54.71 2.54.71.24 0 .64-.03 1.04-.1.27-.05.53.13.58.41.05.27-.13.53-.41.58-.57.11-1.07.12-1.21.12zM14.91 22c-.04 0-.09-.01-.13-.02-1.59-.44-2.63-1.03-3.72-2.1-1.4-1.39-2.17-3.24-2.17-5.22 0-1.62 1.38-2.94 3.08-2.94 1.7 0 3.08 1.32 3.08 2.94 0 1.07.93 1.94 2.08 1.94s2.08-.87 2.08-1.94c0-3.77-3.25-6.83-7.25-6.83-2.84 0-5.44 1.58-6.45 3.94-.11.25-.41.37-.67.26-.25-.11-.37-.41-.26-.67 1.13-2.62 4.07-4.39 7.38-4.39 4.53 0 8.25 3.42 8.25 7.69 0 1.62-1.38 2.94-3.08 2.94s-3.08-1.32-3.08-2.94c0-1.07-.93-1.94-2.08-1.94s-2.08.87-2.08 1.94c0 1.71.66 3.31 1.87 4.51.95.94 1.86 1.46 3.27 1.85.27.07.42.35.35.61-.05.23-.26.38-.47.38z"/>
+                </svg>
+            </div>
+        </div>
+
         <div class="info-row">
             <div id="qCountDisplay" class="antrian-text">QUEUE: 0</div>
         </div>
+
+        <div class="music-wrapper">
+            <button class="m-btn" onclick="prevTrack()">⏮</button>
+            <div class="track-info" onclick="togglePlaylist()" id="track-name">SELECT MUSIC</div>
+            <button class="m-btn" onclick="togglePlay()" id="playPauseBtn" style="color:var(--blue);">⏯</button>
+            <button class="m-btn" onclick="nextTrack()">⏭</button>
         </div>
+    </div>
+
+    <div id="playlistPopup">
+        <div style="padding:15px; border-bottom:1px solid #333; position:sticky; top:0; background:#000; display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-family:'Orbitron'; color:var(--blue); font-weight:bold;">TRACK LIST</span>
+            <span onclick="window.togglePlaylist()" style="color:#666; cursor:pointer; font-size:12px;">CLOSE</span>
+        </div>
+        <div id="playlistContainer"></div>
+    </div>
+
+    <div id="alertModal" class="modal">
+        <div class="modal-box">
+            <h3 id="alertMsg" style="color:#fff; font-family:'Inter'; margin-bottom:10px;">MSG</h3>
+            <button onclick="document.getElementById('alertModal').style.display='none'" class="btn-glossy">OK</button>
+        </div>
+    </div>
 
     <audio id="audio" crossorigin="anonymous"></audio>
 
     <script type="module">
-        // --- COPY BAGIAN FIREBASE CONFIG & LOGIC DARI SCRIPT SEBELUMNYA ---
-        // --- HANYA UPDATE BAGIAN updateFrontView() DI BAWAH INI ---
-
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        const firebaseConfig = { apiKey: "AIzaSyALIlkIDALIk83K8s1htalvW6rmNNw02Go", authDomain: "sistem-antrian-b1c39.firebaseapp.com", projectId: "sistem-antrian-b1c39", storageBucket: "sistem-antrian-b1c39.firebasestorage.app", messagingSenderId: "454124587608", appId: "1:454124587608:web:34fbb0f5211067a67f982d" };
+        // === CONFIG FIREBASE "GADINGNEW22" (REAL PROJECT) ===
+        const firebaseConfig = {
+            apiKey: "AIzaSyB666i9lYWIpxOdkwpoX9EvFvHLmHczeq8",
+            authDomain: "fcgadingnew22.firebaseapp.com",
+            projectId: "fcgadingnew22",
+            storageBucket: "fcgadingnew22.firebasestorage.app",
+            messagingSenderId: "537736846678",
+            appId: "1:537736846678:web:53788d71a196423ac08af7"
+        };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const ref = doc(db, "antrian", "utama");
 
-        // FUNGSI UPDATE TAMPILAN
+        // --- LOCALS ---
+        let USE_FAKE_GPS = true; 
+        const STATION_LOC = { lat: -6.171583, lng: 106.899844 }; 
+        const MAX_DIST_KM = 0.2; 
+        let latestSlots = [null, null, null];
+        let latestQueue = [];
+
+        // --- MUSIC PLAYER ---
+        const baseURL = "https://mlump3player.netlify.app/";
+        let playlist = [];
+        const defaultList = ["Ada Apa Denganmu.mp3", "anji-menunggu-kamu.mp3", "Anugerah Terindah Yang Pernah Kumiliki.mp3", "armada_asalkan_kau_bahagia.mp3", "Bendera - Cokelat - 2003.mp3", "Bintang Di Surga.mp3", "Bon Jovi - Always .MP3", "Bon Jovi - Its My Life .mp3", "Bon Jovi - You Give Love A Bad Name.mp3", "Dan - Sheila On 7 - 1999.mp3"];
+        
+        fetch('playlist.json').then(r => r.json()).then(data => {
+            playlist = data.map(file => ({ title: decodeURIComponent(file.replace('.mp3','').replace('.MP3','')), url: baseURL + file }));
+            initPlayer();
+        }).catch(() => {
+            playlist = defaultList.map(file => ({ title: decodeURIComponent(file.replace('.mp3','').replace('.MP3','')), url: baseURL + file }));
+            initPlayer();
+        });
+
+        const audio = document.getElementById('audio');
+        let currentTrackIdx = 0; let audioUnlocked = false; let isTrackSelected = false;
+
+        function initPlayer() {
+            const plContainer = document.getElementById('playlistContainer'); plContainer.innerHTML = '';
+            playlist.forEach((song, idx) => { 
+                const el = document.createElement('div'); el.className = 'track-item'; el.innerText = `${idx + 1}. ${song.title}`; 
+                el.onclick = (e) => { e.stopPropagation(); window.playTrack(idx); }; 
+                plContainer.appendChild(el); 
+            });
+        }
+
+        window.firstInteraction = () => {
+            if (audioUnlocked) return;
+            const silent = new Audio("data:audio/wav;base64,UklGRigAAABXQVZFAmZtdCAQAAAAAQABAIAAAIAAAIABAABhZGF0YQAAAAA=");
+            silent.play().then(() => { audioUnlocked = true; }).catch(e => console.log("Audio locked"));
+        };
+
+        window.playTrack = (idx) => {
+            audioUnlocked = true; currentTrackIdx = idx; isTrackSelected = true;
+            audio.src = playlist[idx].url;
+            document.getElementById('track-name').innerText = playlist[idx].title; 
+            document.getElementById('playlistPopup').style.display = 'none';
+            document.querySelectorAll('.track-item').forEach((el, i) => { el.classList.toggle('active', i === idx); });
+            audio.play().then(() => updatePlayBtnIcons("⏸")).catch(() => updatePlayBtnIcons("⏯"));
+        };
+
+        window.togglePlay = () => {
+            if(!isTrackSelected) { window.playTrack(0); return; }
+            if(audio.paused) { audio.play().then(() => updatePlayBtnIcons("⏸")); } else { audio.pause(); updatePlayBtnIcons("⏯"); }
+        };
+        
+        function updatePlayBtnIcons(icon) { document.getElementById('playPauseBtn').innerText = icon; }
+        window.togglePlaylist = () => { const p = document.getElementById('playlistPopup'); p.style.display = p.style.display === 'block' ? 'none' : 'block'; };
+        window.nextTrack = () => { currentTrackIdx = (currentTrackIdx + 1) % playlist.length; window.playTrack(currentTrackIdx); }
+        window.prevTrack = () => { currentTrackIdx = (currentTrackIdx - 1 + playlist.length) % playlist.length; window.playTrack(currentTrackIdx); }
+        audio.addEventListener('ended', () => window.nextTrack());
+
+        // --- UPDATE VIEW ---
         function updateFrontView(slots) {
             slots.forEach((m, i) => {
                 const elCard = document.getElementById(`card-${i+1}`);
@@ -200,72 +314,66 @@
                 const elBar = document.getElementById(`p${i+1}-bar`);
                 const elTimer = document.getElementById(`p${i+1}-timer`);
 
-                // Reset Class
                 elCard.classList.remove('charging', 'full'); 
                 elMain.classList.remove('num-charging', 'num-ready'); 
                 elBar.style.width = '0%';
                 elBadge.style.display = 'none';
 
                 if (m && m.plat) {
-                     // DATA ADA -> ISI SLOT
                      elPlat.innerText = m.plat;
                      elName.innerText = m.userName || "USER";
-                     
-                     // UPDATE BADGE (Di sini posisinya)
                      if(m.role) {
-                         elBadge.innerText = m.role;
-                         elBadge.style.display = 'inline-block';
-                         // Kasih warna khusus buat badge kalau mau
-                         if(m.role === 'KETUM') elBadge.style.borderColor = 'gold';
-                         else elBadge.style.borderColor = '#555';
+                         elBadge.innerText = m.role; elBadge.style.display = 'inline-block';
+                         if(m.role === 'KETUM') elBadge.style.borderColor = 'gold'; else elBadge.style.borderColor = '#777';
                      }
-
                      if(m.startTime) {
                         const totalSec = m.durationMinutes * 60; 
+                        // Logic untuk handle Timestamp atau Milliseconds
                         const st = m.startTime.toDate ? m.startTime.toDate() : new Date(m.startTime); 
                         const elapsedSec = (new Date() - st) / 1000;
                         let progress = elapsedSec / totalSec; if(progress > 1) progress = 1;
                         let estBat = Math.round(m.startBattery + ((98 - m.startBattery) * progress)); if(estBat > 98) estBat = 98;
-                        
                         elBar.style.width = (progress * 100) + "%";
-
                         if(elapsedSec >= totalSec) {
-                            elMain.innerText = "FULL"; 
-                            elStatus.innerText = "DONE"; 
-                            elCard.classList.add('full'); 
-                            elMain.classList.add('num-charging');
+                            elMain.innerText = "FULL"; elStatus.innerText = "DONE"; elCard.classList.add('full'); elMain.classList.add('num-charging');
                         } else {
-                            elMain.innerText = estBat + "%"; 
-                            elStatus.innerText = "CHRG"; 
-                            elCard.classList.add('charging'); // INI YG BIKIN GAMBAR NYALA
-                            elMain.classList.add('num-charging');
+                            elMain.innerText = estBat + "%"; elStatus.innerText = "CHRG"; elCard.classList.add('charging'); elMain.classList.add('num-charging');
                         }
                      } else { 
-                        // Booking tapi belum start
-                        elMain.innerText = "WAIT"; 
-                        elStatus.innerText = "BOOKED";
-                        elMain.classList.add('num-ready');
+                        elMain.innerText = "WAIT"; elStatus.innerText = "BOOKED"; elMain.classList.add('num-ready');
                      }
                 } else { 
-                    // SLOT KOSONG
-                    elPlat.innerText = "-"; 
-                    elName.innerText = "";
-                    elMain.innerText = "OFF"; // Atau Logo MLU Mati
-                    elStatus.innerText = "READY";
-                    elMain.classList.add('num-ready');
+                    elPlat.innerText = "-"; elName.innerText = ""; elMain.innerText = "OFF"; elStatus.innerText = "READY"; elMain.classList.add('num-ready');
                 }
             });
         }
 
-        // LISTENER FIREBASE
+        // --- GPS ---
+        function getDist(lat1,lon1,lat2,lon2){ const R=6371; const dLat=(lat2-lat1)*Math.PI/180; const dLon=(lon2-lon1)*Math.PI/180; const a=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)*Math.sin(dLon/2); return R*(2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a))); }
+
+        window.checkLocationOnly = () => {
+            const btn = document.getElementById('fp-trigger');
+            btn.style.borderColor = '#fff';
+            if(USE_FAKE_GPS) { setTimeout(() => { btn.style.borderColor = 'var(--accent)'; showCustomAlert("SCAN VALID! (Form Disabled)"); }, 1000); return; }
+            navigator.geolocation.getCurrentPosition((pos) => {
+                const dist = getDist(pos.coords.latitude, pos.coords.longitude, STATION_LOC.lat, STATION_LOC.lng);
+                btn.style.borderColor = 'var(--accent)';
+                if(dist > MAX_DIST_KM) { showCustomAlert(`LOKASI TERLALU JAUH (${dist.toFixed(2)} km).`); } else { showCustomAlert("LOKASI VALID! (Form Disabled)"); }
+            }, (err) => { btn.style.borderColor = 'red'; showCustomAlert("GPS ERROR."); }, {enableHighAccuracy: true, timeout: 10000});
+        };
+
+        window.showCustomAlert = (msg) => { document.getElementById('alertMsg').innerText = msg; document.getElementById('alertModal').style.display = 'flex'; };
+
+        // --- LISTENER ---
         onSnapshot(ref, (snap) => {
             const d = snap.data(); if(!d) return;
-            const slots = d.chargingSlots || [null, null, null];
-            document.getElementById('qCountDisplay').innerText = "QUEUE: " + (d.waitingQueue ? d.waitingQueue.length : 0);
-            updateFrontView(slots);
+            latestSlots = d.chargingSlots || [null, null, null];
+            latestQueue = d.waitingQueue || [];
+            document.getElementById('qCountDisplay').innerText = "QUEUE: " + latestQueue.length;
+            updateFrontView(latestSlots);
         });
 
-        // Tambahin kode Music Player dll disini kalau perlu
+        setInterval(() => { if(!latestSlots) return; latestSlots.forEach((m, i) => { if(m && m.startTime) { const st = m.startTime.toDate ? m.startTime.toDate() : new Date(m.startTime); const diffMS = (new Date(st.getTime() + m.durationMinutes*60000)) - new Date(); const remSec = diffMS / 1000; let txt = "DONE"; if(remSec > 0) { const min = Math.floor(remSec / 60); const sec = Math.floor(remSec % 60); txt = `${min}:${sec < 10 ? '0'+sec : sec}`; } const elTimer = document.getElementById(`p${i+1}-timer`); if(elTimer) elTimer.innerText = txt; } }); }, 1000);
     </script>
 </body>
 </html>
