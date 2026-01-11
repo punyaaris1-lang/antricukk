@@ -1,805 +1,271 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-    <title>MAKA FastCharging</title>
-    
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&family=Syne:wght@700&display=swap" rel="stylesheet">
-    
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>FC KELAPA GADING - CINEMATIC VIEW</title>
+    <link href="https://fonts.googleapis.com/css2?family=Teko:wght@300;500;700&family=Orbitron:wght@400;700;900&family=JetBrains+Mono:wght@400;700;800&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --bg: #050505;
-            --card: #111;
-            --card-border: #222;
-            --accent: #CCFF00; /* Kuning Stabilo */
-            --cyan: #00d2ff;
-            --danger: #FF3B30;
-            --text: #ffffff;
-            --text-mute: #888;
-        }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { margin: 0; padding: 0; background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; height: 100vh; overflow: hidden; display: flex; flex-direction: column; position: relative;} 
+        /* --- STYLE DASAR --- */
+        :root { --bg: #000000; --accent: #CCFF00; --blue: #00F0FF; --red: #ff003c; }
+        * { box-sizing: border-box; outline: none; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: #fff; margin: 0; overflow: hidden; height: 100vh; display: flex; flex-direction: column; }
 
-        /* Global Background Image */
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background-image: url('1763947427555.jpg'); 
-            background-size: cover;
-            background-position: center;
-            opacity: 0.05; 
-            z-index: -1;
+        /* HEADER */
+        .top-nav { height: 12vh; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; }
+        .main-title { font-family: 'Teko'; font-size: 40px; font-weight: 700; line-height: 1; color: #fff; text-shadow: 0 0 10px rgba(0, 240, 255, 0.5); margin: 0; }
+        .brand-sub { font-size: 10px; color: var(--accent); letter-spacing: 4px; font-weight: 700; }
+
+        /* --- KONSEP SPLIT IMAGE (CANVAS) --- */
+        #frontView { 
+            height: 53vh; 
+            display: flex; 
+            justify-content: center; 
+            align-items: stretch; /* Biar tinggi sama rata */
+            padding: 20px 10px; 
+            gap: 5px; /* Jarak antar slot tipis aja biar nyatu */
+            width: 100%; 
         }
 
-
-        /* LOADER (Welcome Screen) */
-        .loader { position: fixed; inset:0; background: rgba(5,5,5, 0.95); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s ease-out; }
-        .loader-logo { display: none; } 
-
-        h1.main-logo { font-family: 'Syne'; font-size: 10vw; margin: 0; line-height: 0.9; font-weight: 900; letter-spacing: -1px; color: #fff; text-align: center; margin-bottom: 20px;}
-        #animText1 { font-size: 1rem; color: var(--accent); margin-bottom: 5px; font-weight: 600; }
-        #animText2 { font-family: 'Syne'; font-size: 1.8rem; font-weight: 800; color: #fff; text-transform: uppercase; margin-bottom: 10px; text-align: center; }
-        #animText3 { font-size: 0.9rem; color: var(--cyan); letter-spacing: 2px; font-weight: 700; text-transform: uppercase; margin-bottom: 40px; opacity: 1; transition: opacity 1s; text-align: center; }
-        .loader-actions { display: flex; flex-direction: column; gap: 15px; width: 80%; max-width: 300px; opacity: 1; transform: translateY(0); transition: all 0.8s ease; }
-        .btn-entry { padding: 15px; border-radius: 12px; font-weight: 800; text-transform: uppercase; border: none; width: 100%; cursor: pointer; }
-        .btn-entry.primary { background: var(--accent); color: #000; }
-        .btn-entry.secondary { background: rgba(255,255,255,0.1); border: 1px solid #333; color: var(--text); }
-
-
-        /* HEADER (Gambar 1) */
-        .header { padding: 20px 25px 10px; display: flex; justify-content: space-between; align-items: flex-start; flex-shrink: 0; position: relative; z-index: 50; background: linear-gradient(180deg, var(--bg) 90%, transparent); }
-        .header-text { display: flex; flex-direction: column; max-width: 55%; }
-        .label-top { font-size: 0.7rem; color: var(--text-mute); letter-spacing: 1px; font-weight: 700; margin-bottom: 5px; }
-        .header h1 { font-family: 'Inter', sans-serif; font-size: 10vw; margin: 0; line-height: 0.9; font-weight: 900; letter-spacing: -1px; color: #fff; }
-        .label-bottom { font-size: 0.75rem; color: var(--accent); letter-spacing: 1px; font-weight: 700; margin-top: 8px; }
-
-        /* KONTROL KANAN ATAS (TOGGLE + MENU) */
-        .top-controls { display: flex; flex-direction: column; align-items: flex-end; gap: 12px; position: absolute; right: 25px; top: 25px; }
-        
-        /* TOGGLE SWITCH */
-        .toggle-mode { background: #222; border: 1px solid #444; border-radius: 20px; display: flex; padding: 2px; }
-        .t-btn { padding: 6px 12px; font-size: 0.65rem; font-weight: 800; color: #888; cursor: pointer; border-radius: 18px; transition: 0.2s; display: flex; align-items: center; gap: 5px; }
-        .t-btn.active { background: var(--accent); color: #000; }
-
-        /* CONTAINER UTAMA */
-        #view-list { display: flex; flex-direction: column; flex: 1; overflow: hidden; width: 100%; }
-        #view-map { display: none; flex: 1; width: 100%; height: 100%; position: relative; }
-        #map-container { width: 100%; height: 100%; }
-
-        /* HERO SECTION (FC Terdekat - Gambar 2/3) */
-        .hero-section { padding: 10px 25px; margin-bottom: 20px; flex-shrink: 0; }
-        .hero-card { 
-            background: var(--card); border: 1px solid var(--card-border); border-radius: 24px; padding: 20px; position: relative; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.5); display: flex; flex-direction: column; 
-            min-height: 180px; justify-content: center; transition: 0.3s;
+        .onyx-card { 
+            position: relative; 
+            width: 33%; /* Bagi 3 rata */
+            border-radius: 8px; /* Radius dikit aja */
+            display: flex; 
+            flex-direction: column; 
+            justify-content: space-between; 
+            padding: 15px 5px; 
+            overflow: hidden; 
+            transition: 0.5s ease-in-out; /* Transisi halus pas nyala */
+            
+            /* BACKGROUND SETUP (SPLIT IMAGE) */
+            /* GANTI URL INI DENGAN NAMA FILE GAMBAR LU */
+            background-image: url('1000240467.jpg'); 
+            background-size: 305% 100%; /* Zoom biar muat 3 kartu */
+            background-repeat: no-repeat;
+            
+            /* DEFAULT: MATI (HITAM PUTIH & GELAP) */
+            filter: grayscale(100%) brightness(0.25) contrast(1.2);
+            border: none; /* Border ilang sesuai request */
+            box-shadow: inset 0 0 20px #000; /* Shadow dalem biar depth */
         }
-        .hero-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        
-        /* Label FC Terdekat dalam Kotak */
-        .radar-status { 
-            display: flex; align-items: center; gap: 8px; 
-            font-size: 0.65rem; font-weight: 800; color: var(--accent); 
-            letter-spacing: 1px; text-transform: uppercase;
-            background: rgba(204,255,0,0.1); padding: 6px 12px; border-radius: 20px; border: 1px solid rgba(204,255,0,0.3);
-        }
-        .gps-dot { width: 8px; height: 8px; background: var(--accent); border-radius: 50%; box-shadow: 0 0 10px var(--accent); animation: pulse 1s infinite; }
-        @keyframes pulse { 0% {opacity:1} 50% {opacity:0.3} 100% {opacity:1} }
-        
-        .hero-dist { background: rgba(0,0,0,0.6); border: 1px solid var(--accent); padding: 4px 10px; border-radius: 8px; font-family: 'Syne'; font-size: 0.9rem; font-weight: 700; color: var(--accent); }
-        .hero-name { font-family: 'Inter', sans-serif; font-size: clamp(1.8rem, 8vw, 2.2rem); font-weight: 800; color: #fff; line-height: 1.1; margin-bottom: 5px; }
-        .hero-info { font-size: 0.85rem; color: #aaa; margin-bottom: 20px; padding-left: 12px; border-left: 3px solid var(--accent); line-height: 1.5; }
-        .btn-nav-hero { display: block; width: 100%; padding: 14px; background: var(--accent); color: #000; text-align: center; text-decoration: none; font-weight: 800; border-radius: 12px; font-size: 0.9rem; letter-spacing: 0.5px; box-shadow: 0 4px 20px rgba(204, 255, 0, 0.2); cursor: pointer; border: none; }
-        
-        /* LIST SECTION */
-        .list-section { flex: 1; overflow-y: auto; padding-bottom: 50px; }
-        .city-group { margin-bottom: 30px; }
-        .city-header { padding: 0 25px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
-        .city-title { color: var(--text); font-family: 'Syne'; font-weight: 700; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; }
-        .city-line { height: 1px; background: #333; flex-grow: 1; }
-        
-        /* Horizontal Scroll */
-        .h-scroll { 
-            display: flex; gap: 15px; overflow-x: auto; 
-            padding: 0 25px; scroll-snap-type: x mandatory; 
-            scrollbar-width: none; 
-        }
-        .h-scroll::-webkit-scrollbar { display: none; }
 
-        .mini-card { 
-            min-width: 160px; width: 160px; height: 190px; 
-            border-radius: 18px; padding: 15px; 
-            display: flex; flex-direction: column; justify-content: space-between; 
-            scroll-snap-align: start; flex-shrink: 0; text-decoration: none; position: relative; overflow: hidden; 
-            transition: transform 0.2s; cursor: pointer; 
-        }
-        .mini-card.style-1 { background: linear-gradient(145deg, #111, #1a1a1a); border: 1px solid #333; color: white; }
-        .mini-card.style-2 { background: linear-gradient(145deg, #022c22, #064e3b); border: 1px solid #065f46; color: #d1fae5; }
-        .mini-card.style-3 { background: linear-gradient(145deg, #0f172a, #1e293b); border: 1px solid #1e3a8a; color: #bfdbfe; }
-        .mini-top h3 { margin: 0 0 8px 0; font-size: 0.9rem; line-height: 1.3; font-weight: 700; color: inherit; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-        .mini-info { font-size: 0.7rem; opacity: 0.8; margin-top: 5px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 5px; line-height: 1.4; z-index: 2; color: inherit; }
-        .mini-dist { font-size: 0.85rem; color: var(--accent); font-weight: 800; z-index: 2; text-align: right; margin-top: 5px; }
+        /* POSISI POTONGAN GAMBAR */
+        #card-1 { background-position: 0% 50%; }     /* Kiri */
+        #card-2 { background-position: 50% 50%; }    /* Tengah */
+        #card-3 { background-position: 100% 50%; }   /* Kanan */
 
-
-        /* TIME PLANNER CSS */
-        .planner-card { 
-            background: var(--card); border: 1px solid var(--card-border); 
-            border-radius: 24px; padding: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.5); 
-        }
-        .input-group { position: relative; margin-bottom: 12px; }
-        .input-group label { display: block; font-size: 0.75rem; color: var(--text-mute); margin-bottom: 5px; font-weight: 600; }
-        .input-group input { 
-            width: 100%; padding: 12px; padding-right: 120px; 
-            background: #1a1a1a; border: 1px solid #333; 
-            border-radius: 10px; color: var(--text); font-size: 0.9rem;
-            font-family: 'Inter', sans-serif;
-        }
-        .input-group input:focus { border-color: var(--cyan); outline: none; }
-        .btn-input-append { 
-            position: absolute; right: 8px; top: 29px; 
-            padding: 6px 10px; background: var(--cyan); 
-            color: #000; border: none; border-radius: 8px; 
-            font-size: 0.75rem; font-weight: 700; cursor: pointer;
-        }
-        .input-group .unit-append {
-            position: absolute; right: 15px; top: 38px;
-            font-size: 0.9rem; font-weight: 700; color: var(--accent);
-        }
-        .btn-plan {
-            width: 100%; padding: 14px; background: var(--accent); color: #000; 
-            border: none; border-radius: 12px; font-weight: 800; 
-            text-transform: uppercase; cursor: pointer; margin-top: 15px;
+        /* EFEK NYALA (ACTIVE) */
+        .onyx-card.charging, .onyx-card.full {
+            /* Warna Asli Keluar */
+            filter: grayscale(0%) brightness(1.1) contrast(1.1);
+            box-shadow: 0 0 30px rgba(255, 80, 0, 0.4); /* Glow Api Oranye */
+            transform: scale(1.02); /* Pop up dikit */
+            z-index: 10;
         }
         
-        /* MAP OVERLAY MODAL (Hasil Rute Perjalanan) */
-        .modal-overlay { 
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(0,0,0,0.95); backdrop-filter: blur(5px); z-index: 9999; 
-            display: none; justify-content: center; align-items: center; 
-            opacity: 0; transition: opacity 0.3s ease;
-        }
-        .modal-overlay.active { display: flex; opacity: 1; }
-        .modal-content { 
-            background: var(--card); border-radius: 20px; width: 90%; max-width: 450px; 
-            padding: 25px; position: relative; 
-            box-shadow: 0 15px 50px rgba(204, 255, 0, 0.1);
-        }
-        /* NEW: Tombol Close dan Home di Modal */
-        .modal-controls { position: absolute; top: 15px; right: 15px; display: flex; gap: 8px; }
-        .modal-close, .modal-home { font-size: 1.5rem; color: var(--text-mute); cursor: pointer; }
-        .modal-close:hover, .modal-home:hover { color: var(--accent); }
+        /* CONTENT DALAM KARTU (Text Shadow Wajib Tebal Biar Kebaca di atas Gambar) */
+        .oc-header, .oc-body, .oc-footer { position: relative; z-index: 2; text-align: center; text-shadow: 0 2px 4px #000, 0 0 10px #000; }
         
-        /* Mini Map di dalam Modal (DIHAPUS DARI TAMPILAN) */
-        #mapModal { display: none; } 
-
-        #mapTitle { font-size: 1.5rem; font-weight: 800; margin: 0 0 5px 0; color: var(--accent); }
-        /* Teks Deskripsi Rute yang Diperbaiki */
-        #mapSub { 
-            font-size: 0.85rem; color: #ddd; margin-bottom: 15px; white-space: pre-line;
-            border-left: 3px solid var(--cyan); padding-left: 10px; line-height: 1.6;
-            font-weight: 500;
-        }
-        /* Style untuk kata-kata penting */
-        .important-text { color: var(--accent); font-weight: 800; }
-
-
-        .modal-actions { display: flex; justify-content: space-between; margin-top: 20px; }
-        .modal-actions button, .modal-actions a {
-             flex-grow: 1; padding: 12px; border-radius: 10px; border: none; 
-             font-weight: 800; cursor: pointer; margin: 0 5px; text-align: center;
-             text-decoration: none; display: block; text-transform: uppercase;
-        }
-        #btnBack { background: #333; color: #fff; }
-        #btnGmaps { background: var(--accent); color: #000; }
-
-        /* CUSTOM ALERT MODAL */
-        #customAlertModal { z-index: 10000; }
-        #customAlertContent { padding: 30px 25px; background: var(--card); border-radius: 20px; text-align: center; max-width: 320px; border: 2px solid var(--accent); }
-        #alertIcon { font-size: 3rem; margin-bottom: 15px; }
-        #alertTitle { font-size: 1.2rem; font-weight: 800; margin-bottom: 10px; color: var(--accent); }
-        #alertMessage { font-size: 0.9rem; color: #ccc; margin-bottom: 20px; }
-        #alertButton { background: var(--accent); color: #000; padding: 12px 30px; border: none; border-radius: 10px; font-weight: 800; cursor: pointer; }
-
-
-        /* MAP ASSETS */
-        .leaflet-marker-icon.custom-marker { border: 3px solid #000; border-radius: 50%; box-shadow: 0 0 5px rgba(0,0,0,0.5); }
-        .leaflet-routing-container { display: none; }
+        .oc-plat { font-family:'Inter'; font-weight: 900; font-size: 18px; color: #fff; margin-bottom: 2px; }
         
+        /* POSISI BADGE & NAMA */
+        .oc-user-block { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 40px; }
+        .oc-name { font-size: 10px; color: #ddd; text-transform: uppercase; font-weight: 800; letter-spacing: 1px; }
+        
+        /* BADGE STYLE (KECIL) */
+        .mini-badge {
+            margin-top: 4px;
+            padding: 2px 6px;
+            font-size: 8px;
+            font-family: 'Orbitron';
+            font-weight: bold;
+            background: rgba(0,0,0,0.8);
+            border: 1px solid #555;
+            border-radius: 4px;
+            color: #ccc;
+            display: none; /* Default hidden */
+        }
+        
+        .oc-body { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+        
+        /* ANGKA BESAR */
+        .oc-big-num { font-family: 'Teko', sans-serif; font-weight: 500; color: #555; line-height: 0.8; transition: 0.3s; }
+        .num-charging { font-size: 70px; color: #fff; text-shadow: 0 0 20px var(--red); } /* Warna Angka Putih Glow Merah */
+        .num-ready { font-size: 30px; letter-spacing: 2px; color: #444; } 
+
+        .oc-status { font-family: 'JetBrains Mono'; font-size: 9px; font-weight: 700; padding: 4px 8px; border-radius: 4px; display: inline-block; background: rgba(0,0,0,0.8); color: #888; border: 1px solid #333; }
+        
+        /* WARNA STATUS AKTIF */
+        .onyx-card.charging .oc-status { border-color: var(--blue); color: var(--blue); box-shadow: 0 0 5px var(--blue); }
+        .onyx-card.full .oc-status { border-color: var(--accent); color: var(--accent); animation: blink 1s infinite; }
+
+        /* PROGRESS BAR DI BAWAH */
+        .oc-progress-bg { position: absolute; bottom: 0; left: 0; width: 100%; height: 4px; background: rgba(0,0,0,0.5); z-index: 5; }
+        .oc-progress-fill { height: 100%; width: 0%; background: var(--blue); transition: width 1s linear; box-shadow: 0 0 10px var(--blue); }
+
+        @keyframes blink { 50% { opacity: 0.5; } }
+
+        /* FOOTER AREA */
+        .control-area { height: 35vh; background: linear-gradient(to top, #000 10%, transparent 100%); display: flex; flex-direction: column; align-items: center; z-index: 50; }
+        .info-row { margin-top: 10px; }
+        .antrian-text { font-family: 'Orbitron'; font-size: 18px; font-weight: 900; color: #666; }
     </style>
 </head>
-<body>
+<body onclick="firstInteraction()">
 
-    <div id="loader" class="loader">
-        <h1 class="main-logo">MAKA FAST<br>CHARGING</h1>
-        <div id="animText1">SELAMAT DATANG</div>
-        <div id="animText2">SAHABAT MLU</div>
-        <div id="animText3">• MLU | Mau Ape Lu •</div>
-        <div class="loader-actions" id="loaderBtns">
-            <button class="btn-entry primary" onclick="enterApp('home')">LOKASI FC ⚡</button>
-            <button class="btn-entry primary" style="background:var(--cyan); color:#000;" onclick="enterApp('planner')">PLAN RUTE 🗺️</button> 
-            <a href="antrian.html" class="btn-entry secondary" style="text-decoration:none; display:flex; justify-content:center; align-items:center;">ANTRIAN FC GADING</a>
-        </div>
+    <div class="top-nav">
+        <h1 class="main-title">FC KELAPA GADING</h1>
+        <div class="brand-sub">LIVE MONITORING</div>
     </div>
 
-    <div class="header">
-        <div class="header-text">
-            <div class="label-top">LOKASI</div>
-            <h1>FAST<br>CHARGING</h1>
-            <div class="label-bottom">MAKA LINTAS UTARA</div>
-        </div>
-        <div class="top-controls">
-            <div class="toggle-mode">
-                <div id="btnList" class="t-btn active" onclick="switchView('list')">☰ LIST</div>
-                <div id="btnMap" class="t-btn" onclick="switchView('map')">🗺️ PETA</div>
-                <div id="btnPlanner" class="t-btn" onclick="switchView('planner')">⏱️ PLANNER</div>
+    <div id="frontView">
+        <div class="onyx-card" id="card-1">
+            <div class="oc-header">
+                <div class="oc-plat" id="p1-plat">-</div>
+                <div class="oc-user-block">
+                    <div class="oc-name" id="p1-name"></div>
+                    <div class="mini-badge" id="p1-badge">MEMBER</div> </div>
             </div>
+            <div class="oc-body"><div class="oc-big-num num-ready" id="p1-main">OFF</div></div>
+            <div class="oc-footer">
+                <div class="oc-status" id="p1-status">READY</div>
+                <div style="font-size:10px; margin-top:2px;" id="p1-timer"></div>
+            </div>
+            <div class="oc-progress-bg"><div class="oc-progress-fill" id="p1-bar"></div></div>
         </div>
-    </div>
 
-    <div id="view-list">
-        
-        <div class="hero-section" id="listHero">
-            <div id="scanState" class="hero-card" style="align-items:center; text-align:center;">
-                <div class="gps-dot" style="width:20px; height:20px; margin-bottom:15px;"></div>
-                <h2 style="opacity:0.5; font-size:1.2rem; margin-top:0;">Mencari Sinyal GPS...</h2>
-                <p id="userLocText" style="color:#666; font-size:0.8rem; margin:0;">Pastikan Lokasi/GPS HP Aktif</p>
-            </div>
-            <div id="foundState" class="hero-card" style="display:none;">
-                <div class="hero-header">
-                    <div class="radar-status"><div class="gps-dot"></div> FC TERDEKAT</div>
-                    <div class="hero-dist" id="heroDist">-- KM</div>
+        <div class="onyx-card" id="card-2">
+            <div class="oc-header">
+                <div class="oc-plat" id="p2-plat">-</div>
+                <div class="oc-user-block">
+                    <div class="oc-name" id="p2-name"></div>
+                    <div class="mini-badge" id="p2-badge">MEMBER</div>
                 </div>
-                <h2 class="hero-name" id="heroName">Nama Lokasi</h2>
-                <div class="hero-info" id="heroInfo">Info Loading...</div>
-                <button id="btnHeroNav" class="btn-nav-hero" onclick="openMapModal()">LIHAT DI PETA 📍</button>
             </div>
+            <div class="oc-body"><div class="oc-big-num num-ready" id="p2-main">OFF</div></div>
+            <div class="oc-footer">
+                <div class="oc-status" id="p2-status">READY</div>
+                <div style="font-size:10px; margin-top:2px;" id="p2-timer"></div>
+            </div>
+            <div class="oc-progress-bg"><div class="oc-progress-fill" id="p2-bar"></div></div>
         </div>
-        
-        <div id="plannerSection" class="hero-section" style="padding-top:0; margin-bottom:10px; display:none;">
-            <div class="planner-card">
-                <h2 style="font-size:1.1rem; color:var(--accent); margin:0 0 15px 0; font-weight:800; letter-spacing:0.5px;">PERENCANAAN RUTE EV</h2>
 
-                <div class="input-group">
-                    <label for="startLoc">Lokasi Awal</label>
-                    <input type="text" id="startLoc" placeholder="Masukkan Alamat Awal">
-                    <button class="btn-input-append" onclick="setUserLocationAsStart()">Lokasi Saya</button>
+        <div class="onyx-card" id="card-3">
+            <div class="oc-header">
+                <div class="oc-plat" id="p3-plat">-</div>
+                <div class="oc-user-block">
+                    <div class="oc-name" id="p3-name"></div>
+                    <div class="mini-badge" id="p3-badge">MEMBER</div>
                 </div>
-                
-                <div class="input-group" style="margin-top:10px;">
-                    <label for="soc">Sisa Baterai (SOC)</label>
-                    <input type="number" id="soc" value="80" min="5" max="100">
-                    <span class="unit-append">%</span>
-                </div>
-
-                <div class="input-group" style="margin-top:10px;">
-                    <label for="destLoc">Lokasi Tujuan</label>
-                    <input type="text" id="destLoc" placeholder="Masukkan Alamat Tujuan">
-                </div>
-
-                <button class="btn-plan" onclick="planTrip()">RENCANAKAN RUTE 🗺️</button>
             </div>
-        </div>
-        
-        <div class="list-section" id="mainListContainer">
+            <div class="oc-body"><div class="oc-big-num num-ready" id="p3-main">OFF</div></div>
+            <div class="oc-footer">
+                <div class="oc-status" id="p3-status">READY</div>
+                <div style="font-size:10px; margin-top:2px;" id="p3-timer"></div>
             </div>
-    </div>
-
-    <div id="view-map">
-        <div id="map-container"></div>
-    </div>
-
-    <div id="mapOverlay" class="modal-overlay">
-        <div class="modal-content">
-            <div class="modal-controls">
-                <span class="modal-home" onclick="document.getElementById('mapOverlay').classList.remove('active'); switchView('list');">🏠</span>
-                <span class="modal-close" onclick="document.getElementById('mapOverlay').classList.remove('active');">✕</span>
-            </div>
-            
-            <h2 id="mapTitle"></h2>
-            <p id="mapSub"></p>
-            
-            <div class="modal-actions">
-                <button id="btnBack" onclick="document.getElementById('mapOverlay').classList.remove('active');">KEMBALI</button>
-                <a id="btnGmaps" target="_blank">MULAI JALAN (GOOGLE MAPS) ↗</a>
-            </div>
-
-            <div id="disclaimer" style="margin-top:20px; font-size:0.75rem; color:var(--text-mute); text-align:center; line-height:1.4;"></div>
-        </div>
-    </div>
-    
-    <div id="customAlertModal" class="modal-overlay">
-        <div id="customAlertContent">
-            <div id="alertIcon" style="color:var(--accent);"></div>
-            <div id="alertTitle"></div>
-            <p id="alertMessage"></p>
-            <button id="alertButton" onclick="closeCustomAlert()">OK</button>
+            <div class="oc-progress-bg"><div class="oc-progress-fill" id="p3-bar"></div></div>
         </div>
     </div>
 
+    <div class="control-area">
+        <div class="info-row">
+            <div id="qCountDisplay" class="antrian-text">QUEUE: 0</div>
+        </div>
+        </div>
 
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
-    <script>
-        
-        // --- KONFIGURASI API & DATA ---
-        const JAWG_API = "l1PdBwk1arfZcY7wECff2jE2Ts7qpJyMqGGqHK8cjCxcLb6m0FPHm1sExB5NvLyA"; 
-        const URL_LOKASI = "https://docs.google.com/spreadsheets/d/1EJOTMMfGpBMFPqR0LzbMbh7tZUcTCZld4x387OO9aJM/export?format=csv"; 
-        
-        let map = null;
-        let userLat = null;
-        let userLng = null;
-        let currentMapTarget = null;
-        const scrollState = {};
-        let chargers = []; 
+    <audio id="audio" crossorigin="anonymous"></audio>
 
-        const MIN_RANGE_KM = 5; 
-        
-        // --- HELPER FUNCTIONS ---
-        const imp = (text) => `<span class="important-text">${text}</span>`;
-        
-        function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
-            const R = 6371;
-            const dLat = deg2rad(lat2 - lat1);
-            const dLon = deg2rad(lon2 - lon1);
-            const a = 
-                Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
-            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-            return R * c; 
-        }
+    <script type="module">
+        // --- COPY BAGIAN FIREBASE CONFIG & LOGIC DARI SCRIPT SEBELUMNYA ---
+        // --- HANYA UPDATE BAGIAN updateFrontView() DI BAWAH INI ---
 
-        function deg2rad(deg) { return deg * (Math.PI / 180); }
-        function calculateConsumption(distanceKm) { return Math.ceil(distanceKm * 1); }
-        
-        function showCustomAlert(title, message, icon) {
-            document.getElementById('alertIcon').innerHTML = icon;
-            document.getElementById('alertTitle').innerText = title;
-            document.getElementById('alertMessage').innerText = message;
-            document.getElementById('customAlertModal').classList.add('active');
-        }
-        window.closeCustomAlert = () => { document.getElementById('customAlertModal').classList.remove('active'); };
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // --- MAPPING SERVICES ---
+        const firebaseConfig = { apiKey: "AIzaSyALIlkIDALIk83K8s1htalvW6rmNNw02Go", authDomain: "sistem-antrian-b1c39.firebaseapp.com", projectId: "sistem-antrian-b1c39", storageBucket: "sistem-antrian-b1c39.firebasestorage.app", messagingSenderId: "454124587608", appId: "1:454124587608:web:34fbb0f5211067a67f982d" };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const ref = doc(db, "antrian", "utama");
 
-        async function geocodeAddress(address) {
-            const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=1&countrycodes=id`;
-            try {
-                const response = await fetch(url);
-                const data = await response.json();
-                
-                if (data.length > 0) {
-                    const result = data[0]; 
-                    let simpleAddress = result.display_name.split(',').slice(0, 3).join(', ');
-                    return {
-                        lat: parseFloat(result.lat),
-                        lng: parseFloat(result.lon),
-                        address: simpleAddress,
-                        fullAddress: result.display_name
-                    };
-                }
-                showCustomAlert('Geocoding Gagal', `Gagal menemukan koordinat untuk Lokasi Tujuan: ${address}. Coba format yang lebih umum.`, '❌');
-                return null;
-            } catch (error) {
-                showCustomAlert('Geocoding Error', 'Koneksi bermasalah atau Nominatim tidak merespons.', '⚠️');
-                return null;
-            }
-        }
-        
-        async function getOSRMRoute(startLat, startLng, endLat, endLng) {
-            const coordinates = `${startLng},${startLat};${endLng},${endLat}`;
-            const url = `https://router.project-osrm.org/route/v1/driving/${coordinates}?overview=false`; 
-            
-            try {
-                const response = await fetch(url);
-                const data = await response.json();
+        // FUNGSI UPDATE TAMPILAN
+        function updateFrontView(slots) {
+            slots.forEach((m, i) => {
+                const elCard = document.getElementById(`card-${i+1}`);
+                const elPlat = document.getElementById(`p${i+1}-plat`);
+                const elName = document.getElementById(`p${i+1}-name`);
+                const elBadge = document.getElementById(`p${i+1}-badge`);
+                const elMain = document.getElementById(`p${i+1}-main`);
+                const elStatus = document.getElementById(`p${i+1}-status`);
+                const elBar = document.getElementById(`p${i+1}-bar`);
+                const elTimer = document.getElementById(`p${i+1}-timer`);
 
-                if (data.code === 'Ok' && data.routes.length > 0) {
-                    const route = data.routes[0];
-                    const distanceKm = route.distance / 1000;
-                    const durationMinutes = route.duration / 60;
+                // Reset Class
+                elCard.classList.remove('charging', 'full'); 
+                elMain.classList.remove('num-charging', 'num-ready'); 
+                elBar.style.width = '0%';
+                elBadge.style.display = 'none';
 
-                    return { distanceKm: distanceKm, durationMinutes: durationMinutes };
-                }
-                return { distanceKm: null, durationMinutes: null };
-            } catch (error) {
-                console.error("OSRM Error:", error);
-                return { distanceKm: null, durationMinutes: null };
-            }
-        }
+                if (m && m.plat) {
+                     // DATA ADA -> ISI SLOT
+                     elPlat.innerText = m.plat;
+                     elName.innerText = m.userName || "USER";
+                     
+                     // UPDATE BADGE (Di sini posisinya)
+                     if(m.role) {
+                         elBadge.innerText = m.role;
+                         elBadge.style.display = 'inline-block';
+                         // Kasih warna khusus buat badge kalau mau
+                         if(m.role === 'KETUM') elBadge.style.borderColor = 'gold';
+                         else elBadge.style.borderColor = '#555';
+                     }
 
-        // --- LOGIC PERBAIKAN FATAL: MENCARI FC TERDEKAT DENGAN JARAK RUTE (ROAD DISTANCE) ---
-        async function getNearestFCInfo(destLat, destLng) {
-            let nearestFC = null;
-            let minDistKm = Infinity; // Jarak Rute Sebenarnya (Road Distance)
-
-            for (const fc of chargers) {
-                // WAJIB: Gunakan OSRM Routing untuk menghitung jarak sebenarnya dari Tujuan ke FC
-                const routeResult = await getOSRMRoute(destLat, destLng, fc.lat, fc.lng);
-
-                if (routeResult.distanceKm !== null && routeResult.distanceKm < minDistKm) {
-                    minDistKm = routeResult.distanceKm;
-                    nearestFC = fc;
-                }
-            }
-            return { fc: nearestFC, distKm: minDistKm };
-        }
-        
-        // --- MAIN TRIP PLANNER LOGIC ---
-        async function planTrip() {
-            const startAddr = document.getElementById('startLoc').value.trim();
-            const destAddr = document.getElementById('destLoc').value.trim();
-            const soc = parseInt(document.getElementById('soc').value);
-
-            if (!startAddr || !destAddr || isNaN(soc) || soc < 5 || soc > 100) {
-                return showCustomAlert('Input Invalid', 'Mohon isi semua kolom dengan benar.', '⚠️');
-            }
-            
-            let startCoord, destCoord;
-            const userLocText = document.getElementById('userLocText').innerText;
-            if (startAddr.includes(userLocText) && userLat && userLng) {
-                 startCoord = { lat: userLat, lng: userLng, address: 'Lokasi Saya' };
-            } else {
-                 startCoord = await geocodeAddress(startAddr);
-            }
-            if (!startCoord) return;
-            
-            destCoord = await geocodeAddress(destAddr);
-            if (!destCoord) return;
-
-            document.getElementById('btnPlan').disabled = true;
-            document.getElementById('btnPlan').innerText = "MENGHITUNG RUTE...";
-
-            const directRoute = await getOSRMRoute(startCoord.lat, startCoord.lng, destCoord.lat, destCoord.lng);
-            
-            if (directRoute.distanceKm === null) {
-                document.getElementById('btnPlan').disabled = false;
-                document.getElementById('btnPlan').innerText = "RENCANAKAN RUTE 🗺️";
-                return showCustomAlert('Routing Gagal', 'Gagal menghitung jarak rute. Cek koneksi Anda atau coba alamat lain.', '⚠️');
-            }
-
-            const totalDist = parseFloat(directRoute.distanceKm.toFixed(1));
-            const requiredSoc = calculateConsumption(totalDist);
-            const finalSoc = soc - requiredSoc;
-            
-            let tripResult = {
-                title: "RUTE PERJALANAN",
-                distance: totalDist,
-                battery: soc,
-                finalSoc: finalSoc,
-                start: startCoord,
-                dest: destCoord,
-                isDirect: true,
-            };
-
-            const nearestFCInfo = await getNearestFCInfo(destCoord.lat, destCoord.lng);
-            const nearestFC = nearestFCInfo.fc;
-            const distToFC = nearestFCInfo.distKm !== Infinity ? parseFloat(nearestFCInfo.distKm.toFixed(1)) : null;
-
-            if (finalSoc < MIN_RANGE_KM) { 
-                if (nearestFC) {
-                    const requiredToFC = calculateConsumption(distToFC);
-                    const minRequired = requiredSoc + requiredToFC; 
-                    
-                    if (soc < minRequired) {
-                        tripResult.title = "RUTE GAGAL";
-                        tripResult.isDirect = false;
-                        tripResult.sub = 
-                            `RUTE GAGAL (BATERAI KRITIS)<br>
-                            Baterai Awal: ${imp(soc + '%')}<br>
-                            Jarak Total: ${imp(totalDist + ' km')}<br><br>
-                            Perjalanan ini ${imp('MELEBIHI JANGKAUAN')} Anda. Anda memerlukan setidaknya ${imp(minRequired + '%')} (Total Rute + FC) untuk melanjutkan dengan aman.
-                            <br><br>
-                            FC terdekat dari Tujuan adalah ${imp(nearestFC.name)} (${imp(distToFC + ' km')}).`;
-                    } else {
-                         tripResult.title = "RUTE LANGSUNG";
-                         tripResult.sub = 
-                            `✅ RUTE LANGSUNG<br>
-                            Estimasi Total Jarak: ${imp(totalDist + ' km')}<br>
-                            Baterai Awal: ${imp(soc + '%')} | Sisa Baterai di Tujuan: ${imp(finalSoc + '%')}\n\n
-                            Rute Perjalanan:\n[START] ${startCoord.address}\n→ [END] ${destCoord.address}
-                            \n\nCATATAN PENTING (DI TUJUAN):\nFC terdekat dari ${destCoord.address} adalah ${imp(nearestFC.name)} (${imp(distToFC + ' km')}).\nAnda butuh min ${imp(requiredToFC + MIN_RANGE_KM + '%')} baterai untuk mencapainya.`;
-                    }
-                } else {
-                    tripResult.title = "RUTE GAGAL";
-                    tripResult.isDirect = false;
-                    tripResult.sub = 
-                        `Baterai Awal: ${imp(soc + '%')}<br>
-                        Jarak Total: ${imp(totalDist + ' km')}<br><br>
-                        Perjalanan ini ${imp('MELEBIHI JANGKAUAN')} Anda dan tidak ditemukan FC terdekat untuk singgah.`;
-                }
-            } else {
-                 tripResult.title = "RUTE LANGSUNG";
-                 let catatan = "";
-                 if (nearestFC) {
-                     const requiredToFC = calculateConsumption(distToFC);
-                     catatan = `\n\nCATATAN PENTING (DI TUJUAN):\nFC terdekat dari ${destCoord.address} adalah ${imp(nearestFC.name)} (${imp(distToFC + ' km')}).\nAnda butuh min ${imp(requiredToFC + MIN_RANGE_KM + '%')} baterai untuk mencapainya.`;
-                 }
-                 
-                 tripResult.sub = 
-                    `✅ RUTE LANGSUNG<br>
-                    Estimasi Total Jarak: ${imp(totalDist + ' km')}<br>
-                    Baterai Awal: ${imp(soc + '%')} | Sisa Baterai di Tujuan: ${imp(finalSoc + '%')}\n\n
-                    Rute Perjalanan:\n[START] ${startCoord.address}\n→ [END] ${destCoord.address}${catatan}`;
-            }
-
-            renderTripResult(tripResult);
-            
-            document.getElementById('btnPlan').disabled = false;
-            document.getElementById('btnPlan').innerText = "RENCANAKAN RUTE 🗺️";
-        }
-
-
-        // --- USER INTERFACE ACTIONS ---
-
-        function renderTripResult(result) {
-            document.getElementById('mapOverlay').classList.add('active');
-            document.getElementById('mapTitle').innerText = result.title.toUpperCase();
-            document.getElementById('mapSub').innerHTML = result.sub.replace(/\n/g, '<br>');
-            
-            if (result.isDirect) {
-                document.getElementById('btnGmaps').style.display = 'block';
-                const gmapsBase = 'https://www.google.com/maps/dir/';
-                const startCoordStr = `${result.start.lat},${result.start.lng}`;
-                const destCoordStr = `${result.dest.lat},${result.dest.lng}`;
-                document.getElementById('btnGmaps').href = `${gmapsBase}${startCoordStr}/${destCoordStr}`;
-                document.getElementById('btnBack').innerText = 'KEMBALI';
-            } else {
-                document.getElementById('btnGmaps').style.display = 'none';
-                document.getElementById('btnBack').innerText = 'OK, SAYA MENGERTI';
-            }
-            
-            document.getElementById('disclaimer').innerHTML = 
-                'Perhitungan di atas adalah simulasi perjalanan dengan asumsi penggunaan baterai 1% per 1 km. Konsumsi atau Sisa baterai dapat berbeda bergantung pada situasi di jalan.';
-        }
-
-        window.enterApp = (view) => {
-            document.getElementById('loader').style.opacity = '0';
-            setTimeout(() => {
-                document.getElementById('loader').style.display = 'none';
-                switchView(view);
-                if(view === 'home') loadDataBackground();
-            }, 300);
-        };
-        
-        window.switchView = (view) => {
-            document.getElementById('view-list').style.display = 'none';
-            document.getElementById('view-map').style.display = 'none';
-            document.getElementById('plannerSection').style.display = 'none';
-            document.getElementById('mainListContainer').style.display = 'block';
-
-            document.getElementById('btnList').classList.remove('active');
-            document.getElementById('btnMap').classList.remove('active');
-            document.getElementById('btnPlanner').classList.remove('active');
-
-            if (view === 'list' || view === 'home') {
-                document.getElementById('view-list').style.display = 'flex';
-                document.getElementById('btnList').classList.add('active');
-            } else if (view === 'map') {
-                document.getElementById('view-map').style.display = 'flex';
-                document.getElementById('btnMap').classList.add('active');
-                initFullMap();
-            } else if (view === 'planner') {
-                document.getElementById('view-list').style.display = 'flex';
-                document.getElementById('plannerSection').style.display = 'block';
-                document.getElementById('mainListContainer').style.display = 'none';
-                document.getElementById('btnPlanner').classList.add('active');
-            }
-        };
-
-        window.setUserLocationAsStart = () => {
-             document.getElementById('startLoc').value = 'Lokasi Saya ' + document.getElementById('userLocText').innerText;
-        };
-
-        window.openMapModal = (charger) => {
-            if (!charger && currentMapTarget) charger = currentMapTarget;
-            if (!charger) return showCustomAlert('Info', 'FC terdekat belum terdeteksi.', 'ℹ️');
-
-            document.getElementById('mapOverlay').classList.add('active');
-            document.getElementById('mapTitle').innerText = charger.name.toUpperCase();
-            
-            document.getElementById('mapSub').innerHTML = 
-                `Jarak dari Anda: ${imp(charger.distance + ' km')} | Status: ${imp(charger.status.toUpperCase())}<br>
-                 Tipe: ${imp(charger.type)} | Nozzle: ${imp(charger.nozzle)} | Biaya: ${imp(charger.cost)}`;
-            
-            document.getElementById('disclaimer').innerHTML = 
-                'Perhitungan di atas adalah simulasi perjalanan dengan asumsi penggunaan baterai 1% per 1 km. Konsumsi atau Sisa baterai dapat berbeda bergantung pada situasi di jalan.';
-
-            document.getElementById('btnGmaps').style.display = 'block';
-            document.getElementById('btnBack').innerText = 'KEMBALI';
-            
-            const gmapsBase = 'https://www.google.com/maps/dir/';
-            if (userLat && userLng) {
-                 const startCoordStr = `${userLat},${userLng}`;
-                 const destCoordStr = `${charger.lat},${charger.lng}`;
-                 document.getElementById('btnGmaps').href = `${gmapsBase}${startCoordStr}/${destCoordStr}`;
-                 document.getElementById('btnGmaps').innerText = 'NAVIGASI (GOOGLE MAPS) ↗';
-            } else {
-                 const gmapsBaseSearch = 'https://www.google.com/maps/search/?api=1&query=';
-                 const destCoordStr = `${charger.lat},${charger.lng}`;
-                 document.getElementById('btnGmaps').href = `${gmapsBaseSearch}${destCoordStr}`;
-                 document.getElementById('btnGmaps').innerText = 'LIHAT DI GOOGLE MAPS ↗';
-            }
-        }
-
-        function initFullMap() {
-            if (map) { map.remove(); map = null; }
-            if (chargers.length === 0) return;
-            
-            const mapContainer = document.getElementById('map-container');
-            const centerLat = userLat || chargers[0].lat;
-            const centerLng = userLng || chargers[0].lng;
-            
-            map = L.map(mapContainer, {zoomControl: false}).setView([centerLat, centerLng], 12);
-            L.tileLayer(`https://tile.jawg.io/jawg-matrix/{z}/{x}/{y}{r}.png?access-token=${JAWG_API}`, {}).addTo(map);
-            
-            chargers.forEach(c => {
-                 const statusClass = c.status;
-                 let iconColor = statusClass === 'available' ? '#CCFF00' : statusClass === 'busy' ? '#FF3B30' : '#888';
-                 
-                 const customIcon = L.divIcon({
-                    html: `<div style="background:${iconColor}; width:15px; height:15px; border-radius:50%; border:3px solid #000; box-shadow:0 0 10px rgba(0,0,0,0.5);"></div>`,
-                    className: 'custom-marker',
-                    iconSize: [15, 15],
-                    iconAnchor: [7.5, 7.5]
-                });
-
-                L.marker([c.lat, c.lng], {icon: customIcon})
-                 .addTo(map)
-                 .bindPopup(`<b>${c.name}</b><br>${c.city}<br>Status: ${statusClass}`);
-            });
-
-            if (userLat && userLng) {
-                const userIcon = L.divIcon({
-                    html: `<div style="background:#00d2ff; width:20px; height:20px; border-radius:50%; border:3px solid #000; box-shadow:0 0 10px rgba(0,0,0,0.8);"></div>`,
-                    className: 'custom-marker',
-                    iconSize: [20, 20],
-                    iconAnchor: [10, 10]
-                });
-                L.marker([userLat, userLng], {icon: userIcon})
-                 .addTo(map)
-                 .bindPopup("Lokasi Saya");
-            }
-            setTimeout(() => { map.invalidateSize(); }, 200); 
-        }
-
-        function renderChargers(data) {
-            const container = document.getElementById('mainListContainer');
-            container.innerHTML = ''; 
-
-            const grouped = data.reduce((acc, charger) => {
-                (acc[charger.city] = acc[charger.city] || []).push(charger);
-                return acc;
-            }, {});
-
-            let colorIdx = 0;
-            for (const city in grouped) {
-                const groupDiv = document.createElement('div');
-                groupDiv.className = 'city-group';
-                groupDiv.innerHTML = `<div class="city-header"><div class="city-title">${city}</div><div class="city-line"></div></div><div class="h-scroll" data-city="${city}"></div>`;
-                
-                const scrollContainer = groupDiv.querySelector('.h-scroll');
-                scrollContainer.addEventListener('scroll', function() {
-                    scrollState[city] = this.scrollLeft;
-                });
-                
-                grouped[city].forEach(c => {
-                    const styleClass = `style-${(colorIdx % 3) + 1}`;
-                    colorIdx++;
-                    
-                    const card = document.createElement('div');
-                    card.className = `mini-card ${styleClass}`;
-                    const itemJson = JSON.stringify(c).replace(/"/g, '"'); 
-
-                    card.setAttribute('onclick', `openMapModal(JSON.parse('${itemJson}'))`);
-
-                    card.innerHTML = `
-                        <div class="mini-top">
-                            <h3>${c.name}</h3>
-                            <div class="mini-info">${c.type} | ${c.cost}</div>
-                        </div>
-                        <div class="mini-bot">
-                            <div class="mini-dist">${c.distance} KM</div>
-                        </div>
-                    `;
-                    scrollContainer.appendChild(card);
-                });
-                container.appendChild(groupDiv);
-            }
-            restoreScrollState();
-        }
-
-        function updateHeroBox(nearestFC) {
-            const scanState = document.getElementById('scanState');
-            const foundState = document.getElementById('foundState');
-            
-            if (nearestFC) {
-                scanState.style.display = 'none';
-                foundState.style.display = 'flex';
-                
-                document.getElementById('heroName').innerText = nearestFC.name;
-                document.getElementById('heroDist').innerText = nearestFC.distance + ' KM';
-                document.getElementById('heroInfo').innerHTML = `${nearestFC.city} • ${nearestFC.type} • ${nearestFC.nozzle} Nozzle • ${nearestFC.cost}`;
-                
-                currentMapTarget = nearestFC; 
-                
-            } else {
-                scanState.style.display = 'flex';
-                foundState.style.display = 'none';
-                document.getElementById('userLocText').innerText = 'FC tidak ditemukan di dekat Anda.';
-            }
-        }
-
-        function getDist(lat1, lon1, lat2, lon2) {
-             return getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2).toFixed(1);
-        }
-
-        function getUserLocation() {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(
-                    (position) => {
-                        userLat = position.coords.latitude;
-                        userLng = position.coords.longitude;
-                        document.getElementById('userLocText').innerText = `(${userLat.toFixed(4)}, ${userLng.toFixed(4)})`; 
+                     if(m.startTime) {
+                        const totalSec = m.durationMinutes * 60; 
+                        const st = m.startTime.toDate ? m.startTime.toDate() : new Date(m.startTime); 
+                        const elapsedSec = (new Date() - st) / 1000;
+                        let progress = elapsedSec / totalSec; if(progress > 1) progress = 1;
+                        let estBat = Math.round(m.startBattery + ((98 - m.startBattery) * progress)); if(estBat > 98) estBat = 98;
                         
-                        const updatedChargers = chargers.map(c => ({
-                            ...c,
-                            distance: getDist(userLat, userLng, c.lat, c.lng)
-                        })).sort((a, b) => parseFloat(a.distance) - parseFloat(b.distance)); 
-                        
-                        const nearestFC = updatedChargers.length > 0 ? updatedChargers[0] : null;
-                        updateHeroBox(nearestFC);
-                        
-                        renderChargers(updatedChargers);
-                    },
-                    (error) => {
-                        document.getElementById('userLocText').innerText = "GPS Error/Tidak Aktif. Jarak default.";
-                        updateHeroBox(null);
-                        renderChargers(chargers); 
-                    },
-                    { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
-                );
-            } else {
-                document.getElementById('userLocText').innerText = "Geolocation tidak didukung.";
-                updateHeroBox(null);
-                renderChargers(chargers); 
-            }
-        }
+                        elBar.style.width = (progress * 100) + "%";
 
-        function runIntro() { document.getElementById('loader').style.opacity = '1'; }
-
-        function restoreScrollState() {
-            document.querySelectorAll('.city-group').forEach(group => {
-                const title = group.querySelector('.city-title').innerText;
-                if(scrollState[title]) group.querySelector('.h-scroll').scrollLeft = scrollState[title];
+                        if(elapsedSec >= totalSec) {
+                            elMain.innerText = "FULL"; 
+                            elStatus.innerText = "DONE"; 
+                            elCard.classList.add('full'); 
+                            elMain.classList.add('num-charging');
+                        } else {
+                            elMain.innerText = estBat + "%"; 
+                            elStatus.innerText = "CHRG"; 
+                            elCard.classList.add('charging'); // INI YG BIKIN GAMBAR NYALA
+                            elMain.classList.add('num-charging');
+                        }
+                     } else { 
+                        // Booking tapi belum start
+                        elMain.innerText = "WAIT"; 
+                        elStatus.innerText = "BOOKED";
+                        elMain.classList.add('num-ready');
+                     }
+                } else { 
+                    // SLOT KOSONG
+                    elPlat.innerText = "-"; 
+                    elName.innerText = "";
+                    elMain.innerText = "OFF"; // Atau Logo MLU Mati
+                    elStatus.innerText = "READY";
+                    elMain.classList.add('num-ready');
+                }
             });
         }
-        
-        async function loadDataBackground() {
-            try {
-                const txtLoc = await fetch(URL_LOKASI).then(r=>r.text());
-                chargers = txtLoc.split('\n').slice(1).map((r, i) => {
-                    const c = r.split(',');
-                    let latVal = parseFloat(c[4]);
-                    let lngVal = parseFloat(c[5]);
-                    if(c.length < 5 || isNaN(latVal) || isNaN(lngVal)) return null; 
-                    return { 
-                        id: `FC-${i}`, name: c[0].trim(), city: c[1].trim(), type: c[2].trim(),
-                        status: c[3] ? c[3].toLowerCase().trim() : 'available', 
-                        lat: latVal, lng: lngVal, distance: '--',
-                        nozzle: c[7] || 'N/A', cost: c[8] || 'N/A'
-                    };
-                }).filter(i=>i);
-                getUserLocation(); 
-            } catch(e) {
-                chargers = []; 
-                getUserLocation(); 
-            }
-        }
-        
-        runIntro(); 
+
+        // LISTENER FIREBASE
+        onSnapshot(ref, (snap) => {
+            const d = snap.data(); if(!d) return;
+            const slots = d.chargingSlots || [null, null, null];
+            document.getElementById('qCountDisplay').innerText = "QUEUE: " + (d.waitingQueue ? d.waitingQueue.length : 0);
+            updateFrontView(slots);
+        });
+
+        // Tambahin kode Music Player dll disini kalau perlu
     </script>
 </body>
 </html>
