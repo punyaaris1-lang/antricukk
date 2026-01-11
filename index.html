@@ -12,147 +12,142 @@
         body { font-family: 'Inter', sans-serif; background: var(--bg); color: #fff; margin: 0; overflow: hidden; height: 100vh; display: flex; flex-direction: column; }
 
         /* HEADER */
-        .top-nav { height: 12vh; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; padding-top: 10px; }
+        .top-nav { height: 10vh; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; padding-top: 10px; }
         .main-title { font-family: 'Teko'; font-size: 36px; font-weight: 700; line-height: 1; color: #fff; text-shadow: 0 0 10px rgba(0, 240, 255, 0.5); margin: 0; }
         .brand-sub { font-size: 10px; color: var(--accent); letter-spacing: 4px; font-weight: 700; }
 
         /* --- CARD CONTAINER --- */
         #frontView { 
-            height: 58vh; /* Sedikit lebih tinggi */
+            height: 58vh; 
             display: flex; justify-content: center; align-items: center; 
-            padding: 10px; gap: 6px; width: 100%; position: relative; z-index: 5;
+            padding: 10px; gap: 4px; width: 100%; position: relative; z-index: 5;
         }
 
         .onyx-card { 
             position: relative; width: 33.33%; height: 85%;
-            border-radius: 8px; 
-            display: flex; flex-direction: column; justify-content: flex-start; /* Konten mulai dari atas */
+            border-radius: 12px; /* Radius lebih gede dikit biar smooth */
+            display: flex; flex-direction: column; justify-content: space-between; 
             overflow: hidden; transition: 0.5s ease-in-out;
             
-            /* BACKGROUND SETTING */
+            /* BACKGROUND IMAGE */
             background-image: url('1763947427555.jpg'); 
             background-size: 305% 100%; 
             background-repeat: no-repeat;
             
-            /* STATE MATI */
-            filter: grayscale(100%) brightness(0.4) contrast(1.1);
-            box-shadow: inset 0 0 50px #000;
-            border: 1px solid rgba(255,255,255,0.1); 
-            opacity: 0.9;
+            /* STATE MATI (NO BORDER - CLEAN LOOK) */
+            filter: grayscale(100%) brightness(0.4) contrast(1.2);
+            box-shadow: 0 10px 30px #000; /* Shadow doang, tanpa border */
+            border: none; 
+            opacity: 0.85;
         }
 
-        /* === 🔧 LOGIKA POSISI GAMBAR (MURAL FIX) 🔧 === */
-        /* Karena Slot 1 & 3 Turun, Gambarnya kita geser ke atas dikit */
+        /* === 🔧 LOGIKA POSISI GAMBAR (ALIGNMENT FIX) 🔧 === */
+        /* Slot 1 & 3: Posisi Normal */
         #card-1 { 
-            transform: translateY(15px); 
-            background-position: 0% 45%; /* Geser Y dikit */
+            transform: translateY(20px); 
+            background-position: 0% 50%; 
         }
         #card-3 { 
-            transform: translateY(15px); 
-            background-position: 100% 45%; 
+            transform: translateY(20px); 
+            background-position: 100% 50%; 
         }
         
-        /* Karena Slot 2 Naik, Gambarnya kita TEKAN ke bawah biar sejajar */
+        /* Slot 2: Naik Fisik, Background Turun Visual */
         #card-2 { 
-            transform: translateY(-15px) scale(1.05); 
-            background-position: 50% 55%; /* Geser Y ke bawah */
+            transform: translateY(-20px) scale(1.08); 
+            /* Geser background ke bawah (65%) untuk kompensasi kartu yang naik */
+            background-position: 50% 65%; 
             z-index: 20;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.8);
-            border: 1px solid rgba(255,255,255,0.2);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.9); /* Shadow lebih tebal */
         }
 
         /* === STATE NYALA (ACTIVE) === */
         .onyx-card.active {
-            filter: grayscale(0%) brightness(1.2) contrast(1.1);
+            filter: grayscale(0%) brightness(1.15) contrast(1.1);
             opacity: 1;
-            animation: oneRhythmGlow 4s infinite ease-in-out; 
+            /* GLOW HALUS TANPA GARIS TEGAS */
+            animation: softGlow 4s infinite ease-in-out; 
         }
 
-        @keyframes oneRhythmGlow {
-            0%, 100% { box-shadow: 0 0 15px rgba(0, 240, 255, 0.2); border-color: rgba(0, 240, 255, 0.4); }
-            50% { box-shadow: 0 0 40px rgba(0, 240, 255, 0.6); border-color: rgba(0, 240, 255, 0.9); }
+        @keyframes softGlow {
+            0%, 100% { box-shadow: 0 0 20px rgba(0, 240, 255, 0.1); }
+            50% { box-shadow: 0 0 50px rgba(0, 240, 255, 0.4); }
         }
 
         /* Fix Transform saat Aktif */
-        #card-1.active, #card-3.active { transform: translateY(15px) scale(1.02); }
-        #card-2.active { transform: translateY(-15px) scale(1.08); }
+        #card-1.active, #card-3.active { transform: translateY(20px) scale(1.02); }
+        #card-2.active { transform: translateY(-20px) scale(1.1); }
 
-        /* LABEL SLOT */
-        .slot-tag {
-            font-family: 'Orbitron'; font-weight: 900; font-size: 10px;
-            color: rgba(255,255,255,0.6); text-align: center;
-            background: rgba(0,0,0,0.8); padding: 4px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            letter-spacing: 1px; width: 100%;
+        /* HEADER AREA (TEMPAT BADGE & NAMA) */
+        .oc-header { 
+            padding-top: 15px; min-height: 80px;
+            display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%);
+            z-index: 2;
         }
 
-        /* CONTENT HEADER (TUMPUK DI ATAS) */
-        .oc-header { 
-            padding-top: 5px;
-            display: flex; flex-direction: column; align-items: center; 
-            background: linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 100%);
-            padding-bottom: 20px;
-            z-index: 2;
-            text-shadow: 0 2px 4px #000; 
+        /* BADGE PINDAH KE PALING ATAS */
+        .badge-container { min-height: 25px; display: flex; align-items: center; justify-content: center; width: 100%; margin-bottom: 5px; }
+        
+        .role-badge {
+            font-size: 9px; padding: 4px 10px; border-radius: 4px; font-weight: bold; font-family: 'Orbitron';
+            text-transform: uppercase; display: inline-block; letter-spacing: 1px;
+            background: rgba(0,0,0,0.6); color: #ccc;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+            backdrop-filter: blur(4px);
         }
         
-        /* PLAT NOMOR (UKURAN DIPERBAIKI) */
+        .badge-ketum { background: linear-gradient(90deg, #d4af37, #f1c40f); color: #000; text-shadow: none; }
+        .badge-satgas { border-bottom: 2px solid #FFD700; color: #fff; }
+        .badge-family { border: 1px solid rgba(0, 240, 255, 0.3); color: #fff; background: rgba(0,0,0,0.8); }
+
+        /* INFO USER */
         .oc-plat { 
             font-family:'Inter'; font-weight: 900; 
-            font-size: 16px; /* Pas, gak kegedean */
+            font-size: 16px; 
             color: #fff; margin-bottom: 2px;
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-            max-width: 95%;
+            text-shadow: 0 2px 4px #000;
         }
-        
-        .oc-name { font-size: 9px; color: #ddd; text-transform: uppercase; font-weight: 800; letter-spacing: 1px; margin-bottom: 4px;}
+        .oc-name { font-size: 10px; color: #aaa; text-transform: uppercase; font-weight: 700; letter-spacing: 1px; text-shadow: 0 2px 4px #000; }
 
-        /* BADGE PINDAH KE SINI (HEADER) */
-        .role-badge {
-            font-size: 8px; padding: 2px 6px; border-radius: 3px; font-weight: bold; font-family: 'Orbitron';
-            text-transform: uppercase; display: inline-block; letter-spacing: 0.5px;
-            background: rgba(0,0,0,0.8); border: 1px solid #555; color: #ccc;
-            margin-top: 2px;
+        /* BODY KOSONG (AREA GAMBAR) */
+        .oc-body { flex: 1; } 
+        .oc-big-status { display: none; } /* Hilangkan status text total */
+
+        /* FOOTER (TEMPAT SLOT LABEL) */
+        .oc-footer { 
+            padding-bottom: 0; 
+            display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
         }
-        
-        /* WARNA BADGE */
-        .badge-ketum { background: linear-gradient(45deg, #B8860B, #FFD700); color: #000; border: 1px solid #fff; animation: shine 2s infinite; }
-        .badge-satgas { background: repeating-linear-gradient(45deg, #000, #000 5px, #FFD700 5px, #FFD700 10px); color: #fff; text-shadow: 0 0 2px #000; border: 1px solid #FFD700; }
-        .badge-family { border: 1px solid var(--blue); color: #fff; box-shadow: 0 0 5px var(--blue); background: #000; }
-        
-        @keyframes shine { 0%{filter:brightness(1);} 50%{filter:brightness(1.3);} 100%{filter:brightness(1);} }
 
-        /* BODY KOSONG (BIAR GAMBAR KELIATAN) */
-        .oc-body { flex: 1; display: flex; align-items: center; justify-content: center; }
-        
-        .oc-big-status { 
-            font-family: 'Teko'; font-weight: 500; font-size: 40px; 
-            color: rgba(255,255,255,0.1); /* Redup banget */
+        /* LABEL SLOT (PINDAH BAWAH) */
+        .slot-tag {
+            font-family: 'Orbitron'; font-weight: 900; font-size: 11px;
+            color: rgba(255,255,255,0.5); text-align: center;
+            background: linear-gradient(to top, rgba(0,0,0,0.9), rgba(0,0,0,0)); 
+            padding: 10px 0; width: 100%;
+            letter-spacing: 2px;
+            border-top: 1px solid rgba(255,255,255,0.05);
         }
-        .onyx-card.active .oc-big-status { display: none; } /* Hilang kalau aktif */
 
-        /* FOOTER KOSONG (BIAR GAMBAR BAWAH BERSIH) */
-        .oc-footer { height: 20px; } 
-
-        /* CONTROL AREA (PEMBAIKAN POSISI PLAYER) */
+        /* CONTROL AREA */
         .control-area { 
             flex: 1; width: 100%; 
-            background: linear-gradient(to top, #000 50%, transparent 100%); 
+            background: linear-gradient(to top, #000 60%, transparent 100%); 
             display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
-            padding-bottom: 60px; /* GANJALAN BIAR GAK KETUTUP */
-            z-index: 50; 
+            padding-bottom: 50px; z-index: 50; 
         }
         
-        .fp-container { position: relative; width: 60px; height: 60px; display: flex; justify-content: center; align-items: center; margin-bottom: 5px; }
-        .fp-btn { width: 50px; height: 50px; background: rgba(0,0,0,0.8); border: 2px solid var(--accent); border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; box-shadow: 0 0 20px rgba(204, 255, 0, 0.3); transition: 0.2s; }
-        .fp-btn:active { transform: scale(0.95); }
+        .fp-container { position: relative; width: 60px; height: 60px; margin-bottom: 5px; display:flex; justify-content:center; align-items:center; }
+        .fp-btn { width: 50px; height: 50px; background: rgba(0,0,0,0.8); border: 2px solid var(--accent); border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; box-shadow: 0 0 20px rgba(204, 255, 0, 0.2); }
         .fp-svg { width: 25px; height: 25px; fill: var(--accent); opacity: 0.9; }
-        .fp-text { font-family:'Orbitron'; font-size:9px; color:#aaa; margin-bottom: 5px; letter-spacing: 2px; }
+        .fp-text { font-family:'Orbitron'; font-size:9px; color:#666; margin-bottom: 5px; letter-spacing: 2px; }
 
-        .info-row { text-align: center; margin-bottom: 15px; }
+        .info-row { text-align: center; margin-bottom: 10px; }
         .antrian-text { font-family: 'Orbitron'; font-size: 14px; font-weight: 900; color: #fff; text-shadow: 0 0 10px var(--blue); }
 
-        .music-wrapper { width: 90%; display: flex; align-items: center; justify-content: space-between; padding: 10px 20px; background: rgba(20, 25, 30, 0.95); border: 1px solid #333; border-radius: 50px; backdrop-filter: blur(10px); box-shadow: 0 5px 30px rgba(0,0,0,0.8); margin-bottom: 10px; }
+        .music-wrapper { width: 85%; display: flex; align-items: center; justify-content: space-between; padding: 10px 20px; background: rgba(20, 25, 30, 0.95); border: 1px solid #333; border-radius: 50px; backdrop-filter: blur(10px); box-shadow: 0 5px 30px rgba(0,0,0,0.8); margin-bottom: 10px; }
         .m-btn { background:none; border:none; color:#fff; font-size:18px; cursor: pointer; padding: 0 10px; }
         .track-info { font-family:'JetBrains Mono'; font-size:10px; font-weight:bold; color:var(--blue); width: 140px; text-align: center; white-space: nowrap; overflow: hidden; cursor: pointer; }
         
@@ -163,7 +158,6 @@
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 3000; justify-content: center; align-items: center; }
         .modal-box { background: #111; border: 2px solid var(--blue); padding: 30px; border-radius: 20px; width: 85%; max-width: 300px; text-align: center; box-shadow: 0 0 30px rgba(0,240,255,0.2); }
         .btn-glossy { padding: 10px 20px; border-radius: 50px; font-family: 'Orbitron'; font-weight: bold; font-size: 12px; color: #000; cursor: pointer; background: var(--blue); border: none; margin-top: 15px; width: 100%; }
-        @keyframes blink { 50% { opacity: 0.5; } }
     </style>
 </head>
 <body onclick="firstInteraction()">
@@ -175,33 +169,37 @@
 
     <div id="frontView">
         <div class="onyx-card" id="card-1">
-            <div class="slot-tag">SLOT 01</div>
             <div class="oc-header">
-                <div class="oc-plat" id="p1-plat">-</div>
+                <div class="badge-container" id="p1-badge-area"></div> <div class="oc-plat" id="p1-plat">-</div>
                 <div class="oc-name" id="p1-name"></div>
-                <div class="role-badge" id="p1-badge" style="display:none;"></div> </div>
-            <div class="oc-body"><div class="oc-big-status" id="p1-main">OFF</div></div>
-            <div class="oc-footer"></div>
+            </div>
+            <div class="oc-body"></div>
+            <div class="oc-footer">
+                <div class="slot-tag">SLOT 01</div> </div>
         </div>
 
         <div class="onyx-card" id="card-2">
-            <div class="slot-tag">SLOT 02</div>
             <div class="oc-header">
+                <div class="badge-container" id="p2-badge-area"></div>
                 <div class="oc-plat" id="p2-plat">-</div>
                 <div class="oc-name" id="p2-name"></div>
-                <div class="role-badge" id="p2-badge" style="display:none;"></div> </div>
-            <div class="oc-body"><div class="oc-big-status" id="p2-main">OFF</div></div>
-            <div class="oc-footer"></div>
+            </div>
+            <div class="oc-body"></div>
+            <div class="oc-footer">
+                <div class="slot-tag">SLOT 02</div>
+            </div>
         </div>
 
         <div class="onyx-card" id="card-3">
-            <div class="slot-tag">SLOT 03</div>
             <div class="oc-header">
+                <div class="badge-container" id="p3-badge-area"></div>
                 <div class="oc-plat" id="p3-plat">-</div>
                 <div class="oc-name" id="p3-name"></div>
-                <div class="role-badge" id="p3-badge" style="display:none;"></div> </div>
-            <div class="oc-body"><div class="oc-big-status" id="p3-main">OFF</div></div>
-            <div class="oc-footer"></div>
+            </div>
+            <div class="oc-body"></div>
+            <div class="oc-footer">
+                <div class="slot-tag">SLOT 03</div>
+            </div>
         </div>
     </div>
 
@@ -311,18 +309,13 @@
         window.prevTrack = () => { currentTrackIdx = (currentTrackIdx - 1 + playlist.length) % playlist.length; window.playTrack(currentTrackIdx); }
         audio.addEventListener('ended', () => window.nextTrack());
 
-        // === 🔥 HELPER BADGE ANIMASI 🔥 ===
-        function getBadgeHTML(role) {
-            if(!role) return "";
+        // === 🔥 HELPER BADGE (TEXT ONLY FOR HEADER) 🔥 ===
+        function getBadgeClass(role) {
+            if(!role) return "badge-family";
             const r = role.toUpperCase();
-            if(r === "KETUM") return `<div class="role-badge badge-ketum">KETUA UMUM</div>`;
-            if(r === "WAKETUM") return `<div class="role-badge badge-ketum">WAKIL KETUA UMUM</div>`;
-            if(r === "SATGAS") return `<div class="role-badge badge-satgas"><span>⚡ SATUAN TUGAS ⚡</span></div>`;
-            if(r === "MEMBER" || r === "KELUARGA MLU") {
-                return `<div class="role-badge badge-family"><span class="char">K</span><span class="char">E</span><span class="char">L</span><span class="char">U</span><span class="char">A</span><span class="char">R</span><span class="char">G</span><span class="char">A</span><span style="width:2px; display:inline-block;"></span><span class="char">M</span><span class="char">L</span><span class="char">U</span></div>`;
-            }
-            if(r.includes("PELAN") || r.includes("TURTLE")) return `<div class="role-badge badge-family">🐢 PELAN TAPI KENCENG</div>`;
-            return `<div class="role-badge badge-family">${r}</div>`;
+            if(r === "KETUM" || r === "WAKETUM") return "badge-ketum";
+            if(r === "SATGAS") return "badge-satgas";
+            return "badge-family";
         }
 
         // --- UPDATE VIEW ---
@@ -331,34 +324,31 @@
                 const elCard = document.getElementById(`card-${i+1}`);
                 const elPlat = document.getElementById(`p${i+1}-plat`);
                 const elName = document.getElementById(`p${i+1}-name`);
-                const elBadge = document.getElementById(`p${i+1}-badge`);
-                const elMain = document.getElementById(`p${i+1}-main`);
+                const elBadgeArea = document.getElementById(`p${i+1}-badge-area`);
 
                 // RESET SEMUA
                 elCard.classList.remove('active'); 
-                elBadge.style.display = 'none'; // Sembunyikan badge kalau kosong
+                elBadgeArea.innerHTML = ""; 
 
                 if (m && m.plat) {
                      // === STATE: ACTIVE (ISI) ===
                      elPlat.innerText = m.plat;
                      elName.innerText = m.userName || "USER";
-                     elMain.innerText = ""; // Teks OFF ilang
                      
                      // VISUAL NYALA
                      elCard.classList.add('active');
 
                      // RENDER BADGE DI ATAS (HEADER)
                      if(m.role) {
-                         elBadge.style.display = 'inline-block';
-                         elBadge.innerHTML = getBadgeHTML(m.role);
-                         // Hapus class role-badge biar gak dobel styling dari fungsi getBadgeHTML
-                         elBadge.className = ''; 
+                         const span = document.createElement("span");
+                         span.className = "role-badge " + getBadgeClass(m.role);
+                         span.innerText = m.role;
+                         elBadgeArea.appendChild(span);
                      }
                 } else { 
                     // === STATE: IDLE (KOSONG) ===
                     elPlat.innerText = "-"; 
                     elName.innerText = ""; 
-                    elMain.innerText = "OFF"; 
                 }
             });
         }
