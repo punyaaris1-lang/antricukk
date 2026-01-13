@@ -18,7 +18,7 @@
 
         /* --- CARD CONTAINER --- */
         #frontView { 
-            height: 65vh; 
+            height: 60vh; 
             display: flex; justify-content: center; align-items: center; 
             padding: 0 10px; gap: 0px; 
             width: 100%; position: relative; z-index: 5;
@@ -26,22 +26,43 @@
 
         .onyx-card { 
             position: relative; width: 33.33%; height: 55vh; 
-            display: flex; flex-direction: column; justify-content: flex-end; /* KONTEN MENTOK BAWAH */
+            display: flex; flex-direction: column; justify-content: flex-end; 
             overflow: hidden; transition: 0.5s ease-in-out;
             
-            /* BACKGROUND IMAGE */
+            /* BACKGROUND KEMBALI KE VERSI NYAMBUNG */
             background-image: url('1763947427555.jpg'); 
-            background-size: 300% 600px; /* Ukuran Fix biar nyambung */
+            background-size: 305% 100%; /* Kunci aspect ratio gambar */
             background-repeat: no-repeat;
             
             filter: grayscale(100%) brightness(0.4) contrast(1.2);
             opacity: 0.9; box-shadow: inset 0 0 50px #000;
         }
 
-        /* === POSISI GAMBAR (HEIGHT METHOD) === */
-        #card-1 { height: 50vh; background-position: 0% 50%; border-radius: 15px 0 0 15px; }
-        #card-3 { height: 50vh; background-position: 100% 50%; border-radius: 0 15px 15px 0; }
-        #card-2 { height: 60vh; background-position: 50% 50%; z-index: 20; border-radius: 10px; box-shadow: 0 0 80px #000; }
+        /* === 🔧 LOGIKA GAMBAR NYAMBUNG (PRECISION FIX) 🔧 === */
+        
+        /* Slot 1 (Kiri) */
+        #card-1 { 
+            transform: translateY(15px); /* Turun dikit */
+            background-position: 0% 50%; 
+            border-radius: 15px 0 0 15px;
+        }
+
+        /* Slot 3 (Kanan) */
+        #card-3 { 
+            transform: translateY(15px); /* Turun dikit */
+            background-position: 100% 50%; 
+            border-radius: 0 15px 15px 0;
+        }
+        
+        /* Slot 2 (Tengah) */
+        #card-2 { 
+            transform: translateY(-25px) scale(1.1); /* Naik Tinggi & Zoom */
+            z-index: 20; 
+            /* RAHASIA NYAMBUNG: Gambar digeser ke bawah (58%) untuk ngelawan posisi kartu yg naik */
+            background-position: 50% 58%; 
+            border-radius: 10px;
+            box-shadow: 0 0 80px #000;
+        }
 
         /* STATE NYALA */
         .onyx-card.active {
@@ -49,56 +70,60 @@
             opacity: 1; z-index: 25;
             animation: pulseGlow 3s infinite alternate; 
         }
-        @keyframes pulseGlow { from { box-shadow: 0 0 20px rgba(0, 240, 255, 0.1); } to { box-shadow: 0 0 50px rgba(0, 240, 255, 0.4); } }
+        @keyframes pulseGlow { from { box-shadow: 0 0 20px rgba(0, 240, 255, 0.1); } to { box-shadow: 0 0 60px rgba(0, 240, 255, 0.5); } }
 
-        /* === FOOTER (SATU-SATUNYA TEMPAT INFO) === */
+        /* Fix Posisi Active (Tetap Stabil) */
+        #card-1.active, #card-3.active { transform: translateY(15px) scale(1.02); }
+        #card-2.active { transform: translateY(-25px) scale(1.12); }
+
+        /* FOOTER (INFO USER) */
         .oc-footer { 
             width: 100%; z-index: 2; 
-            /* Gradient background naik tinggi biar tulisan kebaca */
-            background: linear-gradient(to top, #000 40%, rgba(0,0,0,0.8) 90%, rgba(0,0,0,0) 100%);
+            background: linear-gradient(to top, #000 30%, rgba(0,0,0,0.8) 80%, rgba(0,0,0,0) 100%);
             padding: 30px 5px 15px 5px; 
             display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
-            min-height: 130px; /* Space cukup buat numpuk badge + nama */
+            min-height: 120px;
         }
 
-        /* 1. BADGE (PALING ATAS TUMPUKAN) */
-        .badge-container { margin-bottom: 8px; display: flex; justify-content: center; width: 100%; }
-        
-        .role-badge {
-            font-size: 9px; padding: 3px 8px; border-radius: 3px; font-weight: bold; font-family: 'Orbitron';
-            text-transform: uppercase; display: inline-flex; align-items: center; justify-content: center;
-            letter-spacing: 0.5px; box-shadow: 0 2px 5px #000;
-            white-space: nowrap; /* Biar ga turun baris */
+        /* === BADGE SYSTEM (1 BARIS + ANIMASI) === */
+        .badge-container { 
+            margin-bottom: 5px; 
+            width: 100%; display: flex; justify-content: center;
+            overflow: visible; /* Biar glow animasi gak kepotong */
         }
         
-        /* WARNA BADGE */
-        .badge-ketum { background: linear-gradient(90deg, #d4af37, #f1c40f); color: #000; border: none; animation: shine 2s infinite; }
-        .badge-satgas { border-bottom: 1px solid #FFD700; color: #fff; background: rgba(0,0,0,0.8); }
-        .badge-turtle { border: 1px solid #39FF14; color: #39FF14; background: #000; }
+        .role-badge {
+            font-family: 'Orbitron'; font-weight: 700; font-size: 9px;
+            text-transform: uppercase; display: inline-flex; align-items: center; justify-content: center;
+            padding: 3px 8px; border-radius: 4px;
+            white-space: nowrap; /* WAJIB: BIAR GAK TURUN BARIS */
+            box-shadow: 0 2px 5px #000;
+        }
+        
+        .badge-ketum { background: linear-gradient(90deg, #d4af37, #f1c40f); color: #000; animation: shine 2s infinite; }
+        .badge-satgas { border-bottom: 2px solid #FFD700; color: #fff; background: rgba(0,0,0,0.8); }
         
         /* FIX BADGE PANJANG (KELUARGA MLU) */
         .badge-family { 
-            background: rgba(0,0,0,0.9); color: #fff; border: 1px solid var(--blue);
-            font-size: 8px; /* Font dikecilin dikit khusus ini */
-            padding: 3px 4px;
-            gap: 1px;
+            background: rgba(0,0,0,0.95); color: #fff; border: 1px solid var(--blue);
+            font-size: 8px; /* Font kecilin dikit */
+            padding: 4px 6px;
+            gap: 1px; /* Jarak antar huruf */
         }
 
-        /* 2. PLAT NOMOR */
+        /* PLAT & NAMA */
         .oc-plat { 
-            font-family:'Inter'; font-weight: 900; font-size: 16px; 
+            font-family:'Inter'; font-weight: 900; font-size: 14px; /* Ukuran Aman */
             color: #fff; margin-bottom: 2px; line-height: 1;
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
             text-shadow: 0 2px 5px #000;
         }
-
-        /* 3. NAMA */
         .oc-name { 
-            font-size: 10px; color: #aaa; text-transform: uppercase; 
+            font-size: 9px; color: #aaa; text-transform: uppercase; 
             font-weight: 700; letter-spacing: 1px; text-shadow: 0 2px 5px #000;
         }
 
-        /* ANIMASI TEXT KETIK */
+        /* ANIMASI HURUF (TYPING EFFECT) */
         .char { display: inline-block; opacity: 0; transform: translateY(2px); animation: typeIn 2.5s infinite; color: var(--blue); }
         .char:nth-child(1) { animation-delay: 0.1s; } .char:nth-child(2) { animation-delay: 0.2s; }
         .char:nth-child(3) { animation-delay: 0.3s; } .char:nth-child(4) { animation-delay: 0.4s; }
@@ -110,14 +135,17 @@
         @keyframes typeIn { 0% { opacity: 0; } 20% { opacity: 1; transform: translateY(0); } 80% { opacity: 1; } 100% { opacity: 0; } }
         @keyframes shine { 0%{filter:brightness(1);} 50%{filter:brightness(1.5);} 100%{filter:brightness(1);} }
 
-        /* TAMPILAN SLOT KOSONG */
+        /* HEADER & BODY HILANG */
+        .oc-header, .oc-body { display: none; }
+        
+        /* SLOT LABEL */
         .slot-label {
-            font-family: 'Orbitron'; font-weight: 900; font-size: 12px;
+            font-family: 'Orbitron'; font-weight: 900; font-size: 11px;
             color: rgba(255,255,255,0.3); text-align: center;
-            letter-spacing: 4px; padding-bottom: 5px;
+            letter-spacing: 3px; padding-bottom: 5px;
         }
 
-        /* CONTROL AREA (SIMPLE) */
+        /* CONTROL AREA */
         .control-area { 
             flex: 1; width: 100%; 
             background: linear-gradient(to top, #000 80%, transparent 100%); 
@@ -132,7 +160,6 @@
         .info-row { text-align: center; }
         .antrian-text { font-family: 'Orbitron'; font-size: 14px; font-weight: 900; color: #fff; text-shadow: 0 0 10px var(--blue); }
 
-        /* MODAL */
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 3000; justify-content: center; align-items: center; }
         .modal-box { background: #111; border: 2px solid var(--blue); padding: 30px; border-radius: 20px; width: 85%; max-width: 300px; text-align: center; box-shadow: 0 0 30px rgba(0,240,255,0.2); }
         .btn-glossy { padding: 10px 20px; border-radius: 50px; font-family: 'Orbitron'; font-weight: bold; font-size: 12px; color: #000; cursor: pointer; background: var(--blue); border: none; margin-top: 15px; width: 100%; }
@@ -151,13 +178,11 @@
                 <div class="slot-label">SLOT 01</div>
             </div>
         </div>
-
         <div class="onyx-card" id="card-2">
             <div class="oc-footer" id="p2-footer">
                 <div class="slot-label">SLOT 02</div>
             </div>
         </div>
-
         <div class="onyx-card" id="card-3">
             <div class="oc-footer" id="p3-footer">
                 <div class="slot-label">SLOT 03</div>
@@ -197,7 +222,6 @@
         const db = getFirestore(app);
         const ref = doc(db, "antrian", "utama");
 
-        // --- LOCALS ---
         let USE_FAKE_GPS = true; 
         const STATION_LOC = { lat: -6.171583, lng: 106.899844 }; 
         const MAX_DIST_KM = 0.2; 
@@ -209,7 +233,7 @@
             silent.play().catch(e => console.log("Audio locked"));
         };
 
-        // === BADGE HTML ===
+        // === FUNCTION BADGE ANIMASI ===
         function getBadgeHTML(role) {
             if(!role) return "";
             const r = role.toUpperCase();
@@ -217,7 +241,7 @@
             if(r === "WAKETUM") return `<div class="role-badge badge-ketum">WAKIL KETUA UMUM</div>`;
             if(r === "SATGAS") return `<div class="role-badge badge-satgas"><span>SATUAN TUGAS</span></div>`;
             
-            // ANIMASI TYPING KHUSUS "KELUARGA MLU"
+            // ANIMASI TYPING 1 BARIS (K E L U A R G A M L U)
             if(r === "MEMBER" || r === "KELUARGA MLU") {
                 return `<div class="role-badge badge-family"><span class="char">K</span><span class="char">E</span><span class="char">L</span><span class="char">U</span><span class="char">A</span><span class="char">R</span><span class="char">G</span><span class="char">A</span><span style="width:3px;display:inline-block;"></span><span class="char">M</span><span class="char">L</span><span class="char">U</span></div>`;
             }
@@ -225,7 +249,7 @@
             return `<div class="role-badge badge-family">${r}</div>`;
         }
 
-        // --- UPDATE VIEW (SEMUA DI FOOTER) ---
+        // --- UPDATE VIEW ---
         function updateFrontView(slots) {
             slots.forEach((m, i) => {
                 const elCard = document.getElementById(`card-${i+1}`);
@@ -233,11 +257,10 @@
 
                 // RESET STATE
                 elCard.classList.remove('active'); 
-                
+                elFooter.innerHTML = `<div class="slot-label">SLOT 0${i+1}</div>`;
+
                 if (m && m.plat) {
-                     // STATE: ISI
                      elCard.classList.add('active');
-                     
                      // RENDER INFO DI BAWAH (URUTAN: BADGE -> PLAT -> NAMA)
                      let badgeHTML = m.role ? `<div class="badge-container">${getBadgeHTML(m.role)}</div>` : "";
                      
@@ -246,14 +269,11 @@
                         <div class="oc-plat">${m.plat}</div>
                         <div class="oc-name">${m.userName || "USER"}</div>
                      `;
-                } else {
-                    // STATE: KOSONG
-                    elFooter.innerHTML = `<div class="slot-label">SLOT 0${i+1}</div>`;
                 }
             });
         }
 
-        // --- GPS ---
+        // --- GPS & SYSTEM ---
         function getDist(lat1,lon1,lat2,lon2){ const R=6371; const dLat=(lat2-lat1)*Math.PI/180; const dLon=(lon2-lon1)*Math.PI/180; const a=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)*Math.sin(dLon/2); return R*(2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a))); }
 
         window.checkLocationOnly = () => {
