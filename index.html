@@ -11,222 +11,214 @@
     
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     
-    <link href="https://fonts.googleapis.com/css2?family=Teko:wght@300;500;700&family=Orbitron:wght@400;700;900&family=JetBrains+Mono:wght@400;700;800&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Teko:wght@300;500;700&family=Orbitron:wght@400;700;900&family=Rajdhani:wght@500;700&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     
     <style>
-        /* === 1. GLOBAL STYLE (CINEMATIC THEME) === */
-        :root { --bg: #000000; --accent: #CCFF00; --blue: #00F0FF; --red: #ff003c; --glass: rgba(20, 25, 30, 0.95); }
+        /* === GLOBAL SETTINGS === */
+        :root { 
+            --bg: #000; 
+            --accent: #CCFF00; 
+            --blue: #00F0FF; 
+            --red: #FF003C; 
+            --gold: #FFD700;
+        }
         * { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; user-select: none; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); color: #fff; margin: 0; overflow: hidden; height: 100vh; display: flex; flex-direction: column; }
+        
+        body { 
+            font-family: 'Rajdhani', sans-serif; background: var(--bg); color: #fff; margin: 0; 
+            overflow: hidden; height: 100vh; display: flex; flex-direction: column; 
+            background-image: radial-gradient(circle at 50% 30%, #111 0%, #000 90%);
+        }
 
         /* HEADER */
-        .top-nav { height: 12vh; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; padding-top: 15px; }
+        .top-nav { height: 15vh; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; padding-top: 20px; }
         .main-title { font-family: 'Teko'; font-size: 42px; font-weight: 700; line-height: 0.9; color: #fff; text-shadow: 0 0 15px rgba(0, 240, 255, 0.6); margin: 0; }
         .brand-sub { font-size: 10px; color: var(--accent); letter-spacing: 3px; font-weight: 700; margin-top: 5px; text-transform: uppercase; }
 
-        /* === SPLIT CARD CONTAINER === */
+        /* === CONTAINER UTAMA === */
         #frontView { 
-            height: 55vh; 
+            flex: 1; 
             display: flex; justify-content: center; align-items: center; 
-            padding: 0 5px; gap: 0px; 
+            padding: 0 8px; gap: 8px; 
             width: 100%; position: relative; z-index: 5;
+            padding-bottom: 20px;
         }
 
-        .onyx-card { 
-            position: relative; width: 33.33%; height: 50vh; 
-            display: flex; flex-direction: column; justify-content: space-between; 
-            overflow: hidden; transition: 0.5s ease-in-out;
+        /* WRAPPER PER SLOT */
+        .slot-column {
+            flex: 1; height: 60vh;
+            display: flex; flex-direction: column;
+            justify-content: center;
+        }
+
+        /* === 1. BAGIAN GAMBAR (NO BORDER - MURNI IMAGE) === */
+        .img-box {
+            flex: 1; 
+            width: 100%;
+            border-radius: 12px;
             
-            /* BACKGROUND IMAGE (GANTI URL INI DENGAN LOGO ASLI) */
-            background-image: url('logo.png'); /* Pastikan file logo.png ada */
-            background-size: 300% auto; background-repeat: no-repeat;
-            background-position: center;
+            /* HILANGKAN BORDER SESUAI REQUEST */
+            border: none; 
             
-            /* STATE MATI */
-            filter: grayscale(100%) brightness(0.3) contrast(1.2);
-            border: none; opacity: 0.8; box-shadow: inset 0 0 50px #000;
+            background-image: url('logo.png'); 
+            background-size: 300% 100%;
+            background-repeat: no-repeat;
+            
+            /* State Mati */
+            filter: grayscale(100%) brightness(0.3);
+            opacity: 0.5;
+            transition: 0.4s;
+            box-shadow: inset 0 0 50px #000; /* Inner Shadow biar dapet depth */
         }
 
-        /* CARD POSITIONING & SPLIT EFFECT */
-        #card-1 { height: 45vh; background-position: 0% 50%; border-radius: 15px 0 0 15px; }
-        #card-3 { height: 45vh; background-position: 100% 50%; border-radius: 0 15px 15px 0; }
-        #card-2 { height: 53vh; background-position: 50% 50%; z-index: 20; border-radius: 10px; box-shadow: 0 0 60px #000; }
+        /* POSISI POTONGAN GAMBAR */
+        #img-1 { background-position: 0% 50%; }
+        #img-2 { background-position: 50% 50%; }
+        #img-3 { background-position: 100% 50%; }
 
-        /* STATE NYALA (ACTIVE) */
-        .onyx-card.active {
-            filter: grayscale(0%) brightness(1.2) contrast(1.1);
-            opacity: 1; z-index: 25;
-            animation: softGlow 3s infinite alternate; 
-        }
-        @keyframes softGlow {
-            from { box-shadow: 0 0 20px rgba(0, 240, 255, 0.2); }
-            to { box-shadow: 0 0 60px rgba(0, 240, 255, 0.5); }
-        }
-
-        /* HEADER & FOOTER DI DALAM KARTU */
-        .oc-header { height: 30px; width: 100%; background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent); z-index: 2; }
-        
-        .oc-footer { 
-            width: 100%; z-index: 2; min-height: 90px; 
-            display: flex; align-items: flex-end; justify-content: center;
-        }
-
-        .slot-label {
-            font-family: 'Orbitron'; font-weight: 900; font-size: 11px;
-            color: rgba(255,255,255,0.3); text-align: center;
-            background: linear-gradient(to top, rgba(0,0,0,0.9), rgba(0,0,0,0)); 
-            padding: 15px 0 10px 0; width: 100%; letter-spacing: 3px;
-        }
-
-        /* === INFO USER (PLAT, NAMA, BADGE) === */
-        .active-user-info {
-            width: 100%; text-align: center;
-            background: linear-gradient(to top, rgba(0,0,0,0.95) 30%, rgba(0,0,0,0) 100%);
-            padding: 10px 2px 15px 2px;
-            display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
-            overflow: hidden; height: 100%;
+        /* EFEK NYALA (CUMA GLOW, GAK ADA GARIS) */
+        .slot-column.active .img-box {
+            filter: grayscale(0%) brightness(1.1) contrast(1.1);
+            opacity: 1;
+            /* GLOW WARNA SESUAI ROLE */
+            box-shadow: 0 0 30px rgba(0, 240, 255, 0.4); 
         }
         
-        .oc-plat { 
-            font-family:'Inter'; font-weight: 900; 
-            font-size: clamp(12px, 5vw, 20px); /* Responsif */
-            color: #fff; margin-bottom: 2px; 
-            white-space: nowrap; text-overflow: ellipsis; width: 100%; 
-            text-shadow: 0 2px 10px #000; letter-spacing: -0.5px;
-        }
-        .oc-name { 
-            font-size: clamp(9px, 3vw, 11px); /* Responsif */
-            color: var(--accent); text-transform: uppercase; 
-            font-weight: 800; letter-spacing: 0.5px; text-shadow: 0 2px 5px #000;
-            white-space: nowrap; width: 100%; overflow: hidden; text-overflow: ellipsis;
-            margin-bottom: 5px;
+        /* VARIASI GLOW */
+        .slot-column.ketum.active .img-box { box-shadow: 0 0 30px rgba(255, 215, 0, 0.4); }
+        .slot-column.satgas.active .img-box { box-shadow: 0 0 30px rgba(255, 0, 60, 0.4); }
+        /* Slot Tengah Zoom Dikit */
+        .slot-column.center .img-box { transform: scale(1.02); z-index: 2; }
+
+
+        /* === 2. BAGIAN INFO BOX (TERPISAH DI BAWAH) === */
+        .info-box {
+            height: 90px;
+            margin-top: 10px; /* JARAK MISAH */
+            width: 100%;
+            
+            /* Background Gelap Transparan */
+            background: linear-gradient(180deg, rgba(15,15,20,0.9), #000);
+            border-top: 1px solid #333; /* Cuma garis tipis diatas */
+            border-radius: 10px;
+            
+            display: flex; flex-direction: column; 
+            align-items: center; justify-content: center;
+            padding: 5px;
+            
+            opacity: 0.6; transition: 0.3s;
         }
 
-        /* === BADGE STYLES === */
-        .role-badge {
-            padding: 2px 6px; border-radius: 4px; 
-            font-family: 'Orbitron'; font-weight: bold; font-size: 8px; 
-            text-transform: uppercase; display: inline-flex; align-items: center; justify-content: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.5); letter-spacing: 0.5px;
-            backdrop-filter: blur(4px); white-space: nowrap; max-width: 95%; 
+        /* Box Nyala */
+        .slot-column.active .info-box {
+            opacity: 1;
+            border-top: 2px solid var(--blue);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.8);
         }
-        .badge-ketum { background: linear-gradient(45deg, #B8860B, #FFD700, #FFFACD, #FFD700); color: #3b2a08; border: 1px solid #FFD700; animation: metalShine 3s infinite linear; }
-        .badge-satgas { background: repeating-linear-gradient(45deg, #000, #000 5px, #FFD700 5px, #FFD700 10px); color: #fff; border: 1px solid #FFD700; animation: hazardMove 1s infinite linear; }
-        .badge-family { background: rgba(0,0,0,0.9); color: #fff; border: 1px solid var(--blue); box-shadow: 0 0 10px rgba(0, 240, 255, 0.3); }
-        .badge-turtle { background: #000; border: 1px solid #39FF14; color: #39FF14; }
-        .turtle-icon { font-size: 10px; margin-right: 3px; animation: runTurtle 3s infinite linear; }
+        .slot-column.ketum .info-box { border-top-color: var(--gold); }
+        .slot-column.satgas .info-box { border-top-color: var(--red); }
 
-        @keyframes metalShine { 0% { background-position: 0% 50%; } 100% { background-position: 100% 50%; } }
-        @keyframes hazardMove { 0% { background-position: 0 0; } 100% { background-position: 20px 0; } }
-        @keyframes runTurtle { 0% { transform: translateX(0); } 50% { transform: translateX(5px); } 100% { transform: translateX(0); } }
-        .char { display: inline-block; opacity: 0; transform: translateY(2px); animation: typeIn 2.5s infinite; color: var(--blue); font-size: 8px; }
-        .char:nth-child(1) { animation-delay: 0.1s; } .char:nth-child(2) { animation-delay: 0.2s; } .char:nth-child(3) { animation-delay: 0.3s; }
-        .char:nth-child(4) { animation-delay: 0.4s; } .char:nth-child(5) { animation-delay: 0.5s; } .char:nth-child(6) { animation-delay: 0.6s; }
-        .char:nth-child(7) { animation-delay: 0.7s; } .char:nth-child(8) { animation-delay: 0.8s; } .char:nth-child(9) { animation-delay: 0.9s; }
-        .char:nth-child(10) { animation-delay: 1.0s; } .char:nth-child(11) { animation-delay: 1.1s; } .char:nth-child(12) { animation-delay: 1.2s; }
-        @keyframes typeIn { 0% { opacity: 0; } 20% { opacity: 1; transform: translateY(0); } 80% { opacity: 1; } 100% { opacity: 0; } }
+        /* ISI KOTAK INFO */
+        .plat-text {
+            font-family: 'Teko'; font-size: clamp(20px, 5vw, 26px); 
+            font-weight: 600; line-height: 0.9;
+            color: #fff; margin-bottom: 2px;
+            text-shadow: 0 2px 5px #000;
+            white-space: nowrap;
+        }
+        .name-text {
+            font-family: 'Orbitron'; font-size: 8px; font-weight: 700;
+            color: #888; text-transform: uppercase; margin-bottom: 6px;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; text-align: center;
+        }
+        .empty-text {
+            font-family: 'Orbitron'; font-size: 10px; color: #444; letter-spacing: 2px;
+        }
 
-        /* === CONTROL AREA (BAWAH) === */
+        /* BADGE KECIL DI DALAM BOX */
+        .mini-badge {
+            font-size: 8px; padding: 2px 8px; border-radius: 4px;
+            background: rgba(0, 240, 255, 0.1); border: 1px solid var(--blue); color: var(--blue);
+            font-family: 'Orbitron'; text-transform: uppercase; white-space: nowrap;
+        }
+        .slot-column.ketum .mini-badge { border-color: var(--gold); color: var(--gold); background: rgba(255,215,0,0.1); }
+        .slot-column.satgas .mini-badge { border-color: var(--red); color: var(--red); background: rgba(255,0,60,0.1); }
+
+        /* === FOOTER CONTROLS === */
         .control-area { 
-            flex: 1; width: 100%; 
-            background: linear-gradient(to top, #000 40%, transparent 100%); 
-            display: flex; flex-direction: column; align-items: center; 
-            justify-content: flex-end; padding-bottom: 60px; z-index: 50; 
-            gap: 20px; 
+            height: 15vh; width: 100%;
+            display:flex; flex-direction:column; justify-content:center; align-items:center; 
+            gap:12px; padding-bottom: 30px; z-index: 10;
         }
         
-        /* TOMBOL ANTRIAN */
-        .antrian-box {
-            text-align: center; cursor: pointer;
-            padding: 8px 20px; border-radius: 20px;
+        .antrian-btn {
             background: rgba(0, 240, 255, 0.1); border: 1px solid rgba(0, 240, 255, 0.3);
+            padding: 5px 15px; border-radius: 20px; color: #fff; cursor: pointer;
+            font-family: 'Teko'; font-size: 24px; letter-spacing: 1px;
+        }
+        
+        .scan-btn { 
+            width:60px; height:60px; border-radius:50%; 
+            border: 2px solid var(--accent); background: rgba(0,0,0,0.8);
+            display:flex; justify-content:center; align-items:center; 
+            box-shadow:0 0 25px rgba(204,255,0,0.3); cursor: pointer;
             transition: 0.2s;
         }
-        .antrian-box:active { background: rgba(0, 240, 255, 0.3); }
-        .antrian-text { font-family: 'Teko'; font-size: 28px; font-weight: 500; color: #fff; text-shadow: 0 0 10px var(--blue); letter-spacing: 1px; }
+        .scan-btn:active { transform: scale(0.95); }
+        .scan-icon { width: 30px; height: 30px; fill: var(--accent); }
+        .hint-text { font-family:'Orbitron'; font-size:9px; color:#666; margin-top:-5px; letter-spacing: 2px; }
 
-        /* TOMBOL SCAN/DAFTAR */
-        .fp-container { position: relative; width: 70px; height: 70px; display:flex; justify-content:center; align-items:center; }
-        .fp-btn { width: 65px; height: 65px; background: rgba(0,0,0,0.8); border: 2px solid var(--accent); border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; box-shadow: 0 0 30px rgba(204, 255, 0, 0.3); transition: transform 0.2s; }
-        .fp-btn:active { transform: scale(0.95); }
-        .fp-svg { width: 35px; height: 35px; fill: var(--accent); opacity: 0.9; }
-        .fp-label { font-family:'Orbitron'; font-size:10px; color:#666; letter-spacing:2px; margin-top:-15px; }
-
-        /* === MODALS (TENGAH) === */
-        .screen-overlay { 
-            position: fixed; inset: 0; background: rgba(0,0,0,0.95); backdrop-filter: blur(15px); z-index: 9999; 
-            display: none; flex-direction: column; justify-content: center; align-items: center; overflow-y: auto; padding: 20px;
-        }
+        /* === MODALS === */
+        .screen-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); backdrop-filter: blur(10px); z-index: 9999; display: none; justify-content: center; align-items: center; flex-direction: column; }
         .screen-overlay.active { display: flex; animation: popUp 0.3s forwards; }
         @keyframes popUp { from{opacity:0; transform:scale(0.8);} to{opacity:1; transform:scale(1);} }
 
-        /* RULES & ALERT BOX */
-        .rule-box, .modal-box { 
-            background: #111; border: 2px solid var(--red); padding: 25px; border-radius: 20px; 
-            width: 90%; max-width: 350px; text-align: left; box-shadow: 0 0 40px rgba(255, 0, 60, 0.3); 
-        }
-        .rule-title { font-family: 'Teko'; font-size: 36px; color: var(--red); margin: 0 0 15px 0; text-align: center; }
-        .rule-item { font-size: 14px; color: #fff; margin-bottom: 15px; display:flex; gap:10px; line-height: 1.4; }
-        .rule-num { color: var(--red); font-weight: bold; font-size: 20px; font-family: 'Orbitron'; }
+        .rule-box { background: #111; border: 2px solid var(--red); padding: 20px; border-radius: 15px; width: 90%; max-width: 350px; text-align: left; }
+        .rule-title { font-family: 'Teko'; font-size: 36px; color: var(--red); margin: 0 0 10px 0; text-align: center; }
+        .rule-item { font-size: 14px; color: #ccc; margin-bottom: 15px; display:flex; gap:10px; line-height: 1.3; }
+        .rule-num { color: var(--red); font-weight: bold; font-size: 18px; }
+        .btn-ok { background: var(--red); color: #fff; width: 100%; padding: 10px; font-family: 'Teko'; font-size: 20px; border:none; border-radius: 8px; margin-top: 10px; cursor: pointer; }
+        .btn-cancel { background: #333; color: #aaa; width: 100%; padding: 10px; font-family: 'Orbitron'; font-size: 10px; border:none; border-radius: 8px; margin-top: 5px; cursor: pointer; }
+
+        /* INPUT & SCANNER */
+        .login-box { width: 85%; max-width: 300px; background: #111; border: 1px solid var(--blue); border-radius: 15px; padding: 25px; text-align: center; }
+        .holo-input { background: transparent; border: none; border-bottom: 2px solid #333; width: 100%; color: #fff; font-family: 'Teko'; font-size: 36px; text-align: center; outline: none; margin: 20px 0; text-transform: uppercase; }
+        .btn-next { width: 100%; padding: 12px; background: var(--blue); color: #000; font-family: 'Rajdhani'; font-weight: bold; font-size: 18px; border-radius: 50px; border:none; cursor: pointer; }
         
-        .btn-rule-ok { background: var(--red); color: #fff; width: 100%; padding: 12px; font-family: 'Teko'; font-size: 22px; cursor: pointer; border-radius: 8px; border:none; margin-top: 10px; }
-        .btn-rule-cancel { background: #333; color: #ccc; width: 100%; padding: 10px; font-family: 'Orbitron'; font-size: 12px; cursor: pointer; border-radius: 8px; border:none; margin-top: 5px; }
-
-        /* QUEUE LIST MODAL */
-        .queue-modal-box { 
-            background: #050505; border: 1px solid var(--blue); padding: 20px; border-radius: 15px; 
-            width: 90%; max-width: 350px; max-height: 70vh; overflow-y: auto; 
-            box-shadow: 0 0 30px rgba(0,240,255,0.2); 
-        }
-        .q-list-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #222; text-align: left; }
-        .q-plat-txt { color: #fff; font-weight: bold; font-family: 'Inter'; font-size: 16px; }
-        .q-role-txt { font-size: 9px; margin-top: 4px; }
-
-        /* BROADCAST */
-        #broadcastModal { display: none; position: fixed; inset: 0; background: rgba(50, 0, 0, 0.95); z-index: 30000; justify-content: center; align-items: center; padding: 20px; }
-        #broadcastBox { background: #220000; border: 2px solid red; box-shadow: 0 0 50px red; padding: 30px; border-radius: 15px; width: 100%; max-width: 400px; text-align: center; }
-
-        /* INPUT LOGIN */
-        .login-card { width: 100%; max-width: 320px; background: rgba(20, 25, 30, 0.95); border: 1px solid var(--cyan); border-radius: 20px; padding: 30px 20px; text-align: center; box-shadow: 0 0 50px rgba(0, 240, 255, 0.2); }
-        .holo-input { background: transparent; border: none; border-bottom: 2px solid #333; width: 100%; color: #fff; font-family: 'Teko'; font-size: 42px; text-align: center; outline: none; margin: 20px 0; text-transform: uppercase; }
-        .btn-next { width: 100%; padding: 15px; background: var(--cyan); color: #000; font-family: 'Rajdhani'; font-weight: bold; font-size: 18px; border-radius: 50px; border:none; cursor: pointer; box-shadow: 0 0 20px rgba(0,240,255,0.4); }
+        .scan-wrapper { width: 250px; height: 250px; border: 2px solid var(--blue); border-radius: 15px; overflow: hidden; position: relative; }
+        .scan-status { margin-top: 15px; font-family: 'Teko'; font-size: 24px; color: #fff; }
 
         /* DASHBOARD CHARGING */
         #screen-active-dashboard { background-image: radial-gradient(circle at 50% 30%, #0a151a 0%, #000 80%); }
-        .qsc-ring { width: 180px; height: 180px; border-radius: 50%; border: 4px solid rgba(255,255,255,0.05); border-top: 4px solid var(--cyan); display: flex; flex-direction: column; justify-content: center; align-items: center; box-shadow: 0 0 30px rgba(0, 240, 255, 0.15); animation: spinRing 4s infinite linear; margin-bottom: 20px; position: relative; }
-        .qsc-content { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; animation: counterSpin 4s infinite linear; }
-        @keyframes spinRing { 0%{transform:rotate(0deg);} 100%{transform:rotate(360deg);} }
-        @keyframes counterSpin { 0%{transform:rotate(0deg);} 100%{transform:rotate(-360deg);} }
+        .timer-ring { width: 180px; height: 180px; border-radius: 50%; border: 4px solid rgba(255,255,255,0.1); border-top: 4px solid var(--blue); display: flex; justify-content: center; align-items: center; animation: spin 4s infinite linear; margin-bottom: 20px; }
+        .timer-val { font-family:'Teko'; font-size: 60px; line-height: 0.8; }
+        @keyframes spin { 0%{transform:rotate(0deg);} 100%{transform:rotate(360deg);} }
 
-        /* SCANNER */
-        .scan-wrapper { position: relative; width: 200px; height: 200px; margin-bottom: 20px; border-radius: 20px; overflow: hidden; border: 2px solid var(--cyan); box-shadow: 0 0 30px rgba(0, 240, 255, 0.2); }
-        .scan-beam { position: absolute; top: 0; left: 0; right: 0; height: 5px; background: var(--cyan); box-shadow: 0 0 15px var(--cyan); animation: scanMove 2s infinite ease-in-out; }
-        @keyframes scanMove { 0% { top: 0; opacity: 0; } 50% { opacity: 1; } 100% { top: 100%; opacity: 0; } }
+        .list-box { width: 90%; max-width: 350px; max-height: 60vh; overflow-y: auto; background: #050505; border: 1px solid var(--blue); border-radius: 15px; padding: 15px; }
+        .q-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #222; text-align: left; }
+        
+        #broadcastModal { display: none; z-index: 30000; background: rgba(50,0,0,0.9); }
+        .alert-box { background: #200; border: 2px solid red; padding: 20px; border-radius: 15px; text-align: center; width: 90%; }
+
     </style>
 </head>
 <body>
 
-    <div id="broadcastModal">
-        <div id="broadcastBox">
-            <h1 style="color:red; font-family:'Teko'; font-size:40px; margin:0; text-shadow:0 0 10px red;">⚠️ PERHATIAN ⚠️</h1>
-            <p id="broadcastMsg" style="color:#fff; font-family:'JetBrains Mono'; font-size:16px; margin:20px 0; line-height:1.4;">-</p>
-            <button onclick="closeBroadcast()" class="btn-rule-ok">MENGERTI</button>
+    <div id="broadcastModal" class="screen-overlay">
+        <div class="alert-box">
+            <h1 style="color:red; font-family:'Teko'; font-size:40px; margin:0;">⚠️ PERHATIAN</h1>
+            <p id="broadcastMsg" style="color:#fff; margin:20px 0;">-</p>
+            <button onclick="document.getElementById('broadcastModal').style.display='none'" class="btn-ok">MENGERTI</button>
         </div>
     </div>
 
     <div id="modalRules" class="screen-overlay">
         <div class="rule-box">
             <h2 class="rule-title">⚠️ ATURAN MAIN</h2>
-            <div class="rule-item">
-                <span class="rule-num">1</span>
-                <div>JARAK MAKSIMAL 200 METER. <br>PASTIKAN SUDAH DI LOKASI BARU DAFTAR.</div>
-            </div>
-            <div class="rule-item" style="border:none;">
-                <span class="rule-num">2</span>
-                <div>DATANG DULUAN, NGECAS DULUAN. <br>ANTRIAN TANPA ORANG = SKIP.</div>
-            </div>
-            <button onclick="proceedToScanner()" class="btn-rule-ok">SAYA PAHAM & LANJUT</button>
-            <button onclick="closeModal('modalRules')" class="btn-rule-cancel">BATAL</button>
+            <div class="rule-item"><span class="rule-num">1</span><div>Pastikan sudah di lokasi FC.</div></div>
+            <div class="rule-item"><span class="rule-num">2</span><div>Datang duluan, ngecas duluan.</div></div>
+            <button onclick="proceedToScanner()" class="btn-ok">SAYA PAHAM & LANJUT</button>
+            <button onclick="closeModal('modalRules')" class="btn-cancel">BATAL</button>
         </div>
     </div>
 
@@ -236,93 +228,93 @@
     </div>
 
     <div id="frontView">
-        <div class="onyx-card" id="card-1">
-            <div class="oc-header"></div> <div class="oc-body"></div>
-            <div class="oc-footer" id="p1-footer"><div class="slot-label">SLOT 01</div></div>
+        
+        <div class="slot-column" id="slot-0">
+            <div class="img-box" id="img-1"></div>
+            <div class="info-box" id="info-0">
+                <div class="empty-text">AVAILABLE</div>
+            </div>
         </div>
-        <div class="onyx-card" id="card-2">
-            <div class="oc-header"></div> <div class="oc-body"></div>
-            <div class="oc-footer" id="p2-footer"><div class="slot-label">SLOT 02</div></div>
+
+        <div class="slot-column center" id="slot-1">
+            <div class="img-box" id="img-2"></div>
+            <div class="info-box" id="info-1">
+                <div class="empty-text">AVAILABLE</div>
+            </div>
         </div>
-        <div class="onyx-card" id="card-3">
-            <div class="oc-header"></div> <div class="oc-body"></div>
-            <div class="oc-footer" id="p3-footer"><div class="slot-label">SLOT 03</div></div>
+
+        <div class="slot-column" id="slot-2">
+            <div class="img-box" id="img-3"></div>
+            <div class="info-box" id="info-2">
+                <div class="empty-text">AVAILABLE</div>
+            </div>
         </div>
+
     </div>
 
     <div class="control-area">
-        <div class="antrian-box" onclick="showQueueDetails()">
-            <div id="qCountDisplay" class="antrian-text">ANTRIAN: 0</div>
+        <div class="antrian-btn" onclick="showQueueDetails()">
+            <span id="qCountDisplay">ANTRIAN: 0</span>
         </div>
 
         <div class="fp-container">
-            <div class="fp-btn" onclick="handleMainAction()">
-                <svg class="fp-svg" viewBox="0 0 24 24"><path d="M17.81 4.47c-.08 0-.16-.02-.23-.06C15.66 3.42 14 3 12.01 3c-1.98 0-3.86.47-5.57 1.41-.24.13-.54.04-.68-.2-.13-.24-.04-.55.2-.68C7.82 2.52 9.86 2 12.01 2c2.13 0 3.99.47 6.03 1.52.25.13.34.43.21.67-.09.18-.26.28-.44.28zM3.5 9.72c-.1 0-.2-.03-.29-.09-.23-.16-.28-.47-.12-.7.99-1.4 2.25-2.5 3.75-3.27C9.98 4.04 14 4.03 17.15 5.65c1.5.77 2.76 1.86 3.75 3.25.16.22.11.54-.12.7-.23.16-.54.11-.7-.12-.9-1.26-2.04-2.25-3.39-2.94-2.87-1.47-6.54-1.47-9.4.01-1.36.7-2.5 1.7-3.4 2.96-.08.14-.23.21-.39.21zm6.25 12.07c-.13 0-.26-.05-.35-.15-.87-.87-1.34-1.43-2.01-2.64-.69-1.23-1.05-2.73-1.05-4.34 0-2.97 2.54-5.39 5.66-5.39s5.66 2.42 5.66 5.39c0 .28-.22.5-.5.5s-.5-.22-.5-.5c0-2.42-2.09-4.39-4.66-4.39-2.57 0-4.66 1.97-4.66 4.39 0 1.44.32 2.77.93 3.85.64 1.15 1.08 1.64 1.85 2.42.19.2.19.51 0 .71-.11.1-.24.15-.37.15zm7.17-1.85c-1.19 0-2.24-.3-3.1-.89-1.49-1.01-2.38-2.65-2.38-4.39 0-.28.22-.5.5-.5s.5.22.5.5c0 1.41.72 2.74 1.94 3.56.71.48 1.54.71 2.54.71.24 0 .64-.03 1.04-.1.27-.05.53.13.58.41.05.27-.13.53-.41.58-.57.11-1.07.12-1.21.12zM14.91 22c-.04 0-.09-.01-.13-.02-1.59-.44-2.63-1.03-3.72-2.1-1.4-1.39-2.17-3.24-2.17-5.22 0-1.62 1.38-2.94 3.08-2.94 1.7 0 3.08 1.32 3.08 2.94 0 1.07.93 1.94 2.08 1.94s2.08-.87 2.08-1.94c0-3.77-3.25-6.83-7.25-6.83-2.84 0-5.44 1.58-6.45 3.94-.11.25-.41.37-.67.26-.25-.11-.37-.41-.26-.67 1.13-2.62 4.07-4.39 7.38-4.39 4.53 0 8.25 3.42 8.25 7.69 0 1.62-1.38 2.94-3.08 2.94s-3.08-1.32-3.08-2.94c0-1.07-.93-1.94-2.08-1.94s-2.08.87-2.08 1.94c0 1.71.66 3.31 1.87 4.51.95.94 1.86 1.46 3.27 1.85.27.07.42.35.35.61-.05.23-.26.38-.47.38z"/></svg>
+            <div class="scan-btn" onclick="handleMainAction()">
+                <svg class="scan-icon" viewBox="0 0 24 24"><path d="M17.81 4.47c-.08 0-.16-.02-.23-.06C15.66 3.42 14 3 12.01 3c-1.98 0-3.86.47-5.57 1.41-.24.13-.54.04-.68-.2-.13-.24-.04-.55.2-.68C7.82 2.52 9.86 2 12.01 2c2.13 0 3.99.47 6.03 1.52.25.13.34.43.21.67-.09.18-.26.28-.44.28zM3.5 9.72c-.1 0-.2-.03-.29-.09-.23-.16-.28-.47-.12-.7.99-1.4 2.25-2.5 3.75-3.27C9.98 4.04 14 4.03 17.15 5.65c1.5.77 2.76 1.86 3.75 3.25.16.22.11.54-.12.7-.23.16-.54.11-.7-.12-.9-1.26-2.04-2.25-3.39-2.94-2.87-1.47-6.54-1.47-9.4.01-1.36.7-2.5 1.7-3.4 2.96-.08.14-.23.21-.39.21zm6.25 12.07c-.13 0-.26-.05-.35-.15-.87-.87-1.34-1.43-2.01-2.64-.69-1.23-1.05-2.73-1.05-4.34 0-2.97 2.54-5.39 5.66-5.39s5.66 2.42 5.66 5.39c0 .28-.22.5-.5.5s-.5-.22-.5-.5c0-2.42-2.09-4.39-4.66-4.39-2.57 0-4.66 1.97-4.66 4.39 0 1.44.32 2.77.93 3.85.64 1.15 1.08 1.64 1.85 2.42.19.2.19.51 0 .71-.11.1-.24.15-.37.15zm7.17-1.85c-1.19 0-2.24-.3-3.1-.89-1.49-1.01-2.38-2.65-2.38-4.39 0-.28.22-.5.5s.5.22.5.5c0 1.41.72 2.74 1.94 3.56.71.48 1.54.71 2.54.71.24 0 .64-.03 1.04-.1.27-.05.53.13.58.41.05.27-.13.53-.41.58-.57.11-1.07.12-1.21.12zM14.91 22c-.04 0-.09-.01-.13-.02-1.59-.44-2.63-1.03-3.72-2.1-1.4-1.39-2.17-3.24-2.17-5.22 0-1.62 1.38-2.94 3.08-2.94 1.7 0 3.08 1.32 3.08 2.94 0 1.07.93 1.94 2.08 1.94s2.08-.87 2.08-1.94c0-3.77-3.25-6.83-7.25-6.83-2.84 0-5.44 1.58-6.45 3.94-.11.25-.41.37-.67.26-.25-.11-.37-.41-.26-.67 1.13-2.62 4.07-4.39 7.38-4.39 4.53 0 8.25 3.42 8.25 7.69 0 1.62-1.38 2.94-3.08 2.94s-3.08-1.32-3.08-2.94c0-1.07-.93-1.94-2.08-1.94s-2.08.87-2.08 1.94c0 1.71.66 3.31 1.87 4.51.95.94 1.86 1.46 3.27 1.85.27.07.42.35.35.61-.05.23-.26.38-.47.38z"/></svg>
             </div>
         </div>
-        <div class="fp-label">TAP UNTUK DAFTAR</div>
-    </div>
-
-    <div id="queueModal" class="screen-overlay">
-        <div class="queue-modal-box">
-            <h3 style="font-family:'Teko'; font-size:28px; color:var(--blue); margin:0 0 15px 0; text-align:center;">DAFTAR ANTRIAN</h3>
-            <div id="queueListContent"></div>
-            <button onclick="document.getElementById('queueModal').classList.remove('active')" class="btn-rule-cancel">TUTUP</button>
-        </div>
+        <div class="hint-text">TAP UNTUK DAFTAR</div>
     </div>
 
     <div id="screen-login" class="screen-overlay">
-        <div class="login-card">
-            <div style="font-size:12px; color:var(--cyan); letter-spacing:2px; margin-bottom:10px;" id="stepLabel">LANGKAH 1</div>
+        <div class="login-box">
+            <div style="font-size:10px; color:var(--blue); margin-bottom:10px;" id="stepLabel">LANGKAH 1</div>
             <div style="font-family:'Teko'; font-size:24px; color:#fff;" id="questionText">PLAT NOMOR</div>
-            <input type="text" id="holoInputLogin" class="holo-input" placeholder="B 1234 XYZ" autocomplete="off" autocapitalize="characters" style="text-transform:uppercase;">
+            <input type="text" id="holoInputLogin" class="holo-input" placeholder="B 1234 XYZ" autocomplete="off">
             <button class="btn-next" onclick="nextStepAction()">LANJUT</button>
-            <button class="btn-rule-cancel" onclick="cancelLogin()">BATAL</button>
+            <button class="btn-cancel" onclick="cancelLogin()">BATAL</button>
         </div>
     </div>
 
     <div id="screen-scan" class="screen-overlay">
-        <div class="scan-wrapper">
-            <div id="reader" style="width:100%;height:100%;"></div>
-            <div class="scan-beam"></div>
+        <div class="scan-wrapper"><div id="reader" style="width:100%;height:100%;"></div></div>
+        <div class="scan-status" id="scanText">SCANNING...</div>
+        <button id="btnRetryGPS" onclick="runGPSCheck()" class="btn-cancel" style="display:none; width:auto; padding:5px 20px;">COBA LAGI</button>
+        <button onclick="stopScanner()" class="btn-cancel" style="width:auto; padding:5px 20px;">BATAL</button>
+    </div>
+
+    <div id="queueModal" class="screen-overlay">
+        <div class="list-box">
+            <h3 style="font-family:'Teko'; color:var(--blue); text-align:center;">DAFTAR ANTRIAN</h3>
+            <div id="queueListContent"></div>
+            <button onclick="document.getElementById('queueModal').classList.remove('active')" class="btn-cancel">TUTUP</button>
         </div>
-        <div class="scan-status" id="scanText">MENCARI LOKASI...</div>
-        <button id="btnRetryGPS" onclick="runGPSCheck()" style="display:none; margin-top:20px;" class="btn-rule-cancel">COBA LAGI</button>
-        <button onclick="stopScanner()" class="btn-rule-cancel" style="margin-top:20px;">BATAL</button>
     </div>
 
     <div id="screen-active-dashboard" class="screen-overlay">
-        <button onclick="toggleDashboard(false)" style="position:absolute; top:20px; right:20px; background:rgba(255,255,255,0.1); border:1px solid #555; color:#ccc; padding:5px 15px; border-radius:20px; font-size:10px;">▼ MINIMIZE</button>
+        <button onclick="toggleDashboard(false)" style="position:absolute; top:20px; right:20px; background:rgba(255,255,255,0.1); border:1px solid #555; color:#ccc; padding:5px 15px; border-radius:20px;">▼</button>
         <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;">
-            <div class="qsc-ring">
-                <div class="qsc-content">
-                    <div style="font-size:10px; color:var(--cyan);">CHARGING TIME</div>
-                    <div style="font-family:'Teko'; font-size:60px; line-height:0.8; color:#fff;" id="timerVal">00:00</div>
-                </div>
+            <div class="timer-ring"><div class="timer-val" id="timerVal">00:00</div></div>
+            <div style="text-align:center; margin-bottom:30px;">
+                <div style="font-size:10px; color:#888;">INFO USER</div>
+                <div style="font-family:'Teko'; font-size:42px;" id="ad-plat-val">--</div>
+                <div style="color:var(--blue); font-weight:bold;" id="ad-name-val">--</div>
             </div>
+            <button onclick="stopCharging(activeSlotIdx)" class="btn-ok" style="max-width:250px;">⏹ STOP PENGISIAN</button>
         </div>
-        <div style="width:100%; display:flex; justify-content:center;">
-            <div class="login-card" style="margin-bottom:30px;">
-                <div style="font-size:10px; color:#666;">INFO USER</div>
-                <div style="font-family:'Teko'; font-size:42px; color:#fff;" id="ad-plat-val">--</div>
-                <div style="font-size:12px; color:var(--cyan); font-weight:bold;" id="ad-name-val">--</div>
-            </div>
-        </div>
-        <button onclick="stopCharging(activeSlotIdx)" class="btn-rule-ok" style="max-width:300px; border:1px solid var(--red);">⏹ HENTIKAN PENGISIAN</button>
     </div>
 
     <div id="alertModal" class="screen-overlay">
-        <div class="modal-box" style="text-align:center;">
-            <h3 id="alertMsg" style="color:#fff; font-family:'Inter'; margin-bottom:20px;">MSG</h3>
-            <button onclick="document.getElementById('alertModal').classList.remove('active')" class="btn-rule-ok">OK</button>
+        <div class="rule-box" style="text-align:center; border-color:var(--blue);">
+            <h3 id="alertMsg" style="color:#fff; margin-bottom:20px;">MSG</h3>
+            <button onclick="document.getElementById('alertModal').classList.remove('active')" class="btn-ok" style="background:var(--blue); color:#000;">OK</button>
         </div>
     </div>
 
     <div id="customConfirmModal" class="screen-overlay">
-        <div class="modal-box" style="text-align:center;">
-            <h3 id="confirmMsg" style="color:#fff; font-family:'Inter'; margin-bottom:20px;">CONFIRM?</h3>
-            <button id="btnConfirmYes" class="btn-rule-ok" style="margin-bottom:10px;">YA</button>
-            <button onclick="document.getElementById('customConfirmModal').classList.remove('active')" class="btn-rule-cancel">BATAL</button>
+        <div class="rule-box" style="text-align:center; border-color:var(--gold);">
+            <h3 id="confirmMsg" style="color:#fff; margin-bottom:20px;">CONFIRM?</h3>
+            <button id="btnConfirmYes" class="btn-ok" style="background:var(--gold); color:#000;">YA</button>
+            <button onclick="document.getElementById('customConfirmModal').classList.remove('active')" class="btn-cancel">BATAL</button>
         </div>
     </div>
 
@@ -355,7 +347,6 @@
         let chargeTimerInterval;
         let lastBroadcastTime = Date.now();
 
-        // === REALTIME LISTENER ===
         onSnapshot(mainRef, (snap) => {
             if (!snap.exists()) return;
             const d = snap.data();
@@ -363,20 +354,17 @@
             localQueue = d.waitingQueue || [];
             currentValidQR = (d.activeQrCode && d.activeQrCode !== "OFF") ? d.activeQrCode : "OFF";
             
-            // Broadcast Check
             if (d.broadcast && d.broadcast.time > lastBroadcastTime) {
                 lastBroadcastTime = d.broadcast.time;
                 $('broadcastMsg').innerText = d.broadcast.msg;
                 $('broadcastModal').style.display = 'flex';
                 new Audio("https://www.myinstants.com/media/sounds/nuclear-alarm.mp3").play().catch(()=>{});
             }
-
             updateUI();
         });
 
         window.closeBroadcast = () => { $('broadcastModal').style.display = 'none'; };
 
-        // === UPDATE UI (CINEMATIC MAP) ===
         function updateUI() {
             let amICharging = false;
             let currentMyPlat = localStorage.getItem('myPlat');
@@ -386,41 +374,35 @@
                 if(cleanStr(localQueue[0]?.plat) === cleanStr(currentMyPlat)) amIQueue1 = true; 
             }
 
-            // LOOP 3 SLOT
             localSlots.forEach((s, i) => {
-                const elCard = $(`card-${i+1}`);
-                const elFooter = $(`p${i+1}-footer`);
+                const wrapper = $(`slot-${i}`);
+                const infoBox = $(`info-${i}`);
                 
-                elCard.classList.remove('active'); 
-                elFooter.innerHTML = `<div class="slot-label">SLOT 0${i+1}</div>`; // Default
+                wrapper.className = 'slot-column'; // Default
+                if(i===1) wrapper.classList.add('center');
 
                 if (s) {
-                    // SLOT TERISI
                     const isMe = (cleanStr(s.plat) === cleanStr(currentMyPlat));
                     if(isMe) { amICharging = true; window.activeSlotIdx = i; }
                     
-                    elCard.classList.add('active');
+                    wrapper.classList.add('active');
                     
-                    // Render Badge
-                    let badgeHTML = s.role ? getBadgeHTML(s.role) : "";
-                    
-                    // Render Footer Info (Plat & Nama & Badge)
-                    elFooter.innerHTML = `
-                        <div class="active-user-info">
-                            <div class="oc-plat">${s.plat}</div>
-                            <div class="oc-name">${escapeHtml(s.userName)}</div>
-                            ${badgeHTML}
-                        </div>
+                    const roleClass = (s.role || 'member').toLowerCase();
+                    if(roleClass.includes('ketum')) wrapper.classList.add('ketum');
+                    else if(roleClass.includes('satgas')) wrapper.classList.add('satgas');
+                    else wrapper.classList.add('member');
+
+                    // RENDER INFO BAWAH (PLAT, NAMA, BADGE DI SATU KOTAK)
+                    infoBox.innerHTML = `
+                        <div class="plat-text">${s.plat}</div>
+                        <div class="name-text">${escapeHtml(s.userName)}</div>
+                        <div class="mini-badge">${s.role || 'MEMBER'}</div>
                     `;
 
-                    // Handle Kudeta & Select Button
+                    // Kudeta
                     const durationMins = Math.floor((Date.now() - s.startTime) / 60000);
-                    if(amIQueue1 && !isMe) {
-                        if(durationMins >= 25) {
-                            elFooter.innerHTML += `<button onclick="attemptKudeta(${i}, '${s.plat}')" class="btn-rule-ok" style="font-size:10px; padding:5px; margin-top:5px; width:90%;">⚡ AMBIL ALIH</button>`;
-                        } else {
-                            elFooter.innerHTML += `<div style="font-size:8px; color:#555; margin-top:2px;">🔒 KUDETA DALAM ${25-durationMins} MNT</div>`;
-                        }
+                    if(amIQueue1 && !isMe && durationMins >= 25) {
+                        infoBox.innerHTML += `<button onclick="attemptKudeta(${i}, '${s.plat}')" style="font-size:8px; background:red; color:white; border:none; padding:2px 5px; margin-top:5px; border-radius:3px;">AMBIL ALIH</button>`;
                     }
 
                     if(isMe) {
@@ -430,10 +412,9 @@
                     }
 
                 } else {
-                    // SLOT KOSONG
+                    infoBox.innerHTML = `<div class="empty-text">AVAILABLE</div>`;
                     if(amIQueue1) {
-                        elFooter.innerHTML = `<div class="slot-label" style="color:#FFD700">GILIRAN ANDA</div>`;
-                        elFooter.innerHTML += `<button onclick="selectSlot(${i})" class="btn-next" style="font-size:12px; padding:5px; width:80%; margin-bottom:10px;">MASUK SINI</button>`;
+                        infoBox.innerHTML = `<button onclick="selectSlot(${i})" style="width:100%; background:var(--accent); border:none; color:black; font-weight:bold; padding:5px;">MASUK SINI</button>`;
                     }
                 }
             });
@@ -443,45 +424,16 @@
                 if(chargeTimerInterval) clearInterval(chargeTimerInterval);
                 amIInQueue = localQueue.some(q => cleanStr(q.plat) === cleanStr(currentMyPlat));
                 
-                // Update Tombol Utama di Bawah
-                const fpLabel = document.querySelector('.fp-label');
-                if(amIInQueue) { 
-                    fpLabel.innerText = "LIHAT ANTRIAN"; fpLabel.style.color = "#FFD700";
-                } else { 
-                    fpLabel.innerText = "TAP UNTUK DAFTAR"; fpLabel.style.color = "#666";
-                }
+                const hint = document.querySelector('.hint-text');
+                if(amIInQueue) { hint.innerText = "LIHAT ANTRIAN"; hint.style.color = "#FFD700"; }
+                else { hint.innerText = "TAP UNTUK DAFTAR"; hint.style.color = "#666"; }
             }
-
-            // Update Counter Antrian
             $('qCountDisplay').innerText = "ANTRIAN: " + localQueue.length;
         }
 
-        // === BADGE RENDERER ===
-        function getBadgeHTML(role) {
-            if(!role) return "";
-            const r = role.toUpperCase();
-            
-            if(r === "KETUM") return `<div class="role-badge badge-ketum">KETUA UMUM</div>`;
-            if(r === "WAKETUM") return `<div class="role-badge badge-ketum">WAKIL KETUA</div>`;
-            if(r === "SATGAS") return `<div class="role-badge badge-satgas"><span>⚡ SATGAS ⚡</span></div>`;
-            
-            if(r === "MEMBER" || r === "KELUARGA MLU") {
-                return `<div class="role-badge badge-family"><span class="char">K</span><span class="char">E</span><span class="char">L</span><span class="char">U</span><span class="char">A</span><span class="char">R</span><span class="char">G</span><span class="char">A</span><span style="width:2px;display:inline-block;"></span><span class="char">M</span><span class="char">L</span><span class="char">U</span></div>`;
-            }
-
-            if(r.includes("PELAN") || r.includes("TURTLE")) {
-                return `<div class="role-badge badge-turtle"><span class="turtle-icon">🐢</span> PELAN KENCENG</div>`;
-            }
-
-            return `<div class="role-badge badge-family">${r}</div>`;
-        }
-
-        // === ACTIONS ===
         window.handleMainAction = () => {
             if(window.activeSlotIdx !== -1) { $('screen-active-dashboard').classList.add('active'); $('screen-active-dashboard').classList.remove('minimized'); return; }
             if(amIInQueue) { showQueueDetails(); return; }
-            // if(localStorage.getItem('adm_ok')) { showLoginForm(); return; } // Bypass Admin
-            
             const myPlat = localStorage.getItem('myPlat');
             if(localQueue.some(q => q.plat === myPlat) || localSlots.some(s => s && s.plat === myPlat)) {
                 showCustomAlert("Anda sudah terdaftar!"); return;
@@ -496,12 +448,12 @@
 
         function runGPSCheck() {
             if(navigator.geolocation) {
-                $('screen-scan').classList.add('active'); $('scanText').innerText = "VERIFIKASI LOKASI...";
+                $('screen-scan').classList.add('active'); $('scanText').innerText = "MENCARI LOKASI...";
                 navigator.geolocation.getCurrentPosition((p) => {
                     if(getDist(p.coords.latitude, p.coords.longitude, STATION_LAT, STATION_LNG) > MAX_DIST_KM) { 
-                        $('screen-scan').classList.remove('active'); showCustomAlert("TERLALU JAUH DARI SHOWROOM."); 
+                        $('screen-scan').classList.remove('active'); showCustomAlert("KEJAUHAN BOS!"); 
                     } else showLoginForm();
-                }, () => { $('scanText').innerText = "GPS ERROR"; $('btnRetryGPS').style.display = 'block'; }, { enableHighAccuracy: true, timeout: 10000 });
+                }, () => { showCustomAlert("GPS ERROR."); }, { enableHighAccuracy: true, timeout: 10000 });
             } else showCustomAlert("GPS Tidak Support.");
         }
 
@@ -541,15 +493,9 @@
 
         async function executeReg() {
             const finalNameInput = $('holoInputLogin').value.trim().toUpperCase();
-            if(finalNameInput.length < 3) return showCustomAlert("Nama wajib diisi!");
             formData['name'] = finalNameInput; 
-
-            const rawPlat = formData.plat;
-            const rawName = formData.name;
-            const cleanInput = cleanStr(rawPlat);
+            const cleanInput = cleanStr(formData.plat);
             
-            const btn = document.querySelector('.btn-next'); btn.innerText = "⏳ MENDAFTAR..."; btn.disabled = true;
-
             let userRole = null; 
             try { 
                 const m = await getDoc(doc(db, "members", cleanInput)); 
@@ -560,68 +506,54 @@
                 const docSnap = await t.get(mainRef); const d = docSnap.data();
                 if(d.chargingSlots.some(s => s && cleanStr(s.plat) === cleanInput) || d.waitingQueue.some(q => cleanStr(q.plat) === cleanInput)) return { status: "EXIST" };
                 const n = (d.lastTicket||0)+1;
-                const newUser = { plat: rawPlat, userName: rawName, qNo: n, entryTime: Date.now(), role: userRole };
+                const newUser = { plat: formData.plat, userName: formData.name, qNo: n, entryTime: Date.now(), role: userRole };
                 Object.keys(newUser).forEach(key => { if (newUser[key] === undefined) newUser[key] = null; });
                 t.update(mainRef, { waitingQueue: arrayUnion(newUser), lastTicket: n });
                 return { status: "NEW", data: newUser };
             }).then((res) => {
-                btn.disabled = false;
-                if(res && res.status === "EXIST") {
-                    showCustomAlert("Sesi aktif ditemukan.");
-                    $('screen-login').classList.remove('active');
-                } else {
-                    localStorage.setItem('myPlat', rawPlat); myPlat = rawPlat;
-                    addUserLog("REGISTER", `User Baru: ${rawPlat}`); 
-                    $('screen-login').classList.remove('active');
+                if(res && res.status === "EXIST") { showCustomAlert("Sesi aktif ditemukan."); } 
+                else {
+                    localStorage.setItem('myPlat', formData.plat); myPlat = formData.plat;
                     showCustomAlert("✅ BERHASIL MASUK ANTRIAN!");
                 }
-            }).catch(e => {
-                btn.disabled = false; btn.innerText = "DAFTAR SEKARANG"; showCustomAlert("Gagal: " + e.message);
+                $('screen-login').classList.remove('active');
             });
         }
 
-        // === LIST ANTRIAN ===
         window.showQueueDetails = () => {
             const list = document.getElementById('queueListContent'); list.innerHTML = '';
             const myPlat = localStorage.getItem('myPlat');
-            
-            if(localQueue.length === 0) { list.innerHTML = '<div style="text-align:center; color:#666;">TIDAK ADA ANTRIAN</div>'; } 
+            if(localQueue.length === 0) list.innerHTML = '<div style="text-align:center; color:#666;">KOSONG</div>';
             else {
                 localQueue.forEach((q, i) => {
-                    const div = document.createElement('div'); div.className = 'q-list-item';
+                    const div = document.createElement('div'); div.className = 'q-item';
                     const isMe = (cleanStr(q.plat) === cleanStr(myPlat));
                     if(isMe) div.style.background = "rgba(0, 240, 255, 0.1)";
-                    
-                    div.innerHTML = `
-                        <div>
-                            <div class="q-plat-txt">#${q.qNo} - ${q.plat}</div>
-                            <div class="q-role-txt">${getBadgeHTML(q.role)}</div>
-                        </div>
-                        <div style="font-size:10px; color:#aaa; align-self:center;">${escapeHtml(q.userName)}</div>
-                    `;
+                    div.innerHTML = `<div><b>#${q.qNo} ${q.plat}</b><br><span style="font-size:10px; color:#888;">${escapeHtml(q.userName)}</span></div><div style="font-size:10px; color:var(--accent);">${q.role||'-'}</div>`;
                     list.appendChild(div);
                 });
-                
-                // Tambah tombol batal antrian jika saya ada di antrian
                 if(localQueue.some(q => cleanStr(q.plat) === cleanStr(myPlat))) {
-                    const btnCancel = document.createElement('button');
-                    btnCancel.className = "btn-rule-cancel"; btnCancel.style.marginTop = "15px"; btnCancel.style.color = "red";
-                    btnCancel.innerText = "BATALKAN ANTRIAN SAYA";
-                    btnCancel.onclick = cancelQueue;
-                    list.appendChild(btnCancel);
+                    const btn = document.createElement('button'); btn.innerText = "BATALKAN ANTRIAN"; btn.style.cssText="width:100%; margin-top:10px; background:red; border:none; padding:5px; color:white;";
+                    btn.onclick = cancelQueue; list.appendChild(btn);
                 }
             }
-            document.getElementById('queueModal').classList.add('active');
+            $('queueModal').classList.add('active');
         };
 
-        // === UTILS ===
+        window.cancelQueue = async () => {
+            if(!await customConfirm("Batal antri?")) return;
+            const myData = localQueue.find(q => cleanStr(q.plat) === cleanStr(localStorage.getItem('myPlat')));
+            if(myData) await updateDoc(mainRef, { waitingQueue: arrayRemove(myData) });
+            localStorage.removeItem('myPlat'); myPlat=null; $('queueModal').classList.remove('active');
+        };
+
         let html5QrCode;
         window.startScanner = () => {
             $('screen-scan').classList.add('active'); $('scanText').innerText = "ARAHKAN KAMERA";
             html5QrCode = new Html5Qrcode("reader");
             html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 200 }, (decodedText) => {
-                if(decodedText === currentValidQR) { stopScanner(); showLoginForm(); } else alert("QR CODE SALAH / EXPIRED!");
-            }).catch(e => { alert("Error Kamera: " + e); stopScanner(); });
+                if(decodedText === currentValidQR) { stopScanner(); showLoginForm(); } else alert("QR SALAH!");
+            }).catch(e => { alert("Error Kamera"); stopScanner(); });
         };
         window.stopScanner = () => { if(html5QrCode) html5QrCode.stop().then(() => html5QrCode.clear()).catch(()=>{}); $('screen-scan').classList.remove('active'); };
         window.cancelLogin = () => { $('screen-login').classList.remove('active'); formStep = 0; formData = {}; };
@@ -630,56 +562,42 @@
             if(!await customConfirm("Masuk Slot "+(i+1)+"?")) return;
             runTransaction(db, async(t)=>{
                 const d = (await t.get(mainRef)).data();
-                if(d.chargingSlots[i] || cleanStr(d.waitingQueue[0]?.plat) !== cleanStr(localStorage.getItem('myPlat'))) throw "Gagal memilih slot.";
+                if(d.chargingSlots[i] || cleanStr(d.waitingQueue[0]?.plat) !== cleanStr(localStorage.getItem('myPlat'))) throw "Gagal";
                 const u = d.waitingQueue.shift(); u.startTime = Date.now(); d.chargingSlots[i] = u;
                 t.update(mainRef,{chargingSlots:d.chargingSlots, waitingQueue:d.waitingQueue});
-            }).then(() => { addUserLog("START_CHARGE", `Masuk Slot ${i+1}`); }).catch(e => showCustomAlert(e)); 
+            });
         };
 
         window.stopCharging = async (i) => {
-            if(!await customConfirm("Stop pengisian?")) return;
+            if(!await customConfirm("Stop?")) return;
             runTransaction(db, async(t)=>{
                 const d=(await t.get(mainRef)).data(); const u=d.chargingSlots[i]; d.chargingSlots[i]=null;
-                if(u) addDoc(historyRef, {...u, finishTime:new Date(), action: "STOP_CHARGING"});
+                if(u) addDoc(historyRef, {...u, finishTime:new Date(), action: "STOP"});
                 t.update(mainRef,{chargingSlots:d.chargingSlots});
             }).then(()=>{ localStorage.removeItem('myPlat'); myPlat=null; window.activeSlotIdx=-1; toggleDashboard(false); updateUI(); });
         };
 
-        window.cancelQueue = async () => {
-            if(!await customConfirm("Batal antri?")) return;
-            const myData = localQueue.find(q => cleanStr(q.plat) === cleanStr(localStorage.getItem('myPlat')));
-            if(myData) await updateDoc(mainRef, { waitingQueue: arrayRemove(myData) });
-            localStorage.removeItem('myPlat'); myPlat=null; amIInQueue=false; $('queueModal').classList.remove('active');
-        };
-
         window.attemptKudeta = async (slotIdx, targetPlat) => {
-            if(!await customConfirm(`AMBIL ALIH SLOT ${slotIdx+1}?`)) return;
-            const currentMyPlat = localStorage.getItem('myPlat'); 
+            if(!await customConfirm("Ambil Alih?")) return;
             runTransaction(db, async(t) => {
                 const d = (await t.get(mainRef)).data();
-                const targetSlot = d.chargingSlots[slotIdx];
-                if(!targetSlot || cleanStr(targetSlot.plat) !== cleanStr(targetPlat)) throw "Slot berubah!";
-                const meInDb = d.waitingQueue[0];
-                if(cleanStr(meInDb?.plat) !== cleanStr(currentMyPlat)) throw "Posisi antrian berubah.";
-                const durationMs = Date.now() - targetSlot.startTime;
-                if(durationMs/60000 < 25) throw `Belum 25 Menit!`;
-                const victim = targetSlot;
-                addDoc(historyRef, {...victim, finishTime:new Date(), status: "KUDETA_BY_" + currentMyPlat, action: "KICKED_OUT"});
+                const u = d.chargingSlots[slotIdx];
+                if(!u || cleanStr(u.plat) !== cleanStr(targetPlat)) throw "Gagal";
+                addDoc(historyRef, {...u, finishTime:new Date(), status: "KUDETA"});
                 const me = d.waitingQueue.shift(); me.startTime = Date.now(); d.chargingSlots[slotIdx] = me;
                 t.update(mainRef, { chargingSlots: d.chargingSlots, waitingQueue: d.waitingQueue });
-            }).then(() => { addUserLog("KUDETA", `Ambil Alih Slot ${slotIdx+1} dari ${targetPlat}`); showCustomAlert("BERHASIL AMBIL ALIH!"); }).catch(e => showCustomAlert("GAGAL: " + e));
+            });
         };
 
-        window.gantiMotor = () => { if(!localStorage.getItem('adm_ok')) return showCustomAlert("Admin Only!"); customConfirm("Hapus Sesi?").then(ok => { if(ok) { localStorage.removeItem('myPlat'); location.reload(); } }); };
-        window.toggleAdmin = () => { let c = prompt("KODE:"); if(c === "1131"){ localStorage.setItem('adm_ok','1'); window.location.assign("admin.html"); } else if(c === "090815") window.location.assign("superadmin.html"); };
+        window.gantiMotor = () => { if(!localStorage.getItem('adm_ok')) return showCustomAlert("Admin Only!"); customConfirm("Reset?").then(ok => { if(ok) { localStorage.removeItem('myPlat'); location.reload(); } }); };
+        window.toggleAdmin = () => { let c = prompt("KODE:"); if(c === "1131"){ localStorage.setItem('adm_ok','1'); location.href="admin.html"; } else if(c === "090815") location.href="superadmin.html"; };
         
-        window.closeModal = (id) => { const el = document.getElementById(id); if(el) el.classList.remove('active'); };
+        window.closeModal = (id) => { const el = $(id); if(el) el.classList.remove('active'); };
         window.toggleDashboard = (s) => { if(!s) $('screen-active-dashboard').classList.add('minimized'); else $('screen-active-dashboard').classList.remove('minimized'); if(s===false) $('screen-active-dashboard').classList.remove('active'); };
 
         function getDist(lat1,lon1,lat2,lon2){const R=6371;const dLat=(lat2-lat1)*Math.PI/180;const dLon=(lon2-lon1)*Math.PI/180;const a=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)*Math.sin(dLon/2);return R*(2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a)));}
         function startChargeTimer(s){ if(chargeTimerInterval) clearInterval(chargeTimerInterval); chargeTimerInterval=setInterval(()=>{ const d=Math.floor((Date.now()-s)/1000); $('timerVal').innerText=`${Math.floor(d/60).toString().padStart(2,'0')}:${(d%60).toString().padStart(2,'0')}`; },1000); }
         
-        // MODALS
         window.showCustomAlert = (msg) => { $('alertMsg').innerText = msg; $('alertModal').classList.add('active'); };
         window.customConfirm = (msg) => { return new Promise(r => { $('confirmMsg').innerText = msg; $('customConfirmModal').classList.add('active'); $('btnConfirmYes').onclick = () => { $('customConfirmModal').classList.remove('active'); r(true); }; }); };
 
