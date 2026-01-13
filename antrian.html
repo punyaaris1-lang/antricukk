@@ -14,18 +14,18 @@
     <link href="https://fonts.googleapis.com/css2?family=Teko:wght@300;400;500;600;700&family=Rajdhani:wght@500;600;700&family=Outfit:wght@300;400;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     
     <style>
-        /* === 1. GLOBAL SETUP === */
+        /* === GLOBAL SETUP === */
         :root { --bg: #000; --cyan: #00F0FF; --glass-card: rgba(20, 25, 30, 0.95); --glass-border: rgba(0, 240, 255, 0.3); --text-dim: rgba(255, 255, 255, 0.6); --danger: #ff003c; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; outline: none; }
-        body { font-family: 'Rajdhani', sans-serif; background: #000; background-image: linear-gradient(to bottom, rgba(0,0,0,0.9), #000), url('logo.png'); background-size: cover; background-position: center; background-attachment: fixed; color: #fff; margin: 0; width: 100vw; min-height: 100vh; overflow-y: auto; display: flex; flex-direction: column; padding: 10px 20px 40px 20px; }
+        body { font-family: 'Rajdhani', sans-serif; background: #000; background-image: linear-gradient(to bottom, rgba(0,0,0,0.9), #000), url('logo.png'); background-size: cover; background-position: center; background-attachment: fixed; color: #fff; margin: 0; width: 100vw; min-height: 100vh; overflow-y: auto; display: flex; flex-direction: column; padding: 10px 20px 200px 20px; }
 
-        /* === 2. HEADER & LAYOUT === */
+        /* HEADER */
         .header { flex: 0 0 auto; text-align: center; padding-top: 40px; margin-bottom: 20px; cursor: pointer; }
         .main-title { font-family: 'Teko'; font-size: 42px; line-height: 0.9; color: #fff; text-shadow: 0 0 15px rgba(0, 240, 255, 0.5); letter-spacing: 1px; margin-bottom: 5px; }
         .sub-title { font-size: 10px; color: var(--cyan); letter-spacing: 4px; font-weight: 700; text-transform: uppercase; }
         #btnInstallPWA { display: none; position: absolute; top: 10px; right: 10px; z-index: 999; background: rgba(255, 255, 255, 0.1); border: 1px solid var(--cyan); color: var(--cyan); padding: 5px 10px; border-radius: 20px; font-size: 9px; font-weight: bold; cursor: pointer; box-shadow: 0 0 10px rgba(0, 240, 255, 0.2); animation: pulseBtn 2s infinite; }
 
-        /* === 3. SLOT CARD SYSTEM === */
+        /* SLOT SYSTEM */
         .slot-section { display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px; flex: 0 0 auto; }
         .slot-card { position: relative; height: auto; min-height: 90px; background: var(--glass-card); backdrop-filter: blur(10px); border: 1px solid var(--glass-border); border-radius: 16px; padding: 15px 20px; display: flex; align-items: center; justify-content: space-between; transition: 0.3s; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
         .slot-card::before { content:''; position: absolute; left: 0; top: 20px; bottom: 20px; width: 4px; background: #333; border-radius: 0 4px 4px 0; transition: 0.3s; }
@@ -45,77 +45,35 @@
         .slot-card.active.can-kudeta { border: 1px solid var(--danger); }
         .slot-card.active.can-kudeta .kudeta-btn { display:block; }
 
-        /* =========================================
-           🚀 THE ULTIMATE BADGE SYSTEM (COMPACT)
-           ========================================= */
-        .role-badge {
-            position: relative; padding: 2px 8px; text-align: center; text-transform: uppercase;
-            font-family: 'Teko', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.5px;
-            border-radius: 4px; overflow: hidden; display: inline-flex; align-items: center; justify-content: center;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.5); width: auto; min-width: 60px; margin-top: 2px; line-height: 1.2;
-        }
-
-        /* 1. KETUM & WAKETUM (METAL EFFECT) */
-        .badge-ketum { 
-            background: linear-gradient(45deg, #B8860B, #FFD700, #FFFACD, #FFD700, #B8860B); 
-            background-size: 200% 200%; color: #3b2a08; border: 1px solid #FFD700; 
-            animation: metalShine 3s infinite linear; text-shadow: 0 1px 0 rgba(255,255,255,0.4);
-        }
+        /* BADGE */
+        .role-badge { position: relative; padding: 2px 8px; text-align: center; text-transform: uppercase; font-family: 'Teko', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; border-radius: 4px; overflow: hidden; display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 1px 3px rgba(0,0,0,0.5); width: auto; min-width: 60px; margin-top: 2px; line-height: 1.2; }
+        .badge-ketum { background: linear-gradient(45deg, #B8860B, #FFD700, #FFFACD, #FFD700, #B8860B); background-size: 200% 200%; color: #3b2a08; border: 1px solid #FFD700; animation: metalShine 3s infinite linear; text-shadow: 0 1px 0 rgba(255,255,255,0.4); }
         .badge-ketum::before { content: '👑 '; margin-right:2px; font-size: 10px; }
-        
-        .badge-waketum { 
-            background: linear-gradient(45deg, #7f8c8d, #bdc3c7, #ffffff, #bdc3c7, #7f8c8d); 
-            background-size: 200% 200%; color: #000; border: 1px solid #fff; 
-            animation: metalShine 3s infinite linear; text-shadow: 0 1px 0 rgba(255,255,255,0.4);
-        }
-
-        /* 2. SATGAS (HAZARD WARNING - MOVING STRIPES) */
-        .badge-satgas {
-            background: repeating-linear-gradient(
-                45deg, #000, #000 5px, #FFD700 5px, #FFD700 10px
-            );
-            background-size: 20px 20px;
-            color: #fff; text-shadow: 0 0 3px #000;
-            border: 1px solid #FFD700;
-            animation: hazardMove 1s infinite linear;
-        }
+        .badge-waketum { background: linear-gradient(45deg, #7f8c8d, #bdc3c7, #ffffff, #bdc3c7, #7f8c8d); background-size: 200% 200%; color: #000; border: 1px solid #fff; animation: metalShine 3s infinite linear; text-shadow: 0 1px 0 rgba(255,255,255,0.4); }
+        .badge-satgas { background: repeating-linear-gradient(45deg, #000, #000 5px, #FFD700 5px, #FFD700 10px); background-size: 20px 20px; color: #fff; text-shadow: 0 0 3px #000; border: 1px solid #FFD700; animation: hazardMove 1s infinite linear; }
         .badge-satgas span { background: #000; padding: 0 4px; border-radius: 2px; z-index: 2; }
-
-        /* 3. SEKJEN & OFFICE (TECH VIBE) */
         .badge-sekjen { background: #001a1a; border: 1px solid #00F0FF; color: #00F0FF; box-shadow: 0 0 5px rgba(0,240,255,0.3); animation: pulseGlow 2s infinite; }
         .badge-office { background: #1a252f; border-left: 3px solid #95a5a6; color: #ecf0f1; font-family: sans-serif; font-weight: 800; font-size: 9px; }
-
-        /* 4. KORLAP (RADAR SCAN) */
         .badge-korlap { background: #1a0505; color: #ff3333; border: 1px solid #ff3333; overflow: hidden; }
         .badge-korlap::after { content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255, 51, 51, 0.8), transparent); transform: skewX(-20deg); animation: radarScan 2s infinite linear; }
-
-        /* 5. PEMBINA (ROYAL) */
         .badge-pembina { background: linear-gradient(to bottom, #2c003e, #1a0024); border: 1px solid #d4af37; color: #d4af37; box-shadow: 0 0 5px rgba(212, 175, 55, 0.3); animation: pulseGold 3s infinite; }
-
-        /* 6. HUMAS & KACAB */
         .badge-humas { background: #2d1b02; border: 1px solid #ff8c00; color: #ff8c00; }
         .badge-kacab { background: #00261a; border: 1px solid #00ff99; color: #00ff99; }
         .badge-custom { background: #222; border: 1px solid #555; color: #fff; letter-spacing: 0.5px; }
-
-        /* 7. FAMILY MLU (TYPING) */
         .badge-family { background: #000; color: #fff; border: 1px solid rgba(0, 240, 255, 0.3); display: inline-flex; justify-content: center; gap: 1px; min-width: 80px; }
         .badge-family::before { content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 2px; background: linear-gradient(90deg, transparent, #00f0ff, transparent); animation: electricFlow 3s infinite linear; }
-        
-        /* 8. TURTLE (SALTO) */
         .badge-turtle { background: #020402; border: 1px solid #39FF14; color: #39FF14; height: 24px; max-width: 140px; overflow: hidden; display: flex; align-items: center; position: relative; }
         .wind-fx { position: absolute; inset: 0; background: linear-gradient(90deg, transparent 50%, rgba(57,255,20,0.3) 50%); background-size: 20px 100%; transform: skewX(-20deg); opacity: 0; animation: windSpeed 6s infinite ease-in-out; z-index: 0; }
         .turtle-icon { position: absolute; font-size: 16px; animation: turtleRun 6s infinite; right: -20px; z-index: 2; }
         .turtle-text { z-index: 1; display: flex; gap: 0px; font-size: 10px; font-weight: bold; width: 100%; justify-content: center; }
         .turtle-text span { display: inline-block; animation: textChaos 6s infinite; }
 
-        /* ANIMASI HURUF (COMMON) */
         .char { display: inline-block; font-size: 11px; font-weight: 700; opacity: 0; transform: translateY(5px); animation: typeIn 3s infinite; text-shadow: 0 0 5px #00f0ff; }
         .char:nth-child(1) { animation-delay: 0.1s; } .char:nth-child(2) { animation-delay: 0.2s; } .char:nth-child(3) { animation-delay: 0.3s; }
         .char:nth-child(4) { animation-delay: 0.4s; } .char:nth-child(5) { animation-delay: 0.5s; } .char:nth-child(6) { animation-delay: 0.6s; }
         .char:nth-child(7) { animation-delay: 0.7s; } .char:nth-child(8) { animation-delay: 0.8s; } .char:nth-child(9) { animation-delay: 0.9s; }
         .char:nth-child(10) { animation-delay: 1.0s; } .char:nth-child(11) { animation-delay: 1.1s; } .char:nth-child(12) { animation-delay: 1.2s; }
 
-        /* KEYFRAMES */
         @keyframes metalShine { 0% { background-position: 0% 50%; } 100% { background-position: 100% 50%; } }
         @keyframes hazardMove { 0% { background-position: 0 0; } 100% { background-position: 20px 0; } }
         @keyframes radarScan { 0% { left: -50%; } 100% { left: 150%; } }
@@ -131,7 +89,7 @@
         @keyframes popUp { from{opacity:0; transform:scale(0.8);} to{opacity:1; transform:scale(1);} }
         @keyframes pulseBtn { 0%{box-shadow: 0 0 20px rgba(0,240,255,0.4);} 50%{box-shadow: 0 0 40px rgba(0,240,255,0.8);} 100%{box-shadow: 0 0 20px rgba(0,240,255,0.4);} }
 
-        /* UI ELEMENTS & SCREENS */
+        /* UI ELEMENTS */
         .mid-action-area { flex: 1 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; z-index: 50; min-height: 150px; margin-bottom: 20px; }
         .logo-btn { width: 100px; height: 100px; position: relative; cursor: pointer; transition: transform 0.2s; display: flex; justify-content: center; align-items: center; }
         .logo-img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 0 15px rgba(0, 240, 255, 0.6)); animation: breatheLogo 3s infinite ease-in-out; }
@@ -146,7 +104,7 @@
         .qbt-val { font-family: 'Teko'; font-size: 42px; line-height: 0.8; color: #fff; margin-top: 2px; }
 
         .screen-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); backdrop-filter: blur(15px); z-index: 9999; display: none; flex-direction: column; align-items: center; justify-content: center; overflow-y: auto; padding: 20px;}
-        .screen-overlay.active { display: flex; animation: fadeIn 0.3s forwards; }
+        .screen-overlay.active { display: flex; animation: popUp 0.3s forwards; }
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 10000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(5px); animation: fadeIn 0.2s; }
         .modal-box { width: 85%; max-width: 350px; background: #111; border: 1px solid var(--cyan); border-radius: 15px; padding: 25px; text-align: center; box-shadow: 0 0 30px rgba(0, 240, 255, 0.3); transform: scale(0.9); animation: popUp 0.3s forwards; }
         .modal-msg { font-size: 18px; color: #fff; margin-bottom: 25px; font-family: 'Rajdhani'; font-weight: 600; line-height: 1.4; }
@@ -183,9 +141,51 @@
         #wdListContainer .badge-korlap::after { display: none; }
         #wdListContainer .badge-satgas { animation: none !important; border-color: #ffaa00 !important; }
         #wdListContainer .badge-ketum, #wdListContainer .badge-waketum { animation: none !important; background: #B8860B; }
+
+        /* 🔥 MODAL ATURAN (DEFAULT HIDDEN!) 🔥 */
+        #modalRules { display: none !important; z-index: 25000; } /* FIX: PAKSA HIDDEN */
+        #modalRules.active { display: flex !important; } /* BARU MUNCUL KALAU ACTIVE */
+        
+        .rule-box { border: 2px solid var(--danger); padding: 25px 20px; border-radius: 15px; background: #110000; width: 90%; max-width: 350px; position: relative; box-shadow: 0 0 30px rgba(255, 0, 60, 0.3); text-align: left; }
+        .rule-title { font-family: 'Teko'; font-size: 36px; color: var(--danger); margin: 0 0 15px 0; line-height: 1; text-align: center; }
+        .rule-item { font-size: 16px; color: #fff; margin-bottom: 15px; line-height: 1.3; border-bottom: 1px solid #333; padding-bottom: 10px; display:flex; gap:10px; }
+        .rule-num { color: var(--danger); font-weight: bold; font-size: 24px; font-family: 'Teko'; flex-shrink:0; }
+        .btn-rule-ok { background: var(--danger); color: #fff; border: 1px solid #fff; width: 100%; padding: 12px; font-family: 'Teko'; font-size: 20px; cursor: pointer; border-radius: 8px; margin-top: 10px; }
+        .btn-rule-cancel { background: #333; color: #ccc; border: none; width: 100%; padding: 10px; font-family: 'Orbitron'; font-size: 12px; cursor: pointer; border-radius: 8px; margin-top: 5px; }
+
+        /* 🔥 BROADCAST MODAL 🔥 */
+        #broadcastModal { display: none; position: fixed; inset: 0; background: rgba(50, 0, 0, 0.95); z-index: 30000; justify-content: center; align-items: center; animation: alertShake 0.5s; flex-direction: column; padding: 20px; }
+        #broadcastBox { background: #220000; border: 2px solid red; box-shadow: 0 0 50px red; padding: 30px; border-radius: 15px; width: 100%; max-width: 400px; text-align: center; position:relative; overflow:hidden; }
+        #broadcastBox::before { content:''; position:absolute; top:0; left:0; width:100%; height:5px; background:red; animation: widthRun 1s infinite alternate; }
+        @keyframes alertShake { 0% { transform: translate(1px, 1px) rotate(0deg); } 10% { transform: translate(-1px, -2px) rotate(-1deg); } 20% { transform: translate(-3px, 0px) rotate(1deg); } 30% { transform: translate(3px, 2px) rotate(0deg); } 40% { transform: translate(1px, -1px) rotate(1deg); } 50% { transform: translate(-1px, 2px) rotate(-1deg); } 60% { transform: translate(-3px, 1px) rotate(0deg); } 70% { transform: translate(3px, 1px) rotate(-1deg); } 80% { transform: translate(-1px, -1px) rotate(1deg); } 90% { transform: translate(1px, 2px) rotate(0deg); } 100% { transform: translate(1px, -2px) rotate(-1deg); } }
+        @keyframes widthRun { 0%{width:0; left:0;} 100%{width:100%; left:0;} }
     </style>
 </head>
 <body>
+
+    <div id="broadcastModal">
+        <div id="broadcastBox">
+            <h1 style="color:red; font-family:'Teko'; font-size:40px; margin:0; text-shadow:0 0 10px red;">⚠️ PERHATIAN ⚠️</h1>
+            <p id="broadcastMsg" style="color:#fff; font-family:'JetBrains Mono'; font-size:16px; margin:20px 0; line-height:1.4;">-</p>
+            <button onclick="closeBroadcast()" class="btn-rule-ok">MENGERTI</button>
+        </div>
+    </div>
+
+    <div id="modalRules">
+        <div class="rule-box">
+            <h2 class="rule-title">⚠️ ATURAN MAIN</h2>
+            <div class="rule-item">
+                <span class="rule-num">1</span>
+                <div>Pastikan anda sudah berada di lokasi FC sebelum mendaftar.</div>
+            </div>
+            <div class="rule-item" style="border:none;">
+                <span class="rule-num">2</span>
+                <div>Pastikan yang datang sebelum anda sudah mendaftar lebih dahulu.</div>
+            </div>
+            <button onclick="proceedToScanner()" class="btn-rule-ok">SAYA PAHAM & LANJUT</button>
+            <button onclick="closeModal('modalRules')" class="btn-rule-cancel">BATAL</button>
+        </div>
+    </div>
 
     <button id="btnInstallPWA" onclick="installPWA()">⬇ INSTALL APP</button>
 
@@ -262,7 +262,7 @@
             <div style="font-size:12px; color:var(--cyan); letter-spacing:2px; margin-bottom:10px;" id="stepLabel">LANGKAH 1</div>
             <div style="font-family:'Teko'; font-size:24px; color:#fff;" id="questionText">PLAT NOMOR</div>
             <input type="text" id="holoInputLogin" class="holo-input" placeholder="B 1234 XYZ" autocomplete="off" autocapitalize="characters" spellcheck="false" style="text-transform:uppercase;">
-            <button class="btn-next" onclick="nextStepAction()" style="background:#00F0FF; color:#000; border:none; margin-top:10px;">LANJUT</button>
+            <button class="btn-next" id="btnFinalRegister" onclick="nextStepAction()" style="background:#00F0FF; color:#000; border:none; margin-top:10px;">LANJUT</button>
             <button class="btn-cancel" onclick="cancelLogin()" style="margin-top:15px; background:none; border:none; color:#666; cursor:pointer;">BATAL</button>
         </div>
     </div>
@@ -274,6 +274,7 @@
         </div>
         <div class="scan-status" id="scanText">MENCARI LOKASI...</div>
         <button id="btnRetryGPS" onclick="runLogin(true)" style="display:none; margin-top:20px; padding:10px; background:#333; color:#fff; border:1px solid #555; border-radius:8px; cursor:pointer; font-family:'Teko';">COBA LAGI (MODE RINGAN)</button>
+        <button onclick="stopScanner()" class="btn-cancel" style="margin-top:20px; background:none; border:1px solid #333; color:#888; padding:8px 20px; border-radius:20px; cursor:pointer;">BATAL</button>
     </div>
 
     <div id="waitingDashboard" class="screen-overlay">
@@ -326,28 +327,19 @@
             <button onclick="stopCharging(activeSlotIdx)" style="width:100%; max-width:320px; padding:15px; background:linear-gradient(90deg, rgba(255,0,60,0.1), rgba(255,0,60,0.2)); border:1px solid #ff003c; color:#ff003c; border-radius:50px; font-family:'Rajdhani'; font-weight:bold; font-size:16px; margin-bottom:20px;">⏹ HENTIKAN PENGISIAN</button>
         </div>
     </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, doc, onSnapshot, runTransaction, collection, addDoc, setDoc, updateDoc, arrayUnion, arrayRemove, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         // === FIREBASE CONFIG ===
-        const firebaseConfig = {
-            apiKey: "AIzaSyB666i9lYWIpxOdkwpoX9EvFvHLmHczeq8",
-            authDomain: "fcgadingnew22.firebaseapp.com",
-            projectId: "fcgadingnew22",
-            storageBucket: "fcgadingnew22.firebasestorage.app",
-            messagingSenderId: "537736846678",
-            appId: "1:537736846678:web:53788d71a196423ac08af7"
-        };
+        const firebaseConfig = { apiKey: "AIzaSyB666i9lYWIpxOdkwpoX9EvFvHLmHczeq8", authDomain: "fcgadingnew22.firebaseapp.com", projectId: "fcgadingnew22", storageBucket: "fcgadingnew22.firebasestorage.app", messagingSenderId: "537736846678", appId: "1:537736846678:web:53788d71a196423ac08af7" };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-        
-        // === REFERENCES ===
         const mainRef = doc(db, "antrian", "utama");
         const historyRef = collection(db, "riwayatCharging");
         const logRef = collection(db, "activityLog"); 
 
-        // === CONFIG LOKASI & UTILS ===
         const STATION_LAT = -6.171583; 
         const STATION_LNG = 106.899844; 
         const MAX_DIST_KM = 0.2; 
@@ -360,7 +352,6 @@
         function cleanStr(s) { return s ? s.replace(/[^A-Z0-9]/gi, '').toUpperCase() : ''; }
         function addUserLog(action, details) { addDoc(logRef, { actor: "USER " + (localStorage.getItem('myPlat') || "GUEST"), action: action, details: details, timestamp: new Date() }).catch(e=>{}); }
 
-        // === STATE VARIABLES ===
         let localSlots = [null,null,null];
         let localQueue = [];
         let myPlat = localStorage.getItem('myPlat');
@@ -368,18 +359,29 @@
         window.activeSlotIdx = -1;
         let amIInQueue = false;
         let chargeTimerInterval;
+        let lastBroadcastTime = Date.now();
 
-        // === REALTIME LISTENER ===
         onSnapshot(mainRef, (snap) => {
             if (!snap.exists()) return;
             const d = snap.data();
             localSlots = d.chargingSlots || [null,null,null];
             localQueue = d.waitingQueue || [];
             currentValidQR = (d.activeQrCode && d.activeQrCode !== "OFF") ? d.activeQrCode : "OFF";
+            
+            // CEK BROADCAST DARURAT
+            if (d.broadcast && d.broadcast.time > lastBroadcastTime) {
+                lastBroadcastTime = d.broadcast.time;
+                $('broadcastMsg').innerText = d.broadcast.msg;
+                $('broadcastModal').style.display = 'flex';
+                const audio = new Audio("https://www.myinstants.com/media/sounds/nuclear-alarm.mp3");
+                audio.volume = 0.5; audio.play().catch(()=>{});
+            }
+
             updateUI();
         });
 
-        // === UI RENDERER ===
+        window.closeBroadcast = () => { $('broadcastModal').style.display = 'none'; };
+
         function updateUI() {
             const container = $('slotsContainer'); container.innerHTML = '';
             let amICharging = false;
@@ -387,13 +389,7 @@
             let amIQueue1 = false;
             
             if(localQueue.length > 0 && currentMyPlat) { if(cleanStr(localQueue[0]?.plat) === cleanStr(currentMyPlat)) amIQueue1 = true; }
-            
-            if(amIQueue1 && $('waitingDashboard').classList.contains('active')) { 
-                if(localSlots.some(s => s === null)) { 
-                    $('waitingDashboard').classList.remove('active'); 
-                    customAlert("GILIRAN ANDA! SILAHKAN PILIH SLOT."); 
-                } 
-            }
+            if(amIQueue1 && $('waitingDashboard').classList.contains('active')) { if(localSlots.some(s => s === null)) { $('waitingDashboard').classList.remove('active'); customAlert("GILIRAN ANDA! SILAHKAN PILIH SLOT."); } }
 
             localSlots.forEach((s, i) => {
                 const div = document.createElement('div');
@@ -410,12 +406,7 @@
                     }
                     div.className = `slot-card active ${canKudeta ? 'can-kudeta' : ''}`;
                     div.innerHTML = `<div class="sc-info"><div class="sc-label">SLOT 0${i+1}</div><div class="sc-plat">${s.plat}</div><div class="sc-user">${escapeHtml(s.userName)} ${getBadgeHTML(s.role)}</div>${kudetaHTML}</div><div class="status-pill" style="background:${isMe?'var(--cyan)':'#000'}; color:${isMe?'#000':'var(--cyan)'}; border-color:var(--cyan);">${isMe?'ANDA':'CHARGING'}</div>`;
-                    
-                    if(isMe) { 
-                        $('ad-plat-val').innerText = s.plat; $('ad-name-val').innerText = s.userName; 
-                        startChargeTimer(s.startTime); 
-                        if(!$('screen-active-dashboard').classList.contains('minimized')) $('screen-active-dashboard').classList.add('active'); 
-                    }
+                    if(isMe) { $('ad-plat-val').innerText = s.plat; $('ad-name-val').innerText = s.userName; startChargeTimer(s.startTime); if(!$('screen-active-dashboard').classList.contains('minimized')) $('screen-active-dashboard').classList.add('active'); }
                 } else {
                     div.className = `slot-card empty`;
                     let btn = amIQueue1 ? `<button class="btn-pilih" onclick="window.selectSlot(${i})">PILIH SLOT INI</button>` : '';
@@ -430,66 +421,46 @@
                 if(chargeTimerInterval) clearInterval(chargeTimerInterval);
                 amIInQueue = localQueue.some(q => cleanStr(q.plat) === cleanStr(currentMyPlat));
                 const lbl = $('mainBtnLabel');
-                if(amIInQueue) { 
-                    lbl.innerText="LIHAT ANTRIAN ANDA"; lbl.style.color="#FFD700"; 
-                    if($('waitingDashboard').classList.contains('active')) renderQueueDashboard(); 
-                } else { 
-                    lbl.innerText="TAP UNTUK DAFTAR"; lbl.style.color="var(--cyan)"; 
-                }
-            } else { 
-                $('mainBtnLabel').innerText = "BUKA DASHBOARD CHARGING"; $('mainBtnLabel').style.color = "var(--cyan)"; 
-            }
+                if(amIInQueue) { lbl.innerText="LIHAT ANTRIAN ANDA"; lbl.style.color="#FFD700"; if($('waitingDashboard').classList.contains('active')) renderQueueDashboard(); } else { lbl.innerText="TAP UNTUK DAFTAR"; lbl.style.color="var(--cyan)"; }
+            } else { $('mainBtnLabel').innerText = "BUKA DASHBOARD CHARGING"; $('mainBtnLabel').style.color = "var(--cyan)"; }
 
             $('totalQDisplay').innerText = localQueue.length;
             if(localQueue.length > 0) $('nextQDisplay').innerHTML = `<span class="qbn-rank">#${localQueue[0].qNo}</span> ${localQueue[0].plat}`;
             else $('nextQDisplay').innerHTML = `<span class="qbn-rank">-</span> KOSONG`;
         }
 
-        // === 🔥 BADGE RENDERER (LOGIKA BARU) 🔥 ===
         function getBadgeHTML(role) {
             if(!role) return "";
             const r = role.toUpperCase();
-            
-            // 1. KETUM (GOLD SHINE)
             if(r === "KETUM") return `<div class="role-badge badge-ketum">KETUA UMUM</div>`;
-            
-            // 2. WAKETUM (SILVER SHINE)
             if(r === "WAKETUM") return `<div class="role-badge badge-waketum">WAKIL KETUA UMUM</div>`;
-            
-            // 3. SATGAS (HAZARD STRIPES)
             if(r === "SATGAS") return `<div class="role-badge badge-satgas"><span>⚡ SATUAN TUGAS ⚡</span></div>`;
-            
-            // 4. SEKJEN (TECH)
             if(r === "SEKRETARIS" || r === "SEKJEN") return `<div class="role-badge badge-sekjen">SEKJEND</div>`;
-            
-            // 5. KORLAP (RADAR)
             if(r === "KORLAP") return `<div class="role-badge badge-korlap">KOORDINATOR LAPANGAN</div>`;
-            
-            // 6. PEMBINA (ROYAL)
             if(r === "PEMBINA") return `<div class="role-badge badge-pembina">DEWAN PEMBINA</div>`;
-            
-            // 7. LAINNYA
             if(r === "HUMAS") return `<div class="role-badge badge-humas">HUMAS MLU</div>`;
             if(r === "KACAB") return `<div class="role-badge badge-kacab">KEPALA CABANG</div>`;
             if(r === "OFFICE") return `<div class="role-badge badge-office">OFFICE MAKA KG</div>`;
-            
-            // 8. SPECIAL TURTLE (SALTO)
             if(r === "PELAN" || r.includes("PELAN") || r.includes("TURTLE")) return `<div class="role-badge badge-turtle"><div class="wind-fx"></div><div class="turtle-text"><span style="--d:1;--r:1">P</span><span style="--d:-1;--r:-1">E</span><span style="--d:1;--r:2">L</span><span style="--d:-1;--r:-1">A</span><span style="--d:1;--r:1">N</span>&nbsp;<span style="--d:-1;--r:2">T</span><span style="--d:1;--r:-2">A</span><span style="--d:-1;--r:1">P</span><span style="--d:1;--r:-1">I</span>&nbsp;<span style="--d:-1;--r:2">K</span><span style="--d:1;--r:-1">E</span><span style="--d:-1;--r:1">N</span><span style="--d:1;--r:-2">C</span><span style="--d:-1;--r:1">E</span><span style="--d:1;--r:-1">N</span><span style="--d:-1;--r:2">G</span></div><div class="turtle-icon">🐢</div></div>`;
-            
-            // 9. MEMBER DEFAULT (TYPING ANIMATION)
-            if(r === "MEMBER" || r === "KELUARGA MLU") {
-                return `<div class="role-badge badge-family"><span class="char">K</span><span class="char">E</span><span class="char">L</span><span class="char">U</span><span class="char">A</span><span class="char">R</span><span class="char">G</span><span class="char">A</span><span style="width:2px; display:inline-block;"></span><span class="char">M</span><span class="char">L</span><span class="char">U</span></div>`;
-            }
-
-            // 10. CUSTOM
+            if(r === "MEMBER" || r === "KELUARGA MLU") return `<div class="role-badge badge-family"><span class="char">K</span><span class="char">E</span><span class="char">L</span><span class="char">U</span><span class="char">A</span><span class="char">R</span><span class="char">G</span><span class="char">A</span><span style="width:2px; display:inline-block;"></span><span class="char">M</span><span class="char">L</span><span class="char">U</span></div>`;
             return `<div class="role-badge badge-custom">${r}</div>`;
         }
 
-        // === HANDLE LOGIN ===
         window.handleMainAction = () => {
             if(window.activeSlotIdx !== -1) { $('screen-active-dashboard').classList.add('active'); $('screen-active-dashboard').classList.remove('minimized'); return; }
             if(amIInQueue) { $('waitingDashboard').classList.add('active'); renderQueueDashboard(); return; }
             if(localStorage.getItem('adm_ok')) { showLoginForm(); return; }
+            
+            // 🔥 FIX: MUNCULIN ATURAN SAAT KLIK, BUKAN PAS LOAD 🔥
+            const myPlat = localStorage.getItem('myPlat');
+            if(localQueue.some(q => q.plat === myPlat) || localSlots.some(s => s && s.plat === myPlat)) {
+                customAlert("Anda sudah terdaftar!"); return;
+            }
+            $('modalRules').classList.add('active'); // CSS akan ubah display:flex
+        };
+
+        window.proceedToScanner = () => {
+            closeModal('modalRules');
             if(currentValidQR !== "OFF") startScanner(); else runGPSCheck();
         };
 
@@ -527,71 +498,69 @@
         function renderStep() { 
             $('stepLabel').innerText = formConfig[formStep].l; $('questionText').innerText = formConfig[formStep].q; 
             $('holoInputLogin').value = ""; $('holoInputLogin').focus(); 
-            document.querySelector('.btn-next').innerText = formStep === 1 ? "DAFTAR SEKARANG" : "LANJUT"; 
+            const btn = document.getElementById('btnFinalRegister');
+            btn.innerText = formStep === 1 ? "DAFTAR SEKARANG" : "LANJUT"; 
+            btn.onclick = formStep === 1 ? executeReg : nextStepAction;
         }
 
-        // === 🔥 EXECUTE REGISTER (ANTI UNDEFINED ERROR) 🔥 ===
         async function executeReg() {
+            // 1. VISUAL LOADING
+            const btn = document.getElementById('btnFinalRegister');
+            btn.innerText = "⏳ MEMPROSES...";
+            btn.disabled = true;
+
             const rawPlat = formData.plat || "";
             const rawName = formData.name || "GUEST";
-            if(!rawPlat) { customAlert("Data Plat Kosong!"); return; }
-
             const cleanInput = cleanStr(rawPlat);
-            let userRole = null; 
+            let userRole = "MEMBER"; 
             
             try { 
                 const m = await getDoc(doc(db, "members", cleanInput)); 
-                if(m.exists()) {
-                    const dbRole = m.data().role;
-                    userRole = (dbRole !== undefined) ? dbRole : "MEMBER";
-                }
-            } catch(e){ console.log("Member check error:", e); }
+                if(m.exists()) userRole = m.data().role || "MEMBER";
+            } catch(e){}
             
             runTransaction(db, async(t) => {
                 const docSnap = await t.get(mainRef);
-                if(!docSnap.exists()) throw "Database Error";
-                
                 const d = docSnap.data();
                 if(d.chargingSlots.some(s => s && cleanStr(s.plat) === cleanInput) || d.waitingQueue.some(q => cleanStr(q.plat) === cleanInput)) return { status: "EXIST" };
-                
                 const n = (d.lastTicket||0)+1;
-                
-                const newUser = { 
-                    plat: rawPlat, 
-                    userName: rawName, 
-                    qNo: n, 
-                    entryTime: Date.now(), 
-                    role: userRole 
-                };
-                
+                const newUser = { plat: rawPlat, userName: rawName, qNo: n, entryTime: Date.now(), role: userRole };
                 Object.keys(newUser).forEach(key => { if (newUser[key] === undefined) newUser[key] = null; });
-
                 t.update(mainRef, { waitingQueue: arrayUnion(newUser), lastTicket: n });
                 return { status: "NEW", data: newUser };
             }).then((res) => {
-                if(res && res.status === "EXIST") customAlert("Sesi aktif ditemukan.");
+                btn.disabled = false;
+                if(res && res.status === "EXIST") {
+                    customAlert("Sesi aktif ditemukan.");
+                    closeModal('screen-login');
+                }
                 else {
                     localStorage.setItem('myPlat', rawPlat); myPlat = rawPlat;
                     addUserLog("REGISTER", `User Baru: ${rawPlat}`); 
-                    $('screen-login').classList.remove('active'); 
-                    updateUI();
+                    
+                    // 2. TUTUP FORM & BUKA DASHBOARD
+                    closeModal('screen-login');
+                    customAlert("✅ BERHASIL MASUK ANTRIAN!");
+                    setTimeout(() => {
+                        window.openWaitingDashboard();
+                    }, 1000);
                 }
-            }).catch(e => customAlert("Gagal: " + e.message));
+            }).catch(e => {
+                btn.disabled = false;
+                btn.innerText = "DAFTAR SEKARANG";
+                customAlert("Gagal: " + e.message);
+            });
         }
 
-        // === SCANNER & ACTIONS ===
         let html5QrCode;
         window.startScanner = () => {
-            const scannerDiv = document.createElement('div'); scannerDiv.id = 'scannerOverlay'; 
-            scannerDiv.style.cssText = "position:fixed; inset:0; background:#000; z-index:25000; display:flex; flex-direction:column; align-items:center; justify-content:center;";
-            scannerDiv.innerHTML = `<div style="font-family:'Teko'; font-size:24px; color:var(--cyan); margin-bottom:10px; text-align:center;">ARAHKAN KE QR CODE SHOWROOM</div><div id="reader" style="width:300px; height:300px; border:2px solid var(--cyan);"></div><button onclick="stopScanner()" style="margin-top:20px; padding:10px 30px; background:#000; color:var(--cyan); border:1px solid var(--cyan); font-family:'Teko'; font-size:18px;">BATAL</button>`;
-            document.body.appendChild(scannerDiv);
+            $('screen-scan').classList.add('active'); $('scanText').innerText = "ARAHKAN KAMERA";
             html5QrCode = new Html5Qrcode("reader");
             html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 200 }, (decodedText) => {
                 if(decodedText === currentValidQR) { stopScanner(); showLoginForm(); } else alert("QR CODE SALAH / EXPIRED!");
             }).catch(e => { alert("Error Kamera: " + e); stopScanner(); });
         };
-        window.stopScanner = () => { if(html5QrCode) html5QrCode.stop().then(() => html5QrCode.clear()).catch(()=>{}); const el = $('scannerOverlay'); if(el) el.remove(); };
+        window.stopScanner = () => { if(html5QrCode) html5QrCode.stop().then(() => html5QrCode.clear()).catch(()=>{}); $('screen-scan').classList.remove('active'); };
         window.cancelLogin = () => { $('screen-login').classList.remove('active'); formStep = 0; formData = {}; };
 
         window.selectSlot = async (i) => {
@@ -642,15 +611,13 @@
         window.gantiMotor = () => { if(!localStorage.getItem('adm_ok')) return customAlert("Admin Only!"); customConfirm("Hapus Sesi?").then(ok => { if(ok) { localStorage.removeItem('myPlat'); location.reload(); } }); };
         window.toggleAdmin = () => { let c = prompt("KODE:"); if(c === "1131"){ localStorage.setItem('adm_ok','1'); window.location.assign("admin.html"); } else if(c === "090815") window.location.assign("superadmin.html"); };
         window.openWaitingDashboard = () => { $('waitingDashboard').classList.add('active'); renderQueueDashboard(); };
+        
+        window.closeModal = (id) => { 
+            const el = document.getElementById(id); 
+            if(el) { el.classList.remove('active'); }
+        };
 
-        // === MUSIC & UTILS ===
-        // ⚠️ JANGAN LUPA GANTI NAMA FILE DI SINI SESUAI YANG ADA DI NETLIFY
-        const songs = [
-            { title: "OPENING THEME",   file: "lagu1.mp3" }, 
-            { title: "SANTAI SORE",     file: "lagu2.mp3" },
-            { title: "MODE BALAP",      file: "lagu3.mp3" },
-            { title: "KOPLO ELITE",     file: "dangdut_cyber.mp3" }
-        ];
+        const songs = [ { title: "OPENING THEME", file: "lagu1.mp3" }, { title: "SANTAI SORE", file: "lagu2.mp3" }, { title: "MODE BALAP", file: "lagu3.mp3" }, { title: "KOPLO ELITE", file: "dangdut_cyber.mp3" } ];
         let currentSongIdx = 0; const audio = $('audioPlayer');
         window.togglePlayerPanel = () => { const p = $('cpPanel'); if(p.classList.contains('show')) p.classList.remove('show'); else { p.classList.add('show'); renderSongList(); } };
         window.nextSong = () => { currentSongIdx = (currentSongIdx + 1) % songs.length; playSong(currentSongIdx); };
@@ -673,10 +640,7 @@
                 const isMe = (cleanStr(q.plat)===cleanStr(myPlat));
                 const d=document.createElement('div'); 
                 d.style.cssText=`padding:10px; border-bottom:1px solid #333; display:flex; justify-content:space-between; ${isMe ? 'background:rgba(0,240,255,0.1); border-left:3px solid var(--cyan);' : ''}`;
-                
-                // DISINI BADGE DIRENDER
                 d.innerHTML=`<div><span style="color:var(--cyan);">#${q.qNo}</span> ${q.plat}</div><div style="font-size:12px; display:flex; align-items:center;">${escapeHtml(q.userName)} ${getBadgeHTML(q.role)}</div>`;
-                
                 d.onclick = () => showQueueDetail(q); c.appendChild(d);
             });
         }

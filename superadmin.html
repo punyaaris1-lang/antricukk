@@ -22,7 +22,7 @@
         .btn-blue { background: linear-gradient(45deg, #005, #009); color: #fff; border: 1px solid #00f; }
         .btn-green { background: linear-gradient(45deg, #006400, #00FF00); color: #000; border: 1px solid #00FF00; }
         .btn-purple { background: linear-gradient(45deg, #4B0082, #9D00FF); color: #fff; border: 1px solid #9D00FF; }
-        .btn-gray { background: #333; color: #fff; border: 1px solid #555; }
+        .btn-orange { background: linear-gradient(45deg, #FF8C00, #FFAA00); color: #000; border: 1px solid #FFAA00; }
         .btn-mini { padding: 4px 8px; font-size: 12px; margin: 2px; }
         input, select { background: #1a1a1a; color: #fff; border: 1px solid #444; padding: 8px; border-radius: 4px; font-family: 'JetBrains Mono'; width: 100%; box-sizing: border-box; }
         .slot-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
@@ -32,7 +32,6 @@
         #loginOverlay { display: flex; position: fixed; inset: 0; background: #000; z-index: 10000; justify-content: center; align-items: center; flex-direction: column; }
         .login-box { width: 300px; padding: 30px; border: 1px solid var(--gold); border-radius: 10px; background: #111; text-align: center; box-shadow: 0 0 30px rgba(255, 215, 0, 0.15); }
         
-        /* QR GENERATOR STYLE */
         .qr-display-box { 
             margin-top: 15px; background: #fff; padding: 15px; border-radius: 10px; 
             display: none; flex-direction: column; align-items: center; 
@@ -69,11 +68,13 @@
     <div class="box" style="border-top: 3px solid var(--blue);">
         <h3 style="color:var(--blue);">2. SET JABATAN PENGURUS</h3>
         <div style="font-size:10px; color:#aaa; margin-bottom:10px;">Pilih "INPUT MANUAL" jika jabatan tidak ada di list.</div>
+        
         <div style="display:flex; gap:5px; margin-bottom:5px;">
             <input id="rolePlat" placeholder="PLAT NOMOR (Cth: B 1 ILHAM)" style="flex:2; text-transform:uppercase;">
-            <select id="roleSelect" style="flex:2;">
-                <option value="CUSTOM">✍ INPUT MANUAL (CUSTOM)...</option>
+            
+            <select id="roleSelect" style="flex:2;" onchange="toggleCustomRole()">
                 <option value="MEMBER">👤 KELUARGA MLU (DEFAULT)</option>
+                <option value="CUSTOM" style="font-weight:bold; color:gold;">✍ INPUT MANUAL (CUSTOM)...</option>
                 
                 <optgroup label="--- BOARD OF DIRECTORS ---">
                     <option value="KETUM">👑 KETUA UMUM</option>
@@ -90,41 +91,37 @@
                 </optgroup>
 
                 <optgroup label="--- LAINNYA ---">
-                    <option value="PELAN">🐢 SPECIAL TURTLE (SALTO)</option>
+                    <option value="PELAN">🐢 SPECIAL TURTLE</option>
                     <option value="OFFICE">🏢 OFFICE MAKA KG</option>
                 </optgroup>
             </select>
         </div>
+
+        <input id="customRoleInput" placeholder="KETIK NAMA BADGE (BEBAS)..." style="display:none; margin-bottom:5px; border:1px solid var(--blue); color:var(--blue); font-weight:bold; text-transform:uppercase;">
+
         <button onclick="setJabatan()" class="btn-blue" style="width:100%;">SIMPAN & UPDATE BADGE</button>
     </div>
 
     <div class="box" style="border-top: 3px solid var(--purple);">
         <h3 style="color:var(--purple);">3. SAKLAR KEAMANAN (HYBRID)</h3>
-        
         <div style="background:#111; padding:15px; border-radius:8px; text-align:center; margin-bottom:15px; border:1px solid #333;">
             <div style="color:#aaa; font-size:10px; letter-spacing:2px; margin-bottom:5px;">STATUS SAAT INI</div>
             <div id="activeQRDisplay" style="font-family:'Teko'; font-size:32px; color:#fff; font-weight:bold; text-shadow:0 0 10px rgba(255,255,255,0.3);">LOADING...</div>
-            
             <div id="qrContainer" class="qr-display-box">
                 <div style="color:#666; font-size:9px; margin-bottom:5px;">TAMPILKAN QR INI KE USER UNTUK SCAN</div>
                 <img id="qrImg" src="" alt="QR CODE">
                 <div id="qrTextLabel" class="qr-label"></div>
             </div>
         </div>
-
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-            <button onclick="setActiveQR('OFF')" class="btn-green" style="height:50px; font-size:16px;">
-                🌍 MODE GPS (OFF)
-                <div style="font-size:9px; font-weight:normal;">Login bebas tanpa scan</div>
-            </button>
-            
+            <button onclick="setActiveQR('OFF')" class="btn-green" style="height:50px; font-size:16px;">🌍 MODE GPS (OFF)</button>
             <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:5px;">
                 <button onclick="setActiveQR('A')" class="btn-purple">KODE A</button>
                 <button onclick="setActiveQR('B')" class="btn-purple">KODE B</button>
                 <button onclick="setActiveQR('C')" class="btn-purple">KODE C</button>
                 <button onclick="setActiveQR('D')" class="btn-purple">KODE D</button>
                 <button onclick="setActiveQR('E')" class="btn-purple">KODE E</button>
-                <div style="display:flex; align-items:center; justify-content:center; font-size:9px; color:#666; text-align:center;">WAJIB SCAN</div>
+                <div style="display:flex; align-items:center; justify-content:center; font-size:9px; color:#666;">WAJIB SCAN</div>
             </div>
         </div>
     </div>
@@ -135,10 +132,19 @@
         <div id="memberListArea" style="max-height:200px; overflow-y:auto; border:1px solid #333; display:none;"></div>
     </div>
 
+    <div class="box" style="border-top: 3px solid var(--orange);">
+        <h3 style="color:var(--orange);">5. LIVE BROADCAST (PENGUMUMAN)</h3>
+        <div style="font-size:10px; color:#aaa; margin-bottom:10px;">Pesan akan muncul sebagai POP-UP MERAH di semua layar.</div>
+        <div style="display:flex; gap:5px;">
+            <input id="broadcastInput" placeholder="Ketik pesan darurat disini..." style="flex:3;">
+            <button onclick="kirimBroadcast()" class="btn-orange" style="flex:1;">📢 KIRIM</button>
+        </div>
+    </div>
+
     <div class="box" style="border-top: 3px solid var(--red);">
-        <h3 style="color:var(--red);">5. DANGER ZONE (RESET)</h3>
+        <h3 style="color:var(--red);">6. DANGER ZONE (RESET)</h3>
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-            <button onclick="if(confirm('Reset Nomor Antrian jadi 1? Slot charging tetap aman.')) resetDaily()" class="btn-gold">🔄 RESET NOMOR HARIAN</button>
+            <button onclick="if(confirm('Reset Nomor Antrian jadi 1? Slot charging tetap aman.')) resetDaily()" class="btn-gold">🔄 RESET NOMOR</button>
             <button onclick="if(confirm('BAHAYA: Hapus SEMUA data antrian & slot?')) resetTotal()" class="btn-red">☣ WIPE TOTAL (0)</button>
         </div>
     </div>
@@ -150,7 +156,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, doc, onSnapshot, runTransaction, collection, addDoc, query, orderBy, limit, setDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, doc, onSnapshot, runTransaction, collection, addDoc, query, orderBy, limit, setDoc, getDocs, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         
         const firebaseConfig = { apiKey: "AIzaSyB666i9lYWIpxOdkwpoX9EvFvHLmHczeq8", authDomain: "fcgadingnew22.firebaseapp.com", projectId: "fcgadingnew22", storageBucket: "fcgadingnew22.firebasestorage.app", messagingSenderId: "537736846678", appId: "1:537736846678:web:53788d71a196423ac08af7" };
         const app = initializeApp(firebaseConfig);
@@ -163,7 +169,6 @@
         window.attemptLogin = () => { if(document.getElementById('loginPin').value === "090815") { localStorage.setItem('sa_sess', '1'); document.getElementById('loginOverlay').style.display = 'none'; addLog("SUPER_ADMIN", "LOGIN", "God Mode Accessed"); } else { alert("PIN SALAH!"); } };
         window.logout = () => { localStorage.removeItem('sa_sess'); window.location.href='antrian.html'; };
 
-        // === MONITOR UTAMA ===
         onSnapshot(mainRef, (snap) => {
             if(!snap.exists()) return;
             const d = snap.data(); cachedData = d;
@@ -182,7 +187,6 @@
                 qList.appendChild(div);
             });
 
-            // UPDATE SAKLAR & QR GENERATOR
             const activeCode = d.activeQrCode || 'OFF'; 
             const displayEl = document.getElementById('activeQRDisplay');
             const qrBox = document.getElementById('qrContainer');
@@ -190,25 +194,18 @@
             const qrText = document.getElementById('qrTextLabel');
 
             if(activeCode === 'OFF') {
-                displayEl.innerText = "MODE GPS (TANPA BARCODE)";
-                displayEl.style.color = "var(--green)";
-                qrBox.style.display = 'none';
+                displayEl.innerText = "MODE GPS (TANPA BARCODE)"; displayEl.style.color = "var(--green)"; qrBox.style.display = 'none';
             } else {
-                displayEl.innerText = "SECURE MODE: " + activeCode.replace("FC-CODE-", "KODE ");
-                displayEl.style.color = "var(--purple)";
-                qrBox.style.display = 'flex';
-                // Generator QR Otomatis
-                qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${activeCode}`;
-                qrText.innerText = activeCode.replace("FC-CODE-", "KODE ");
+                displayEl.innerText = "SECURE MODE: " + activeCode.replace("FC-CODE-", "KODE "); displayEl.style.color = "var(--purple)"; qrBox.style.display = 'flex';
+                qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${activeCode}`; qrText.innerText = activeCode.replace("FC-CODE-", "KODE ");
             }
         });
 
         window.setActiveQR = (mode) => {
-            let newVal = "OFF";
-            let msg = "Matikan Barcode? Kembali ke Mode GPS?";
-            if(mode !== 'OFF') { newVal = "FC-CODE-" + mode; msg = "Aktifkan KODE " + mode + "?\nUser WAJIB scan kertas Kode " + mode + " untuk masuk."; }
+            let newVal = "OFF"; let msg = "Matikan Barcode? Kembali ke Mode GPS?";
+            if(mode !== 'OFF') { newVal = "FC-CODE-" + mode; msg = "Aktifkan KODE " + mode + "?"; }
             if(!confirm(msg)) return;
-            setDoc(mainRef, { activeQrCode: newVal }, {merge: true}).then(() => { addLog("SUPER_ADMIN", "CHANGE_SECURITY", `Set Security to ${newVal}`); });
+            setDoc(mainRef, { activeQrCode: newVal }, {merge: true}).then(() => { addLog("SUPER_ADMIN", "CHANGE_SECURITY", `Set to ${newVal}`); });
         };
 
         window.editData = (type, id) => {
@@ -226,17 +223,28 @@
             });
         };
 
+        // === 🔥 LOGIKA CUSTOM ROLE BARU (DINAMIS) 🔥 ===
+        window.toggleCustomRole = () => {
+            const select = document.getElementById('roleSelect');
+            const input = document.getElementById('customRoleInput');
+            if(select.value === 'CUSTOM') {
+                input.style.display = 'block';
+                input.focus();
+            } else {
+                input.style.display = 'none';
+            }
+        };
+
         window.setJabatan = () => {
             const p = document.getElementById('rolePlat').value.toUpperCase(); 
             let r = document.getElementById('roleSelect').value; 
             
             if(!p) return alert("Isi Plat!"); 
             
-            // LOGIKA INPUT MANUAL (CUSTOM)
-            if(r === "CUSTOM") {
-                const c = prompt("MASUKKAN NAMA JABATAN (BEBAS):");
-                if(!c) return;
-                r = c.toUpperCase();
+            // JIKA PILIH CUSTOM, AMBIL NILAI DARI TEXTBOX
+            if(r === "CUSTOM") { 
+                r = document.getElementById('customRoleInput').value.toUpperCase();
+                if(!r) return alert("Isi nama jabatan custom-nya!");
             }
 
             const cleanP = p.replace(/[^A-Z0-9]/g, '');
@@ -246,54 +254,50 @@
                 const newQ = d.waitingQueue.map(q => { if(q.plat.replace(/[^A-Z0-9]/g,'') === cleanP) { updated=true; return {...q, role: r, isMember: true}; } return q; });
                 const newS = d.chargingSlots.map(s => { if(s && s.plat.replace(/[^A-Z0-9]/g,'') === cleanP) { updated=true; return {...s, role: r, isMember: true}; } return s; });
                 if(updated) t.update(mainRef, { waitingQueue: newQ, chargingSlots: newS });
-            }).then(() => { alert(`BERHASIL! ${p} sekarang ${r}`); addLog("SUPER_ADMIN", "SET_ROLE", `Set ${p} as ${r}`); document.getElementById('rolePlat').value = ''; if(document.getElementById('memberListArea').style.display === 'block') loadMembers(); });
+            }).then(() => { 
+                alert(`OK: ${p} -> ${r}`); 
+                addLog("SUPER_ADMIN", "SET_ROLE", `Set ${p} as ${r}`); 
+                document.getElementById('rolePlat').value = ''; 
+                document.getElementById('customRoleInput').value = ''; 
+                document.getElementById('customRoleInput').style.display = 'none';
+                document.getElementById('roleSelect').value = 'MEMBER';
+                if(document.getElementById('memberListArea').style.display === 'block') loadMembers(); 
+            });
         };
 
         window.loadMembers = async () => {
-            const area = document.getElementById('memberListArea'); area.style.display = 'block'; area.innerHTML = '<div style="padding:10px;">Loading Data...</div>';
+            const area = document.getElementById('memberListArea'); area.style.display = 'block'; area.innerHTML = '<div style="padding:10px;">Loading...</div>';
             try {
-                const q = query(collection(db, "members")); const querySnapshot = await getDocs(q);
+                const q = query(collection(db, "members")); const qs = await getDocs(q);
                 let html = '<table style="width:100%; font-size:10px;"><tr><th style="text-align:left;">PLAT</th><th style="text-align:left;">JABATAN</th><th>AKSI</th></tr>';
-                let count = 0;
-                querySnapshot.forEach((doc) => {
-                    const d = doc.data();
-                    if (d.role) {
-                        count++; let color = '#fff'; let label = d.role;
-                        
-                        // LOGIKA WARNA ADMIN PANEL BIAR GAMPANG DIKENAL
-                        if(d.role === 'KETUM') { color = 'var(--gold)'; label = '👑 KETUA UMUM'; }
-                        else if(d.role === 'WAKETUM') { color = '#ddd'; label = 'WAKETUM'; }
-                        else if(d.role === 'KORLAP') { color = 'var(--red)'; label = '🔴 KORLAP'; }
-                        else if(d.role === 'SATGAS') { color = 'var(--orange)'; label = '⚡ SATGAS'; }
-                        else if(d.role === 'SEKRETARIS') { color = 'var(--blue)'; label = '💻 SEKJEN'; }
-                        else if(d.role === 'PELAN') { color = 'var(--neon)'; label = '🐢 SPECIAL TURTLE'; }
-                        else if(d.role === 'OFFICE') { color = '#aaa'; label = '🏢 OFFICE MAKA'; }
-                        else if(d.role === 'HUMAS') { color = '#f59e0b'; label = '📢 HUMAS'; }
-                        else if(d.role === 'MEMBER') { color = '#fff'; label = 'MEMBER'; }
-                        
-                        // CUSTOM MANUAL
-                        else { color = '#b08dff'; label = d.role + " (CUSTOM)"; }
-                        
-                        html += `<tr style="border-bottom:1px solid #222;"><td style="padding:5px;">${d.plat}</td><td style="padding:5px; color:${color}; font-weight:bold;">${label}</td><td style="padding:5px; text-align:center;"><button onclick="hapusBadge('${d.plat}')" class="btn-red btn-mini">X</button></td></tr>`;
-                    }
-                });
-                area.innerHTML = (count === 0) ? '<div style="padding:10px;">KOSONG</div>' : html + '</table>';
+                qs.forEach((doc) => { const d = doc.data(); if (d.role) html += `<tr style="border-bottom:1px solid #222;"><td style="padding:5px;">${d.plat}</td><td style="padding:5px; color:#ddd; font-weight:bold;">${d.role}</td><td style="padding:5px; text-align:center;"><button onclick="hapusBadge('${d.plat}')" class="btn-red btn-mini">X</button></td></tr>`; });
+                area.innerHTML = html + '</table>';
             } catch (e) { alert("Gagal: " + e); }
         };
 
         window.hapusBadge = async (plat) => {
-            if(!confirm("Copot jabatan " + plat + "?")) return; const cleanP = plat.replace(/[^A-Z0-9]/g, '');
+            if(!confirm("Hapus jabatan " + plat + "?")) return; const cleanP = plat.replace(/[^A-Z0-9]/g, '');
             await setDoc(doc(db, "members", cleanP), { plat: plat, role: null, verified: true }, {merge:true});
             runTransaction(db, async(t) => {
                 const d = (await t.get(mainRef)).data(); let updated = false;
                 const newQ = d.waitingQueue.map(q => { if(q.plat.replace(/[^A-Z0-9]/g,'') === cleanP) { updated=true; return {...q, role: null}; } return q; });
                 const newS = d.chargingSlots.map(s => { if(s && s.plat.replace(/[^A-Z0-9]/g,'') === cleanP) { updated=true; return {...s, role: null}; } return s; });
                 if(updated) t.update(mainRef, { waitingQueue: newQ, chargingSlots: newS });
-            }).then(() => { addLog("SUPER_ADMIN", "REMOVE_ROLE", `Removed Role from ${plat}`); loadMembers(); });
+            }).then(() => { addLog("SUPER_ADMIN", "REMOVE_ROLE", `Removed Role ${plat}`); loadMembers(); });
         };
 
-        window.resetDaily = () => { runTransaction(db, async(t) => { t.update(mainRef, { waitingQueue: [], recycledNumbers: [], lastTicket: 0 }); addLog("SUPER_ADMIN", "RESET_DAILY", "Reset Queue Numbers"); }); };
-        window.resetTotal = () => { setDoc(mainRef, { chargingSlots:[null,null,null], waitingQueue:[], recycledNumbers:[], lastTicket:0 }).then(() => addLog("SUPER_ADMIN", "RESET_TOTAL", "Wiped Everything")); };
+        window.kirimBroadcast = async () => {
+            const msg = document.getElementById('broadcastInput').value;
+            if(!msg) return alert("Ketik pesan dulu!");
+            if(confirm("Kirim Broadcast: " + msg + "?")) {
+                await updateDoc(mainRef, { broadcast: { msg: msg, time: Date.now() } });
+                alert("PESAN TERKIRIM!"); addLog("SUPER_ADMIN", "BROADCAST", msg);
+                document.getElementById('broadcastInput').value = "";
+            }
+        };
+
+        window.resetDaily = () => { runTransaction(db, async(t) => { t.update(mainRef, { waitingQueue: [], recycledNumbers: [], lastTicket: 0 }); addLog("SUPER_ADMIN", "RESET_DAILY", "Reset Queue"); }); };
+        window.resetTotal = () => { setDoc(mainRef, { chargingSlots:[null,null,null], waitingQueue:[], recycledNumbers:[], lastTicket:0 }).then(() => addLog("SUPER_ADMIN", "RESET_TOTAL", "Wiped All")); };
         
         onSnapshot(query(logRef, orderBy("timestamp", "desc"), limit(50)), (snap) => {
             let h = ''; snap.forEach(d => { const x = d.data(); const time = x.timestamp ? x.timestamp.toDate().toLocaleTimeString() : '-'; h += `<div class="log-line"><span style="color:#666">[${time}]</span> <b style="color:var(--gold)">${x.actor}</b>: ${x.action} - ${x.details}</div>`; });
