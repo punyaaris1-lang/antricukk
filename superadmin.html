@@ -23,6 +23,7 @@
         .btn-green { background: linear-gradient(45deg, #006400, #00FF00); color: #000; border: 1px solid #00FF00; }
         .btn-purple { background: linear-gradient(45deg, #4B0082, #9D00FF); color: #fff; border: 1px solid #9D00FF; }
         .btn-orange { background: linear-gradient(45deg, #FF8C00, #FFAA00); color: #000; border: 1px solid #FFAA00; }
+        .btn-gray { background: #333; color: #fff; border: 1px solid #555; }
         .btn-mini { padding: 4px 8px; font-size: 12px; margin: 2px; }
         input, select { background: #1a1a1a; color: #fff; border: 1px solid #444; padding: 8px; border-radius: 4px; font-family: 'JetBrains Mono'; width: 100%; box-sizing: border-box; }
         .slot-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
@@ -68,13 +69,11 @@
     <div class="box" style="border-top: 3px solid var(--blue);">
         <h3 style="color:var(--blue);">2. SET JABATAN PENGURUS</h3>
         <div style="font-size:10px; color:#aaa; margin-bottom:10px;">Pilih "INPUT MANUAL" jika jabatan tidak ada di list.</div>
-        
         <div style="display:flex; gap:5px; margin-bottom:5px;">
             <input id="rolePlat" placeholder="PLAT NOMOR (Cth: B 1 ILHAM)" style="flex:2; text-transform:uppercase;">
-            
-            <select id="roleSelect" style="flex:2;" onchange="toggleCustomRole()">
+            <select id="roleSelect" style="flex:2;">
                 <option value="MEMBER">👤 KELUARGA MLU (DEFAULT)</option>
-                <option value="CUSTOM" style="font-weight:bold; color:gold;">✍ INPUT MANUAL (CUSTOM)...</option>
+                <option value="CUSTOM">✍ INPUT MANUAL (CUSTOM)...</option>
                 
                 <optgroup label="--- BOARD OF DIRECTORS ---">
                     <option value="KETUM">👑 KETUA UMUM</option>
@@ -91,37 +90,40 @@
                 </optgroup>
 
                 <optgroup label="--- LAINNYA ---">
-                    <option value="PELAN">🐢 SPECIAL TURTLE</option>
+                    <option value="PELAN">🐢 SPECIAL TURTLE (SALTO)</option>
                     <option value="OFFICE">🏢 OFFICE MAKA KG</option>
                 </optgroup>
             </select>
         </div>
-
-        <input id="customRoleInput" placeholder="KETIK NAMA BADGE (BEBAS)..." style="display:none; margin-bottom:5px; border:1px solid var(--blue); color:var(--blue); font-weight:bold; text-transform:uppercase;">
-
         <button onclick="setJabatan()" class="btn-blue" style="width:100%;">SIMPAN & UPDATE BADGE</button>
     </div>
 
     <div class="box" style="border-top: 3px solid var(--purple);">
         <h3 style="color:var(--purple);">3. SAKLAR KEAMANAN (HYBRID)</h3>
+        
         <div style="background:#111; padding:15px; border-radius:8px; text-align:center; margin-bottom:15px; border:1px solid #333;">
             <div style="color:#aaa; font-size:10px; letter-spacing:2px; margin-bottom:5px;">STATUS SAAT INI</div>
             <div id="activeQRDisplay" style="font-family:'Teko'; font-size:32px; color:#fff; font-weight:bold; text-shadow:0 0 10px rgba(255,255,255,0.3);">LOADING...</div>
+            
             <div id="qrContainer" class="qr-display-box">
                 <div style="color:#666; font-size:9px; margin-bottom:5px;">TAMPILKAN QR INI KE USER UNTUK SCAN</div>
                 <img id="qrImg" src="" alt="QR CODE">
                 <div id="qrTextLabel" class="qr-label"></div>
             </div>
         </div>
+
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-            <button onclick="setActiveQR('OFF')" class="btn-green" style="height:50px; font-size:16px;">🌍 MODE GPS (OFF)</button>
+            <button onclick="setActiveQR('OFF')" class="btn-green" style="height:50px; font-size:16px;">
+                🌍 MODE GPS (OFF)
+            </button>
+            
             <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:5px;">
                 <button onclick="setActiveQR('A')" class="btn-purple">KODE A</button>
                 <button onclick="setActiveQR('B')" class="btn-purple">KODE B</button>
                 <button onclick="setActiveQR('C')" class="btn-purple">KODE C</button>
                 <button onclick="setActiveQR('D')" class="btn-purple">KODE D</button>
                 <button onclick="setActiveQR('E')" class="btn-purple">KODE E</button>
-                <div style="display:flex; align-items:center; justify-content:center; font-size:9px; color:#666;">WAJIB SCAN</div>
+                <div style="display:flex; align-items:center; justify-content:center; font-size:9px; color:#666; text-align:center;">WAJIB SCAN</div>
             </div>
         </div>
     </div>
@@ -144,7 +146,7 @@
     <div class="box" style="border-top: 3px solid var(--red);">
         <h3 style="color:var(--red);">6. DANGER ZONE (RESET)</h3>
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-            <button onclick="if(confirm('Reset Nomor Antrian jadi 1? Slot charging tetap aman.')) resetDaily()" class="btn-gold">🔄 RESET NOMOR</button>
+            <button onclick="if(confirm('Reset Nomor Antrian jadi 1? Slot charging tetap aman.')) resetDaily()" class="btn-gold">🔄 RESET NOMOR HARIAN</button>
             <button onclick="if(confirm('BAHAYA: Hapus SEMUA data antrian & slot?')) resetTotal()" class="btn-red">☣ WIPE TOTAL (0)</button>
         </div>
     </div>
@@ -203,9 +205,9 @@
 
         window.setActiveQR = (mode) => {
             let newVal = "OFF"; let msg = "Matikan Barcode? Kembali ke Mode GPS?";
-            if(mode !== 'OFF') { newVal = "FC-CODE-" + mode; msg = "Aktifkan KODE " + mode + "?"; }
+            if(mode !== 'OFF') { newVal = "FC-CODE-" + mode; msg = "Aktifkan KODE " + mode + "?\nUser WAJIB scan kertas Kode " + mode + " untuk masuk."; }
             if(!confirm(msg)) return;
-            setDoc(mainRef, { activeQrCode: newVal }, {merge: true}).then(() => { addLog("SUPER_ADMIN", "CHANGE_SECURITY", `Set to ${newVal}`); });
+            setDoc(mainRef, { activeQrCode: newVal }, {merge: true}).then(() => { addLog("SUPER_ADMIN", "CHANGE_SECURITY", `Set Security to ${newVal}`); });
         };
 
         window.editData = (type, id) => {
@@ -223,28 +225,17 @@
             });
         };
 
-        // === 🔥 LOGIKA CUSTOM ROLE BARU (DINAMIS) 🔥 ===
-        window.toggleCustomRole = () => {
-            const select = document.getElementById('roleSelect');
-            const input = document.getElementById('customRoleInput');
-            if(select.value === 'CUSTOM') {
-                input.style.display = 'block';
-                input.focus();
-            } else {
-                input.style.display = 'none';
-            }
-        };
-
         window.setJabatan = () => {
             const p = document.getElementById('rolePlat').value.toUpperCase(); 
             let r = document.getElementById('roleSelect').value; 
             
             if(!p) return alert("Isi Plat!"); 
             
-            // JIKA PILIH CUSTOM, AMBIL NILAI DARI TEXTBOX
-            if(r === "CUSTOM") { 
-                r = document.getElementById('customRoleInput').value.toUpperCase();
-                if(!r) return alert("Isi nama jabatan custom-nya!");
+            // LOGIKA INPUT MANUAL (CUSTOM) --> TETAP PAKAI POP-UP BAWAAN BROWSER (PROMPT)
+            if(r === "CUSTOM") {
+                const c = prompt("MASUKKAN NAMA JABATAN (BEBAS):");
+                if(!c) return;
+                r = c.toUpperCase();
             }
 
             const cleanP = p.replace(/[^A-Z0-9]/g, '');
@@ -254,38 +245,49 @@
                 const newQ = d.waitingQueue.map(q => { if(q.plat.replace(/[^A-Z0-9]/g,'') === cleanP) { updated=true; return {...q, role: r, isMember: true}; } return q; });
                 const newS = d.chargingSlots.map(s => { if(s && s.plat.replace(/[^A-Z0-9]/g,'') === cleanP) { updated=true; return {...s, role: r, isMember: true}; } return s; });
                 if(updated) t.update(mainRef, { waitingQueue: newQ, chargingSlots: newS });
-            }).then(() => { 
-                alert(`OK: ${p} -> ${r}`); 
-                addLog("SUPER_ADMIN", "SET_ROLE", `Set ${p} as ${r}`); 
-                document.getElementById('rolePlat').value = ''; 
-                document.getElementById('customRoleInput').value = ''; 
-                document.getElementById('customRoleInput').style.display = 'none';
-                document.getElementById('roleSelect').value = 'MEMBER';
-                if(document.getElementById('memberListArea').style.display === 'block') loadMembers(); 
-            });
+            }).then(() => { alert(`BERHASIL! ${p} sekarang ${r}`); addLog("SUPER_ADMIN", "SET_ROLE", `Set ${p} as ${r}`); document.getElementById('rolePlat').value = ''; if(document.getElementById('memberListArea').style.display === 'block') loadMembers(); });
         };
 
         window.loadMembers = async () => {
-            const area = document.getElementById('memberListArea'); area.style.display = 'block'; area.innerHTML = '<div style="padding:10px;">Loading...</div>';
+            const area = document.getElementById('memberListArea'); area.style.display = 'block'; area.innerHTML = '<div style="padding:10px;">Loading Data...</div>';
             try {
-                const q = query(collection(db, "members")); const qs = await getDocs(q);
+                const q = query(collection(db, "members")); const querySnapshot = await getDocs(q);
                 let html = '<table style="width:100%; font-size:10px;"><tr><th style="text-align:left;">PLAT</th><th style="text-align:left;">JABATAN</th><th>AKSI</th></tr>';
-                qs.forEach((doc) => { const d = doc.data(); if (d.role) html += `<tr style="border-bottom:1px solid #222;"><td style="padding:5px;">${d.plat}</td><td style="padding:5px; color:#ddd; font-weight:bold;">${d.role}</td><td style="padding:5px; text-align:center;"><button onclick="hapusBadge('${d.plat}')" class="btn-red btn-mini">X</button></td></tr>`; });
-                area.innerHTML = html + '</table>';
+                let count = 0;
+                querySnapshot.forEach((doc) => {
+                    const d = doc.data();
+                    if (d.role) {
+                        count++; let color = '#fff'; let label = d.role;
+                        if(d.role === 'KETUM') { color = 'var(--gold)'; label = '👑 KETUA UMUM'; }
+                        else if(d.role === 'WAKETUM') { color = '#ddd'; label = 'WAKETUM'; }
+                        else if(d.role === 'KORLAP') { color = 'var(--red)'; label = '🔴 KORLAP'; }
+                        else if(d.role === 'SATGAS') { color = 'var(--orange)'; label = '⚡ SATGAS'; }
+                        else if(d.role === 'SEKRETARIS') { color = 'var(--blue)'; label = '💻 SEKJEN'; }
+                        else if(d.role === 'PELAN') { color = 'var(--neon)'; label = '🐢 SPECIAL TURTLE'; }
+                        else if(d.role === 'OFFICE') { color = '#aaa'; label = '🏢 OFFICE MAKA'; }
+                        else if(d.role === 'HUMAS') { color = '#f59e0b'; label = '📢 HUMAS'; }
+                        else if(d.role === 'MEMBER') { color = '#fff'; label = 'MEMBER'; }
+                        else { color = '#b08dff'; label = d.role + " (CUSTOM)"; }
+                        
+                        html += `<tr style="border-bottom:1px solid #222;"><td style="padding:5px;">${d.plat}</td><td style="padding:5px; color:${color}; font-weight:bold;">${label}</td><td style="padding:5px; text-align:center;"><button onclick="hapusBadge('${d.plat}')" class="btn-red btn-mini">X</button></td></tr>`;
+                    }
+                });
+                area.innerHTML = (count === 0) ? '<div style="padding:10px;">KOSONG</div>' : html + '</table>';
             } catch (e) { alert("Gagal: " + e); }
         };
 
         window.hapusBadge = async (plat) => {
-            if(!confirm("Hapus jabatan " + plat + "?")) return; const cleanP = plat.replace(/[^A-Z0-9]/g, '');
+            if(!confirm("Copot jabatan " + plat + "?")) return; const cleanP = plat.replace(/[^A-Z0-9]/g, '');
             await setDoc(doc(db, "members", cleanP), { plat: plat, role: null, verified: true }, {merge:true});
             runTransaction(db, async(t) => {
                 const d = (await t.get(mainRef)).data(); let updated = false;
                 const newQ = d.waitingQueue.map(q => { if(q.plat.replace(/[^A-Z0-9]/g,'') === cleanP) { updated=true; return {...q, role: null}; } return q; });
                 const newS = d.chargingSlots.map(s => { if(s && s.plat.replace(/[^A-Z0-9]/g,'') === cleanP) { updated=true; return {...s, role: null}; } return s; });
                 if(updated) t.update(mainRef, { waitingQueue: newQ, chargingSlots: newS });
-            }).then(() => { addLog("SUPER_ADMIN", "REMOVE_ROLE", `Removed Role ${plat}`); loadMembers(); });
+            }).then(() => { addLog("SUPER_ADMIN", "REMOVE_ROLE", `Removed Role from ${plat}`); loadMembers(); });
         };
 
+        // --- FUNGSI BROADCAST BARU ---
         window.kirimBroadcast = async () => {
             const msg = document.getElementById('broadcastInput').value;
             if(!msg) return alert("Ketik pesan dulu!");
@@ -296,8 +298,8 @@
             }
         };
 
-        window.resetDaily = () => { runTransaction(db, async(t) => { t.update(mainRef, { waitingQueue: [], recycledNumbers: [], lastTicket: 0 }); addLog("SUPER_ADMIN", "RESET_DAILY", "Reset Queue"); }); };
-        window.resetTotal = () => { setDoc(mainRef, { chargingSlots:[null,null,null], waitingQueue:[], recycledNumbers:[], lastTicket:0 }).then(() => addLog("SUPER_ADMIN", "RESET_TOTAL", "Wiped All")); };
+        window.resetDaily = () => { runTransaction(db, async(t) => { t.update(mainRef, { waitingQueue: [], recycledNumbers: [], lastTicket: 0 }); addLog("SUPER_ADMIN", "RESET_DAILY", "Reset Queue Numbers"); }); };
+        window.resetTotal = () => { setDoc(mainRef, { chargingSlots:[null,null,null], waitingQueue:[], recycledNumbers:[], lastTicket:0 }).then(() => addLog("SUPER_ADMIN", "RESET_TOTAL", "Wiped Everything")); };
         
         onSnapshot(query(logRef, orderBy("timestamp", "desc"), limit(50)), (snap) => {
             let h = ''; snap.forEach(d => { const x = d.data(); const time = x.timestamp ? x.timestamp.toDate().toLocaleTimeString() : '-'; h += `<div class="log-line"><span style="color:#666">[${time}]</span> <b style="color:var(--gold)">${x.actor}</b>: ${x.action} - ${x.details}</div>`; });

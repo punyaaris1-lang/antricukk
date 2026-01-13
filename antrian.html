@@ -14,10 +14,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Teko:wght@300;400;500;600;700&family=Rajdhani:wght@500;600;700&family=Outfit:wght@300;400;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     
     <style>
-        /* === GLOBAL SETUP === */
+        /* === GLOBAL SETUP (DESAIN ASLI) === */
         :root { --bg: #000; --cyan: #00F0FF; --glass-card: rgba(20, 25, 30, 0.95); --glass-border: rgba(0, 240, 255, 0.3); --text-dim: rgba(255, 255, 255, 0.6); --danger: #ff003c; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; outline: none; }
-        body { font-family: 'Rajdhani', sans-serif; background: #000; background-image: linear-gradient(to bottom, rgba(0,0,0,0.9), #000), url('logo.png'); background-size: cover; background-position: center; background-attachment: fixed; color: #fff; margin: 0; width: 100vw; min-height: 100vh; overflow-y: auto; display: flex; flex-direction: column; padding: 10px 20px 200px 20px; }
+        body { font-family: 'Rajdhani', sans-serif; background: #000; background-image: linear-gradient(to bottom, rgba(0,0,0,0.9), #000), url('logo.png'); background-size: cover; background-position: center; background-attachment: fixed; color: #fff; margin: 0; width: 100vw; min-height: 100vh; overflow-y: auto; display: flex; flex-direction: column; padding: 10px 20px 220px 20px; }
 
         /* HEADER */
         .header { flex: 0 0 auto; text-align: center; padding-top: 40px; margin-bottom: 20px; cursor: pointer; }
@@ -131,9 +131,7 @@
         /* === 🛑 STATIC MODE: MATIKAN ANIMASI DI LIST ANTRIAN 🛑 === */
         #wdListContainer .role-badge *,
         #wdListContainer .role-badge::before,
-        #wdListContainer .role-badge::after {
-            animation: none !important; transition: none !important;
-        }
+        #wdListContainer .role-badge::after { animation: none !important; transition: none !important; }
         #wdListContainer .char { opacity: 1 !important; transform: none !important; color: #fff !important; text-shadow: none !important; }
         #wdListContainer .badge-turtle .turtle-icon { position: relative !important; right: auto !important; margin-left: 5px; }
         #wdListContainer .badge-turtle .wind-fx { display: none !important; }
@@ -143,8 +141,8 @@
         #wdListContainer .badge-ketum, #wdListContainer .badge-waketum { animation: none !important; background: #B8860B; }
 
         /* 🔥 MODAL ATURAN (DEFAULT HIDDEN!) 🔥 */
-        #modalRules { display: none !important; z-index: 25000; } /* FIX: PAKSA HIDDEN */
-        #modalRules.active { display: flex !important; } /* BARU MUNCUL KALAU ACTIVE */
+        #modalRules { display: none !important; z-index: 25000; }
+        #modalRules.active { display: flex !important; }
         
         .rule-box { border: 2px solid var(--danger); padding: 25px 20px; border-radius: 15px; background: #110000; width: 90%; max-width: 350px; position: relative; box-shadow: 0 0 30px rgba(255, 0, 60, 0.3); text-align: left; }
         .rule-title { font-family: 'Teko'; font-size: 36px; color: var(--danger); margin: 0 0 15px 0; line-height: 1; text-align: center; }
@@ -327,15 +325,23 @@
             <button onclick="stopCharging(activeSlotIdx)" style="width:100%; max-width:320px; padding:15px; background:linear-gradient(90deg, rgba(255,0,60,0.1), rgba(255,0,60,0.2)); border:1px solid #ff003c; color:#ff003c; border-radius:50px; font-family:'Rajdhani'; font-weight:bold; font-size:16px; margin-bottom:20px;">⏹ HENTIKAN PENGISIAN</button>
         </div>
     </div>
-
-    <script type="module">
+        <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, doc, onSnapshot, runTransaction, collection, addDoc, setDoc, updateDoc, arrayUnion, arrayRemove, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         // === FIREBASE CONFIG ===
-        const firebaseConfig = { apiKey: "AIzaSyB666i9lYWIpxOdkwpoX9EvFvHLmHczeq8", authDomain: "fcgadingnew22.firebaseapp.com", projectId: "fcgadingnew22", storageBucket: "fcgadingnew22.firebasestorage.app", messagingSenderId: "537736846678", appId: "1:537736846678:web:53788d71a196423ac08af7" };
+        const firebaseConfig = {
+            apiKey: "AIzaSyB666i9lYWIpxOdkwpoX9EvFvHLmHczeq8",
+            authDomain: "fcgadingnew22.firebaseapp.com",
+            projectId: "fcgadingnew22",
+            storageBucket: "fcgadingnew22.firebasestorage.app",
+            messagingSenderId: "537736846678",
+            appId: "1:537736846678:web:53788d71a196423ac08af7"
+        };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        
+        // === REFERENCES ===
         const mainRef = doc(db, "antrian", "utama");
         const historyRef = collection(db, "riwayatCharging");
         const logRef = collection(db, "activityLog"); 
@@ -361,6 +367,7 @@
         let chargeTimerInterval;
         let lastBroadcastTime = Date.now();
 
+        // === REALTIME LISTENER ===
         onSnapshot(mainRef, (snap) => {
             if (!snap.exists()) return;
             const d = snap.data();
@@ -373,6 +380,7 @@
                 lastBroadcastTime = d.broadcast.time;
                 $('broadcastMsg').innerText = d.broadcast.msg;
                 $('broadcastModal').style.display = 'flex';
+                // Audio alert
                 const audio = new Audio("https://www.myinstants.com/media/sounds/nuclear-alarm.mp3");
                 audio.volume = 0.5; audio.play().catch(()=>{});
             }
@@ -388,8 +396,18 @@
             let currentMyPlat = localStorage.getItem('myPlat');
             let amIQueue1 = false;
             
-            if(localQueue.length > 0 && currentMyPlat) { if(cleanStr(localQueue[0]?.plat) === cleanStr(currentMyPlat)) amIQueue1 = true; }
-            if(amIQueue1 && $('waitingDashboard').classList.contains('active')) { if(localSlots.some(s => s === null)) { $('waitingDashboard').classList.remove('active'); customAlert("GILIRAN ANDA! SILAHKAN PILIH SLOT."); } }
+            // Cek apakah user ada di urutan pertama antrian
+            if(localQueue.length > 0 && currentMyPlat) { 
+                if(cleanStr(localQueue[0]?.plat) === cleanStr(currentMyPlat)) amIQueue1 = true; 
+            }
+            
+            // JIKA GILIRAN USER & DASHBOARD KEBUKA -> TUTUP BIAR BISA PILIH SLOT
+            if(amIQueue1 && $('waitingDashboard').classList.contains('active')) { 
+                if(localSlots.some(s => s === null)) { 
+                    $('waitingDashboard').classList.remove('active'); 
+                    customAlert("GILIRAN ANDA! SILAHKAN PILIH SLOT KOSONG."); 
+                } 
+            }
 
             localSlots.forEach((s, i) => {
                 const div = document.createElement('div');
@@ -409,8 +427,10 @@
                     if(isMe) { $('ad-plat-val').innerText = s.plat; $('ad-name-val').innerText = s.userName; startChargeTimer(s.startTime); if(!$('screen-active-dashboard').classList.contains('minimized')) $('screen-active-dashboard').classList.add('active'); }
                 } else {
                     div.className = `slot-card empty`;
+                    // TOMBOL PILIH MUNCUL JIKA GILIRAN SAYA
                     let btn = amIQueue1 ? `<button class="btn-pilih" onclick="window.selectSlot(${i})">PILIH SLOT INI</button>` : '';
                     if(amIQueue1) div.style.border = "1px solid #FFD700";
+                    
                     div.innerHTML = `<div class="sc-info"><div class="sc-label">SLOT 0${i+1}</div><div class="sc-plat">OPEN</div></div><div style="display:flex; align-items:center;"><div class="status-pill">AVAILABLE</div>${btn}</div>`;
                 }
                 container.appendChild(div);
@@ -421,17 +441,26 @@
                 if(chargeTimerInterval) clearInterval(chargeTimerInterval);
                 amIInQueue = localQueue.some(q => cleanStr(q.plat) === cleanStr(currentMyPlat));
                 const lbl = $('mainBtnLabel');
-                if(amIInQueue) { lbl.innerText="LIHAT ANTRIAN ANDA"; lbl.style.color="#FFD700"; if($('waitingDashboard').classList.contains('active')) renderQueueDashboard(); } else { lbl.innerText="TAP UNTUK DAFTAR"; lbl.style.color="var(--cyan)"; }
-            } else { $('mainBtnLabel').innerText = "BUKA DASHBOARD CHARGING"; $('mainBtnLabel').style.color = "var(--cyan)"; }
+                if(amIInQueue) { 
+                    lbl.innerText="LIHAT ANTRIAN ANDA"; lbl.style.color="#FFD700"; 
+                    if($('waitingDashboard').classList.contains('active')) renderQueueDashboard(); 
+                } else { 
+                    lbl.innerText="TAP UNTUK DAFTAR"; lbl.style.color="var(--cyan)"; 
+                }
+            } else { 
+                $('mainBtnLabel').innerText = "BUKA DASHBOARD CHARGING"; $('mainBtnLabel').style.color = "var(--cyan)"; 
+            }
 
             $('totalQDisplay').innerText = localQueue.length;
             if(localQueue.length > 0) $('nextQDisplay').innerHTML = `<span class="qbn-rank">#${localQueue[0].qNo}</span> ${localQueue[0].plat}`;
             else $('nextQDisplay').innerHTML = `<span class="qbn-rank">-</span> KOSONG`;
         }
 
+        // === 🔥 BADGE RENDERER YANG BENAR 🔥 ===
         function getBadgeHTML(role) {
             if(!role) return "";
             const r = role.toUpperCase();
+            
             if(r === "KETUM") return `<div class="role-badge badge-ketum">KETUA UMUM</div>`;
             if(r === "WAKETUM") return `<div class="role-badge badge-waketum">WAKIL KETUA UMUM</div>`;
             if(r === "SATGAS") return `<div class="role-badge badge-satgas"><span>⚡ SATUAN TUGAS ⚡</span></div>`;
@@ -441,22 +470,26 @@
             if(r === "HUMAS") return `<div class="role-badge badge-humas">HUMAS MLU</div>`;
             if(r === "KACAB") return `<div class="role-badge badge-kacab">KEPALA CABANG</div>`;
             if(r === "OFFICE") return `<div class="role-badge badge-office">OFFICE MAKA KG</div>`;
+            
             if(r === "PELAN" || r.includes("PELAN") || r.includes("TURTLE")) return `<div class="role-badge badge-turtle"><div class="wind-fx"></div><div class="turtle-text"><span style="--d:1;--r:1">P</span><span style="--d:-1;--r:-1">E</span><span style="--d:1;--r:2">L</span><span style="--d:-1;--r:-1">A</span><span style="--d:1;--r:1">N</span>&nbsp;<span style="--d:-1;--r:2">T</span><span style="--d:1;--r:-2">A</span><span style="--d:-1;--r:1">P</span><span style="--d:1;--r:-1">I</span>&nbsp;<span style="--d:-1;--r:2">K</span><span style="--d:1;--r:-1">E</span><span style="--d:-1;--r:1">N</span><span style="--d:1;--r:-2">C</span><span style="--d:-1;--r:1">E</span><span style="--d:1;--r:-1">N</span><span style="--d:-1;--r:2">G</span></div><div class="turtle-icon">🐢</div></div>`;
+            
             if(r === "MEMBER" || r === "KELUARGA MLU") return `<div class="role-badge badge-family"><span class="char">K</span><span class="char">E</span><span class="char">L</span><span class="char">U</span><span class="char">A</span><span class="char">R</span><span class="char">G</span><span class="char">A</span><span style="width:2px; display:inline-block;"></span><span class="char">M</span><span class="char">L</span><span class="char">U</span></div>`;
+            
             return `<div class="role-badge badge-custom">${r}</div>`;
         }
 
+        // === HANDLE BUTTON ===
         window.handleMainAction = () => {
             if(window.activeSlotIdx !== -1) { $('screen-active-dashboard').classList.add('active'); $('screen-active-dashboard').classList.remove('minimized'); return; }
             if(amIInQueue) { $('waitingDashboard').classList.add('active'); renderQueueDashboard(); return; }
             if(localStorage.getItem('adm_ok')) { showLoginForm(); return; }
             
-            // 🔥 FIX: MUNCULIN ATURAN SAAT KLIK, BUKAN PAS LOAD 🔥
             const myPlat = localStorage.getItem('myPlat');
             if(localQueue.some(q => q.plat === myPlat) || localSlots.some(s => s && s.plat === myPlat)) {
                 customAlert("Anda sudah terdaftar!"); return;
             }
-            $('modalRules').classList.add('active'); // CSS akan ubah display:flex
+            $('modalRules').style.display = 'flex';
+            setTimeout(() => { $('modalRules').classList.add('active'); }, 10);
         };
 
         window.proceedToScanner = () => {
@@ -475,16 +508,23 @@
             } else customAlert("GPS Tidak Support.");
         }
 
-        function showLoginForm() { $('screen-scan').classList.remove('active'); $('screen-login').classList.add('active'); formStep = 0; formData = {}; renderStep(); }
+        function showLoginForm() { 
+            $('screen-scan').classList.remove('active'); 
+            $('screen-login').classList.add('active'); 
+            formStep = 0; formData = {}; 
+            renderStep(); 
+        }
 
         let formStep=0; let formData={};
         const formConfig = [{l:"LANGKAH 1/2",q:"PLAT NOMOR",k:"plat"},{l:"LANGKAH 2/2",q:"NAMA ANDA",k:"name"}];
+        
         $('holoInputLogin').addEventListener('input', function(e) {
             if(formConfig[formStep].k !== 'plat') return;
             let v = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
             const match = v.match(/^([A-Z]{1,2})(\d{1,4})?([A-Z]{1,3})?$/);
             if (match) { let f = match[1]; if (match[2]) f += " " + match[2]; if (match[3]) f += " " + match[3]; this.value = f; }
         });
+
         window.nextStepAction = () => {
             let val = $('holoInputLogin').value.trim().toUpperCase(); if(!val) return;
             if(formConfig[formStep].k === 'plat') { 
@@ -495,28 +535,33 @@
                 formData['name'] = val; executeReg(); 
             }
         };
+
         function renderStep() { 
             $('stepLabel').innerText = formConfig[formStep].l; $('questionText').innerText = formConfig[formStep].q; 
             $('holoInputLogin').value = ""; $('holoInputLogin').focus(); 
-            const btn = document.getElementById('btnFinalRegister');
-            btn.innerText = formStep === 1 ? "DAFTAR SEKARANG" : "LANJUT"; 
+            const btn = document.querySelector('.btn-next');
+            btn.innerText = formStep === 1 ? "DAFTAR SEKARANG" : "LANJUT";
             btn.onclick = formStep === 1 ? executeReg : nextStepAction;
         }
 
         async function executeReg() {
-            // 1. VISUAL LOADING
-            const btn = document.getElementById('btnFinalRegister');
-            btn.innerText = "⏳ MEMPROSES...";
+            // AMBIL NAMA LANGSUNG
+            const finalNameInput = $('holoInputLogin').value.trim().toUpperCase();
+            if(finalNameInput.length < 3) return customAlert("Nama wajib diisi!");
+            formData['name'] = finalNameInput; 
+
+            const rawPlat = formData.plat;
+            const rawName = formData.name;
+            const cleanInput = cleanStr(rawPlat);
+            
+            const btn = document.querySelector('.btn-next');
+            btn.innerText = "⏳ MENDAFTAR...";
             btn.disabled = true;
 
-            const rawPlat = formData.plat || "";
-            const rawName = formData.name || "GUEST";
-            const cleanInput = cleanStr(rawPlat);
-            let userRole = "MEMBER"; 
-            
+            let userRole = null; 
             try { 
                 const m = await getDoc(doc(db, "members", cleanInput)); 
-                if(m.exists()) userRole = m.data().role || "MEMBER";
+                if(m.exists()) userRole = m.data().role || "MEMBER"; 
             } catch(e){}
             
             runTransaction(db, async(t) => {
@@ -533,22 +578,17 @@
                 if(res && res.status === "EXIST") {
                     customAlert("Sesi aktif ditemukan.");
                     closeModal('screen-login');
-                }
-                else {
+                } else {
                     localStorage.setItem('myPlat', rawPlat); myPlat = rawPlat;
                     addUserLog("REGISTER", `User Baru: ${rawPlat}`); 
-                    
-                    // 2. TUTUP FORM & BUKA DASHBOARD
                     closeModal('screen-login');
-                    customAlert("✅ BERHASIL MASUK ANTRIAN!");
-                    setTimeout(() => {
-                        window.openWaitingDashboard();
-                    }, 1000);
+                    
+                    // 🔥 FIX: HAPUS AUTO OPEN DASHBOARD AGAR BISA PILIH SLOT 🔥
+                    customAlert("✅ BERHASIL MASUK ANTRIAN! SILAHKAN PILIH SLOT (JIKA KOSONG).");
+                    // setTimeout(() => { window.openWaitingDashboard(); }, 1000);  <-- INI DIHAPUS
                 }
             }).catch(e => {
-                btn.disabled = false;
-                btn.innerText = "DAFTAR SEKARANG";
-                customAlert("Gagal: " + e.message);
+                btn.disabled = false; btn.innerText = "DAFTAR SEKARANG"; customAlert("Gagal: " + e.message);
             });
         }
 
@@ -614,7 +654,7 @@
         
         window.closeModal = (id) => { 
             const el = document.getElementById(id); 
-            if(el) { el.classList.remove('active'); }
+            if(el) { el.classList.remove('active'); setTimeout(() => { el.style.display = 'none'; }, 300); }
         };
 
         const songs = [ { title: "OPENING THEME", file: "lagu1.mp3" }, { title: "SANTAI SORE", file: "lagu2.mp3" }, { title: "MODE BALAP", file: "lagu3.mp3" }, { title: "KOPLO ELITE", file: "dangdut_cyber.mp3" } ];
@@ -640,7 +680,10 @@
                 const isMe = (cleanStr(q.plat)===cleanStr(myPlat));
                 const d=document.createElement('div'); 
                 d.style.cssText=`padding:10px; border-bottom:1px solid #333; display:flex; justify-content:space-between; ${isMe ? 'background:rgba(0,240,255,0.1); border-left:3px solid var(--cyan);' : ''}`;
+                
+                // DISINI BADGE DIRENDER
                 d.innerHTML=`<div><span style="color:var(--cyan);">#${q.qNo}</span> ${q.plat}</div><div style="font-size:12px; display:flex; align-items:center;">${escapeHtml(q.userName)} ${getBadgeHTML(q.role)}</div>`;
+                
                 d.onclick = () => showQueueDetail(q); c.appendChild(d);
             });
         }
@@ -657,5 +700,3 @@
 
         const style=document.createElement('style'); style.innerHTML=`@keyframes scanMove {0%{top:0} 100%{top:100%}} .screen-overlay.minimized {display:none !important;}`; document.head.appendChild(style);
     </script>
-</body>
-</html>
