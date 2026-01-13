@@ -14,7 +14,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Teko:wght@300;400;500;600;700&family=Rajdhani:wght@500;600;700&family=Outfit:wght@300;400;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     
     <style>
-        /* === GLOBAL SETUP (DESAIN ASLI) === */
+        /* === GLOBAL SETUP === */
         :root { --bg: #000; --cyan: #00F0FF; --glass-card: rgba(20, 25, 30, 0.95); --glass-border: rgba(0, 240, 255, 0.3); --text-dim: rgba(255, 255, 255, 0.6); --danger: #ff003c; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; outline: none; }
         body { font-family: 'Rajdhani', sans-serif; background: #000; background-image: linear-gradient(to bottom, rgba(0,0,0,0.9), #000), url('logo.png'); background-size: cover; background-position: center; background-attachment: fixed; color: #fff; margin: 0; width: 100vw; min-height: 100vh; overflow-y: auto; display: flex; flex-direction: column; padding: 10px 20px 220px 20px; }
@@ -103,7 +103,16 @@
         .qbt-lbl { font-size: 8px; color: #aaa; letter-spacing: 1px; text-align: center; }
         .qbt-val { font-family: 'Teko'; font-size: 42px; line-height: 0.8; color: #fff; margin-top: 2px; }
 
-        .screen-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); backdrop-filter: blur(15px); z-index: 9999; display: none; flex-direction: column; align-items: center; justify-content: center; overflow-y: auto; padding: 20px;}
+        /* 🔥 FIX POSISI MODAL (CENTERING) 🔥 */
+        .screen-overlay { 
+            position: fixed; inset: 0; background: rgba(0,0,0,0.95); 
+            backdrop-filter: blur(15px); z-index: 9999; 
+            display: none; 
+            flex-direction: column; 
+            justify-content: center; /* VERTIKAL CENTER */
+            align-items: center;     /* HORIZONTAL CENTER */
+            overflow-y: auto; padding: 20px;
+        }
         .screen-overlay.active { display: flex; animation: popUp 0.3s forwards; }
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 10000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(5px); animation: fadeIn 0.2s; }
         .modal-box { width: 85%; max-width: 350px; background: #111; border: 1px solid var(--cyan); border-radius: 15px; padding: 25px; text-align: center; box-shadow: 0 0 30px rgba(0, 240, 255, 0.3); transform: scale(0.9); animation: popUp 0.3s forwards; }
@@ -152,7 +161,13 @@
         .btn-rule-cancel { background: #333; color: #ccc; border: none; width: 100%; padding: 10px; font-family: 'Orbitron'; font-size: 12px; cursor: pointer; border-radius: 8px; margin-top: 5px; }
 
         /* 🔥 BROADCAST MODAL 🔥 */
-        #broadcastModal { display: none; position: fixed; inset: 0; background: rgba(50, 0, 0, 0.95); z-index: 30000; justify-content: center; align-items: center; animation: alertShake 0.5s; flex-direction: column; padding: 20px; }
+        #broadcastModal { 
+            display: none; position: fixed; inset: 0; background: rgba(50, 0, 0, 0.95); z-index: 30000; 
+            justify-content: center; align-items: center; 
+            animation: alertShake 0.5s; flex-direction: column; padding: 20px; 
+        }
+        #broadcastModal.active { display: flex !important; } /* PAKSA MUNCUL */
+        
         #broadcastBox { background: #220000; border: 2px solid red; box-shadow: 0 0 50px red; padding: 30px; border-radius: 15px; width: 100%; max-width: 400px; text-align: center; position:relative; overflow:hidden; }
         #broadcastBox::before { content:''; position:absolute; top:0; left:0; width:100%; height:5px; background:red; animation: widthRun 1s infinite alternate; }
         @keyframes alertShake { 0% { transform: translate(1px, 1px) rotate(0deg); } 10% { transform: translate(-1px, -2px) rotate(-1deg); } 20% { transform: translate(-3px, 0px) rotate(1deg); } 30% { transform: translate(3px, 2px) rotate(0deg); } 40% { transform: translate(1px, -1px) rotate(1deg); } 50% { transform: translate(-1px, 2px) rotate(-1deg); } 60% { transform: translate(-3px, 1px) rotate(0deg); } 70% { transform: translate(3px, 1px) rotate(-1deg); } 80% { transform: translate(-1px, -1px) rotate(1deg); } 90% { transform: translate(1px, 2px) rotate(0deg); } 100% { transform: translate(1px, -2px) rotate(-1deg); } }
@@ -169,16 +184,17 @@
         </div>
     </div>
 
-    <div id="modalRules">
+    <div id="modalRules" class="screen-overlay" style="justify-content: center; align-items: center;">
         <div class="rule-box">
             <h2 class="rule-title">⚠️ ATURAN MAIN</h2>
             <div class="rule-item">
                 <span class="rule-num">1</span>
-                <div>Pastikan anda sudah berada di lokasi FC sebelum mendaftar.</div>
+                <div>JARAK MAKSIMAL 200 METER BUKAN BERARTI ANDA BISA DAFTAR DARI JAUH. 
+                  <br>MOTOR DI ANTRIAN TP TIDAK ADA FISIK DI FC AKAN DIKELUARKAN</br>PASTIKAN SUDAH DI LOKASI BARU DAFTAR.</div>
             </div>
             <div class="rule-item" style="border:none;">
                 <span class="rule-num">2</span>
-                <div>Pastikan yang datang sebelum anda sudah mendaftar lebih dahulu.</div>
+                <div>DATANG DULUAN, NGECAS DULUAN. <br>PAHAM BOS KU?</br> </div>
             </div>
             <button onclick="proceedToScanner()" class="btn-rule-ok">SAYA PAHAM & LANJUT</button>
             <button onclick="closeModal('modalRules')" class="btn-rule-cancel">BATAL</button>
@@ -186,21 +202,6 @@
     </div>
 
     <button id="btnInstallPWA" onclick="installPWA()">⬇ INSTALL APP</button>
-
-    <div id="screen-welcome" class="screen-overlay" style="z-index: 20000;">
-        <div class="welcome-card" style="background:#111; padding:20px; border-radius:15px; border:1px solid var(--cyan); text-align:center; max-width:320px;">
-            <div class="main-title" style="font-size: 36px; margin-bottom: 5px;">PERATURAN</div>
-            <div class="sub-title" style="margin-bottom: 20px;">SHOWROOM FC KELAPA GADING</div>
-            <div class="rules-list" style="text-align:left; font-size:12px; color:#ccc; line-height:1.6; margin-bottom:20px;">
-                1. 🔌 Cas di dalam showroom? HP wajib ditinggal.<br>
-                2. 🛵 Parkir yang rapi, kepala motor saling berhadapan.<br>
-                3. 🧹 Wajib menjaga kebersihan area showroom.<br>
-                4. 🚫 Dilarang makan & minum di dalam area showroom.<br>
-                5. 📲 Wajib scan barcode/daftar sebelum cas motor.
-            </div>
-            <button class="btn-agree" onclick="closeWelcome()" style="background:var(--cyan); border:none; padding:10px 20px; font-weight:bold; cursor:pointer;">SAYA PAHAM & SETUJU</button>
-        </div>
-    </div>
 
     <div id="customModal" class="modal-overlay">
         <div class="modal-box">
@@ -325,7 +326,7 @@
             <button onclick="stopCharging(activeSlotIdx)" style="width:100%; max-width:320px; padding:15px; background:linear-gradient(90deg, rgba(255,0,60,0.1), rgba(255,0,60,0.2)); border:1px solid #ff003c; color:#ff003c; border-radius:50px; font-family:'Rajdhani'; font-weight:bold; font-size:16px; margin-bottom:20px;">⏹ HENTIKAN PENGISIAN</button>
         </div>
     </div>
-        <script type="module">
+    <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, doc, onSnapshot, runTransaction, collection, addDoc, setDoc, updateDoc, arrayUnion, arrayRemove, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
@@ -351,8 +352,7 @@
         const MAX_DIST_KM = 0.2; 
         const $ = (id) => document.getElementById(id);
 
-        if (!localStorage.getItem('welcome_done')) $('screen-welcome').classList.add('active');
-        window.closeWelcome = () => { localStorage.setItem('welcome_done','1'); $('screen-welcome').classList.remove('active'); };
+        // 🛑 LOGIC WELCOME SCREEN DIHAPUS TOTAL DI SINI 🛑
 
         function escapeHtml(text) { if (!text) return ""; return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); }
         function cleanStr(s) { return s ? s.replace(/[^A-Z0-9]/gi, '').toUpperCase() : ''; }
@@ -365,7 +365,7 @@
         window.activeSlotIdx = -1;
         let amIInQueue = false;
         let chargeTimerInterval;
-        let lastBroadcastTime = Date.now();
+        let lastBroadcastTime = Date.now(); // Init waktu load biar ga spam notif lama
 
         // === REALTIME LISTENER ===
         onSnapshot(mainRef, (snap) => {
@@ -375,11 +375,15 @@
             localQueue = d.waitingQueue || [];
             currentValidQR = (d.activeQrCode && d.activeQrCode !== "OFF") ? d.activeQrCode : "OFF";
             
-            // CEK BROADCAST DARURAT
+            // 🔥 LOGIC BROADCAST FIX (PAKSA TAMPIL) 🔥
             if (d.broadcast && d.broadcast.time > lastBroadcastTime) {
                 lastBroadcastTime = d.broadcast.time;
                 $('broadcastMsg').innerText = d.broadcast.msg;
-                $('broadcastModal').style.display = 'flex';
+                
+                // FORCE DISPLAY FLEX (BIAR KE TENGAH)
+                const modal = $('broadcastModal');
+                modal.style.display = 'flex'; 
+                
                 // Audio alert
                 const audio = new Audio("https://www.myinstants.com/media/sounds/nuclear-alarm.mp3");
                 audio.volume = 0.5; audio.play().catch(()=>{});
@@ -396,10 +400,7 @@
             let currentMyPlat = localStorage.getItem('myPlat');
             let amIQueue1 = false;
             
-            // Cek apakah user ada di urutan pertama antrian
-            if(localQueue.length > 0 && currentMyPlat) { 
-                if(cleanStr(localQueue[0]?.plat) === cleanStr(currentMyPlat)) amIQueue1 = true; 
-            }
+            if(localQueue.length > 0 && currentMyPlat) { if(cleanStr(localQueue[0]?.plat) === cleanStr(currentMyPlat)) amIQueue1 = true; }
             
             // JIKA GILIRAN USER & DASHBOARD KEBUKA -> TUTUP BIAR BISA PILIH SLOT
             if(amIQueue1 && $('waitingDashboard').classList.contains('active')) { 
@@ -427,10 +428,8 @@
                     if(isMe) { $('ad-plat-val').innerText = s.plat; $('ad-name-val').innerText = s.userName; startChargeTimer(s.startTime); if(!$('screen-active-dashboard').classList.contains('minimized')) $('screen-active-dashboard').classList.add('active'); }
                 } else {
                     div.className = `slot-card empty`;
-                    // TOMBOL PILIH MUNCUL JIKA GILIRAN SAYA
                     let btn = amIQueue1 ? `<button class="btn-pilih" onclick="window.selectSlot(${i})">PILIH SLOT INI</button>` : '';
                     if(amIQueue1) div.style.border = "1px solid #FFD700";
-                    
                     div.innerHTML = `<div class="sc-info"><div class="sc-label">SLOT 0${i+1}</div><div class="sc-plat">OPEN</div></div><div style="display:flex; align-items:center;"><div class="status-pill">AVAILABLE</div>${btn}</div>`;
                 }
                 container.appendChild(div);
@@ -441,15 +440,8 @@
                 if(chargeTimerInterval) clearInterval(chargeTimerInterval);
                 amIInQueue = localQueue.some(q => cleanStr(q.plat) === cleanStr(currentMyPlat));
                 const lbl = $('mainBtnLabel');
-                if(amIInQueue) { 
-                    lbl.innerText="LIHAT ANTRIAN ANDA"; lbl.style.color="#FFD700"; 
-                    if($('waitingDashboard').classList.contains('active')) renderQueueDashboard(); 
-                } else { 
-                    lbl.innerText="TAP UNTUK DAFTAR"; lbl.style.color="var(--cyan)"; 
-                }
-            } else { 
-                $('mainBtnLabel').innerText = "BUKA DASHBOARD CHARGING"; $('mainBtnLabel').style.color = "var(--cyan)"; 
-            }
+                if(amIInQueue) { lbl.innerText="LIHAT ANTRIAN ANDA"; lbl.style.color="#FFD700"; if($('waitingDashboard').classList.contains('active')) renderQueueDashboard(); } else { lbl.innerText="TAP UNTUK DAFTAR"; lbl.style.color="var(--cyan)"; }
+            } else { $('mainBtnLabel').innerText = "BUKA DASHBOARD CHARGING"; $('mainBtnLabel').style.color = "var(--cyan)"; }
 
             $('totalQDisplay').innerText = localQueue.length;
             if(localQueue.length > 0) $('nextQDisplay').innerHTML = `<span class="qbn-rank">#${localQueue[0].qNo}</span> ${localQueue[0].plat}`;
@@ -482,14 +474,19 @@
         window.handleMainAction = () => {
             if(window.activeSlotIdx !== -1) { $('screen-active-dashboard').classList.add('active'); $('screen-active-dashboard').classList.remove('minimized'); return; }
             if(amIInQueue) { $('waitingDashboard').classList.add('active'); renderQueueDashboard(); return; }
-            if(localStorage.getItem('adm_ok')) { showLoginForm(); return; }
+            
+            // ADMIN BYPASS DIMATIKAN SUPAYA BISA TEST ATURAN
+            // if(localStorage.getItem('adm_ok')) { showLoginForm(); return; } 
             
             const myPlat = localStorage.getItem('myPlat');
             if(localQueue.some(q => q.plat === myPlat) || localSlots.some(s => s && s.plat === myPlat)) {
                 customAlert("Anda sudah terdaftar!"); return;
             }
-            $('modalRules').style.display = 'flex';
-            setTimeout(() => { $('modalRules').classList.add('active'); }, 10);
+            
+            // 🔥 PAKSA MUNCULIN MODAL RULES (FLEX) 🔥
+            const modal = $('modalRules');
+            modal.style.display = 'flex';
+            setTimeout(() => { modal.classList.add('active'); }, 10);
         };
 
         window.proceedToScanner = () => {
@@ -511,8 +508,7 @@
         function showLoginForm() { 
             $('screen-scan').classList.remove('active'); 
             $('screen-login').classList.add('active'); 
-            formStep = 0; formData = {}; 
-            renderStep(); 
+            formStep = 0; formData = {}; renderStep(); 
         }
 
         let formStep=0; let formData={};
@@ -582,10 +578,7 @@
                     localStorage.setItem('myPlat', rawPlat); myPlat = rawPlat;
                     addUserLog("REGISTER", `User Baru: ${rawPlat}`); 
                     closeModal('screen-login');
-                    
-                    // 🔥 FIX: HAPUS AUTO OPEN DASHBOARD AGAR BISA PILIH SLOT 🔥
                     customAlert("✅ BERHASIL MASUK ANTRIAN! SILAHKAN PILIH SLOT (JIKA KOSONG).");
-                    // setTimeout(() => { window.openWaitingDashboard(); }, 1000);  <-- INI DIHAPUS
                 }
             }).catch(e => {
                 btn.disabled = false; btn.innerText = "DAFTAR SEKARANG"; customAlert("Gagal: " + e.message);
@@ -681,7 +674,6 @@
                 const d=document.createElement('div'); 
                 d.style.cssText=`padding:10px; border-bottom:1px solid #333; display:flex; justify-content:space-between; ${isMe ? 'background:rgba(0,240,255,0.1); border-left:3px solid var(--cyan);' : ''}`;
                 
-                // DISINI BADGE DIRENDER
                 d.innerHTML=`<div><span style="color:var(--cyan);">#${q.qNo}</span> ${q.plat}</div><div style="font-size:12px; display:flex; align-items:center;">${escapeHtml(q.userName)} ${getBadgeHTML(q.role)}</div>`;
                 
                 d.onclick = () => showQueueDetail(q); c.appendChild(d);
