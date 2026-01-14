@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FC GADING - FINAL PRO</title>
+    <title>FC GADING - FINAL PERFECT</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Teko:wght@400;500;600&family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     
     <style>
-        /* === 1. GLOBAL SETUP (100% LAYAR HP) === */
+        /* === 1. GLOBAL SETUP (LAYAR PENUH HP) === */
         :root {
             --bg-dark: #000;
             --neon-blue: #00F0FF;
@@ -20,83 +20,92 @@
         
         body {
             margin: 0; background: #000;
-            background-image: radial-gradient(circle at 50% 40%, #1a1a1a 0%, #000 90%);
+            background-image: radial-gradient(circle at 50% 30%, #151515 0%, #000 90%);
             color: #fff; font-family: 'Rajdhani', sans-serif; 
-            /* PENTING: Pake 100dvh biar pas di browser HP */
-            height: 100vh; height: 100dvh; 
+            height: 100vh; height: 100dvh; /* Full layar HP */
             display: flex; flex-direction: column; overflow: hidden;
         }
 
-        /* HEADER (12% Layar) */
-        .header { height: 12%; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        /* HEADER (10% Layar) */
+        .header { height: 10vh; display: flex; flex-direction: column; justify-content: center; align-items: center; padding-top: 5px; flex-shrink: 0; }
         .header h1 { 
-            font-family: 'Teko'; font-size: 34px; margin: 0; line-height: 1;
+            font-family: 'Teko'; font-size: 32px; margin: 0; line-height: 1;
             text-shadow: 0 0 15px rgba(0, 240, 255, 0.4); letter-spacing: 1px;
         }
-        .sub-header { font-size: 9px; color: var(--neon-gold); letter-spacing: 2px; font-weight: 700; margin-top: 2px; text-transform: uppercase; }
+        .sub-header { font-size: 9px; color: var(--neon-gold); letter-spacing: 3px; font-weight: 700; margin-top: 2px; text-transform: uppercase; }
 
-        /* === CONTAINER TENGAH (68% Layar) === */
+        /* === CONTAINER TENGAH (65% Layar) === */
         .slots-container {
-            height: 68%; /* Tinggi Area Tengah */
+            height: 65vh; /* DIKURANGI BIAR FOOTER NAIK */
             width: 100%; max-width: 450px; margin: 0 auto;
-            display: flex; align-items: center; justify-content: center;
+            display: flex; justify-content: center; align-items: center;
             padding: 0 5px; 
-            gap: 2px; /* GAP RAPET */
+            gap: 4px; /* Jarak antar kolom agak renggang dikit biar enak, tapi logo tetep nyambung visualnya */
         }
 
         .slot-column {
             flex: 1; height: 100%; 
             display: flex; flex-direction: column; 
-            justify-content: center; /* Center Vertikal */
+            justify-content: center;
             position: relative;
         }
 
         /* =========================================
-           1. LOGO BOX (PROPORSIONAL + AURA GLOW)
+           1. LOGO BOX (ANTI GEPENG + GLOW GARANG)
            ========================================= */
         .img-box {
-            /* Tinggi Gambar dikurangi dikit biar muat */
+            /* TINGGI BOX DIGEDEIN DIKIT BIAR GAMBAR LEGA */
             height: 55%; 
             width: 100%; margin-bottom: 5px; border-radius: 8px;
             
-            background-image: url('logo.png'); /* FILE LOGO */
-            background-size: 300% 100%; 
+            background-image: url('logo.png'); 
+            
+            /* KUNCI ANTI GEPENG: 'auto' height */
+            background-size: 300% auto; 
+            background-position-y: center; /* Logo selalu di tengah vertikal */
             background-repeat: no-repeat;
             
-            opacity: 0.3; filter: grayscale(100%) brightness(0.4); 
-            transition: all 0.5s ease;
-            background-color: rgba(20,20,20,0.5);
+            /* TAMPILAN MATI */
+            opacity: 0.4; filter: grayscale(100%) brightness(0.3); 
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            background-color: rgba(15,15,15,0.6); /* Latar gelap pas kosong */
+            border: none;
+            
             position: relative; z-index: 1;
         }
         
-        #col-0 .img-box { background-position: 0% 50%; }
-        #col-1 .img-box { background-position: 50% 50%; }
-        #col-2 .img-box { background-position: 100% 50%; }
+        /* POSISI POTONGAN */
+        #col-0 .img-box { background-position-x: 0%; }
+        #col-1 .img-box { background-position-x: 50%; }
+        #col-2 .img-box { background-position-x: 100%; }
 
-        /* AURA GLOW DI BELAKANG GAMBAR */
+        /* BACKDROP GLOW (AURA GARANG) */
         .slot-column.active .img-box::before {
-            content: ''; position: absolute; inset: 0; z-index: -1;
-            border-radius: 8px;
-            box-shadow: 0 0 30px 5px rgba(0, 240, 255, 0.4); /* Default Blue Aura */
-            opacity: 0.8; animation: auraPulse 2s infinite alternate;
+            content: ''; position: absolute; inset: 10px; z-index: -1;
+            border-radius: 50%;
+            background: var(--neon-blue);
+            filter: blur(25px); opacity: 0.4;
+            animation: pulseAura 2s infinite alternate;
         }
-        @keyframes auraPulse { from { opacity: 0.5; } to { opacity: 1; } }
+        @keyframes pulseAura { from { opacity: 0.3; transform: scale(0.8); } to { opacity: 0.6; transform: scale(1.1); } }
 
-        /* WARNA AURA KHUSUS */
-        .slot-column.active.ketum .img-box::before { box-shadow: 0 0 40px 10px rgba(255, 215, 0, 0.5); }
-        .slot-column.active.satgas .img-box::before { box-shadow: 0 0 40px 10px rgba(255, 0, 60, 0.5); }
-
+        /* NYALA */
         .slot-column.active .img-box {
-            opacity: 1; filter: grayscale(0%) brightness(1.2);
-            transform: translateY(-2px); /* Naik dikit pas aktif */
+            opacity: 1; filter: grayscale(0%) brightness(1.2) contrast(1.1);
+            transform: scale(1.02); /* Pop out dikit */
+            box-shadow: 0 0 20px rgba(0,0,0,0.5); /* Shadow luar biar misah */
         }
+        
+        /* WARNA AURA KHUSUS */
+        .slot-column.active.ketum .img-box::before { background: var(--neon-gold); opacity: 0.5; }
+        .slot-column.active.satgas .img-box::before { background: var(--neon-red); opacity: 0.5; }
 
 
         /* =========================================
-           2. INFO BOX (DIPERKECIL & FLIP)
+           2. INFO BOX (DIPERKECIL + FLIP 3D)
            ========================================= */
         .info-box-scene {
-            height: 85px; /* Box Bawah Diperkecil */
+            height: 80px; /* BOX BAWAH LEBIH KECIL/COMPACT */
             width: 100%; perspective: 1000px;
         }
         .info-box-inner {
@@ -106,15 +115,16 @@
             transform-style: preserve-3d;
         }
         
-        .slot-column.active .info-box-inner { animation: flipLoop 12s infinite ease-in-out; }
+        /* Loop Flip */
+        .slot-column.active .info-box-inner { animation: flipLoop 10s infinite ease-in-out; }
         #col-0 .info-box-inner { animation-delay: 0s; }
-        #col-1 .info-box-inner { animation-delay: 4s; }
-        #col-2 .info-box-inner { animation-delay: 8s; }
+        #col-1 .info-box-inner { animation-delay: 3.5s; }
+        #col-2 .info-box-inner { animation-delay: 7s; }
 
         @keyframes flipLoop {
-            0%, 45% { transform: rotateX(0deg); }   
-            50%, 95% { transform: rotateX(180deg); } 
-            100% { transform: rotateX(360deg); }    
+            0%, 45% { transform: rotateX(0deg); }   /* Tahan Depan */
+            50%, 95% { transform: rotateX(180deg); } /* Tahan Belakang */
+            100% { transform: rotateX(360deg); }    /* Balik */
         }
 
         .box-face {
@@ -122,38 +132,39 @@
             -webkit-backface-visibility: hidden; backface-visibility: hidden;
             border-radius: 8px;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            background: linear-gradient(180deg, #1f252b 0%, #000 100%);
-            border-top: 1px solid rgba(255,255,255,0.2);
+            
+            /* GRADIENT GELAP, NO NEON NORAK */
+            background: linear-gradient(180deg, #181818 0%, #000 100%);
+            border: 1px solid #222;
+            border-top: 1px solid #444; /* Top border tipis */
         }
 
-        /* PLAT & NAMA (FONT DI KECILIN BIAR GA OVERLAP) */
+        /* INDIKATOR STATUS (Garis Bawah Tipis) */
+        .box-face::after { content: ''; position: absolute; bottom: 0; left: 10%; width: 80%; height: 2px; opacity: 0.6; border-radius: 2px; }
+        .slot-column.active .box-face::after { background: var(--neon-blue); box-shadow: 0 -2px 8px var(--neon-blue); }
+        .slot-column.active.ketum .box-face::after { background: var(--neon-gold); box-shadow: 0 -2px 8px var(--neon-gold); }
+        .slot-column.active.satgas .box-face::after { background: var(--neon-red); box-shadow: 0 -2px 8px var(--neon-red); }
+
+        /* KONTEN DEPAN: PLAT & NAMA */
         .plat-text {
             font-family: 'Teko'; 
-            font-size: 22px; /* Ukuran Pas */
-            font-weight: 600; 
-            color: #fff; line-height: 1; margin-top: 4px;
-            white-space: nowrap; overflow: hidden; width: 100%;
+            font-size: 24px; /* UKURAN PAS, GAK LUBER */
+            font-weight: 600; color: #fff; line-height: 1; margin-top: 4px;
+            white-space: nowrap; overflow: hidden; width: 95%; text-align: center;
         }
         .name-text {
-            font-family: 'Rajdhani'; font-size: 10px; font-weight: 700; color: #888;
+            font-family: 'Rajdhani'; font-size: 10px; font-weight: 700; color: #999;
             text-transform: uppercase; margin-top: 2px; 
-            border-top: 1px solid rgba(255,255,255,0.1); width: 85%; padding-top: 2px;
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            width: 90%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
 
-        /* KONTEN BELAKANG */
-        .box-face.back { transform: rotateX(180deg); background: #080808; }
+        /* KONTEN BELAKANG: BADGE */
+        .box-face.back { transform: rotateX(180deg); background: #050505; }
         .badge-big { font-family: 'Orbitron'; font-size: 9px; font-weight: 900; letter-spacing: 1px; }
-        .role-icon { font-size: 18px; margin-bottom: 2px; }
+        .role-icon { font-size: 20px; margin-bottom: 3px; }
 
-        /* INDIKATOR BAWAH */
-        .box-face::after { content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 2px; opacity: 0.6; }
-        .slot-column.active .box-face::after { background: var(--neon-blue); box-shadow: 0 -2px 8px var(--neon-blue); }
-        .slot-column.active.ketum .box-face::after { background: var(--neon-gold); box-shadow: 0 -2px 10px var(--neon-gold); }
-        .slot-column.active.satgas .box-face::after { background: var(--neon-red); box-shadow: 0 -2px 10px var(--neon-red); }
-
-        /* BADGE ANIMATION */
-        @keyframes neonBreath { 0%, 100% { text-shadow: 0 0 5px var(--neon-blue); opacity: 1; } 50% { opacity: 0.7; } }
+        /* ANIMASI BADGE TEXT */
+        @keyframes neonBreath { 0%, 100% { text-shadow: 0 0 5px var(--neon-blue); opacity: 1; } 50% { opacity: 0.6; } }
         .badge-member { color: var(--neon-blue); animation: neonBreath 2s infinite; }
         
         .badge-ketum {
@@ -162,50 +173,51 @@
         }
         @keyframes shine { to { background-position: 200% center; } }
         
-        @keyframes redAlert { 0%, 100% { opacity: 1; text-shadow: 0 0 10px red; } 50% { opacity: 0.3; } }
-        .badge-satgas { color: var(--neon-red); animation: redAlert 0.5s infinite; font-weight: 900; }
+        .badge-satgas { color: var(--neon-red); text-shadow: 0 0 5px red; font-weight: 900; }
 
         /* KOSONG */
-        .empty-view { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; width: 100%; background: rgba(10,10,10,0.5); border-radius: 8px; border-top: 1px solid #333; }
+        .empty-view { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; width: 100%; background: rgba(15,15,15,0.8); border-radius: 8px; border: 1px dashed #333; }
         .empty-text { font-family: 'Orbitron'; font-size: 9px; color: #444; letter-spacing: 2px; }
-        .btn-masuk { width: 90%; background: rgba(204,255,0,0.2); border: 1px solid var(--neon-gold); color: #fff; font-weight: bold; padding: 4px; cursor: pointer; border-radius: 6px; font-size: 11px; }
+        .btn-masuk { width: 90%; background: rgba(204,255,0,0.15); border: 1px solid var(--neon-gold); color: #fff; font-weight: bold; padding: 4px; cursor: pointer; border-radius: 6px; font-size: 11px; }
 
 
-        /* === 3. FOOTER (20% Layar - FINGERPRINT AMAN) === */
+        /* === 3. FOOTER (25% Layar - NAIK & JELAS) === */
         .footer { 
-            height: 20%; /* Space cukup besar */
+            height: 25vh; /* Kasih ruang lega di bawah */
             width: 100%;
             display: flex; flex-direction: column; 
-            align-items: center; justify-content: flex-start;
-            padding-top: 5px; 
-            gap: 10px;
-            padding-bottom: 20px; /* Jarak aman dari bawah HP */
+            align-items: center; justify-content: center;
+            padding-bottom: 20px; 
+            gap: 15px; 
+            flex-shrink: 0;
+            z-index: 50;
         }
         
         .antrian-text {
-            font-family: 'Teko'; font-size: 26px; font-weight: 500; color: #fff;
+            font-family: 'Teko'; font-size: 28px; font-weight: 500; color: #fff;
             letter-spacing: 1px; cursor: pointer;
             text-shadow: 0 0 10px rgba(0,240,255,0.5);
+            background: rgba(0,0,0,0.5); padding: 2px 15px; border-radius: 10px;
         }
         
         .fp-scan {
-            width: 55px; height: 55px; border-radius: 50%;
+            width: 65px; height: 65px; border-radius: 50%;
             border: 2px solid var(--neon-gold);
             display:flex; justify-content:center; align-items:center;
             color: var(--neon-gold); background: rgba(0,0,0,0.8);
             animation: pulse 2s infinite; cursor: pointer;
-            box-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
+            box-shadow: 0 0 25px rgba(255, 215, 0, 0.3);
         }
-        .fp-icon { width: 26px; height: 26px; fill: var(--neon-gold); }
+        .fp-icon { width: 32px; height: 32px; fill: var(--neon-gold); }
         
         @keyframes pulse { 
             0%{box-shadow:0 0 10px rgba(255,215,0,0.1); transform:scale(1);} 
-            50%{box-shadow:0 0 25px rgba(255,215,0,0.4); transform:scale(1.08);} 
+            50%{box-shadow:0 0 30px rgba(255,215,0,0.5); transform:scale(1.08);} 
             100%{box-shadow:0 0 10px rgba(255,215,0,0.1); transform:scale(1);} 
         }
         .hint-text { font-family:'Orbitron'; font-size:9px; color:#666; margin-top:-8px; letter-spacing: 2px; }
 
-        /* MODALS */
+        /* MODALS (Standard) */
         .screen-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); backdrop-filter: blur(8px); z-index: 9999; display: none; justify-content: center; align-items: center; flex-direction: column; }
         .screen-overlay.active { display: flex; }
         .rule-box { background: #111; border: 2px solid var(--neon-red); padding: 25px; border-radius: 15px; width: 90%; max-width: 350px; text-align: left; }
