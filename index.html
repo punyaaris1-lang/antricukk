@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FC GADING - FINAL PERFECT</title>
+    <title>FC GADING - FINAL SPACE</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Teko:wght@400;500;600&family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
@@ -20,61 +20,64 @@
         
         body {
             margin: 0; background: #000;
-            background-image: radial-gradient(circle at 50% 30%, #1a1a1a 0%, #000 90%);
+            background-image: radial-gradient(circle at 50% 30%, #151515 0%, #000 90%);
             color: #fff; font-family: 'Rajdhani', sans-serif; 
-            height: 100vh; height: 100dvh; /* Fix layar HP */
+            height: 100vh; height: 100dvh; /* Full Height */
             display: flex; flex-direction: column; overflow: hidden;
         }
 
-        /* HEADER (10% Layar) */
+        /* HEADER (Compact tapi Jelas) */
         .header { 
-            height: 10vh; display: flex; flex-direction: column; 
+            height: 12vh; min-height: 80px;
+            display: flex; flex-direction: column; 
             justify-content: center; align-items: center; 
-            padding-top: 10px; flex-shrink: 0;
+            flex-shrink: 0; z-index: 10;
         }
         .header h1 { 
             font-family: 'Teko'; font-size: 34px; margin: 0; line-height: 1;
             text-shadow: 0 0 15px rgba(0, 240, 255, 0.4); letter-spacing: 1px;
         }
-        .sub-header { font-size: 9px; color: var(--neon-gold); letter-spacing: 3px; font-weight: 700; margin-top: 2px; text-transform: uppercase; }
+        .sub-header { font-size: 9px; color: var(--neon-gold); letter-spacing: 3px; font-weight: 700; margin-top: 4px; text-transform: uppercase; }
 
-        /* === CONTAINER TENGAH (65% Layar) === */
+        /* === CONTAINER TENGAH (FLEXIBLE - ISI SISA RUANG) === */
         .slots-container {
-            height: 65vh; 
-            width: 100%; max-width: 450px; margin: 0 auto;
+            flex: 1; /* MENGISI SEMUA RUANG SISA ANTARA HEADER & FOOTER */
+            width: 100%; max-width: 500px; margin: 0 auto;
             display: flex; justify-content: center; align-items: center;
-            
-            /* TRICK: Padding Kiri Kanan GEDE biar kolom kurus = Logo Tinggi Gagah */
-            padding: 0 25px; 
-            gap: 4px; /* Jarak antar kolom */
+            /* PADDING SAMPING DIKIT AJA BIAR LEBAR */
+            padding: 10px 8px; 
+            gap: 8px; /* Jarak antar kolom */
         }
 
         .slot-column {
-            flex: 1; height: 100%; 
+            flex: 1; /* Lebar kolom rata */
+            height: 100%; /* Tinggi full container */
             display: flex; flex-direction: column; 
             justify-content: center;
             position: relative;
         }
 
         /* =========================================
-           1. LOGO BOX (FULL FIT NO CROP)
+           1. LOGO BOX (AUTO FILL HEIGHT + GAGAH)
            ========================================= */
         .img-box {
-            /* Tinggi saya set 50% dari container biar proporsional */
-            height: 50%; 
-            width: 100%; margin-bottom: 5px; border-radius: 8px;
+            /* FLEX GROW: ISI SEMUA RUANG KOSONG DI ATAS BOX NAMA */
+            flex-grow: 1; 
+            width: 100%; 
+            margin-bottom: 8px; 
+            border-radius: 8px;
             
             background-image: url('logo.png'); 
-            
-            /* KUNCI: 300% 100% -> Memaksa gambar pas di kotak */
-            /* Karena kolomnya udah dikurusin (padding container), gambarnya jadi GAGAH (gak gepeng) */
+            /* REVISI UKURAN: Biar gak gepeng, kita set cover untuk vertikal */
             background-size: 300% 100%; 
             background-repeat: no-repeat;
             
+            /* Tampilan Mati */
             opacity: 0.4; filter: grayscale(100%) brightness(0.4); 
             transition: all 0.4s ease;
             background-color: rgba(20,20,20,0.5);
             border: none;
+            
             position: relative; z-index: 1;
         }
         
@@ -82,17 +85,17 @@
         #col-1 .img-box { background-position: 50% 50%; }
         #col-2 .img-box { background-position: 100% 50%; }
 
-        /* AURA BACKLIGHT (Biar Makin Garang) */
+        /* AURA BACKLIGHT (LEBIH LEBAR DIKIT) */
         .slot-column.active .img-box::before {
-            content: ''; position: absolute; inset: 15px; z-index: -1;
+            content: ''; position: absolute; inset: 20px; z-index: -1;
             border-radius: 50%;
             background: var(--neon-blue);
-            filter: blur(20px); opacity: 0.5;
+            filter: blur(30px); opacity: 0.5;
             animation: pulseAura 2s infinite alternate;
         }
         @keyframes pulseAura { from { opacity: 0.4; transform: scale(0.9); } to { opacity: 0.7; transform: scale(1.1); } }
 
-        /* ACTIVE STATE */
+        /* NYALA */
         .slot-column.active .img-box {
             opacity: 1; filter: grayscale(0%) brightness(1.2) contrast(1.1);
             transform: scale(1.02);
@@ -104,11 +107,11 @@
 
 
         /* =========================================
-           2. INFO BOX (DIPERKECIL LAGI BIAR RINGKAS)
+           2. INFO BOX (FIXED HEIGHT, FLIP)
            ========================================= */
         .info-box-scene {
-            height: 75px; /* Dibuat lebih pendek biar compact */
-            width: 100%; perspective: 1000px;
+            height: 90px; /* Tinggi Fix Box Bawah */
+            width: 100%; perspective: 1000px; flex-shrink: 0; /* Gak boleh mengecil */
         }
         .info-box-inner {
             position: relative; width: 100%; height: 100%;
@@ -117,7 +120,6 @@
             transform-style: preserve-3d;
         }
         
-        /* Animasi Flip */
         .slot-column.active .info-box-inner { animation: flipLoop 10s infinite ease-in-out; }
         #col-0 .info-box-inner { animation-delay: 0s; }
         #col-1 .info-box-inner { animation-delay: 3.5s; }
@@ -138,66 +140,76 @@
             border: 1px solid #222; border-top: 1px solid #444;
         }
 
-        /* PLAT & NAMA (Font Size Disesuaikan) */
+        /* INDIKATOR STATUS (Garis Bawah) */
+        .box-face::after { content: ''; position: absolute; bottom: 0; left: 10%; width: 80%; height: 3px; opacity: 0.7; border-radius: 3px 3px 0 0; }
+        .slot-column.active .box-face::after { background: var(--neon-blue); box-shadow: 0 -2px 10px var(--neon-blue); }
+        .slot-column.active.ketum .box-face::after { background: var(--neon-gold); box-shadow: 0 -2px 10px var(--neon-gold); }
+        .slot-column.active.satgas .box-face::after { background: var(--neon-red); box-shadow: 0 -2px 10px var(--neon-red); }
+
+        /* KONTEN DEPAN: PLAT & NAMA */
         .plat-text {
             font-family: 'Teko'; 
-            font-size: 20px; /* Diperkecil biar ga overlap */
+            font-size: 24px; /* Ukuran Pas */
             font-weight: 600; color: #fff; line-height: 1; margin-top: 4px;
-            white-space: nowrap; overflow: hidden; width: 100%;
+            white-space: nowrap; overflow: hidden; width: 100%; text-align: center;
         }
         .name-text {
-            font-family: 'Rajdhani'; font-size: 9px; font-weight: 700; color: #999;
+            font-family: 'Rajdhani'; font-size: 11px; font-weight: 700; color: #999;
             text-transform: uppercase; margin-top: 2px; 
             width: 90%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
 
-        /* BADGE BELAKANG */
+        /* KONTEN BELAKANG: BADGE */
         .box-face.back { transform: rotateX(180deg); background: #050505; }
-        .badge-big { font-family: 'Orbitron'; font-size: 8px; font-weight: 900; letter-spacing: 1px; }
-        .role-icon { font-size: 18px; margin-bottom: 2px; }
+        .badge-big { font-family: 'Orbitron'; font-size: 10px; font-weight: 900; letter-spacing: 1px; }
+        .role-icon { font-size: 22px; margin-bottom: 2px; }
 
-        /* GARIS INDIKATOR BAWAH */
-        .box-face::after { content: ''; position: absolute; bottom: 0; left: 15%; width: 70%; height: 2px; opacity: 0.6; }
-        .slot-column.active .box-face::after { background: var(--neon-blue); box-shadow: 0 -2px 8px var(--neon-blue); }
-        .slot-column.active.ketum .box-face::after { background: var(--neon-gold); box-shadow: 0 -2px 10px var(--neon-gold); }
-        .slot-column.active.satgas .box-face::after { background: var(--neon-red); box-shadow: 0 -2px 10px var(--neon-red); }
+        /* ANIMASI BADGE */
+        @keyframes neonBreath { 0%, 100% { text-shadow: 0 0 5px var(--neon-blue); opacity: 1; } 50% { opacity: 0.6; } }
+        .badge-member { color: var(--neon-blue); animation: neonBreath 2s infinite; }
+        
+        .badge-ketum {
+            background: linear-gradient(to right, #9f7928, #ffffcc, #9f7928); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            font-weight: 900; animation: shine 3s linear infinite;
+        }
+        @keyframes shine { to { background-position: 200% center; } }
+        .badge-satgas { color: var(--neon-red); text-shadow: 0 0 5px red; font-weight: 900; }
 
         /* KOSONG */
         .empty-view { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; width: 100%; background: rgba(15,15,15,0.8); border-radius: 8px; border: 1px dashed #333; }
-        .empty-text { font-family: 'Orbitron'; font-size: 8px; color: #444; letter-spacing: 2px; }
-        .btn-masuk { width: 90%; background: rgba(204,255,0,0.15); border: 1px solid var(--neon-gold); color: #fff; font-weight: bold; padding: 3px; cursor: pointer; border-radius: 6px; font-size: 10px; }
+        .empty-text { font-family: 'Orbitron'; font-size: 10px; color: #444; letter-spacing: 2px; }
+        .btn-masuk { width: 90%; background: rgba(204,255,0,0.15); border: 1px solid var(--neon-gold); color: #fff; font-weight: bold; padding: 5px; cursor: pointer; border-radius: 6px; font-size: 12px; }
 
 
-        /* === 3. FOOTER (25% Layar - NAIK & AMAN) === */
+        /* === 3. FOOTER (JELAS, NAIK, AMAN) === */
         .footer { 
-            height: 25vh; /* Ruang Lega */
+            height: 20vh; min-height: 120px;
             width: 100%;
             display: flex; flex-direction: column; 
             align-items: center; justify-content: flex-start;
-            padding-top: 10px; 
-            gap: 15px; 
-            padding-bottom: 30px; 
-            flex-shrink: 0;
-            background: linear-gradient(to top, #000 30%, transparent);
-            z-index: 50;
+            padding-top: 5px; 
+            gap: 12px; 
+            padding-bottom: 20px; 
+            flex-shrink: 0; z-index: 50;
+            background: linear-gradient(to top, #000 20%, transparent);
         }
         
         .antrian-text {
-            font-family: 'Teko'; font-size: 26px; font-weight: 500; color: #fff;
+            font-family: 'Teko'; font-size: 28px; font-weight: 500; color: #fff;
             letter-spacing: 1px; cursor: pointer;
             text-shadow: 0 0 10px rgba(0,240,255,0.5);
-            background: rgba(0,0,0,0.6); padding: 2px 15px; border-radius: 20px;
+            background: rgba(0,0,0,0.6); padding: 0 15px; border-radius: 20px;
         }
         
         .fp-scan {
-            width: 65px; height: 65px; border-radius: 50%;
+            width: 60px; height: 60px; border-radius: 50%;
             border: 2px solid var(--neon-gold);
             display:flex; justify-content:center; align-items:center;
             color: var(--neon-gold); background: rgba(0,0,0,0.8);
             animation: pulse 2s infinite; cursor: pointer;
             box-shadow: 0 0 25px rgba(255, 215, 0, 0.3);
         }
-        .fp-icon { width: 32px; height: 32px; fill: var(--neon-gold); }
+        .fp-icon { width: 30px; height: 30px; fill: var(--neon-gold); }
         
         @keyframes pulse { 
             0%{box-shadow:0 0 10px rgba(255,215,0,0.1); transform:scale(1);} 
@@ -206,7 +218,7 @@
         }
         .hint-text { font-family:'Orbitron'; font-size:9px; color:#666; margin-top:-8px; letter-spacing: 2px; }
 
-        /* MODALS (Standard) */
+        /* MODALS */
         .screen-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); backdrop-filter: blur(8px); z-index: 9999; display: none; justify-content: center; align-items: center; flex-direction: column; }
         .screen-overlay.active { display: flex; }
         .rule-box { background: #111; border: 2px solid var(--neon-red); padding: 25px; border-radius: 15px; width: 90%; max-width: 350px; text-align: left; }
@@ -217,7 +229,6 @@
         .btn-next { width: 100%; padding: 12px; background: var(--neon-blue); color: #000; font-family: 'Rajdhani'; font-weight: bold; font-size: 18px; border-radius: 50px; border:none; }
         .scan-wrapper { width: 250px; height: 250px; border: 2px solid var(--neon-blue); border-radius: 15px; overflow: hidden; }
         .scan-status { margin-top: 15px; font-family: 'Teko'; font-size: 24px; color: #fff; }
-        
         #screen-active-dashboard { background: radial-gradient(circle, #1a1a1a 0%, #000 100%); }
         .timer-ring { width: 180px; height: 180px; border-radius: 50%; border: 4px solid #333; border-top: 4px solid var(--neon-blue); display: flex; justify-content: center; align-items: center; margin-bottom: 20px; animation: spin 4s linear infinite; }
         @keyframes spin { 100% { transform: rotate(360deg); } }
@@ -226,14 +237,6 @@
         .q-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #222; }
         #broadcastModal { z-index: 30000; background: rgba(50,0,0,0.95); }
         .alert-box { background: #200; border: 1px solid red; padding: 25px; border-radius: 15px; text-align: center; width: 90%; }
-        
-        /* Animasi Badge */
-        @keyframes neonBreath { 0%, 100% { text-shadow: 0 0 5px var(--neon-blue); opacity: 1; } 50% { opacity: 0.6; } }
-        .badge-member { color: var(--neon-blue); animation: neonBreath 2s infinite; }
-        .badge-ketum { background: linear-gradient(to right, #9f7928, #ffffcc, #9f7928); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 900; animation: shine 3s linear infinite; }
-        @keyframes shine { to { background-position: 200% center; } }
-        .badge-satgas { color: var(--neon-red); animation: redAlert 0.5s infinite; font-weight: 900; }
-        @keyframes redAlert { 0%, 100% { opacity: 1; text-shadow: 0 0 10px red; } 50% { opacity: 0.3; } }
         .icon-ketum { display: inline-block; animation: float 3s ease-in-out infinite; }
         @keyframes float { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-3px);} }
     </style>
