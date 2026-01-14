@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FC GADING - FINAL HYBRID FLIP</title>
+    <title>FC GADING - FINAL PRO</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Teko:wght@400;500;600&family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     
     <style>
-        /* === 1. GLOBAL SETUP === */
+        /* === 1. GLOBAL SETUP (100% LAYAR HP) === */
         :root {
             --bg-dark: #000;
             --neon-blue: #00F0FF;
@@ -22,190 +22,190 @@
             margin: 0; background: #000;
             background-image: radial-gradient(circle at 50% 40%, #1a1a1a 0%, #000 90%);
             color: #fff; font-family: 'Rajdhani', sans-serif; 
-            height: 100vh; display: flex; flex-direction: column; overflow: hidden;
+            /* PENTING: Pake 100dvh biar pas di browser HP */
+            height: 100vh; height: 100dvh; 
+            display: flex; flex-direction: column; overflow: hidden;
         }
 
-        /* HEADER */
-        .header { height: 12vh; display: flex; flex-direction: column; justify-content: center; align-items: center; padding-top:10px; }
+        /* HEADER (12% Layar) */
+        .header { height: 12%; display: flex; flex-direction: column; justify-content: center; align-items: center; }
         .header h1 { 
-            font-family: 'Teko'; font-size: 38px; margin: 0; 
-            text-shadow: 0 0 15px rgba(0, 240, 255, 0.4); 
-            letter-spacing: 1px; line-height: 1;
+            font-family: 'Teko'; font-size: 34px; margin: 0; line-height: 1;
+            text-shadow: 0 0 15px rgba(0, 240, 255, 0.4); letter-spacing: 1px;
         }
-        .sub-header { font-size: 10px; color: var(--neon-gold); letter-spacing: 3px; font-weight: 700; margin-top: 5px; text-transform: uppercase; }
+        .sub-header { font-size: 9px; color: var(--neon-gold); letter-spacing: 2px; font-weight: 700; margin-top: 2px; text-transform: uppercase; }
 
-        /* === CONTAINER UTAMA === */
+        /* === CONTAINER TENGAH (68% Layar) === */
         .slots-container {
-            flex: 1; 
-            display: flex; justify-content: center; align-items: center;
+            height: 68%; /* Tinggi Area Tengah */
             width: 100%; max-width: 450px; margin: 0 auto;
-            padding: 0 10px 10px 10px; 
-            gap: 8px; /* Jarak antar kolom */
+            display: flex; align-items: center; justify-content: center;
+            padding: 0 5px; 
+            gap: 2px; /* GAP RAPET */
         }
 
         .slot-column {
-            flex: 1; height: 68vh; /* TINGGI TOTAL SLOT */
+            flex: 1; height: 100%; 
             display: flex; flex-direction: column; 
-            justify-content: center;
+            justify-content: center; /* Center Vertikal */
+            position: relative;
         }
 
         /* =========================================
-           1. BAGIAN ATAS (SETTINGAN SAYA - TINGGI & GAGAH)
+           1. LOGO BOX (PROPORSIONAL + AURA GLOW)
            ========================================= */
         .img-box {
-            /* PAKE FLEX BIAR TINGGI OTOMATIS NGISI RUANG */
-            flex: 3; 
-            width: 100%; 
-            border-radius: 12px;
+            /* Tinggi Gambar dikurangi dikit biar muat */
+            height: 55%; 
+            width: 100%; margin-bottom: 5px; border-radius: 8px;
             
-            /* GAMBAR & EFEK SAYA */
-            background-image: url('logo.png'); /* Pastikan file logo.png ada */
+            background-image: url('logo.png'); /* FILE LOGO */
             background-size: 300% 100%; 
             background-repeat: no-repeat;
             
-            /* Default Mati */
-            filter: grayscale(100%) brightness(0.25); opacity: 0.5;
-            transition: 0.4s; border: none; /* NO BORDER */
-            box-shadow: inset 0 0 50px #000;
-            margin-bottom: 10px; /* Jarak ke box bawah */
+            opacity: 0.3; filter: grayscale(100%) brightness(0.4); 
+            transition: all 0.5s ease;
+            background-color: rgba(20,20,20,0.5);
+            position: relative; z-index: 1;
         }
         
         #col-0 .img-box { background-position: 0% 50%; }
         #col-1 .img-box { background-position: 50% 50%; }
         #col-2 .img-box { background-position: 100% 50%; }
 
-        /* NYALA (GLOW ONLY - GAGAH) */
-        .slot-column.active .img-box {
-            filter: grayscale(0%) brightness(1.1) contrast(1.1); opacity: 1;
-            animation: softGlow 3s infinite alternate;
+        /* AURA GLOW DI BELAKANG GAMBAR */
+        .slot-column.active .img-box::before {
+            content: ''; position: absolute; inset: 0; z-index: -1;
+            border-radius: 8px;
+            box-shadow: 0 0 30px 5px rgba(0, 240, 255, 0.4); /* Default Blue Aura */
+            opacity: 0.8; animation: auraPulse 2s infinite alternate;
         }
-        .slot-column.center .img-box { transform: scale(1.02); z-index: 2; }
+        @keyframes auraPulse { from { opacity: 0.5; } to { opacity: 1; } }
 
-        @keyframes softGlow { from { box-shadow: 0 0 15px rgba(0,240,255,0.2); } to { box-shadow: 0 0 40px rgba(0,240,255,0.5); } }
-        .slot-column.active.ketum .img-box { animation: goldGlow 3s infinite alternate; }
-        @keyframes goldGlow { from { box-shadow: 0 0 15px rgba(255,215,0,0.2); } to { box-shadow: 0 0 40px rgba(255,215,0,0.5); } }
-        .slot-column.active.satgas .img-box { animation: redGlow 3s infinite alternate; }
-        @keyframes redGlow { from { box-shadow: 0 0 15px rgba(255,0,60,0.2); } to { box-shadow: 0 0 40px rgba(255,0,60,0.5); } }
+        /* WARNA AURA KHUSUS */
+        .slot-column.active.ketum .img-box::before { box-shadow: 0 0 40px 10px rgba(255, 215, 0, 0.5); }
+        .slot-column.active.satgas .img-box::before { box-shadow: 0 0 40px 10px rgba(255, 0, 60, 0.5); }
+
+        .slot-column.active .img-box {
+            opacity: 1; filter: grayscale(0%) brightness(1.2);
+            transform: translateY(-2px); /* Naik dikit pas aktif */
+        }
 
 
         /* =========================================
-           2. BAGIAN BAWAH (ANIMASI FLIP 3D)
+           2. INFO BOX (DIPERKECIL & FLIP)
            ========================================= */
         .info-box-scene {
-            height: 100px; /* Tinggi Fix Box Bawah */
+            height: 85px; /* Box Bawah Diperkecil */
             width: 100%; perspective: 1000px;
         }
         .info-box-inner {
             position: relative; width: 100%; height: 100%;
             text-align: center; 
-            transition: transform 1.5s cubic-bezier(0.4, 0.2, 0.2, 1); /* Flip diperlambat 1.5s */
+            transition: transform 1.2s cubic-bezier(0.4, 0.2, 0.2, 1);
             transform-style: preserve-3d;
         }
         
-        /* Loop Animasi Flip (Durasi Total 12 Detik) */
         .slot-column.active .info-box-inner { animation: flipLoop 12s infinite ease-in-out; }
-        
-        /* Delay biar gak barengan */
         #col-0 .info-box-inner { animation-delay: 0s; }
         #col-1 .info-box-inner { animation-delay: 4s; }
         #col-2 .info-box-inner { animation-delay: 8s; }
 
         @keyframes flipLoop {
-            /* TAHAN DI DEPAN (PLAT) LAMA: 0% - 45% */
             0%, 45% { transform: rotateX(0deg); }   
-            /* PUTAR KE BELAKANG & TAHAN: 50% - 95% */
             50%, 95% { transform: rotateX(180deg); } 
-            /* BALIK LAGI */
             100% { transform: rotateX(360deg); }    
         }
 
         .box-face {
             position: absolute; width: 100%; height: 100%;
             -webkit-backface-visibility: hidden; backface-visibility: hidden;
-            border-radius: 10px;
+            border-radius: 8px;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            
-            /* WARNA BOX GELAP */
-            background: linear-gradient(180deg, #151515 0%, #000 100%);
-            border: 1px solid #222; /* Border samping tipis */
-            border-top: 2px solid #444; /* Default mati */
+            background: linear-gradient(180deg, #1f252b 0%, #000 100%);
+            border-top: 1px solid rgba(255,255,255,0.2);
         }
 
-        /* === INDIKATOR NEON DI ATAS SAJA (Sesuai Request) === */
-        .slot-column.active .box-face { border-top-color: var(--neon-blue); box-shadow: 0 -5px 15px rgba(0,240,255,0.1); }
-        .slot-column.active.ketum .box-face { border-top-color: var(--neon-gold); box-shadow: 0 -5px 15px rgba(255,215,0,0.1); }
-        .slot-column.active.satgas .box-face { border-top-color: var(--neon-red); box-shadow: 0 -5px 15px rgba(255,0,60,0.1); }
-
-        /* KONTEN DEPAN (PLAT & NAMA) */
+        /* PLAT & NAMA (FONT DI KECILIN BIAR GA OVERLAP) */
         .plat-text {
-            font-family: 'Teko'; font-size: 26px; font-weight: 600; 
-            color: #fff; line-height: 1; margin-top: 5px;
+            font-family: 'Teko'; 
+            font-size: 22px; /* Ukuran Pas */
+            font-weight: 600; 
+            color: #fff; line-height: 1; margin-top: 4px;
             white-space: nowrap; overflow: hidden; width: 100%;
         }
         .name-text {
-            font-family: 'Rajdhani'; font-size: 11px; font-weight: 700; color: #888;
-            text-transform: uppercase; margin-top: 5px; 
-            width: 90%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            font-family: 'Rajdhani'; font-size: 10px; font-weight: 700; color: #888;
+            text-transform: uppercase; margin-top: 2px; 
+            border-top: 1px solid rgba(255,255,255,0.1); width: 85%; padding-top: 2px;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
 
-        /* KONTEN BELAKANG (BADGE) */
+        /* KONTEN BELAKANG */
         .box-face.back { transform: rotateX(180deg); background: #080808; }
         .badge-big { font-family: 'Orbitron'; font-size: 9px; font-weight: 900; letter-spacing: 1px; }
-        .role-icon { font-size: 24px; margin-bottom: 5px; }
+        .role-icon { font-size: 18px; margin-bottom: 2px; }
 
-        /* ANIMASI BADGE USER */
-        @keyframes neonBreath { 0%, 100% { text-shadow: 0 0 5px var(--neon-blue); opacity: 1; } 50% { opacity: 0.6; } }
+        /* INDIKATOR BAWAH */
+        .box-face::after { content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 2px; opacity: 0.6; }
+        .slot-column.active .box-face::after { background: var(--neon-blue); box-shadow: 0 -2px 8px var(--neon-blue); }
+        .slot-column.active.ketum .box-face::after { background: var(--neon-gold); box-shadow: 0 -2px 10px var(--neon-gold); }
+        .slot-column.active.satgas .box-face::after { background: var(--neon-red); box-shadow: 0 -2px 10px var(--neon-red); }
+
+        /* BADGE ANIMATION */
+        @keyframes neonBreath { 0%, 100% { text-shadow: 0 0 5px var(--neon-blue); opacity: 1; } 50% { opacity: 0.7; } }
         .badge-member { color: var(--neon-blue); animation: neonBreath 2s infinite; }
-
+        
         .badge-ketum {
             background: linear-gradient(to right, #9f7928, #ffffcc, #9f7928); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
             font-weight: 900; animation: shine 3s linear infinite;
         }
         @keyframes shine { to { background-position: 200% center; } }
-        .icon-ketum { display: inline-block; animation: float 3s ease-in-out infinite; }
-        @keyframes float { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-3px);} }
-
+        
         @keyframes redAlert { 0%, 100% { opacity: 1; text-shadow: 0 0 10px red; } 50% { opacity: 0.3; } }
         .badge-satgas { color: var(--neon-red); animation: redAlert 0.5s infinite; font-weight: 900; }
 
         /* KOSONG */
-        .empty-view { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; width: 100%; background: rgba(10,10,10,0.5); border-radius: 10px; border-top: 1px solid #333; }
-        .empty-text { font-family: 'Orbitron'; font-size: 10px; color: #444; letter-spacing: 2px; }
-        .btn-masuk { width: 90%; background: rgba(204,255,0,0.2); border: 1px solid var(--neon-gold); color: #fff; font-weight: bold; padding: 5px; cursor: pointer; border-radius: 6px; font-size: 12px; }
+        .empty-view { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; width: 100%; background: rgba(10,10,10,0.5); border-radius: 8px; border-top: 1px solid #333; }
+        .empty-text { font-family: 'Orbitron'; font-size: 9px; color: #444; letter-spacing: 2px; }
+        .btn-masuk { width: 90%; background: rgba(204,255,0,0.2); border: 1px solid var(--neon-gold); color: #fff; font-weight: bold; padding: 4px; cursor: pointer; border-radius: 6px; font-size: 11px; }
 
 
-        /* === 3. FOOTER (POSISI NAIK) === */
+        /* === 3. FOOTER (20% Layar - FINGERPRINT AMAN) === */
         .footer { 
-            height: 15vh; min-height: 100px;
+            height: 20%; /* Space cukup besar */
+            width: 100%;
             display: flex; flex-direction: column; 
             align-items: center; justify-content: flex-start;
-            padding-top: 10px; gap: 15px; /* Jarak antar tombol */
-            padding-bottom: 40px; /* NAIKIN POSISI DARI BAWAH */
-            z-index: 50;
+            padding-top: 5px; 
+            gap: 10px;
+            padding-bottom: 20px; /* Jarak aman dari bawah HP */
         }
+        
         .antrian-text {
-            font-family: 'Teko'; font-size: 28px; font-weight: 500; color: #fff;
+            font-family: 'Teko'; font-size: 26px; font-weight: 500; color: #fff;
             letter-spacing: 1px; cursor: pointer;
             text-shadow: 0 0 10px rgba(0,240,255,0.5);
         }
+        
         .fp-scan {
-            width: 60px; height: 60px; border-radius: 50%;
+            width: 55px; height: 55px; border-radius: 50%;
             border: 2px solid var(--neon-gold);
             display:flex; justify-content:center; align-items:center;
             color: var(--neon-gold); background: rgba(0,0,0,0.8);
             animation: pulse 2s infinite; cursor: pointer;
             box-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
         }
-        .fp-icon { width: 30px; height: 30px; fill: var(--neon-gold); }
+        .fp-icon { width: 26px; height: 26px; fill: var(--neon-gold); }
         
         @keyframes pulse { 
             0%{box-shadow:0 0 10px rgba(255,215,0,0.1); transform:scale(1);} 
-            50%{box-shadow:0 0 30px rgba(255,215,0,0.5); transform:scale(1.08);} 
+            50%{box-shadow:0 0 25px rgba(255,215,0,0.4); transform:scale(1.08);} 
             100%{box-shadow:0 0 10px rgba(255,215,0,0.1); transform:scale(1);} 
         }
-        .hint-text { font-family:'Orbitron'; font-size:9px; color:#666; margin-top:-10px; letter-spacing: 2px; }
+        .hint-text { font-family:'Orbitron'; font-size:9px; color:#666; margin-top:-8px; letter-spacing: 2px; }
 
-        /* MODALS (Standard) */
+        /* MODALS */
         .screen-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); backdrop-filter: blur(8px); z-index: 9999; display: none; justify-content: center; align-items: center; flex-direction: column; }
         .screen-overlay.active { display: flex; }
         .rule-box { background: #111; border: 2px solid var(--neon-red); padding: 25px; border-radius: 15px; width: 90%; max-width: 350px; text-align: left; }
@@ -311,7 +311,6 @@
                 const wrapper = $(`col-${i}`); 
                 const scene = $(`scene-${i}`);
                 
-                // RESET CLASS
                 wrapper.className = 'slot-column'; 
                 if(i===1) wrapper.classList.add('center');
 
@@ -324,11 +323,9 @@
                     if(roleClass.includes('ketum')) wrapper.classList.add('ketum');
                     else if(roleClass.includes('satgas')) wrapper.classList.add('satgas');
 
-                    // === BUILD FLIP CARD CONTENT ===
                     let dRole = (s.role || 'MEMBER').toUpperCase();
                     if (dRole === 'MEMBER') dRole = 'KELUARGA MLU';
 
-                    // Ikon Role
                     let icon = '🛡️'; let badgeClass = 'badge-member';
                     if(roleClass.includes('ketum')) { icon = '👑'; badgeClass = 'badge-ketum icon-ketum'; }
                     else if(roleClass.includes('satgas')) { icon = '⚡'; badgeClass = 'badge-satgas'; }
@@ -346,7 +343,6 @@
                         </div>
                     `;
 
-                    // KUDETA BUTTON
                     const durationMins = Math.floor((Date.now() - s.startTime) / 60000);
                     if(amIQueue1 && !isMe && durationMins >= 25) {
                         setTimeout(() => {
@@ -366,7 +362,6 @@
                         if(!$('screen-active-dashboard').classList.contains('minimized')) $('screen-active-dashboard').classList.add('active');
                     }
                 } else {
-                    // KOSONG
                     let content = `<div class="empty-view"><div class="empty-text">AVAILABLE</div></div>`;
                     if(amIQueue1) {
                         content = `<div class="empty-view"><button class="btn-masuk" onclick="selectSlot(${i})">MASUK</button></div>`;
