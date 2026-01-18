@@ -54,7 +54,7 @@
     </div>
     <div style="display:flex; justify-content:space-between; margin-bottom:15px; align-items:center;">
         <div><span style="font-family:'Teko'; font-size:28px; color:var(--gold);">SUPER ADMIN <span style="color:#fff; font-size:12px;">(GOD MODE)</span></span></div>
-        <div style="display:flex; gap:5px;"><button onclick="window.location.href='antrian.html'" class="btn-blue">DEPAN</button><button onclick="logout()" class="btn-red">KELUAR</button></div>
+        <div style="display:flex; gap:5px;"><button onclick="window.location.href='system.html'" class="btn-blue">DEPAN</button><button onclick="logout()" class="btn-red">KELUAR</button></div>
     </div>
 
     <div class="box">
@@ -90,6 +90,7 @@
                 </optgroup>
 
                 <optgroup label="--- LAINNYA ---">
+                    <option value="PEA">🟣 KOKOH PEA</option>
                     <option value="PELAN">🐢 SPECIAL TURTLE (SALTO)</option>
                     <option value="OFFICE">🏢 OFFICE MAKA KG</option>
                 </optgroup>
@@ -169,7 +170,7 @@
         
         if(localStorage.getItem('sa_sess')) { document.getElementById('loginOverlay').style.display = 'none'; }
         window.attemptLogin = () => { if(document.getElementById('loginPin').value === "090815") { localStorage.setItem('sa_sess', '1'); document.getElementById('loginOverlay').style.display = 'none'; addLog("SUPER_ADMIN", "LOGIN", "God Mode Accessed"); } else { alert("PIN SALAH!"); } };
-        window.logout = () => { localStorage.removeItem('sa_sess'); window.location.href='antrian.html'; };
+        window.logout = () => { localStorage.removeItem('sa_sess'); window.location.href='system.html'; };
 
         onSnapshot(mainRef, (snap) => {
             if(!snap.exists()) return;
@@ -231,7 +232,6 @@
             
             if(!p) return alert("Isi Plat!"); 
             
-            // LOGIKA INPUT MANUAL (CUSTOM) --> TETAP PAKAI POP-UP BAWAAN BROWSER (PROMPT)
             if(r === "CUSTOM") {
                 const c = prompt("MASUKKAN NAMA JABATAN (BEBAS):");
                 if(!c) return;
@@ -242,8 +242,8 @@
             setDoc(doc(db, "members", cleanP), { plat: p, role: r, verified: true }, {merge:true});
             runTransaction(db, async(t) => {
                 const d = (await t.get(mainRef)).data(); let updated = false;
-                const newQ = d.waitingQueue.map(q => { if(q.plat.replace(/[^A-Z0-9]/g,'') === cleanP) { updated=true; return {...q, role: r, isMember: true}; } return q; });
-                const newS = d.chargingSlots.map(s => { if(s && s.plat.replace(/[^A-Z0-9]/g,'') === cleanP) { updated=true; return {...s, role: r, isMember: true}; } return s; });
+                const newQ = (d.waitingQueue||[]).map(q => { if(q.plat.replace(/[^A-Z0-9]/g,'') === cleanP) { updated=true; return {...q, role: r, isMember: true}; } return q; });
+                const newS = (d.chargingSlots||[null,null,null]).map(s => { if(s && s.plat.replace(/[^A-Z0-9]/g,'') === cleanP) { updated=true; return {...s, role: r, isMember: true}; } return s; });
                 if(updated) t.update(mainRef, { waitingQueue: newQ, chargingSlots: newS });
             }).then(() => { alert(`BERHASIL! ${p} sekarang ${r}`); addLog("SUPER_ADMIN", "SET_ROLE", `Set ${p} as ${r}`); document.getElementById('rolePlat').value = ''; if(document.getElementById('memberListArea').style.display === 'block') loadMembers(); });
         };
@@ -258,7 +258,10 @@
                     const d = doc.data();
                     if (d.role) {
                         count++; let color = '#fff'; let label = d.role;
-                        if(d.role === 'KETUM') { color = 'var(--gold)'; label = '👑 KETUA UMUM'; }
+                        
+                        // LOGIC SINKRON DENGAN SYSTEM.HTML
+                        if(d.role === 'PEA') { color = 'var(--purple)'; label = '🟣 KOKOH PEA'; }
+                        else if(d.role === 'KETUM') { color = 'var(--gold)'; label = '👑 KETUA UMUM'; }
                         else if(d.role === 'WAKETUM') { color = '#ddd'; label = 'WAKETUM'; }
                         else if(d.role === 'KORLAP') { color = 'var(--red)'; label = '🔴 KORLAP'; }
                         else if(d.role === 'SATGAS') { color = 'var(--orange)'; label = '⚡ SATGAS'; }
@@ -266,7 +269,7 @@
                         else if(d.role === 'PELAN') { color = 'var(--neon)'; label = '🐢 SPECIAL TURTLE'; }
                         else if(d.role === 'OFFICE') { color = '#aaa'; label = '🏢 OFFICE MAKA'; }
                         else if(d.role === 'HUMAS') { color = '#f59e0b'; label = '📢 HUMAS'; }
-                        else if(d.role === 'MEMBER') { color = '#fff'; label = 'MEMBER'; }
+                        else if(d.role === 'MEMBER') { color = 'var(--gold)'; label = '👤 KELUARGA MLU'; } // MEMBER DAPAT BADGE KELUARGA
                         else { color = '#b08dff'; label = d.role + " (CUSTOM)"; }
                         
                         html += `<tr style="border-bottom:1px solid #222;"><td style="padding:5px;">${d.plat}</td><td style="padding:5px; color:${color}; font-weight:bold;">${label}</td><td style="padding:5px; text-align:center;"><button onclick="hapusBadge('${d.plat}')" class="btn-red btn-mini">X</button></td></tr>`;
@@ -281,13 +284,12 @@
             await setDoc(doc(db, "members", cleanP), { plat: plat, role: null, verified: true }, {merge:true});
             runTransaction(db, async(t) => {
                 const d = (await t.get(mainRef)).data(); let updated = false;
-                const newQ = d.waitingQueue.map(q => { if(q.plat.replace(/[^A-Z0-9]/g,'') === cleanP) { updated=true; return {...q, role: null}; } return q; });
-                const newS = d.chargingSlots.map(s => { if(s && s.plat.replace(/[^A-Z0-9]/g,'') === cleanP) { updated=true; return {...s, role: null}; } return s; });
+                const newQ = (d.waitingQueue||[]).map(q => { if(q.plat.replace(/[^A-Z0-9]/g,'') === cleanP) { updated=true; return {...q, role: null}; } return q; });
+                const newS = (d.chargingSlots||[null,null,null]).map(s => { if(s && s.plat.replace(/[^A-Z0-9]/g,'') === cleanP) { updated=true; return {...s, role: null}; } return s; });
                 if(updated) t.update(mainRef, { waitingQueue: newQ, chargingSlots: newS });
             }).then(() => { addLog("SUPER_ADMIN", "REMOVE_ROLE", `Removed Role from ${plat}`); loadMembers(); });
         };
 
-        // --- FUNGSI BROADCAST BARU ---
         window.kirimBroadcast = async () => {
             const msg = document.getElementById('broadcastInput').value;
             if(!msg) return alert("Ketik pesan dulu!");
