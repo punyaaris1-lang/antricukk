@@ -11,8 +11,6 @@
     
     <link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Teko:wght@300;400;500;600;700&family=Rajdhani:wght@500;600;700&family=Orbitron:wght@700;800;900&family=Press+Start+2P&display=swap" rel="stylesheet">
     
-    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
-    
     <style>
         :root { 
             --bg: #050505; --gold: #FFD700; --red: #FF003C; --cyan: #00F0FF; --green: #39FF14; --neon-purple: #D000FF;
@@ -26,6 +24,20 @@
             min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden;
         }
 
+        /* --- CUSTOM MODAL (PENGGANTI ALERT) --- */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 20000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
+        .modal-box { width: 90%; max-width: 350px; background: #0a0a0a; border: 1px solid var(--gold); border-radius: 10px; padding: 25px; text-align: center; box-shadow: 0 0 30px rgba(255, 215, 0, 0.2); position: relative; clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px); transform: scale(0.8); transition: transform 0.3s; }
+        .modal-overlay.active .modal-box { transform: scale(1); }
+        .modal-title { font-family: 'Black Ops One'; color: var(--gold); font-size: 24px; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 2px; }
+        .modal-msg { font-family: 'Rajdhani'; color: #ccc; font-size: 16px; margin-bottom: 25px; line-height: 1.4; font-weight: 600; }
+        .modal-btns { display: flex; gap: 10px; justify-content: center; }
+        .btn-modal { flex: 1; padding: 12px; font-family: 'Teko'; font-size: 20px; border: none; cursor: pointer; clip-path: polygon(10px 0, 100% 0, 100% 100%, 0 100%, 0 10px); transition: 0.2s; }
+        .btn-yes { background: var(--gold); color: #000; font-weight: bold; }
+        .btn-yes:active { transform: scale(0.95); background: #fff; }
+        .btn-no { background: #333; color: #fff; border: 1px solid #555; }
+        .btn-no:active { transform: scale(0.95); background: #555; }
+
+        /* --- HEADER & LAYOUT --- */
         .header { text-align: center; margin-bottom: 25px; margin-top: 10px; }
         .main-title { font-family: 'Black Ops One'; font-size: 32px; line-height: 1; color: #eee; text-shadow: 0 2px 10px rgba(0,0,0,0.8); }
         .sub-title { font-size: 11px; color: var(--gold); letter-spacing: 3px; font-weight: 700; text-transform: uppercase; margin-top: 5px; text-shadow: 0 0 10px rgba(255, 215, 0, 0.4); }
@@ -100,64 +112,64 @@
         .sunken-btn-container:hover .logo-img-sunken { opacity: 1; filter: drop-shadow(0 0 15px rgba(255,215,0,0.3)); }
         .tap-hint { font-size: 10px; color: #444; letter-spacing: 4px; margin-top: 20px; font-weight: 900; text-transform: uppercase; }
 
-        /* HANGAR & MODALS */
+        /* HANGAR & SCREEN SAVER */
         #hangar-overlay { position: fixed; inset: 0; z-index: 10000; display: none; pointer-events: auto; }
         .door-panel { position: absolute; top:0; bottom:0; width: 50%; background: repeating-linear-gradient(45deg, #0a0a0a, #0a0a0a 10px, #050505 10px, #050505 20px); border-right: 2px solid #111; transition: transform 1.5s cubic-bezier(0.77, 0, 0.175, 1); display: flex; align-items: center; justify-content: flex-end; box-shadow: inset -10px 0 30px #000; }
         #door-left { left: 0; border-right: 1px solid #333; }
         #door-right { right: 0; border-left: 1px solid #333; justify-content: flex-start; }
         .door-handle { width: 10px; height: 100px; background: #222; border: 1px solid #444; margin: 0 5px; }
         
-        /* FIX LOGO & CURVED TEXT CONTAINER */
-        /* Z-Index diperbaiki supaya logo tidak ketutup */
+        /* === NEW ROTATING LOGO SYSTEM === */
         .hidden-logo-container { position: absolute; inset: 0; background: #000; display: flex; align-items: center; justify-content: center; z-index: 1; overflow: hidden; }
         
-        /* LOGO DIPERBESAR & DIATAS TEXT */
+        /* 1. Logo Tengah (Diam) */
         .reveal-logo { 
-            width: 280px; 
-            height: 280px; 
-            opacity: 0; 
-            transform: scale(0.5); 
-            transition: all 1s ease-out; 
-            transition-delay: 0.5s; 
-            filter: drop-shadow(0 0 30px var(--gold));
-            z-index: 10; /* Pastikan diatas SVG */
-            border-radius: 50%;
-            position: relative;
-        }
-
-        /* CURVED TEXT SVG */
-        .curved-text-svg {
+            width: 220px; height: 220px; 
+            opacity: 0; transform: scale(0.5); 
+            transition: all 1s ease-out; transition-delay: 0.5s; 
+            z-index: 10; border-radius: 50%;
             position: absolute;
-            width: 500px;
-            height: 500px;
-            z-index: 5; /* Dibawah logo */
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 1s ease-out 0.8s;
-            animation: rotateText 20s linear infinite;
+            box-shadow: 0 0 50px rgba(255, 215, 0, 0.2);
         }
 
-        @keyframes rotateText { from {transform: rotate(0deg);} to {transform: rotate(360deg);} }
+        /* 2. Ring Text (Berputar) */
+        .rotating-text-wrapper {
+            position: absolute;
+            width: 500px; height: 500px;
+            animation: spinRing 20s linear infinite;
+            z-index: 5;
+            opacity: 0; transition: opacity 1s ease 0.8s;
+            pointer-events: none;
+        }
 
         .curved-text-style {
             font-family: 'Black Ops One', cursive;
-            font-size: 34px;
-            fill: var(--gold);
-            letter-spacing: 5px;
-            text-shadow: 0 0 10px rgba(255,215,0,0.5);
-            font-weight: bold;
+            font-size: 38px; /* Lebih besar */
+            fill: transparent;
+            stroke: var(--gold);
+            stroke-width: 1px;
+            letter-spacing: 8px; /* Lebih renggang */
+            font-weight: 900;
+            filter: drop-shadow(0 0 5px var(--gold)); /* Efek Neon Glow */
         }
+        
+        /* Isi fill sedikit biar kebaca tapi tetep outline style */
+        .curved-text-style-inner {
+            fill: #fff; opacity: 0.1;
+        }
+
+        @keyframes spinRing { 100% { transform: rotate(360deg); } }
 
         #hangar-overlay.active .door-panel { transform: translateX(0); }
         #hangar-overlay.active.opening #door-left { transform: translateX(-100%); }
         #hangar-overlay.active.opening #door-right { transform: translateX(100%); }
         
-        #hangar-overlay.active.opening .reveal-logo { opacity: 1; transform: scale(1.2); }
-        #hangar-overlay.active.opening .curved-text-svg { opacity: 1; }
+        #hangar-overlay.active.opening .reveal-logo { opacity: 1; transform: scale(1); }
+        #hangar-overlay.active.opening .rotating-text-wrapper { opacity: 1; }
 
         #hangar-overlay.closed .door-panel { transform: translateX(0); }
         #hangar-overlay.closed .reveal-logo { opacity: 0; }
-        #hangar-overlay.closed .curved-text-svg { opacity: 0; }
+        #hangar-overlay.closed .rotating-text-wrapper { opacity: 0; }
 
 
         .screen-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); backdrop-filter: blur(5px); z-index: 9999; display: none; flex-direction: column; justify-content: center; align-items: center; padding: 20px; }
@@ -182,28 +194,39 @@
 </head>
 <body>
 
+    <div id="customModal" class="modal-overlay">
+        <div class="modal-box">
+            <div id="modalTitle" class="modal-title">TITLE</div>
+            <div id="modalMsg" class="modal-msg">Message goes here...</div>
+            <div id="modalBtns" class="modal-btns">
+                </div>
+        </div>
+    </div>
+
     <div id="hangar-overlay" onclick="wakeUp()">
         <div class="hidden-logo-container">
             <img src="logo.png" class="reveal-logo">
             
-            <svg class="curved-text-svg" viewBox="0 0 500 500">
-                <defs>
-                    <path id="textCurveTop" d="M 100,250 A 150,150 0 0,1 400,250" />
-                    <path id="textCurveBot" d="M 100,250 A 150,150 0 0,0 400,250" />
-                </defs>
-                
-                <text width="500">
-                    <textPath href="#textCurveTop" startOffset="50%" text-anchor="middle" class="curved-text-style">
-                        FC KELAPA GADING
-                    </textPath>
-                </text>
-                
-                <text width="500">
-                    <textPath href="#textCurveBot" startOffset="50%" text-anchor="middle" class="curved-text-style" side="left">
-                        MAKA LINTAS UTARA
-                    </textPath>
-                </text>
-            </svg>
+            <div class="rotating-text-wrapper">
+                <svg viewBox="0 0 500 500" width="500" height="500">
+                    <defs>
+                        <path id="textCurveTop" d="M 125,250 A 125,125 0 0,1 375,250" />
+                        <path id="textCurveBot" d="M 125,250 A 125,125 0 0,0 375,250" />
+                    </defs>
+                    
+                    <text width="500">
+                        <textPath href="#textCurveTop" startOffset="50%" text-anchor="middle" class="curved-text-style">
+                            FC KELAPA GADING
+                        </textPath>
+                    </text>
+                    
+                    <text width="500">
+                        <textPath href="#textCurveBot" startOffset="50%" text-anchor="middle" class="curved-text-style" side="left">
+                            MAKA LINTAS UTARA
+                        </textPath>
+                    </text>
+                </svg>
+            </div>
         </div>
 
         <div id="door-left" class="door-panel"><div class="door-handle"></div></div>
@@ -280,33 +303,79 @@
         const $ = (id) => document.getElementById(id);
         let localSlots = [null, null, null];
         let localQueue = [];
-        let myPlat = localStorage.getItem('myPlat'); // FITUR RECOVERY SYSTEM
+        let myPlat = localStorage.getItem('myPlat'); 
 
         function cleanStr(s) { return s ? s.replace(/[^A-Z0-9]/gi, '').toUpperCase() : ''; }
         function escapeHtml(text) { if (!text) return ""; return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); }
         function addUserLog(action, details) { addDoc(logRef, { actor: myPlat || "GUEST", action: action, details: details, timestamp: new Date() }).catch(e=>{}); }
 
-        // === OTOMATISASI SPASI PLAT ===
+        // === CUSTOM MODAL SYSTEM (PENGGANTI ALERT/CONFIRM) ===
+        window.showCustomAlert = (msg, title="INFO") => {
+            $('modalTitle').innerText = title;
+            $('modalMsg').innerText = msg;
+            $('modalBtns').innerHTML = `<button class="btn-modal btn-yes" onclick="closeCustomModal()">OK</button>`;
+            $('customModal').style.display = 'flex';
+            setTimeout(() => $('customModal').classList.add('active'), 10);
+        };
+
+        window.showCustomConfirm = (msg, callback) => {
+            $('modalTitle').innerText = "KONFIRMASI";
+            $('modalMsg').innerText = msg;
+            $('modalBtns').innerHTML = `
+                <button class="btn-modal btn-no" onclick="closeCustomModal()">BATAL</button>
+                <button class="btn-modal btn-yes" id="btnConfirmYes">YA</button>
+            `;
+            $('btnConfirmYes').onclick = () => { closeCustomModal(); callback(); };
+            $('customModal').style.display = 'flex';
+            setTimeout(() => $('customModal').classList.add('active'), 10);
+        };
+
+        window.closeCustomModal = () => {
+            $('customModal').classList.remove('active');
+            setTimeout(() => $('customModal').style.display = 'none', 300);
+        };
+
+        // === OTOMATISASI SPASI PLAT (FIXED LOGIC) ===
         const inputField = $('regInput');
         inputField.addEventListener('input', function(e) {
             if(formStep === 0) {
-                let v = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+                // 1. Ambil hanya alphanumeric, uppercase
+                let raw = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
                 let formatted = "";
-                if (v.length > 0) {
-                    let match = v.match(/^([A-Z]{1,2})(\d{0,4})([A-Z]*)$/);
-                    if (match) {
-                        formatted = match[1]; 
-                        if (match[2]) formatted += " " + match[2]; 
-                        if (match[3]) formatted += " " + match[3]; 
-                    } else { formatted = v; }
+
+                // 2. Logic Format Plat Indonesia: [HURUF] [ANGKA] [HURUF]
+                // Regex: 1-2 Huruf Awal | 1-4 Angka Tengah | 1-3 Huruf Akhir
+                if(raw.length > 0) {
+                    // Ambil huruf depan (max 2)
+                    let letters1 = raw.match(/^[A-Z]{1,2}/);
+                    if(letters1) {
+                        formatted += letters1[0];
+                        let rest = raw.substring(letters1[0].length);
+                        
+                        // Ambil angka (max 4)
+                        let numbers = rest.match(/^\d{1,4}/);
+                        if(numbers) {
+                            formatted += " " + numbers[0];
+                            let rest2 = rest.substring(numbers[0].length);
+                            
+                            // Ambil huruf belakang (max 3)
+                            let letters2 = rest2.match(/^[A-Z]{1,3}/);
+                            if(letters2) {
+                                formatted += " " + letters2[0];
+                            }
+                        }
+                    } else {
+                        // Kalau user ngetik angka duluan (salah), biarin aja raw
+                        formatted = raw; 
+                    }
                 }
                 this.value = formatted;
             }
         });
 
-        // === HANGAR MODE ===
+        // === HANGAR MODE & SCREENSAVER ===
         let idleTime = 0; let isStandby = false;
-        setInterval(() => { idleTime++; if (idleTime > 10 && !isStandby) enterStandby(); }, 1000);
+        setInterval(() => { idleTime++; if (idleTime > 20 && !isStandby) enterStandby(); }, 1000); // 20 Detik Idle
         function resetTimer() { idleTime = 0; }
         window.onclick = resetTimer; window.ontouchstart = resetTimer; window.onmousemove = resetTimer;
         
@@ -348,15 +417,11 @@
             const container = $('slotsContainer'); container.innerHTML = '';
             let amIQueue1 = false;
             
-            // CEK GHOST DATA (PENTING BUAT YANG ERROR SUDAH TERDAFTAR)
+            // CEK GHOST DATA
             if(myPlat) {
                 const inQueue = localQueue.some(q => cleanStr(q.plat) === cleanStr(myPlat));
                 const inSlot = localSlots.some(s => s && cleanStr(s.plat) === cleanStr(myPlat));
-                // Jika di HP ada data, tapi di Server antrian/slot ga ada -> BERSIHKAN!
-                if (!inQueue && !inSlot) {
-                    // Jangan langsung hapus, tunggu interaksi user (biar ga kaget)
-                    // Tapi di logic 'handleMainAction' kita akan override
-                } else if (localQueue.length > 0) {
+                if (localQueue.length > 0) {
                      if(cleanStr(localQueue[0].plat) === cleanStr(myPlat)) amIQueue1 = true; 
                 }
             }
@@ -390,7 +455,9 @@
                             ${kudetaHTML}
                         </div>`;
                     
-                    div.onclick = () => { if(isMe && confirm("Selesai Charging?")) stopCharging(i); };
+                    div.onclick = () => { 
+                        if(isMe) showCustomConfirm("SELESAI CHARGING?", () => stopCharging(i));
+                    };
 
                 } else {
                     div.innerHTML = `<div class="armor-inner" style="background:#080808; border:1px solid #1a1a1a;"><div class="armor-num" style="color:#222; border-color:#111;">${i+1}</div><div class="armor-info" style="align-items:center;"><div class="info-plat" style="color:#333; letter-spacing:5px;">OPEN</div></div><div class="armor-badge"><button style="padding:5px 20px; font-family:'Rajdhani'; font-weight:bold; background:#222; color:#666; border:1px solid #333; border-radius:4px;" onclick="window.selectSlot(${i})">PILIH</button></div></div>`;
@@ -438,19 +505,15 @@
 
         window.closeModal = (id) => { $(id).style.display = 'none'; };
         
-        // === LOGIC UTAMA TOMBOL LOGO (PERBAIKAN "SUDAH TERDAFTAR") ===
         window.handleMainAction = () => { 
-            // Cek apakah data lokal valid di server
             if(localStorage.getItem('myPlat')) {
                 const storedPlat = localStorage.getItem('myPlat');
                 const inQueue = localQueue.some(q => cleanStr(q.plat) === cleanStr(storedPlat));
                 const inSlot = localSlots.some(s => s && cleanStr(s.plat) === cleanStr(storedPlat));
 
                 if(inQueue || inSlot) {
-                    return alert("Anda sudah terdaftar dalam antrian/slot."); 
+                    return showCustomAlert("ANDA SUDAH TERDAFTAR!"); 
                 } else {
-                    // Data lokal ada TAPI tidak ada di server = GHOST DATA
-                    // Otomatis bersihkan dan buka form
                     localStorage.removeItem('myPlat');
                     myPlat = null;
                 }
@@ -458,13 +521,12 @@
             showLoginForm(); 
         };
 
-        window.resetApp = () => { if(confirm("Reset data lokal?")) { localStorage.clear(); location.reload(); } };
+        window.resetApp = () => { showCustomConfirm("RESET DATA LOKAL?", () => { localStorage.clear(); location.reload(); }); };
         
         let formStep=0; let regData={}; const steps = [{l:"LANGKAH 1", q:"PLAT NOMOR"}, {l:"LANGKAH 2", q:"NAMA ANDA"}];
         function showLoginForm() { $('regModal').style.display = 'flex'; formStep = 0; renderRegStep(); }
         function renderRegStep() { $('regLabel').innerText = steps[formStep].l; $('regInput').placeholder = (formStep===0) ? "B 1234 XYZ" : "NAMA"; $('regInput').value = ""; $('regInput').focus(); }
         
-        // === LOGIC PENDAFTARAN ===
         window.nextRegStep = async () => {
             let val = $('regInput').value.trim().toUpperCase(); if(!val) return;
             if(formStep === 0) { 
@@ -492,23 +554,24 @@
                 }).then(() => { 
                     localStorage.setItem('myPlat', regData.plat); myPlat = regData.plat; 
                     addUserLog("REGISTER", `User: ${regData.plat} [${userRole}]`);
-                    alert(`Selamat Datang! Status: ${userRole}`);
-                }).catch(e=>alert("GAGAL: "+e));
+                    showCustomAlert(`SELAMAT DATANG!\nSTATUS: ${userRole}`, "SUKSES");
+                }).catch(e=>showCustomAlert("GAGAL: "+e, "ERROR"));
             }
         };
 
         window.selectSlot = async (i) => {
-            if(!myPlat) return alert("Daftar Antrian Dulu!"); if(!confirm("Masuk Slot "+(i+1)+"?")) return;
-             runTransaction(db, async(t)=>{
-                const d = (await t.get(mainRef)).data(); if(d.chargingSlots[i]) throw "Slot Penuh!";
-                let queue = d.waitingQueue; const myIdx = queue.findIndex(q => cleanStr(q.plat) === cleanStr(myPlat));
-                if(myIdx === -1) throw "Belum Daftar!"; if(myIdx > 0 && d.chargingSlots.some(x => x===null)) throw "Tunggu Giliran!";
-                const me = queue[myIdx]; queue.splice(myIdx, 1); me.startTime = Date.now(); d.chargingSlots[i] = me;
-                t.update(mainRef, { chargingSlots: d.chargingSlots, waitingQueue: queue });
-            }).then(() => addUserLog("START", `Slot ${i+1}`)).catch(e => alert(e));
+            if(!myPlat) return showCustomAlert("DAFTAR ANTRIAN DULU!", "PERHATIAN"); 
+            showCustomConfirm(`MASUK SLOT ${i+1}?`, () => {
+                 runTransaction(db, async(t)=>{
+                    const d = (await t.get(mainRef)).data(); if(d.chargingSlots[i]) throw "Slot Penuh!";
+                    let queue = d.waitingQueue; const myIdx = queue.findIndex(q => cleanStr(q.plat) === cleanStr(myPlat));
+                    if(myIdx === -1) throw "Belum Daftar!"; if(myIdx > 0 && d.chargingSlots.some(x => x===null)) throw "Tunggu Giliran!";
+                    const me = queue[myIdx]; queue.splice(myIdx, 1); me.startTime = Date.now(); d.chargingSlots[i] = me;
+                    t.update(mainRef, { chargingSlots: d.chargingSlots, waitingQueue: queue });
+                }).then(() => addUserLog("START", `Slot ${i+1}`)).catch(e => showCustomAlert(e, "ERROR"));
+            });
         };
         
-        // === BERSIH-BERSIH TOTAL SAAT STOP ===
         window.stopCharging = (i) => {
              runTransaction(db, async(t)=>{ 
                  const d = (await t.get(mainRef)).data(); 
@@ -517,40 +580,42 @@
                  d.chargingSlots[i] = null; 
                  t.update(mainRef, {chargingSlots: d.chargingSlots}); 
              }).then(() => { 
-                 // HAPUS SEMUA SAMPAH
                  localStorage.clear(); 
                  myPlat=null; 
-                 location.reload(); // Reload biar fresh
+                 // TIDAK PERLU RELOAD, CUKUP UPDATE STATE
+                 // location.reload(); 
              });
         };
 
         window.cancelQueue = async () => {
-            if(!confirm("Batal antri?")) return;
-            const myData = localQueue.find(q => cleanStr(q.plat) === cleanStr(myPlat));
-            if(myData) {
-                await updateDoc(mainRef, { waitingQueue: arrayRemove(myData) });
-                addUserLog("CANCEL", "Batal Antri");
-            }
-            localStorage.clear(); myPlat=null; closeModal('queueListModal'); location.reload();
+            showCustomConfirm("BATAL ANTRI?", async () => {
+                const myData = localQueue.find(q => cleanStr(q.plat) === cleanStr(myPlat));
+                if(myData) {
+                    await updateDoc(mainRef, { waitingQueue: arrayRemove(myData) });
+                    addUserLog("CANCEL", "Batal Antri");
+                }
+                localStorage.clear(); myPlat=null; closeModal('queueListModal');
+            });
         };
 
         window.attemptKudeta = async (slotIdx, targetPlat) => {
-            if(!confirm(`AMBIL ALIH SLOT ${slotIdx+1}?\nSyarat: User lama sudah > 25 menit.`)) return;
-            runTransaction(db, async(t) => {
-                const d = (await t.get(mainRef)).data();
-                const targetSlot = d.chargingSlots[slotIdx];
-                if(!targetSlot || cleanStr(targetSlot.plat) !== cleanStr(targetPlat)) throw "Slot berubah!";
-                const meInDb = d.waitingQueue[0];
-                if(cleanStr(meInDb?.plat) !== cleanStr(myPlat)) throw "Posisi antrian berubah.";
-                const durationMs = Date.now() - targetSlot.startTime;
-                if(durationMs/60000 < 25) throw `Belum 25 Menit!`;
-                
-                const victim = targetSlot;
-                addDoc(historyRef, {...victim, finishTime:new Date(), status: "KUDETA_BY_" + myPlat, action: "KICKED"});
-                
-                const me = d.waitingQueue.shift(); me.startTime = Date.now(); d.chargingSlots[slotIdx] = me;
-                t.update(mainRef, { chargingSlots: d.chargingSlots, waitingQueue: d.waitingQueue });
-            }).then(() => { addUserLog("KUDETA", `Ambil Alih Slot ${slotIdx+1}`); alert("BERHASIL AMBIL ALIH!"); }).catch(e => alert("GAGAL: " + e));
+            showCustomConfirm(`AMBIL ALIH SLOT ${slotIdx+1}?\nSyarat: > 25 Menit`, () => {
+                runTransaction(db, async(t) => {
+                    const d = (await t.get(mainRef)).data();
+                    const targetSlot = d.chargingSlots[slotIdx];
+                    if(!targetSlot || cleanStr(targetSlot.plat) !== cleanStr(targetPlat)) throw "Slot berubah!";
+                    const meInDb = d.waitingQueue[0];
+                    if(cleanStr(meInDb?.plat) !== cleanStr(myPlat)) throw "Posisi antrian berubah.";
+                    const durationMs = Date.now() - targetSlot.startTime;
+                    if(durationMs/60000 < 25) throw `Belum 25 Menit!`;
+                    
+                    const victim = targetSlot;
+                    addDoc(historyRef, {...victim, finishTime:new Date(), status: "KUDETA_BY_" + myPlat, action: "KICKED"});
+                    
+                    const me = d.waitingQueue.shift(); me.startTime = Date.now(); d.chargingSlots[slotIdx] = me;
+                    t.update(mainRef, { chargingSlots: d.chargingSlots, waitingQueue: d.waitingQueue });
+                }).then(() => { addUserLog("KUDETA", `Ambil Alih Slot ${slotIdx+1}`); showCustomAlert("BERHASIL KUDETA!", "SUCCESS"); }).catch(e => showCustomAlert("GAGAL: " + e, "ERROR"));
+            });
         };
 
         window.toggleAdmin = () => { 
@@ -563,9 +628,7 @@
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.get('action') === 'register') {
                 setTimeout(() => {
-                    // Cek cerdas saat load dari QR
                     if(localStorage.getItem('myPlat')) {
-                       // Biarkan logic handleMainAction yang urus validasi
                        handleMainAction();
                     } else {
                        showLoginForm();
