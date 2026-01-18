@@ -106,14 +106,59 @@
         #door-left { left: 0; border-right: 1px solid #333; }
         #door-right { right: 0; border-left: 1px solid #333; justify-content: flex-start; }
         .door-handle { width: 10px; height: 100px; background: #222; border: 1px solid #444; margin: 0 5px; }
-        .hidden-logo-container { position: absolute; inset: 0; background: #000; display: flex; align-items: center; justify-content: center; z-index: -1; }
-        .reveal-logo { width: 150px; height: 150px; opacity: 0; transform: scale(0.5); transition: all 1s ease-out; transition-delay: 0.5s; filter: drop-shadow(0 0 30px var(--gold)); }
+        
+        /* FIX LOGO & CURVED TEXT CONTAINER */
+        /* Z-Index diperbaiki supaya logo tidak ketutup */
+        .hidden-logo-container { position: absolute; inset: 0; background: #000; display: flex; align-items: center; justify-content: center; z-index: 1; overflow: hidden; }
+        
+        /* LOGO DIPERBESAR & DIATAS TEXT */
+        .reveal-logo { 
+            width: 280px; 
+            height: 280px; 
+            opacity: 0; 
+            transform: scale(0.5); 
+            transition: all 1s ease-out; 
+            transition-delay: 0.5s; 
+            filter: drop-shadow(0 0 30px var(--gold));
+            z-index: 10; /* Pastikan diatas SVG */
+            border-radius: 50%;
+            position: relative;
+        }
+
+        /* CURVED TEXT SVG */
+        .curved-text-svg {
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            z-index: 5; /* Dibawah logo */
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 1s ease-out 0.8s;
+            animation: rotateText 20s linear infinite;
+        }
+
+        @keyframes rotateText { from {transform: rotate(0deg);} to {transform: rotate(360deg);} }
+
+        .curved-text-style {
+            font-family: 'Black Ops One', cursive;
+            font-size: 34px;
+            fill: var(--gold);
+            letter-spacing: 5px;
+            text-shadow: 0 0 10px rgba(255,215,0,0.5);
+            font-weight: bold;
+        }
+
         #hangar-overlay.active .door-panel { transform: translateX(0); }
         #hangar-overlay.active.opening #door-left { transform: translateX(-100%); }
         #hangar-overlay.active.opening #door-right { transform: translateX(100%); }
+        
         #hangar-overlay.active.opening .reveal-logo { opacity: 1; transform: scale(1.2); }
+        #hangar-overlay.active.opening .curved-text-svg { opacity: 1; }
+
         #hangar-overlay.closed .door-panel { transform: translateX(0); }
         #hangar-overlay.closed .reveal-logo { opacity: 0; }
+        #hangar-overlay.closed .curved-text-svg { opacity: 0; }
+
 
         .screen-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); backdrop-filter: blur(5px); z-index: 9999; display: none; flex-direction: column; justify-content: center; align-items: center; padding: 20px; }
         .login-card { width: 100%; max-width: 320px; background: #111; border: 1px solid #333; padding: 40px 20px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.8); clip-path: polygon(20px 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%, 0 20px); }
@@ -138,7 +183,29 @@
 <body>
 
     <div id="hangar-overlay" onclick="wakeUp()">
-        <div class="hidden-logo-container"><img src="logo.png" class="reveal-logo"></div>
+        <div class="hidden-logo-container">
+            <img src="logo.png" class="reveal-logo">
+            
+            <svg class="curved-text-svg" viewBox="0 0 500 500">
+                <defs>
+                    <path id="textCurveTop" d="M 100,250 A 150,150 0 0,1 400,250" />
+                    <path id="textCurveBot" d="M 100,250 A 150,150 0 0,0 400,250" />
+                </defs>
+                
+                <text width="500">
+                    <textPath href="#textCurveTop" startOffset="50%" text-anchor="middle" class="curved-text-style">
+                        FC KELAPA GADING
+                    </textPath>
+                </text>
+                
+                <text width="500">
+                    <textPath href="#textCurveBot" startOffset="50%" text-anchor="middle" class="curved-text-style" side="left">
+                        MAKA LINTAS UTARA
+                    </textPath>
+                </text>
+            </svg>
+        </div>
+
         <div id="door-left" class="door-panel"><div class="door-handle"></div></div>
         <div id="door-right" class="door-panel"><div class="door-handle"></div></div>
     </div>
@@ -213,19 +280,61 @@
         const $ = (id) => document.getElementById(id);
         let localSlots = [null, null, null];
         let localQueue = [];
-        let myPlat = localStorage.getItem('myPlat');
+        let myPlat = localStorage.getItem('myPlat'); // FITUR RECOVERY SYSTEM
 
         function cleanStr(s) { return s ? s.replace(/[^A-Z0-9]/gi, '').toUpperCase() : ''; }
         function escapeHtml(text) { if (!text) return ""; return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); }
         function addUserLog(action, details) { addDoc(logRef, { actor: myPlat || "GUEST", action: action, details: details, timestamp: new Date() }).catch(e=>{}); }
+
+        // === OTOMATISASI SPASI PLAT ===
+        const inputField = $('regInput');
+        inputField.addEventListener('input', function(e) {
+            if(formStep === 0) {
+                let v = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+                let formatted = "";
+                if (v.length > 0) {
+                    let match = v.match(/^([A-Z]{1,2})(\d{0,4})([A-Z]*)$/);
+                    if (match) {
+                        formatted = match[1]; 
+                        if (match[2]) formatted += " " + match[2]; 
+                        if (match[3]) formatted += " " + match[3]; 
+                    } else { formatted = v; }
+                }
+                this.value = formatted;
+            }
+        });
 
         // === HANGAR MODE ===
         let idleTime = 0; let isStandby = false;
         setInterval(() => { idleTime++; if (idleTime > 10 && !isStandby) enterStandby(); }, 1000);
         function resetTimer() { idleTime = 0; }
         window.onclick = resetTimer; window.ontouchstart = resetTimer; window.onmousemove = resetTimer;
-        function enterStandby() { isStandby = true; const overlay = $('hangar-overlay'); overlay.style.display = 'flex'; overlay.classList.remove('opening'); overlay.classList.add('closed'); setTimeout(() => { overlay.classList.remove('closed'); overlay.classList.add('active'); setTimeout(() => { overlay.classList.add('opening'); }, 500); }, 100); }
-        window.wakeUp = () => { if(!isStandby) return; const overlay = $('hangar-overlay'); overlay.style.opacity = '0'; setTimeout(() => { overlay.style.display = 'none'; overlay.style.opacity = '1'; overlay.classList.remove('active', 'opening', 'closed'); isStandby = false; resetTimer(); }, 500); };
+        
+        function enterStandby() { 
+            isStandby = true; 
+            const overlay = $('hangar-overlay'); 
+            overlay.style.display = 'flex'; 
+            overlay.classList.remove('opening'); 
+            overlay.classList.add('closed'); 
+            setTimeout(() => { 
+                overlay.classList.remove('closed'); 
+                overlay.classList.add('active'); 
+                setTimeout(() => { overlay.classList.add('opening'); }, 500); 
+            }, 100); 
+        }
+        
+        window.wakeUp = () => { 
+            if(!isStandby) return; 
+            const overlay = $('hangar-overlay'); 
+            overlay.style.opacity = '0'; 
+            setTimeout(() => { 
+                overlay.style.display = 'none'; 
+                overlay.style.opacity = '1'; 
+                overlay.classList.remove('active', 'opening', 'closed'); 
+                isStandby = false; 
+                resetTimer(); 
+            }, 500); 
+        };
 
         onSnapshot(mainRef, (snap) => {
             if (!snap.exists()) return;
@@ -238,7 +347,19 @@
         function updateUI() {
             const container = $('slotsContainer'); container.innerHTML = '';
             let amIQueue1 = false;
-            if(localQueue.length > 0 && myPlat) { if(cleanStr(localQueue[0].plat) === cleanStr(myPlat)) amIQueue1 = true; }
+            
+            // CEK GHOST DATA (PENTING BUAT YANG ERROR SUDAH TERDAFTAR)
+            if(myPlat) {
+                const inQueue = localQueue.some(q => cleanStr(q.plat) === cleanStr(myPlat));
+                const inSlot = localSlots.some(s => s && cleanStr(s.plat) === cleanStr(myPlat));
+                // Jika di HP ada data, tapi di Server antrian/slot ga ada -> BERSIHKAN!
+                if (!inQueue && !inSlot) {
+                    // Jangan langsung hapus, tunggu interaksi user (biar ga kaget)
+                    // Tapi di logic 'handleMainAction' kita akan override
+                } else if (localQueue.length > 0) {
+                     if(cleanStr(localQueue[0].plat) === cleanStr(myPlat)) amIQueue1 = true; 
+                }
+            }
 
             localSlots.forEach((s, i) => {
                 const isActive = s !== null;
@@ -282,16 +403,8 @@
 
         function getBadgeHTML(r) {
             if(!r) r = "GUEST";
-
-            // LOGIC MAPPING ROLE DATABASE -> TAMPILAN
             if(r === "GUEST") return `<div class="badge-empty"></div>`;
-            
-            // KOKOH PEA
-            if(r === "PEA" || r === "KOKOH PEA") {
-                return `<div class="badge-kokoh-pea-chaos"><div class="pea-img-chaos"><img src="cris.png" alt="PEA"></div><div class="pea-text-chaos"><div class="pea-word-chaos">KOKOH<br>PEA</div><div class="pea-sub-chaos">404 WARAS NOT FOUND</div></div></div>`;
-            }
-
-            // KELUARGA / MEMBER BIASA
+            if(r === "PEA" || r === "KOKOH PEA") return `<div class="badge-kokoh-pea-chaos"><div class="pea-img-chaos"><img src="cris.png" alt="PEA"></div><div class="pea-text-chaos"><div class="pea-word-chaos">KOKOH<br>PEA</div><div class="pea-sub-chaos">404 WARAS NOT FOUND</div></div></div>`;
             if(r === "MEMBER" || r.includes("KELUARGA") || r.includes("KETUA") || r.includes("WAKETUM") || r.includes("PEMBINA")) {
                 let txtTop = "KELUARGA"; let txtBot = "M L U";
                 if(r.includes("KETUA")) { txtTop="KETUA"; txtBot="UMUM"; }
@@ -299,12 +412,9 @@
                 if(r.includes("PEMBINA")) { txtTop="DEWAN"; txtBot="PEMBINA"; }
                 return `<div class="badge-gold-flow"><div class="flow-bg"></div><div class="flow-text"><div class="ft-top">${txtTop}</div><div class="ft-bot">${txtBot}</div></div></div>`;
             }
-
             if(r.includes("SATGAS") || r.includes("KORLAP")) return `<div class="badge-red-tech"><div class="red-scanner"></div><div class="red-word">${r.includes("KOR")?"KORLAP":"SATGAS"}</div></div>`;
             if(r.includes("TURTLE") || r.includes("PELAN")) return `<div class="badge-green-tech"><div class="green-word">PELAN TAPI KENCENG 🐢</div></div>`;
             if(r.includes("OFFICE")) return `<div class="badge-cyan-tech"><div class="cyan-word">OFFICE</div></div>`;
-            
-            // FALLBACK UNTUK CUSTOM ROLE LAINNYA -> EMAS
             return `<div class="badge-gold-flow"><div class="flow-bg"></div><div class="flow-text"><div class="ft-top">BADGE</div><div class="ft-bot">${r}</div></div></div>`;
         }
 
@@ -327,14 +437,34 @@
         };
 
         window.closeModal = (id) => { $(id).style.display = 'none'; };
-        window.handleMainAction = () => { if(localStorage.getItem('myPlat')) return alert("Sudah Terdaftar"); showLoginForm(); };
-        window.resetApp = () => { if(confirm("Reset data lokal?")) { localStorage.removeItem('myPlat'); location.reload(); } };
+        
+        // === LOGIC UTAMA TOMBOL LOGO (PERBAIKAN "SUDAH TERDAFTAR") ===
+        window.handleMainAction = () => { 
+            // Cek apakah data lokal valid di server
+            if(localStorage.getItem('myPlat')) {
+                const storedPlat = localStorage.getItem('myPlat');
+                const inQueue = localQueue.some(q => cleanStr(q.plat) === cleanStr(storedPlat));
+                const inSlot = localSlots.some(s => s && cleanStr(s.plat) === cleanStr(storedPlat));
+
+                if(inQueue || inSlot) {
+                    return alert("Anda sudah terdaftar dalam antrian/slot."); 
+                } else {
+                    // Data lokal ada TAPI tidak ada di server = GHOST DATA
+                    // Otomatis bersihkan dan buka form
+                    localStorage.removeItem('myPlat');
+                    myPlat = null;
+                }
+            }
+            showLoginForm(); 
+        };
+
+        window.resetApp = () => { if(confirm("Reset data lokal?")) { localStorage.clear(); location.reload(); } };
         
         let formStep=0; let regData={}; const steps = [{l:"LANGKAH 1", q:"PLAT NOMOR"}, {l:"LANGKAH 2", q:"NAMA ANDA"}];
         function showLoginForm() { $('regModal').style.display = 'flex'; formStep = 0; renderRegStep(); }
         function renderRegStep() { $('regLabel').innerText = steps[formStep].l; $('regInput').placeholder = (formStep===0) ? "B 1234 XYZ" : "NAMA"; $('regInput').value = ""; $('regInput').focus(); }
         
-        // === LOGIC PENDAFTARAN YANG BENAR (CEK DATABASE) ===
+        // === LOGIC PENDAFTARAN ===
         window.nextRegStep = async () => {
             let val = $('regInput').value.trim().toUpperCase(); if(!val) return;
             if(formStep === 0) { 
@@ -344,32 +474,19 @@
             } 
             else {
                 regData.name = val; $('regModal').style.display = 'none';
-                
-                // BERSIHKAN PLAT DARI SPASI UNTUK PENCARIAN DI DB
                 const cleanID = regData.plat.replace(/[^A-Z0-9]/g, ''); 
-                let userRole = "GUEST"; // Default
+                let userRole = "GUEST"; 
 
                 try {
-                    // Coba cari di DB dengan ID Bersih (Tanpa Spasi)
                     let m = await getDoc(doc(db, "members", cleanID));
-                    
-                    if(m.exists()) {
-                        // KETEMU! AMBIL ROLE NYA
-                        userRole = m.data().role || "MEMBER";
-                    } else {
-                        // Coba cari dengan ID Asli (Pakai Spasi) siapa tau admin input pake spasi
-                        m = await getDoc(doc(db, "members", regData.plat));
-                        if(m.exists()) userRole = m.data().role || "MEMBER";
-                    }
+                    if(m.exists()) { userRole = m.data().role || "MEMBER"; } 
+                    else { m = await getDoc(doc(db, "members", regData.plat)); if(m.exists()) userRole = m.data().role || "MEMBER"; }
                 } catch(e) {}
 
                 runTransaction(db, async(t) => {
                     const d = (await t.get(mainRef)).data(); const n = (d.lastTicket||0)+1;
                     const allUsers = [...(d.chargingSlots||[]), ...d.waitingQueue].filter(x=>x);
-                    
-                    // Cek Double (Pakai ID Bersih)
                     if(allUsers.some(u => u.plat.replace(/[^A-Z0-9]/g, '') === cleanID)) throw "Plat sudah ada!";
-
                     const newUser = { plat: regData.plat, userName: regData.name, qNo: n, entryTime: Date.now(), role: userRole };
                     t.update(mainRef, { waitingQueue: arrayUnion(newUser), lastTicket: n });
                 }).then(() => { 
@@ -391,6 +508,7 @@
             }).then(() => addUserLog("START", `Slot ${i+1}`)).catch(e => alert(e));
         };
         
+        // === BERSIH-BERSIH TOTAL SAAT STOP ===
         window.stopCharging = (i) => {
              runTransaction(db, async(t)=>{ 
                  const d = (await t.get(mainRef)).data(); 
@@ -398,7 +516,12 @@
                  if(u) addDoc(historyRef, {...u, finishTime: new Date(), action: "STOP"});
                  d.chargingSlots[i] = null; 
                  t.update(mainRef, {chargingSlots: d.chargingSlots}); 
-             }).then(() => { localStorage.removeItem('myPlat'); myPlat=null; });
+             }).then(() => { 
+                 // HAPUS SEMUA SAMPAH
+                 localStorage.clear(); 
+                 myPlat=null; 
+                 location.reload(); // Reload biar fresh
+             });
         };
 
         window.cancelQueue = async () => {
@@ -408,7 +531,7 @@
                 await updateDoc(mainRef, { waitingQueue: arrayRemove(myData) });
                 addUserLog("CANCEL", "Batal Antri");
             }
-            localStorage.removeItem('myPlat'); myPlat=null; closeModal('queueListModal');
+            localStorage.clear(); myPlat=null; closeModal('queueListModal'); location.reload();
         };
 
         window.attemptKudeta = async (slotIdx, targetPlat) => {
@@ -440,7 +563,13 @@
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.get('action') === 'register') {
                 setTimeout(() => {
-                    if(!localStorage.getItem('myPlat')) showLoginForm(); else alert("Anda sudah terdaftar.");
+                    // Cek cerdas saat load dari QR
+                    if(localStorage.getItem('myPlat')) {
+                       // Biarkan logic handleMainAction yang urus validasi
+                       handleMainAction();
+                    } else {
+                       showLoginForm();
+                    }
                 }, 500);
             }
         };
