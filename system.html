@@ -39,7 +39,7 @@
         .btn-no { background: #333; color: #fff; border: 1px solid #555; }
 
         /* --- HEADER --- */
-        .header { text-align: center; margin-bottom: 25px; margin-top: 10px; cursor: pointer; } /* Added cursor pointer */
+        .header { text-align: center; margin-bottom: 25px; margin-top: 10px; cursor: pointer; } 
         .main-title { font-family: 'Black Ops One'; font-size: 32px; line-height: 1; color: #eee; text-shadow: 0 2px 10px rgba(0,0,0,0.8); }
         .sub-title { font-size: 11px; color: var(--gold); letter-spacing: 3px; font-weight: 700; text-transform: uppercase; margin-top: 5px; text-shadow: 0 0 10px rgba(255, 215, 0, 0.4); }
 
@@ -113,15 +113,27 @@
 
         /* --- HANGAR & SCREENSAVER (ROTATING TEXT) --- */
         #hangar-overlay { position: fixed; inset: 0; z-index: 10000; background: #000; display: none; align-items: center; justify-content: center; overflow: hidden; }
+        
+        /* FIX: Pintu sekarang ada di belakang logo (z-index 50), logo ada di depan (z-index 60) */
         .door-panel { position: absolute; top:0; bottom:0; width: 50%; background: repeating-linear-gradient(45deg, #0a0a0a, #0a0a0a 10px, #050505 10px, #050505 20px); border-right: 2px solid #111; transition: transform 1.2s cubic-bezier(0.8, 0, 0.2, 1); z-index: 50; }
+        
         #door-left { left: 0; border-right: 1px solid #222; }
         #door-right { right: 0; border-left: 1px solid #222; }
         #hangar-overlay.open #door-left { transform: translateX(-100%); }
         #hangar-overlay.open #door-right { transform: translateX(100%); }
 
-        .hidden-logo-container { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 10; }
-        .reveal-logo { width: 220px; height: 220px; border-radius: 50%; z-index: 20; position: absolute; }
+        /* LOGO CONTAINER DI DEPAN PINTU AGAR TIDAK HILANG */
+        .hidden-logo-container { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 60; pointer-events: none; }
         
+        /* Animasi Pulse pada Logo saat screensaver */
+        .reveal-logo { width: 220px; height: 220px; border-radius: 50%; z-index: 20; position: absolute; animation: pulseLogo 3s infinite ease-in-out; }
+        
+        @keyframes pulseLogo {
+            0% { transform: scale(1); filter: drop-shadow(0 0 10px rgba(255,215,0,0.2)); }
+            50% { transform: scale(1.05); filter: drop-shadow(0 0 30px rgba(255,215,0,0.6)); }
+            100% { transform: scale(1); filter: drop-shadow(0 0 10px rgba(255,215,0,0.2)); }
+        }
+
         .rotating-text-wrapper {
             position: absolute; width: 500px; height: 500px; z-index: 15;
             animation: rotateText 20s linear infinite; 
