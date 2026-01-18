@@ -6,10 +6,11 @@
     <title>ADMIN PANEL - FC KG</title>
     <link href="https://fonts.googleapis.com/css2?family=Teko:wght@300;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        /* === STYLE ULTIMATE (ASLI) === */
+        /* === STYLE HACKER TERMINAL === */
         :root { 
             --bg: #050505; --panel: #111; --border: #333; 
             --accent: #CCFF00; --cyan: #00F0FF; --red: #FF003C; 
+            --purple: #D000FF; --green: #39FF14;
             --term-bg: #000; --term-text: #0f0; 
         }
         body { background: #0a0a0a; color: #fff; font-family: 'JetBrains Mono', monospace; padding: 10px; font-size: 11px; margin: 0; }
@@ -23,7 +24,7 @@
         .btn-red { background: linear-gradient(45deg, #900, #d00); color: #fff; border: 1px solid #f00; }
         .btn-green { background: linear-gradient(45deg, #050, #090); color: #fff; border: 1px solid #0f0; }
         .btn-blue { background: linear-gradient(45deg, #005, #009); color: #fff; border: 1px solid #00f; }
-        .btn-yellow { background: linear-gradient(45deg, #B8860B, #FFD700); color: #000; border: 1px solid #FFD700; text-shadow: none; }
+        .btn-yellow { background: linear-gradient(45deg, #B8860B, #FFD700); color: #000; border: 1px solid #FFD700; }
         .btn-mini { padding: 4px 8px; font-size: 12px; margin: 2px; }
 
         input, select { background: #1a1a1a; color: #fff; border: 1px solid #444; padding: 8px; border-radius: 4px; font-family: 'JetBrains Mono'; width: 100%; box-sizing: border-box; }
@@ -41,17 +42,14 @@
             font-size: 10px; color: #ccc; border-radius: 5px;
             display: flex; flex-direction: column-reverse; 
         }
-        .log-line { margin-bottom: 4px; border-bottom: 1px solid #111; padding-bottom: 2px; line-height: 1.4; word-wrap: break-word; }
-        .act-super { color: var(--red); font-weight: bold; }
-        .act-admin { color: var(--cyan); font-weight: bold; }
+        .log-line { margin-bottom: 4px; border-bottom: 1px solid #111; padding-bottom: 2px; }
         
         /* RECOVERY STYLE */
         .rec-item { display:flex; justify-content:space-between; padding:5px; border-bottom:1px solid #333; font-size:10px; }
 
         /* MODAL & LOGIN */
         #customModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 9999; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
-        .modal-box { background: #111; border: 1px solid var(--cyan); width: 85%; padding: 20px; border-radius: 10px; text-align: center; animation: popIn 0.3s; }
-        @keyframes popIn { from{transform:scale(0.8); opacity:0;} to{transform:scale(1); opacity:1;} }
+        .modal-box { background: #111; border: 1px solid var(--cyan); width: 85%; padding: 20px; border-radius: 10px; text-align: center; }
         .modal-btns { display: flex; gap: 10px; margin-top: 20px; }
         .mb-yes { flex:1; background: var(--cyan); color: #000; }
         .mb-no { flex:1; background: transparent; border: 1px solid #555; color: #888; }
@@ -74,7 +72,7 @@
                 <input type="password" id="loginPin" placeholder="****" style="margin-top:5px; border-color:var(--accent);">
             </div>
             <button onclick="attemptLogin()" class="btn-green" style="width:100%; font-size:18px;">MASUK</button>
-            <div style="margin-top:15px; font-size:10px; color:#555;">SYSTEM V5.0 STANDARD</div>
+            <div style="margin-top:15px; font-size:10px; color:#555;">SYSTEM V5.0 TITANIUM</div>
         </div>
     </div>
 
@@ -84,7 +82,7 @@
             <div id="displayAdminName" style="color:#666; font-size:10px;">User: -</div>
         </div>
         <div style="display:flex; gap:5px;">
-            <button onclick="window.location.href='antrian.html'" class="btn-blue">DEPAN</button>
+            <button onclick="window.location.href='antrian.html'" class="btn-blue">LAYAR DEPAN</button>
             <button onclick="logout()" class="btn-red">KELUAR</button>
         </div>
     </div>
@@ -130,10 +128,7 @@
     </div>
 
     <div class="box" style="border: 2px dashed var(--accent);">
-        <h3 style="color:var(--accent);">5. EMERGENCY RECOVERY</h3>
-        <div style="font-size:10px; color:#aaa; margin-bottom:10px;">
-            Pulihkan data antrian terakhir yang tersimpan otomatis (Snapshot).
-        </div>
+        <h3 style="color:var(--accent);">3. EMERGENCY RECOVERY</h3>
         <button onclick="checkRecovery()" class="btn-blue" style="width:100%; margin-bottom:10px;">🔍 CEK SNAPSHOT TERAKHIR</button>
         
         <div id="recoveryPanel" style="display:none; background:#111; padding:10px;">
@@ -144,7 +139,7 @@
     </div>
 
     <div class="box">
-        <h3>6. SYSTEM LOGS</h3>
+        <h3>4. SYSTEM LOGS</h3>
         <div class="term-container" id="termLog">
             <div class="log-line">Waiting for logs...</div>
         </div>
@@ -160,11 +155,11 @@
             </div>
         </div>
     </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, doc, onSnapshot, runTransaction, collection, addDoc, query, orderBy, limit, getDocs, where, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // FIREBASE
         const firebaseConfig = {
             apiKey: "AIzaSyB666i9lYWIpxOdkwpoX9EvFvHLmHczeq8",
             authDomain: "fcgadingnew22.firebaseapp.com",
@@ -202,7 +197,7 @@
                 addLog("ADMIN", "LOGIN", "Session Started");
             } else { alert("PIN Salah!"); }
         };
-        window.logout = () => { localStorage.removeItem(SESSION_KEY); window.location.href='antrian.html'; };
+        window.logout = () => { localStorage.removeItem(SESSION_KEY); location.reload(); };
 
         // MODAL
         let currentCallback = null;
@@ -214,7 +209,7 @@
         document.getElementById('btnYes').onclick = () => { if(currentCallback) currentCallback(); closeModal(); };
         window.closeModal = () => { document.getElementById('customModal').style.display = 'none'; currentCallback = null; };
 
-        // === MONITOR (BADGE UPDATE DISINI) ===
+        // === MONITOR UPDATE ===
         onSnapshot(mainRef, (snap) => {
             if (!snap.exists()) return;
             const d = snap.data();
@@ -224,26 +219,24 @@
             cachedSlots.forEach((s, i) => {
                 const el = document.getElementById(`slot${i+1}`);
                 if(s) {
-                    // === LOGIC BADGE UNTUK ADMIN ===
+                    // WARNA BADGE DI ADMIN AGAR GAMPANG DILIHAT
                     let badgeHTML = "";
                     if(s.role) {
-                        let color = '#008000'; // Default Hijau
+                        let color = '#008000'; 
                         let label = s.role;
                         
-                        if(s.role === 'KETUM') color = '#FF0000';
-                        else if(s.role === 'KORLAP') color = '#0000FF';
-                        else if(s.role === 'KACAB') color = '#FF8C00';
-                        else if(s.role === 'MEMBER') {
-                            color = '#FFD700'; // EMAS
-                            label = 'KELUARGA MLU';
-                        }
+                        if(s.role.includes('KETUM') || s.role.includes('KELUARGA')) { color = '#FFD700'; label='GOLD'; }
+                        else if(s.role.includes('SATGAS') || s.role.includes('KORLAP')) { color = '#FF0000'; label='RED'; }
+                        else if(s.role.includes('PEA') || s.role.includes('KOKOH')) { color = '#D000FF'; label='PEA'; } // UNGU
+                        else if(s.role.includes('TURTLE') || s.role.includes('PELAN')) { color = '#39FF14'; label='TRTL'; } // HIJAU
+                        else if(s.role.includes('MEMBER')) { color = '#ccc'; label='MBR'; }
                         
-                        badgeHTML = `<div style="display:inline-block; background:${color}; color:${s.role==='MEMBER'?'#000':'#fff'}; font-size:9px; font-weight:bold; padding:1px 4px; border-radius:3px; margin-top:2px;">${label}</div>`;
+                        badgeHTML = `<span style="color:${color}; font-weight:bold; font-size:9px;">[${label}]</span>`;
                     }
 
                     el.innerHTML = `
                         <div style="color:var(--cyan); font-weight:bold; font-size:14px;">${s.plat}</div>
-                        <div style="font-size:10px; color:#ccc;">${s.userName} (#${s.qNo})</div>
+                        <div style="font-size:10px; color:#ccc;">${s.userName}</div>
                         ${badgeHTML}
                         <div style="margin-top:auto; display:grid; grid-template-columns:1fr 1fr; gap:2px;">
                             <button class="btn-red btn-mini" onclick="askConfirm('Reset/Kick Paksa?', ()=>forceStop(${i}))" style="grid-column: span 2;">STOP/RESET</button>
@@ -263,16 +256,13 @@
             let h = `<table><tr><th width="20">#</th><th>USER</th><th>AKSI</th></tr>`;
             if(cachedQueue.length === 0) h += `<tr><td colspan="3" style="text-align:center; color:#444;">KOSONG</td></tr>`;
             cachedQueue.forEach((q, idx) => {
-                const upDisabled = (idx === 0) ? 'disabled style="opacity:0.3"' : '';
-                const downDisabled = (idx === cachedQueue.length - 1) ? 'disabled style="opacity:0.3"' : '';
-                
-                // BADGE DI TABLE
                 let badgeHTML = "";
                 if(q.role) {
-                    let color = 'green';
-                    let label = q.role;
-                    if(q.role === 'MEMBER') { color='gold'; label='KELUARGA MLU'; }
-                    badgeHTML = `<br><span style="color:${color}; font-size:9px; font-weight:bold;">[${label}]</span>`;
+                    let color = 'white';
+                    if(q.role.includes('PEA')) color = '#D000FF';
+                    else if(q.role.includes('KELUARGA')) color = '#FFD700';
+                    else if(q.role.includes('SATGAS')) color = '#FF0000';
+                    badgeHTML = `<span style="color:${color}; font-size:9px; font-weight:bold;">[${q.role}]</span>`;
                 }
 
                 h += `<tr>
@@ -280,12 +270,9 @@
                     <td><b style="color:var(--accent)">${q.plat}</b><br>${q.userName} ${badgeHTML}</td>
                     <td>
                         <div style="display:flex; gap:2px; flex-wrap:wrap;">
-                            <button class="btn-blue btn-mini" onclick="switchQueue(${idx}, -1)" ${upDisabled}>⬆</button>
-                            <button class="btn-blue btn-mini" onclick="switchQueue(${idx}, 1)" ${downDisabled}>⬇</button>
-                            <button class="btn-green btn-mini" onclick="pushToSlot('${q.plat.replace(/'/g, "\\'")}',0)">S1</button>
-                            <button class="btn-green btn-mini" onclick="pushToSlot('${q.plat.replace(/'/g, "\\'")}',1)">S2</button>
-                            <button class="btn-green btn-mini" onclick="pushToSlot('${q.plat.replace(/'/g, "\\'")}',2)">S3</button>
-                            <button class="btn-red btn-mini" onclick="askConfirm('Hapus?', ()=>delQueue('${q.plat.replace(/'/g, "\\'")}'))">X</button>
+                            <button class="btn-blue btn-mini" onclick="switchQueue(${idx}, -1)">⬆</button>
+                            <button class="btn-blue btn-mini" onclick="switchQueue(${idx}, 1)">⬇</button>
+                            <button class="btn-red btn-mini" onclick="askConfirm('Hapus?', ()=>delQueue('${q.plat}'))">X</button>
                         </div>
                     </td>
                 </tr>`;
@@ -300,63 +287,31 @@
             const n = document.getElementById('newName').value.toUpperCase();
             if(!p) return alert("PLAT KOSONG");
 
-            // CEK JABATAN OTOMATIS
-            let userRole = null;
+            let userRole = "MEMBER";
             try {
                 const cleanP = p.replace(/[^A-Z0-9]/g, '');
                 const memberSnap = await getDoc(doc(db, "members", cleanP));
-                if(memberSnap.exists()) {
-                    userRole = memberSnap.data().role; 
-                }
-            } catch(e) { console.log("Cek member gagal:", e); }
+                if(memberSnap.exists()) userRole = memberSnap.data().role; 
+            } catch(e) {}
 
             runTransaction(db, async(t) => {
                 const docSnap = await t.get(mainRef);
-                if(!docSnap.exists()) throw "DATA ERROR! REFRESH.";
                 let d = docSnap.data();
-                
                 if([...(d.chargingSlots||[]), ...d.waitingQueue].some(u => u && u.plat === p)) throw "Plat Sudah Ada!";
                 
-                let newNo = (d.recycledNumbers||[]).length>0 ? d.recycledNumbers.sort((a,b)=>a-b).shift() : (d.lastTicket||0)+1;
-                
-                const u = { 
-                    plat:p, 
-                    userName:n, 
-                    wa:'ADMIN', 
-                    qNo:newNo, 
-                    entryTime:Date.now(),
-                    role: userRole // SIMPAN ROLE
-                };
+                const newNo = (d.lastTicket||0)+1;
+                const u = { plat:p, userName:n, qNo:newNo, entryTime:Date.now(), role: userRole };
 
                 if(target === 'queue') { d.waitingQueue.push(u); } 
                 else { 
                     if(d.chargingSlots[target]) throw "Slot Penuh"; 
-                    u.startTime=Date.now(); 
-                    d.chargingSlots[target]=u; 
+                    u.startTime=Date.now(); d.chargingSlots[target]=u; 
                 }
                 
                 t.set(snapshotRef, { ...d, backupTime: new Date() });
-                t.set(mainRef, { waitingQueue:d.waitingQueue, chargingSlots:d.chargingSlots, recycledNumbers:d.recycledNumbers||[], lastTicket:Math.max(d.lastTicket||0,newNo) }, {merge:true});
-                
-                addLog("ADMIN", "MANUAL_ADD", `Input ${p} (${userRole || 'UMUM'})`);
-            
-            }).then(()=>{ 
-                document.getElementById('newPlat').value=''; 
-            }).catch(e=>alert("GAGAL: " + e));
-        };
-
-        window.pushToSlot = (p, sIdx) => {
-            runTransaction(db, async(t) => {
-                const d = (await t.get(mainRef)).data();
-                if(d.chargingSlots[sIdx]) throw "Penuh";
-                const i = d.waitingQueue.findIndex(x => x.plat === p);
-                if(i<0) throw "Hilang";
-                const u = d.waitingQueue.splice(i,1)[0];
-                u.startTime = Date.now(); d.chargingSlots[sIdx] = u;
-                t.set(snapshotRef, { ...d, backupTime: new Date() });
-                t.update(mainRef, { waitingQueue:d.waitingQueue, chargingSlots:d.chargingSlots });
-                addLog("ADMIN", "FORCE_IN", `Pushed ${p} to S${sIdx+1}`);
-            }).catch(e=>alert(e));
+                t.update(mainRef, { waitingQueue:d.waitingQueue, chargingSlots:d.chargingSlots, lastTicket:newNo });
+                addLog("ADMIN", "MANUAL_ADD", `Input ${p}`);
+            }).then(()=>{ document.getElementById('newPlat').value=''; }).catch(e=>alert("GAGAL: " + e));
         };
 
         window.switchQueue = (idx, direction) => {
@@ -388,7 +343,7 @@
                 const d = (await t.get(mainRef)).data();
                 const u = d.chargingSlots[i];
                 if(u) { 
-                    addDoc(histRef, {...u, finishTime:new Date(), timestamp:new Date(), by:'ADMIN'}); 
+                    addDoc(histRef, {...u, finishTime:new Date(), by:'ADMIN'}); 
                     d.chargingSlots[i]=null;
                     t.set(snapshotRef, { ...d, backupTime: new Date() });
                     t.update(mainRef, {chargingSlots:d.chargingSlots}); 
@@ -415,10 +370,9 @@
                 const d = (await t.get(mainRef)).data();
                 const i = d.waitingQueue.findIndex(x => x.plat === p);
                 if(i>-1) {
-                    const u = d.waitingQueue.splice(i,1)[0];
-                    let r = d.recycledNumbers||[]; r.push(u.qNo);
+                    d.waitingQueue.splice(i,1);
                     t.set(snapshotRef, { ...d, backupTime: new Date() });
-                    t.update(mainRef, { waitingQueue:d.waitingQueue, recycledNumbers:r });
+                    t.update(mainRef, { waitingQueue:d.waitingQueue });
                     addLog("ADMIN", "DELETE_Q", `Removed ${p}`);
                 }
             });
@@ -455,9 +409,7 @@
                 t.set(mainRef, { 
                     chargingSlots: snapshotData.chargingSlots||[null,null,null],
                     waitingQueue: snapshotData.waitingQueue||[],
-                    lastTicket: snapshotData.lastTicket||0,
-                    recycledNumbers: snapshotData.recycledNumbers||[],
-                    lastResetDate: snapshotData.lastResetDate|| new Date().toLocaleDateString('en-CA')
+                    lastTicket: snapshotData.lastTicket||0
                 });
                 addLog("ADMIN", "RESTORE", "Restored Snapshot");
             });
@@ -470,15 +422,13 @@
             let h = '';
             snap.forEach(d => {
                 const x = d.data();
-                const c = (x.actor||'').includes('SUPER') ? 'act-super' : 'act-admin';
-                h += `<div class="log-line"><span class="${c}">[${x.actor}]</span> ${x.action} - ${x.details}</div>`;
+                h += `<div class="log-line"><span style="color:var(--cyan)">[${x.actor}]</span> ${x.action} - ${x.details}</div>`;
             });
             document.getElementById('termLog').innerHTML = h;
         });
 
         function addLog(actor, act, det) { 
-            let finalActor = actor;
-            if(actor === 'ADMIN') finalActor = (localStorage.getItem(SESSION_KEY) || 'ADMIN').toUpperCase();
+            let finalActor = actor === 'ADMIN' ? (localStorage.getItem(SESSION_KEY) || 'ADMIN') : actor;
             addDoc(logRef, { action: act, details: det, actor: finalActor, timestamp: new Date() }); 
         }
     </script>
