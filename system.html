@@ -39,7 +39,7 @@
         .btn-no { background: #333; color: #fff; border: 1px solid #555; }
 
         /* --- HEADER --- */
-        .header { text-align: center; margin-bottom: 25px; margin-top: 10px; }
+        .header { text-align: center; margin-bottom: 25px; margin-top: 10px; cursor: pointer; } /* Added cursor pointer */
         .main-title { font-family: 'Black Ops One'; font-size: 32px; line-height: 1; color: #eee; text-shadow: 0 2px 10px rgba(0,0,0,0.8); }
         .sub-title { font-size: 11px; color: var(--gold); letter-spacing: 3px; font-weight: 700; text-transform: uppercase; margin-top: 5px; text-shadow: 0 0 10px rgba(255, 215, 0, 0.4); }
 
@@ -66,7 +66,7 @@
         .info-plat { font-family: 'Teko'; font-size: 48px; line-height: 0.9; color: #fff; text-shadow: 2px 2px 0px #000; letter-spacing: 0.5px; }
         .armor-badge { width: 130px; height: 100%; display: flex; align-items: center; justify-content: center; padding-right: 15px; }
 
-        /* --- BADGE STYLES (RESTORED ORIGINAL) --- */
+        /* --- BADGE STYLES --- */
         .badge-gold-flow { width: 100%; height: 45px; position: relative; overflow: hidden; border-radius: 4px; border: 1px solid var(--gold); display: flex; align-items: center; justify-content: center; background: #000; }
         .flow-bg { position: absolute; inset: -50%; background: conic-gradient(from 0deg, #423103, var(--gold), #FFF8DC, var(--gold), #423103); animation: rotateFlow 5s linear infinite; opacity: 0.7; }
         .flow-text { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; background: rgba(0,0,0,0.8); padding: 2px 10px; border-radius: 4px; width: 90%; }
@@ -247,6 +247,16 @@
         function escapeHtml(text) { if (!text) return ""; return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); }
         function addUserLog(action, details) { addDoc(logRef, { actor: myPlat || "GUEST", action: action, details: details, timestamp: new Date() }).catch(e=>{}); }
 
+        // === FITUR ADMIN DOUBLE CLICK ===
+        window.toggleAdmin = () => {
+            const pass = prompt("MASUKKAN KODE ADMIN:");
+            if(pass === "1131") {
+                window.location.href = "admin.html";
+            } else if (pass !== null) {
+                showAlert("KODE AKSES SALAH!", "AKSES DITOLAK");
+            }
+        };
+
         // === CUSTOM MODAL (Required) ===
         window.showAlert = (msg, title="INFO") => {
             $('modalTitle').innerText = title; $('modalMsg').innerText = msg;
@@ -325,8 +335,7 @@
                     const isMe = (cleanStr(s.plat) === cleanStr(myPlat));
                     
                     let kudetaHTML = '';
-                    // Logic kudeta bisa ditambah disini jika perlu (sesuai script lama)
-
+                    
                     div.innerHTML = `
                         <div class="armor-border"></div>
                         <div class="armor-inner">
@@ -352,12 +361,10 @@
         // === FIXED BADGE LOGIC ===
         function getBadgeHTML(r) {
             if(!r) r = "GUEST";
-            if(r === "GUEST") return `<div class="badge-empty"></div>`; // FIX: GUEST = KOSONG
+            if(r === "GUEST") return `<div class="badge-empty"></div>`; 
             
-            // KOKOH PEA
             if(r === "PEA" || r === "KOKOH PEA") return `<div class="badge-kokoh-pea-chaos"><div class="pea-img-chaos"><img src="cris.png" alt="PEA"></div><div class="pea-text-chaos"><div class="pea-word-chaos">KOKOH<br>PEA</div><div class="pea-sub-chaos">404 WARAS NOT FOUND</div></div></div>`;
 
-            // MEMBER/KELUARGA
             if(r === "MEMBER" || r.includes("KELUARGA") || r.includes("KETUA") || r.includes("WAKETUM") || r.includes("PEMBINA")) {
                 let txtTop = "KELUARGA"; let txtBot = "M L U";
                 if(r.includes("KETUA")) { txtTop="KETUA"; txtBot="UMUM"; }
@@ -366,12 +373,10 @@
                 return `<div class="badge-gold-flow"><div class="flow-bg"></div><div class="flow-text"><div class="ft-top">${txtTop}</div><div class="ft-bot">${txtBot}</div></div></div>`;
             }
 
-            // ROLES LAIN
             if(r.includes("SATGAS") || r.includes("KORLAP")) return `<div class="badge-red-tech"><div class="red-scanner"></div><div class="red-word">${r.includes("KOR")?"KORLAP":"SATGAS"}</div></div>`;
             if(r.includes("TURTLE") || r.includes("PELAN")) return `<div class="badge-green-tech"><div class="green-word">PELAN TAPI KENCENG 🐢</div></div>`;
             if(r.includes("OFFICE")) return `<div class="badge-cyan-tech"><div class="cyan-word">OFFICE</div></div>`;
             
-            // FALLBACK
             return `<div class="badge-gold-flow"><div class="flow-bg"></div><div class="flow-text"><div class="ft-top">BADGE</div><div class="ft-bot">${r}</div></div></div>`;
         }
 

@@ -32,8 +32,10 @@
         .live-dot { width: 8px; height: 8px; background: #00ff00; border-radius: 50%; box-shadow: 0 0 8px #00ff00; animation: blink 1s infinite; }
         @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
 
-        .main-title { font-family: 'Black Ops One'; font-size: 8vw; max-font-size: 38px; color: #eee; text-transform: uppercase; letter-spacing: 1px; text-align: center; line-height: 1; margin-bottom: 5px; text-shadow: 0 0 20px rgba(255,255,255,0.2); white-space: nowrap; }
+        /* Added Cursor Pointer to indicate clickable area implicitly */
+        .main-title { font-family: 'Black Ops One'; font-size: 8vw; max-font-size: 38px; color: #eee; text-transform: uppercase; letter-spacing: 1px; text-align: center; line-height: 1; margin-bottom: 5px; text-shadow: 0 0 20px rgba(255,255,255,0.2); white-space: nowrap; cursor: pointer; }
         @media (min-width: 450px) { .main-title { font-size: 42px; } }
+        
         .sub-title { font-size: 14px; color: var(--gold); text-transform: uppercase; letter-spacing: 4px; font-weight: 800; margin-bottom: 40px; text-shadow: 0 0 15px var(--gold-glow); }
 
         .dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; width: 100%; max-width: 450px; margin-bottom: 60px; }
@@ -46,8 +48,6 @@
         .btn-register-glow:active { transform: scale(0.95); }
         .btn-register-glow::after { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: linear-gradient(to bottom right, rgba(255,255,255,0.4) 0%, transparent 50%, transparent 100%); transform: rotate(45deg); transition: 0.5s; }
         @keyframes pulseBtn { 0% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.4); transform: scale(1); } 50% { box-shadow: 0 0 50px rgba(255, 215, 0, 0.7); transform: scale(1.02); } 100% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.4); transform: scale(1); } }
-
-        .link-admin { margin-top: 30px; font-size: 10px; color: #333; cursor: pointer; letter-spacing: 1px; }
     </style>
 </head>
 <body>
@@ -55,7 +55,9 @@
     <div class="header-container">
         <img src="logo.png" alt="MLU" class="logo-img">
         <div class="live-tag"><div class="live-dot"></div> LIVE STATUS</div>
-        <div class="main-title">FC KELAPA GADING</div>
+        
+        <div class="main-title" ondblclick="toggleAdmin()">FC KELAPA GADING</div>
+        
         <div class="sub-title">RUMAH MLU</div>
     </div>
 
@@ -76,8 +78,6 @@
         DAFTAR SEKARANG
     </button>
 
-    <div class="link-admin" onclick="window.location='admin.html'">[ STAFF ACCESS ONLY ]</div>
-
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -94,6 +94,16 @@
         const db = getFirestore(app);
         const mainRef = doc(db, "antrian", "utama");
         const TOTAL_SLOTS = 3;
+
+        // === FITUR ADMIN DOUBLE CLICK ===
+        window.toggleAdmin = () => {
+            const pass = prompt("MASUKKAN KODE ADMIN:");
+            if(pass === "1131") {
+                window.location.href = "admin.html";
+            } else if (pass !== null && pass !== "") {
+                alert("PASSWORD SALAH!");
+            }
+        };
 
         onSnapshot(mainRef, (snap) => {
             if (!snap.exists()) return;
@@ -113,7 +123,6 @@
             }
         });
 
-        // REVISI: Link ke system.html
         window.goToSystem = () => {
             window.location.href = "system.html?action=register"; 
         };
