@@ -121,7 +121,6 @@
         /* --- HANGAR & SCREENSAVER (ROTATING TEXT) --- */
         #hangar-overlay { position: fixed; inset: 0; z-index: 10000; background: #000; display: none; align-items: center; justify-content: center; overflow: hidden; }
         
-        /* FIX: Pintu sekarang ada di belakang logo (z-index 50), logo ada di depan (z-index 60) */
         .door-panel { position: absolute; top:0; bottom:0; width: 50%; background: repeating-linear-gradient(45deg, #0a0a0a, #0a0a0a 10px, #050505 10px, #050505 20px); border-right: 2px solid #111; transition: transform 1.2s cubic-bezier(0.8, 0, 0.2, 1); z-index: 50; }
         
         #door-left { left: 0; border-right: 1px solid #222; }
@@ -129,10 +128,7 @@
         #hangar-overlay.open #door-left { transform: translateX(-100%); }
         #hangar-overlay.open #door-right { transform: translateX(100%); }
 
-        /* LOGO CONTAINER DI DEPAN PINTU AGAR TIDAK HILANG */
         .hidden-logo-container { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 60; pointer-events: none; }
-        
-        /* Animasi Pulse pada Logo saat screensaver */
         .reveal-logo { width: 220px; height: 220px; border-radius: 50%; z-index: 20; position: absolute; animation: pulseLogo 3s infinite ease-in-out; }
         
         @keyframes pulseLogo {
@@ -146,7 +142,7 @@
             animation: rotateText 20s linear infinite; 
         }
         .curved-text-style {
-            font-family: 'Black Ops One', cursive; /* FONT KEREN */
+            font-family: 'Black Ops One', cursive;
             font-size: 34px;
             fill: var(--gold);
             letter-spacing: 5px;
@@ -242,6 +238,31 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, doc, onSnapshot, runTransaction, collection, addDoc, getDoc, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // === KONFIGURASI LOKASI ===
+        const STATION_LAT = -6.171583; 
+        const STATION_LNG = 106.899844; 
+        const MAX_DIST_KM = 0.2; // 200 METER
+        
+        // === FUNGSI CEK LOKASI (PROMISE) ===
+        function checkLocation() {
+            return new Promise((resolve, reject) => {
+                if(!navigator.geolocation) resolve(false); // Fallback jika tidak ada GPS
+                
+                navigator.geolocation.getCurrentPosition((pos) => {
+                    const R = 6371;
+                    const lat1 = STATION_LAT, lon1 = STATION_LNG;
+                    const lat2 = pos.coords.latitude, lon2 = pos.coords.longitude;
+                    const dLat = (lat2-lat1)*Math.PI/180;
+                    const dLon = (lon2-lon1)*Math.PI/180;
+                    const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+                    const dist = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+                    
+                    if(dist <= MAX_DIST_KM) resolve(true);
+                    else resolve(false);
+                }, () => resolve(false), { enableHighAccuracy: true, timeout: 5000 });
+            });
+        }
 
         const firebaseConfig = {
             apiKey: "AIzaSyB666i9lYWIpxOdkwpoX9EvFvHLmHczeq8",
@@ -463,7 +484,8 @@
             $('queueListModal').style.display = 'flex';
         };
 
-        window.handleMainAction = () => { 
+        // === UPDATE HANDLE MAIN ACTION (GPS LOCK) ===
+        window.handleMainAction = async () => { 
             if(localStorage.getItem('myPlat')) {
                 const p = localStorage.getItem('myPlat');
                 const inQueue = localQueue.some(q => cleanStr(q.plat) === cleanStr(p));
@@ -471,6 +493,14 @@
                 if(inQueue || inSlot) return showAlert("ANDA SUDAH TERDAFTAR!");
                 else { localStorage.removeItem('myPlat'); myPlat=null; }
             }
+            
+            // CEK LOKASI TERLEBIH DAHULU SEBELUM MEMBUKA FORM
+            const isInside = await checkLocation();
+            if(!isInside) {
+                showAlert("GPS LOCK: Anda harus berada di radius 200m dari FC Kelapa Gading untuk Login/Daftar.", "AKSES DITOLAK");
+                return;
+            }
+
             showLoginForm(); 
         };
 

@@ -32,7 +32,6 @@
         .live-dot { width: 8px; height: 8px; background: #00ff00; border-radius: 50%; box-shadow: 0 0 8px #00ff00; animation: blink 1s infinite; }
         @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
 
-        /* Added Cursor Pointer to indicate clickable area implicitly */
         .main-title { font-family: 'Black Ops One'; font-size: 8vw; max-font-size: 38px; color: #eee; text-transform: uppercase; letter-spacing: 1px; text-align: center; line-height: 1; margin-bottom: 5px; text-shadow: 0 0 20px rgba(255,255,255,0.2); white-space: nowrap; cursor: pointer; }
         @media (min-width: 450px) { .main-title { font-size: 42px; } }
         
@@ -48,6 +47,11 @@
         .btn-register-glow:active { transform: scale(0.95); }
         .btn-register-glow::after { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: linear-gradient(to bottom right, rgba(255,255,255,0.4) 0%, transparent 50%, transparent 100%); transform: rotate(45deg); transition: 0.5s; }
         @keyframes pulseBtn { 0% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.4); transform: scale(1); } 50% { box-shadow: 0 0 50px rgba(255, 215, 0, 0.7); transform: scale(1.02); } 100% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.4); transform: scale(1); } }
+        
+        /* Style untuk tombol disable saat loading GPS */
+        .btn-register-glow:disabled {
+            background: #333; color: #666; box-shadow: none; animation: none; cursor: not-allowed;
+        }
     </style>
 </head>
 <body>
@@ -74,13 +78,18 @@
         </div>
     </div>
 
-    <button class="btn-register-glow" onclick="goToSystem()">
+    <button id="btnDaftar" class="btn-register-glow" onclick="goToSystem()">
         DAFTAR SEKARANG
     </button>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // === KONFIGURASI GPS LOCK ===
+        const STATION_LAT = -6.171583; 
+        const STATION_LNG = 106.899844; 
+        const MAX_DIST_KM = 0.2; // 200 METER
 
         // === AUTO REDIRECT IF ALREADY REGISTERED ===
         if(localStorage.getItem('myPlat')) {
@@ -128,8 +137,54 @@
             }
         });
 
+        // === FUNGSI HITUNG JARAK (HAVERSINE FORMULA) ===
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371; // Radius bumi dalam KM
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon/2) * Math.sin(dLon/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return R * c; // Hasil dalam KM
+        }
+
+        // === FUNGSI GPS LOCK DAN REDIRECT ===
         window.goToSystem = () => {
-            window.location.href = "system.html?action=register"; 
+            const btn = document.getElementById('btnDaftar');
+            
+            if (!navigator.geolocation) {
+                alert("Browser tidak mendukung GPS.");
+                return;
+            }
+
+            // Ubah tampilan tombol saat loading
+            btn.innerHTML = "MENGECEK LOKASI...";
+            btn.disabled = true;
+
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                    const dist = calculateDistance(STATION_LAT, STATION_LNG, pos.coords.latitude, pos.coords.longitude);
+                    
+                    // Kembalikan tombol
+                    btn.innerHTML = "DAFTAR SEKARANG";
+                    btn.disabled = false;
+
+                    if (dist <= MAX_DIST_KM) {
+                        // Jika dalam radius (<= 0.2 KM), izinkan masuk
+                        window.location.href = "system.html?action=register";
+                    } else {
+                        // Jika di luar radius
+                        const jarakMeter = Math.round(dist * 1000);
+                        alert(`AKSES DITOLAK!\n\nAnda berada ${jarakMeter} meter dari lokasi.\nMax jarak yang diizinkan: 200 meter.`);
+                    }
+                }, 
+                (err) => {
+                    btn.innerHTML = "DAFTAR SEKARANG";
+                    btn.disabled = false;
+                    alert("GAGAL MENDAPATKAN LOKASI.\nPastikan GPS aktif dan izin lokasi browser dinyalakan.");
+                }, 
+                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+            );
         };
     </script>
 </body>
