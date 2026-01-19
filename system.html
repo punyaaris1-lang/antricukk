@@ -66,6 +66,13 @@
         .info-plat { font-family: 'Teko'; font-size: 48px; line-height: 0.9; color: #fff; text-shadow: 2px 2px 0px #000; letter-spacing: 0.5px; }
         .armor-badge { width: 130px; height: 100%; display: flex; align-items: center; justify-content: center; padding-right: 15px; }
 
+        /* KUDETA BUTTON & TIMER */
+        .btn-kudeta { position: absolute; right: 5px; top: 5px; background: #220000; border: 1px solid #ff003c; color: #ff003c; font-size: 10px; padding: 2px 5px; font-weight: bold; cursor: pointer; clip-path: polygon(5px 0, 100% 0, 100% 100%, 0 100%, 0 5px); z-index: 10; opacity: 1; transition: 0.2s; animation: pulseRed 2s infinite; }
+        .btn-kudeta:hover { background: #440000; }
+        .mini-timer { position: absolute; bottom: 2px; right: 5px; font-size: 9px; color: #666; font-family: 'Orbitron'; letter-spacing: 1px; }
+
+        @keyframes pulseRed { 0% { box-shadow: 0 0 0 var(--red); } 50% { box-shadow: 0 0 5px var(--red); } 100% { box-shadow: 0 0 0 var(--red); } }
+
         /* --- BADGE STYLES --- */
         .badge-gold-flow { width: 100%; height: 45px; position: relative; overflow: hidden; border-radius: 4px; border: 1px solid var(--gold); display: flex; align-items: center; justify-content: center; background: #000; }
         .flow-bg { position: absolute; inset: -50%; background: conic-gradient(from 0deg, #423103, var(--gold), #FFF8DC, var(--gold), #423103); animation: rotateFlow 5s linear infinite; opacity: 0.7; }
@@ -337,6 +344,12 @@
         function updateUI() {
             const container = $('slotsContainer'); container.innerHTML = '';
             
+            // CEK POSISI SAYA DI ANTRIAN
+            let myQIndex = -1;
+            if (myPlat && localQueue.length > 0) {
+                myQIndex = localQueue.findIndex(q => cleanStr(q.plat) === cleanStr(myPlat));
+            }
+
             localSlots.forEach((s, i) => {
                 const isActive = s !== null;
                 const div = document.createElement('div');
@@ -346,8 +359,27 @@
                     const role = s.role ? s.role.toUpperCase() : "GUEST";
                     const isMe = (cleanStr(s.plat) === cleanStr(myPlat));
                     
+                    // --- LOGIC KUDETA & TIMER ---
                     let kudetaHTML = '';
+                    let timerHTML = '';
                     
+                    // Hitung durasi charging (menit)
+                    const durationMs = Date.now() - (s.startTime || Date.now());
+                    const durationMin = Math.floor(durationMs / 60000);
+
+                    if(isMe) {
+                         timerHTML = `<div class="mini-timer">${durationMin} MIN</div>`;
+                    } else if (myPlat) {
+                        timerHTML = `<div class="mini-timer">${durationMin} MIN</div>`;
+                        // SYARAT KUDETA:
+                        // 1. Bukan saya
+                        // 2. Saya ada di Antrian No 1 (Index 0)
+                        // 3. Durasi charging lawan >= 20 menit
+                        if (myQIndex === 0 && durationMin >= 20) {
+                             kudetaHTML = `<button class="btn-kudeta" onclick="window.kudeta(${i}, '${escapeHtml(s.plat)}')">⚡ KUDETA</button>`;
+                        }
+                    }
+
                     div.innerHTML = `
                         <div class="armor-border"></div>
                         <div class="armor-inner">
@@ -357,12 +389,40 @@
                                 <div class="info-plat">${s.plat}</div>
                             </div>
                             <div class="armor-badge">${getBadgeHTML(role)}</div>
+                            ${timerHTML}
                             ${kudetaHTML}
                         </div>`;
-                    div.onclick = () => { if(isMe) showConfirm("SELESAI CHARGING?", () => stopCharging(i)); };
+                    
+                    if(isMe) {
+                        div.onclick = () => showConfirm("SELESAI CHARGING?", () => stopCharging(i));
+                    }
 
                 } else {
-                    div.innerHTML = `<div class="armor-inner" style="background:#080808; border:1px solid #1a1a1a;"><div class="armor-num" style="color:#222; border-color:#111;">${i+1}</div><div class="armor-info" style="align-items:center;"><div class="info-plat" style="color:#333; letter-spacing:5px;">OPEN</div></div><div class="armor-badge"><button style="padding:5px 20px; font-family:'Rajdhani'; font-weight:bold; background:#222; color:#666; border:1px solid #333; border-radius:4px;" onclick="window.selectSlot(${i})">PILIH</button></div></div>`;
+                    // --- LOGIC SLOT KOSONG ---
+                    let btnHTML = '';
+                    
+                    if (!myPlat) {
+                         // Belum Login -> Muncul PILIH (untuk daftar)
+                         btnHTML = `<button style="padding:5px 20px; font-family:'Rajdhani'; font-weight:bold; background:#222; color:#666; border:1px solid #333; border-radius:4px;" onclick="window.selectSlot(${i})">PILIH</button>`;
+                    } 
+                    else if (localQueue.length === 0) {
+                         // Antrian Kosong -> Siapapun boleh masuk (biasanya yg baru daftar)
+                         btnHTML = `<button style="padding:5px 20px; font-family:'Rajdhani'; font-weight:bold; background:#222; color:#666; border:1px solid #333; border-radius:4px;" onclick="window.selectSlot(${i})">PILIH</button>`;
+                    }
+                    else if (myQIndex === 0) {
+                         // Saya Antrian No 1 -> Tombol Muncul
+                         btnHTML = `<button style="padding:5px 20px; font-family:'Rajdhani'; font-weight:bold; background:var(--gold); color:#000; border:none; border-radius:4px; box-shadow:0 0 10px var(--gold);" onclick="window.selectSlot(${i})">PILIH</button>`;
+                    }
+                    else if (myQIndex > 0) {
+                         // Saya Antrian No 2++ -> Tombol Hilang, Ganti Teks
+                         btnHTML = `<div style="font-family:'Rajdhani'; font-size:10px; color:#555; font-weight:bold;">ANTRIAN KE-${myQIndex + 1}</div>`;
+                    }
+                    else {
+                         // Kasus lain (misal saya di slot lain) -> Disable
+                         btnHTML = `<div style="font-family:'Rajdhani'; font-size:10px; color:#333;">LOCKED</div>`;
+                    }
+
+                    div.innerHTML = `<div class="armor-inner" style="background:#080808; border:1px solid #1a1a1a;"><div class="armor-num" style="color:#222; border-color:#111;">${i+1}</div><div class="armor-info" style="align-items:center;"><div class="info-plat" style="color:#333; letter-spacing:5px;">OPEN</div></div><div class="armor-badge">${btnHTML}</div></div>`;
                 }
                 container.appendChild(div);
             });
@@ -440,8 +500,18 @@
             }
         };
 
+        // === SELECT SLOT with QUEUE LOGIC ===
         window.selectSlot = async (i) => {
             if(!myPlat) return showAlert("DAFTAR DULU!");
+
+            // DOUBLE CHECK DI BACKEND LOGIC JUGA
+            if (localQueue.length > 0) {
+                const firstQ = localQueue[0];
+                if (cleanStr(firstQ.plat) !== cleanStr(myPlat)) {
+                    return showAlert(`HARAP TUNGGU GILIRAN!\nSekarang giliran: ${firstQ.plat}`, "ANTRIAN");
+                }
+            }
+
             showConfirm(`MASUK SLOT ${i+1}?`, () => {
                  runTransaction(db, async(t)=>{
                     const d = (await t.get(mainRef)).data(); if(d.chargingSlots[i]) throw "SLOT PENUH!";
@@ -463,11 +533,46 @@
              }).then(() => { localStorage.clear(); myPlat=null; location.reload(); });
         };
 
+        // === LOGIC KUDETA ===
+        window.kudeta = (i, targetPlat) => {
+            event.stopPropagation();
+            showConfirm(`KUDETA (FORCE STOP) ${targetPlat}?`, () => {
+                 runTransaction(db, async(t)=>{ 
+                     const d = (await t.get(mainRef)).data(); 
+                     const u = d.chargingSlots[i];
+                     if(!u) throw "Slot sudah kosong!";
+                     // Final check server side duration > 20 min
+                     const dur = (Date.now() - u.startTime) / 60000;
+                     if(dur < 20) throw "BELUM 20 MENIT!";
+
+                     addDoc(historyRef, {...u, finishTime: new Date(), action: "KUDETA_BY_" + myPlat});
+                     addUserLog("KUDETA", `Kudeta ${targetPlat} at Slot ${i+1}`);
+                     d.chargingSlots[i] = null; 
+                     t.update(mainRef, {chargingSlots: d.chargingSlots}); 
+                 }).catch(e => showAlert(e));
+            });
+        };
+
         window.resetApp = () => showConfirm("RESET APLIKASI?", () => { localStorage.clear(); location.reload(); });
         
         window.onload = () => {
-            if(localStorage.getItem('myPlat')) { isStandby = false; $('hangar-overlay').style.display = 'none'; $('hangar-overlay').classList.add('open'); } 
-            else { enterStandby(); }
+            const urlParams = new URLSearchParams(window.location.search);
+            const action = urlParams.get('action');
+
+            if (localStorage.getItem('myPlat')) {
+                isStandby = false; 
+                $('hangar-overlay').style.display = 'none'; 
+                $('hangar-overlay').classList.add('open'); 
+            } 
+            else if (action === 'register') {
+                isStandby = false; 
+                $('hangar-overlay').style.display = 'none'; 
+                $('hangar-overlay').classList.add('open'); 
+                showLoginForm(); 
+            }
+            else { 
+                enterStandby(); 
+            }
         };
     </script>
 </body>
