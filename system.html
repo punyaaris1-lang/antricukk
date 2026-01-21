@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FC KELAPA GADING - SYSTEM</title>
+    <title>FC KELAPA GADING - SYSTEM PRO</title>
     
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#000000">
@@ -12,7 +12,7 @@
     
     <style>
         :root { 
-            --bg: #050505; --gold: #FFD700; --dark-gold: #B8860B; --red: #FF003C; --cyan: #00F0FF; --green: #39FF14; --neon-purple: #D000FF;
+            --bg: #050505; --gold: #FFD700; --dark-gold: #B8860B; --red: #FF003C; --cyan: #00F0FF; --green: #39FF14;
         }
         
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; outline: none; }
@@ -28,56 +28,61 @@
         /* --- LOADING SCREEN --- */
         #loading-screen {
             position: fixed; inset: 0; background: #000; z-index: 25000;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            transition: opacity 0.5s;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s;
         }
-        .loader-spinner {
-            width: 50px; height: 50px; border: 3px solid #222; border-top: 3px solid var(--gold);
-            border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px;
-        }
-        .loader-text {
-            font-family: 'Orbitron'; color: var(--gold); font-size: 14px; letter-spacing: 3px;
-            animation: pulseText 1s infinite;
-        }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        @keyframes pulseText { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
+        .loader-spinner { width: 50px; height: 50px; border: 3px solid #222; border-top: 3px solid var(--gold); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
+        .loader-text { font-family: 'Orbitron'; color: var(--gold); font-size: 14px; letter-spacing: 3px; animation: pulseText 1s infinite; }
 
-        /* --- SCREENSAVER: WELCOME KETUM --- */
+        /* --- SCREENSAVER BARU: MLU HOLOGRAM --- */
         #hangar-overlay { 
             position: fixed; inset: 0; z-index: 10000; 
-            background: #050505; 
+            background: #000; 
             display: none; flex-direction: column; align-items: center; justify-content: center; 
             overflow: hidden; perspective: 1000px;
         }
-        .cyber-grid {
-            position: absolute; width: 200%; height: 200%; top: -50%; left: -50%;
-            background-image: linear-gradient(rgba(255, 215, 0, 0.15) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 215, 0, 0.15) 1px, transparent 1px);
-            background-size: 60px 60px; transform: perspective(500px) rotateX(60deg);
-            animation: gridMove 5s linear infinite; z-index: -1; mask-image: radial-gradient(circle, black 40%, transparent 80%);
+        
+        /* Logo Container */
+        .holo-container {
+            position: relative; width: 250px; height: 250px;
+            display: flex; align-items: center; justify-content: center;
         }
-        @keyframes gridMove { 0% { transform: perspective(500px) rotateX(60deg) translateY(0); } 100% { transform: perspective(500px) rotateX(60deg) translateY(60px); } }
+        
+        /* Lingkaran Radar */
+        .radar-ring {
+            position: absolute; width: 100%; height: 100%;
+            border: 2px dashed rgba(255, 215, 0, 0.2); border-radius: 50%;
+            animation: radarSpin 10s linear infinite;
+        }
+        .radar-ring::before {
+            content: ''; position: absolute; inset: -10px; border: 1px solid rgba(255, 215, 0, 0.1); border-radius: 50%;
+        }
+        
+        /* Logo Utama */
+        .holo-logo {
+            width: 180px; height: 180px; object-fit: contain;
+            filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.5));
+            animation: holoBreath 4s infinite ease-in-out; z-index: 10;
+        }
+        
+        /* Efek Scanning Laser */
+        .scan-line {
+            position: absolute; width: 100%; height: 2px;
+            background: rgba(255, 215, 0, 0.8);
+            box-shadow: 0 0 15px var(--gold);
+            top: 0; animation: scanDown 3s linear infinite; opacity: 0.5;
+        }
 
-        .profile-container { position: relative; width: 220px; height: 220px; display: flex; align-items: center; justify-content: center; margin-bottom: 80px; margin-top: -50px; }
-        .ring-outer { position: absolute; width: 100%; height: 100%; border: 2px dashed rgba(255, 215, 0, 0.3); border-radius: 50%; animation: spinRight 20s linear infinite; }
-        .profile-img-box { width: 170px; height: 170px; border-radius: 50%; overflow: hidden; border: 3px solid var(--gold); box-shadow: 0 0 30px rgba(255, 215, 0, 0.4); position: relative; z-index: 10; background: #000; }
-        .profile-img-box img { width: 100%; height: 100%; object-fit: cover; filter: contrast(1.1) sepia(0.2); }
-        .scanner-gold { position: absolute; top: 0; left: 0; width: 100%; height: 5px; background: linear-gradient(90deg, transparent, var(--gold), transparent); box-shadow: 0 0 15px var(--gold); animation: scanProfile 3s ease-in-out infinite; z-index: 20; opacity: 0.8; }
-        @keyframes scanProfile { 0%,100% { top: 0%; opacity: 0; } 50% { top: 100%; opacity: 1; } }
+        .ss-title { font-family: 'Black Ops One'; font-size: 32px; color: var(--gold); margin-top: 40px; text-align: center; letter-spacing: 2px; text-shadow: 0 0 20px rgba(255, 215, 0, 0.5); }
+        .ss-sub { font-family: 'Orbitron'; font-size: 12px; color: #fff; letter-spacing: 6px; margin-top: 10px; opacity: 0.7; animation: blinkFast 2s infinite; }
 
-        .rotating-text-wrapper { position: absolute; width: 350px; height: 350px; animation: spinLeft 25s linear infinite; pointer-events: none; display: flex; align-items: center; justify-content: center; }
-        .curved-text { font-family: 'Black Ops One'; font-size: 24px; fill: var(--gold); letter-spacing: 6px; text-shadow: 0 0 10px rgba(255, 215, 0, 0.8); }
+        @keyframes radarSpin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes holoBreath { 0%,100% { transform: scale(1); filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.3)); } 50% { transform: scale(1.05); filter: drop-shadow(0 0 25px rgba(255, 215, 0, 0.8)); } }
+        @keyframes scanDown { 0% { top: 0%; opacity: 0; } 20% { opacity: 1; } 80% { opacity: 1; } 100% { top: 100%; opacity: 0; } }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes pulseText { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
+        @keyframes blinkFast { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
 
-        .welcome-text { text-align: center; z-index: 20; position: relative; }
-        .sub-top { font-family: 'Orbitron'; color: #fff; font-size: 11px; letter-spacing: 4px; margin-bottom: 8px; opacity: 0.7; }
-        .main-title-ss { font-family: 'Black Ops One'; font-size: 30px; color: var(--gold); margin: 0; line-height: 1; text-shadow: 0 5px 15px rgba(0,0,0,0.8); text-transform: uppercase; }
-        .name-hero { font-family: 'Teko', sans-serif; font-size: 72px; font-weight: 700; line-height: 0.9; margin: 5px 0 15px 0; text-transform: uppercase; background: linear-gradient(to bottom, #FFF8DC 0%, #FFD700 50%, #B8860B 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.4)); animation: pulseName 2s infinite ease-in-out; }
-        .jabatan-badge { display: inline-block; background: linear-gradient(90deg, transparent, #1a1a00, transparent); border-top: 1px solid var(--gold); border-bottom: 1px solid var(--gold); padding: 8px 30px; font-family: 'Rajdhani'; font-size: 16px; font-weight: 800; color: #fff; letter-spacing: 3px; text-transform: uppercase; box-shadow: 0 0 20px rgba(255, 215, 0, 0.1); }
-
-        @keyframes spinRight { from{transform:rotate(0deg);} to{transform:rotate(360deg);} }
-        @keyframes spinLeft { from{transform:rotate(360deg);} to{transform:rotate(0deg);} }
-        @keyframes pulseName { 0%,100% { filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.4)); transform: scale(1); } 50% { filter: drop-shadow(0 0 30px rgba(255, 215, 0, 0.8)); transform: scale(1.02); } }
-
-        /* --- UI UTAMA SYSTEM --- */
+        /* --- UI UTAMA & LAYOUT --- */
         .header { text-align: center; margin-bottom: 25px; margin-top: 10px; cursor: pointer; } 
         .main-title { font-family: 'Black Ops One'; font-size: 32px; line-height: 1; color: #eee; text-shadow: 0 2px 10px rgba(0,0,0,0.8); }
         .sub-title { font-size: 11px; color: var(--gold); letter-spacing: 3px; font-weight: 700; text-transform: uppercase; margin-top: 5px; text-shadow: 0 0 10px rgba(255, 215, 0, 0.4); }
@@ -90,104 +95,84 @@
         .qb-val { font-family: 'Teko'; font-size: 28px; color: #fff; display: flex; align-items: center; gap: 10px; }
         .qb-tot { font-family: 'Black Ops One'; font-size: 36px; line-height: 0.8; color: #fff; }
 
-        /* === PERBAIKAN SLOT LIST (ANTI OVERLAP) === */
+        /* === SLOT LAYOUT (ANTI OVERLAP) === */
         .slot-container { display: flex; flex-direction: column; gap: 8px; width: 100%; }
-        
-        .armor-card { 
-            width: 100%; min-height: 85px; position: relative; background: #000; margin-bottom: 2px; 
-            transition: all 0.3s; clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px); 
-        }
+        .armor-card { width: 100%; min-height: 85px; position: relative; background: #000; margin-bottom: 2px; transition: all 0.3s; clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px); }
         .armor-border { position: absolute; inset: 0; background: #333; z-index: 0; }
         .armor-card.active .armor-border { background: #555; box-shadow: 0 0 15px rgba(255,255,255,0.05); }
+        .armor-inner { position: absolute; inset: 1px; background: linear-gradient(90deg, #121212, #080808); clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px); display: flex; align-items: center; overflow: hidden; }
         
-        .armor-inner { 
-            position: absolute; inset: 1px; background: linear-gradient(90deg, #121212, #080808); 
-            clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px); 
-            display: flex; align-items: center; overflow: hidden; 
-        }
-        .armor-num { 
-            width: 45px; height: 100%; min-height: 85px; display: flex; align-items: center; justify-content: center; 
-            font-family: 'Black Ops One'; font-size: 28px; color: #444; border-right: 1px solid #222; background: #0a0a0a; flex-shrink: 0; 
-        }
+        .armor-num { width: 45px; height: 100%; min-height: 85px; display: flex; align-items: center; justify-content: center; font-family: 'Black Ops One'; font-size: 28px; color: #444; border-right: 1px solid #222; background: #0a0a0a; flex-shrink: 0; }
         .armor-card.active .armor-num { color: #fff; text-shadow: 0 0 10px rgba(255,255,255,0.5); }
         
-        /* INFO TENGAH DIPERBAIKI (Text Overflow Ellipsis & No Wrap) */
-        .armor-info { 
-            flex: 1; padding: 0 10px; display: flex; flex-direction: column; justify-content: center; min-width: 0; 
-        }
-        .info-name { 
-            font-family: 'Rajdhani'; font-weight: 700; font-size: 10px; color: #FFD700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; 
-        }
-        .info-plat { 
-            font-family: 'Teko'; font-size: 38px; line-height: 1; color: #fff; text-shadow: 2px 2px 0px #000; letter-spacing: 0.5px; white-space: nowrap; 
-        }
+        .armor-info { flex: 1; padding: 0 10px; display: flex; flex-direction: column; justify-content: center; min-width: 0; }
+        /* NAMA WARNA EMAS */
+        .info-name { font-family: 'Rajdhani'; font-weight: 700; font-size: 10px; color: #FFD700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .info-plat { font-family: 'Teko'; font-size: 38px; line-height: 1; color: #fff; text-shadow: 2px 2px 0px #000; letter-spacing: 0.5px; white-space: nowrap; }
         
-        /* BADGE KANAN (Lebar Disesuaikan) */
-        .armor-badge { 
-            width: 90px; height: 100%; display: flex; align-items: center; justify-content: center; padding-right: 10px; flex-shrink: 0; 
-        }
+        .armor-badge { width: 100px; height: 100%; display: flex; align-items: center; justify-content: center; padding-right: 5px; flex-shrink: 0; }
         
-        /* --- STYLING BADGES --- */
-        .badge-gold-flow, .badge-red-tech, .badge-green-tech, .badge-cyan-tech { width: 100%; height: 35px; border-radius: 4px; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
+        /* === BADGE ANIMATIONS BARU === */
         
-        .badge-gold-flow { border: 1px solid var(--gold); background: #000; }
-        .flow-bg { position: absolute; inset: -50%; background: conic-gradient(from 0deg, #423103, var(--gold), #FFF8DC, var(--gold), #423103); animation: rotateFlow 5s linear infinite; opacity: 0.7; }
-        .flow-text { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; background: rgba(0,0,0,0.8); padding: 1px 5px; border-radius: 4px; width: 90%; }
-        .ft-top { font-family: 'Rajdhani'; font-weight: 800; font-size: 7px; color: #fff; letter-spacing: 2px; }
-        .ft-bot { font-family: 'Orbitron'; font-weight: 800; font-size: 11px; color: var(--gold); letter-spacing: 1px; white-space: nowrap; }
+        /* 1. KELUARGA MLU (MEMBER BIASA) */
+        .badge-keluarga { width: 100px; height: 35px; border: 1px solid #FFD700; border-radius: 4px; background: #000; position: relative; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .bg-gold-flow { position: absolute; inset: -50%; background: conic-gradient(from 0deg, #423103, #FFD700, #FFF8DC, #FFD700, #423103); animation: rotateFlow 6s linear infinite; opacity: 0.6; }
+        .text-layer { position: relative; z-index: 2; text-align: center; width: 100%; }
+        .txt-top-fam { font-size: 7px; color: #fff; letter-spacing: 1px; font-weight: 800; text-transform: uppercase; }
+        .txt-bot-fam { font-family: 'Orbitron'; font-size: 10px; color: #FFD700; letter-spacing: 1px; font-weight: 900; text-transform: uppercase; white-space: nowrap; }
 
-        .badge-red-tech { background: #1a0505; border: 1px solid var(--red); }
-        .red-scanner { position: absolute; top:0; left:-100%; width:50%; height:100%; background: linear-gradient(90deg, transparent, rgba(255,0,60,0.5), transparent); transform: skewX(-20deg); animation: scanFast 2s infinite linear; }
-        .red-word { font-family: 'Orbitron'; font-weight: 800; font-size: 11px; color: var(--red); text-shadow: 0 0 10px #550000; z-index: 2; letter-spacing: 1px; }
+        /* 2. ELITE SULTAN (Ketum, Waketum, dll) */
+        .badge-elite { width: 100px; height: 35px; background: linear-gradient(180deg, #1a1a1a, #000); border: 1px solid #B8860B; border-radius: 4px; position: relative; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; animation: pulseGoldBorder 3s infinite ease-in-out; }
+        .shine-bar { position: absolute; top: 0; left: -100%; width: 50%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent); transform: skewX(-20deg); animation: shinePass 2.5s infinite ease-in-out; }
+        .txt-top-elite { font-size: 7px; color: #aaa; letter-spacing: 2px; }
+        .txt-bot-elite { font-family: 'Black Ops One'; font-size: 11px; background: linear-gradient(to bottom, #FFF8DC, #FFD700, #B8860B); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.3)); }
 
-        .badge-green-tech { background: #020502; border: 1px solid var(--green); }
-        .green-word { font-family: 'Orbitron'; font-weight: 800; font-size: 10px; color: var(--green); text-shadow: 0 0 5px var(--green); white-space: nowrap; animation: textScroll 5s linear infinite; }
-        
-        .badge-cyan-tech { background: #001111; border: 1px solid var(--cyan); }
-        .cyan-word { font-family: 'Orbitron'; font-weight: 800; font-size: 11px; color: var(--cyan); letter-spacing: 1px; }
+        /* 3. LEGEND (Bara Api) */
+        .badge-legend { width: 100px; height: 35px; background: #0f0a00; border: 1px solid #8B4513; border-radius: 4px; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; animation: smolder 4s infinite ease-in-out; }
+        .txt-legend { font-family: 'Rajdhani'; font-weight: 900; font-size: 10px; color: #cd7f32; text-transform: uppercase; text-align: center; line-height: 1; text-shadow: 2px 2px 4px #000; letter-spacing: 1px; z-index: 2; }
 
-        .badge-kokoh-pea-chaos { width: 100%; height: 45px; background: linear-gradient(135deg, #1a051a, #000, #1a051a); border: 2px dashed var(--neon-purple); border-radius: 6px; display: flex; align-items: center; justify-content: space-between; padding: 0 2px; position: relative; overflow: hidden; animation: borderRun 0.5s infinite linear, bgDisco 2s infinite alternate; }
-        .pea-img-chaos { width: 30px; height: 30px; border-radius: 50%; border: 2px solid #fff; overflow: hidden; background: #000; z-index: 5; margin-right: 3px; }
-        .pea-img-chaos img { width: 100%; height: 100%; object-fit: cover; }
-        .pea-text-chaos { flex: 1; text-align: center; z-index: 5; }
-        .pea-word-chaos { font-family: 'Press Start 2P'; font-size: 7px; color: #fff; line-height: 1.2; animation: glitchText 0.3s infinite; }
-        .pea-sub-chaos { font-size: 5px; color: var(--green); background: #000; border: 1px solid var(--green); }
-        
-        /* === BADGE BOS BUMN PEA (ONE LINE) === */
-        .badge-bumn-pea { width: 100%; height: 40px; background: repeating-linear-gradient(135deg, #3a3a00, #3a3a00 10px, #FFD700 10px, #FFD700 20px); background-size: 200% 200%; border: 2px dashed #FFD700; border-radius: 6px; display: flex; align-items: center; padding: 0 2px; position: relative; overflow: hidden; box-shadow: 0 0 10px rgba(255, 215, 0, 0.5); animation: bumnBgScroll 0.5s linear infinite, bumnBorderFlash 0.2s infinite alternate; }
-        .badge-bumn-pea::after { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: conic-gradient(transparent, rgba(255, 215, 0, 0.4), rgba(255, 0, 60, 0.4), transparent 30%); animation: spinChaosBumn 0.4s infinite linear; z-index: 1; pointer-events: none; }
-        
-        .bumn-img-box { width: 30px; height: 30px; border-radius: 50%; border: 2px solid #FFD700; overflow: hidden; background: #000; z-index: 5; position: relative; margin-right: 4px; animation: ultraSpin 0.5s linear infinite, jitterY 0.1s infinite alternate; flex-shrink: 0; }
-        .bumn-img-box img { width: 100%; height: 100%; object-fit: cover; filter: contrast(1.5) saturate(2); }
-        
-        .bumn-text-area { flex: 1; display: flex; flex-direction: column; justify-content: center; z-index: 5; align-items: flex-start; overflow: hidden; }
-        .bumn-main-text { font-family: 'Press Start 2P', cursive; font-size: 8px; color: #FFD700; text-shadow: 2px 2px 0px #FF003C; white-space: nowrap; animation: megaGlitch 0.2s infinite steps(5) alternate; margin-bottom: 2px; }
-        .pea-highlight-red { color: #fff; background: #FF003C; padding: 1px 2px; text-shadow: none; border: 1px solid #fff; margin-left: 2px; }
-        .bumn-sub-text { font-family: 'Orbitron'; font-size: 6px; color: #000; font-weight: 900; background: #FFD700; padding: 1px 3px; border: 1px solid #000; display: inline-block; animation: panicBlink 0.1s infinite alternate; }
+        /* 4. COMMANDO (Satgas/Korlap - Flash) */
+        .badge-commando { width: 100px; height: 35px; background: #220000; border: 1px solid #FF003C; border-radius: 4px; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; animation: hazardPulse 0.8s infinite alternate; }
+        .hazard-stripes { position: absolute; inset: -50%; background: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255, 0, 60, 0.2) 10px, rgba(255, 0, 60, 0.2) 20px); animation: hazardScroll 2s linear infinite; }
+        .txt-commando { font-family: 'Black Ops One'; font-size: 14px; color: #FF003C; position: relative; z-index: 2; text-shadow: 0 0 8px #FF003C; }
+        .siren-light { position: absolute; top: 3px; right: 3px; width: 5px; height: 5px; background: #FF003C; border-radius: 50%; box-shadow: 0 0 10px #FF003C; animation: blinkFast 0.3s infinite alternate; }
 
-        .btn-kudeta { position: absolute; right: 3px; top: 3px; background: #220000; border: 1px solid #ff003c; color: #ff003c; font-size: 9px; padding: 2px 4px; font-weight: bold; cursor: pointer; z-index: 10; animation: pulseRed 2s infinite; }
-        .mini-timer { position: absolute; bottom: 3px; right: 5px; font-size: 8px; color: #666; font-family: 'Orbitron'; letter-spacing: 1px; }
+        /* 5. OFFICE (Cyber Glitch) */
+        .badge-office { width: 100px; height: 35px; background: #000505; border: 1px solid #00F0FF; border-radius: 4px; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; animation: pulseCyan 2s infinite ease-in-out; }
+        .data-stream { position: absolute; inset: 0; background: repeating-linear-gradient(90deg, rgba(0, 240, 255, 0.03) 0px, rgba(0, 240, 255, 0.03) 1px, transparent 1px, transparent 4px); animation: scanDown 3s linear infinite, cyberGlitch 0.3s infinite steps(3) alternate; }
+        .txt-office { font-family: 'Orbitron'; font-size: 14px; color: #00F0FF; position: relative; z-index: 2; letter-spacing: 2px; text-shadow: 0 0 5px #00F0FF; }
 
-        @keyframes pulseRed { 0% { box-shadow: 0 0 0 var(--red); } 50% { box-shadow: 0 0 5px var(--red); } 100% { box-shadow: 0 0 0 var(--red); } }
+        /* 6. TURTLE (Maju & Ngerem) */
+        .badge-turtle { width: 100px; height: 35px; background: #020502; border: 1px solid #39FF14; border-radius: 4px; position: relative; overflow: hidden; box-shadow: 0 0 10px rgba(57, 255, 20, 0.3); }
+        .turtle-track { position: absolute; top: 0; left: 0; width: 100%; height: 20px; border-bottom: 1px dashed #1a4411; }
+        .turtle-icon { position: absolute; top: 2px; font-size: 14px; transform: scaleX(-1); animation: runAndBrake 4s infinite cubic-bezier(0.1, 0.7, 1.0, 0.1); filter: drop-shadow(0 0 5px #39FF14); }
+        .txt-turtle { position: absolute; bottom: 2px; width: 100%; text-align: center; font-size: 7px; font-weight: bold; color: #39FF14; font-family: 'Orbitron'; letter-spacing: 1px; }
+
+        .badge-empty { width: 100%; height: 100%; }
+
+        /* KEYFRAMES */
         @keyframes rotateFlow { 0%{transform:rotate(0deg);} 100%{transform:rotate(360deg);} }
-        @keyframes scanFast { 0%{left:-100%;} 100%{left:200%;} }
-        @keyframes textScroll { 0%{transform:translateX(100%);} 100%{transform:translateX(-100%);} }
-        @keyframes borderRun { 0% { border-color: var(--neon-purple); } 50% { border-color: #fff; } 100% { border-color: var(--green); } }
-        @keyframes headBang { 0% { transform: rotate(-10deg) scale(1); } 100% { transform: rotate(10deg) scale(1.1); } }
-        @keyframes glitchText { 0% { transform: translate(0,0); } 25% { transform: translate(-1px,1px); } 50% { transform: translate(1px,-1px); } 75% { transform: translate(-1px,0); } 100% { transform: translate(0,0); } }
-        @keyframes bgDisco { 0% { background-position: 0% 50%; } 100% { background-position: 100% 50%; } }
-        @keyframes blinkTag { 0%, 100% { opacity: 1; color: var(--green); } 50% { opacity: 0.5; color: #fff; } }
-        @keyframes spinChaos { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        
-        /* Animasi BUMN PEA */
-        @keyframes bumnBgScroll { 0% {background-position: 0% 0%;} 100% {background-position: 100% 100%;} }
-        @keyframes bumnBorderFlash { 0% {border-color: #FFD700; box-shadow: 0 0 10px #FFD700;} 100% {border-color: #FF003C; box-shadow: 0 0 20px #FF003C;} }
-        @keyframes spinChaosBumn { 0% {transform: rotate(0deg) scale(1.5);} 100% {transform: rotate(360deg) scale(1.5);} }
-        @keyframes ultraSpin { 0% {transform: rotate(0deg);} 100% {transform: rotate(360deg);} }
-        @keyframes jitterY { 0% {transform: translateY(0px);} 100% {transform: translateY(-2px);} }
-        @keyframes megaGlitch { 0% { transform: translate(0,0); } 20% { transform: translate(-1px, 1px); } 40% { transform: translate(1px, -1px); } 60% { transform: translate(-1px, 0); } 80% { transform: translate(1px, 0); filter: hue-rotate(45deg); } 100% { transform: translate(0,0); } }
-        @keyframes panicBlink { 0% {opacity: 1; background: #FFD700; color:#000;} 100% {opacity: 1; background: #FF003C; color:#fff;} }
+        @keyframes shinePass { 0% {left:-100%; opacity:0;} 50% {left:150%; opacity:1;} 100% {left:150%; opacity:0;} }
+        @keyframes pulseGoldBorder { 0%, 100% { box-shadow: 0 0 5px rgba(184, 134, 11, 0.3); border-color: #B8860B; } 50% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.7); border-color: #FFD700; } }
+        @keyframes smolder { 0%, 100% { background: radial-gradient(circle at center, rgba(205, 90, 0, 0.1) 0%, #0f0a00 90%); border-color: #8B4513; } 50% { background: radial-gradient(circle at center, rgba(255, 140, 0, 0.4) 20%, #0f0a00 100%); border-color: #cd7f32; } }
+        @keyframes hazardPulse { 0% { box-shadow: 0 0 5px #550000; border-color: #FF003C; background: #220000; } 100% { box-shadow: 0 0 25px #FF003C; border-color: #ff7777; background: #440000; } }
+        @keyframes hazardScroll { 0% {background-position: 0 0;} 100% {background-position: 50px 0;} }
+        @keyframes pulseCyan { 0%, 100% { box-shadow: 0 0 5px rgba(0, 240, 255, 0.2); border-color: #00F0FF; } 50% { box-shadow: 0 0 20px rgba(0, 240, 255, 0.6); border-color: #80ffff; } }
+        @keyframes cyberGlitch { 0% { transform: translate(0,0); opacity: 0.8; } 100% { transform: translate(-2px, 1px); opacity: 1; } }
+        @keyframes runAndBrake { 0% { left: -20px; transform: scaleX(-1) skewX(0deg); } 40% { left: 85px; transform: scaleX(-1) skewX(20deg); } 45% { left: 75px; transform: scaleX(-1) skewX(-20deg); } 50% { left: 78px; transform: scaleX(-1) skewX(0deg); } 90% { left: 78px; opacity: 1; transform: scaleX(-1) skewX(0deg); } 100% { left: 78px; opacity: 0; transform: scaleX(-1) skewX(0deg); } }
 
+        /* TOMBOL KUDETA BESAR */
+        .btn-kudeta { 
+            font-family: 'Black Ops One'; font-size: 14px; padding: 8px 15px; 
+            position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+            background: #440000; border: 2px solid #ff003c; color: #ff003c; 
+            cursor: pointer; z-index: 20; box-shadow: 0 0 10px #ff003c;
+            animation: pulseRed 2s infinite; 
+        }
+        .mini-timer { position: absolute; bottom: 3px; right: 5px; font-size: 8px; color: #666; font-family: 'Orbitron'; letter-spacing: 1px; }
+        @keyframes pulseRed { 0% { box-shadow: 0 0 0 var(--red); } 50% { box-shadow: 0 0 15px var(--red); } 100% { box-shadow: 0 0 0 var(--red); } }
+
+        /* MODAL & UI LAINNYA */
         .bottom-action-area { flex: 1; min-height: 150px; display: flex; flex-direction: column; align-items: center; justify-content: center; margin-top: 20px;}
         .sunken-btn-container { width: 120px; height: 120px; border-radius: 50%; background: #000; box-shadow: inset 10px 10px 20px #000, inset -5px -5px 15px #1a1a1a, 0 0 0 1px #111; display: flex; align-items: center; justify-content: center; position: relative; cursor: pointer; transition: transform 0.2s; }
         .sunken-btn-container:active { transform: scale(0.95); }
@@ -215,7 +200,6 @@
     </style>
 </head>
 <body>
-
     <div id="loading-screen">
         <div class="loader-spinner"></div>
         <div class="loader-text">MEMUAT SISTEM KEAMANAN...</div>
@@ -230,32 +214,13 @@
     </div>
 
     <div id="hangar-overlay" onclick="wakeUp()">
-        <div class="cyber-grid"></div>
-        <div class="profile-container">
-            <div class="rotating-text-wrapper">
-                <svg viewBox="0 0 500 500" width="100%" height="100%">
-                    <defs>
-                        <path id="textCircle" d="M 60,250 A 190,190 0 1,1 440,250 A 190,190 0 1,1 60,250" />
-                    </defs>
-                    <text width="500">
-                        <textPath href="#textCircle" startOffset="0%" class="curved-text">
-                            ★ MAKA LINTAS UTARA ★ NEW LEADER
-                        </textPath>
-                    </text>
-                </svg>
-            </div>
-            <div class="ring-outer"></div>
-            <div class="profile-img-box">
-                <img src="aki.jpg" alt="AKI AHMAD" onerror="this.src='logo.png'">
-                <div class="scanner-gold"></div>
-            </div>
+        <div class="holo-container">
+            <div class="radar-ring"></div>
+            <img src="logo.png" alt="MLU" class="holo-logo" onerror="this.src='https://via.placeholder.com/150/000000/FFFFFF?text=MLU'">
+            <div class="scan-line"></div>
         </div>
-        <div class="welcome-text">
-            <div class="sub-top">[ SYSTEM UPDATE: LEADERSHIP ]</div>
-            <div class="main-title-ss">SELAMAT DATANG</div>
-            <div class="name-hero">AKI AHMAD</div>
-            <div class="jabatan-badge">KETUA UMUM 2026</div>
-        </div>
+        <div class="ss-title">FC KELAPA GADING</div>
+        <div class="ss-sub">[ SYSTEM STANDBY - TAP TO ACCESS ]</div>
     </div>
 
     <div class="header" ondblclick="toggleAdmin()">
@@ -307,27 +272,48 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, doc, onSnapshot, runTransaction, collection, addDoc, getDoc, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // === KONFIGURASI ===
+        // === KONFIGURASI LOKASI ===
         const STATION_LAT = -6.171583; 
         const STATION_LNG = 106.899844; 
-        const MAX_DIST_KM = 0.2; 
+        const MAX_DIST_KM = 0.2; // Jarak untuk boleh daftar
+        const AUTO_KICK_KM = 0.5; // Jarak 500m untuk Auto Kick
         
         function removeLoader() { const l = document.getElementById('loading-screen'); if(l) { l.style.opacity = '0'; setTimeout(()=>l.remove(), 500); } }
 
+        // FUNGSI HITUNG JARAK
+        function calculateDist(lat1, lon1, lat2, lon2) {
+            const R = 6371;
+            const dLat = (lat2-lat1)*Math.PI/180;
+            const dLon = (lon2-lon1)*Math.PI/180;
+            const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        }
+
+        // FUNGSI CEK LOKASI (DAFTAR)
         function checkLocation() {
             return new Promise((resolve, reject) => {
                 if(!navigator.geolocation) { removeLoader(); resolve(false); return; }
                 navigator.geolocation.getCurrentPosition((pos) => {
-                    const R = 6371;
-                    const lat1 = STATION_LAT, lon1 = STATION_LNG;
-                    const lat2 = pos.coords.latitude, lon2 = pos.coords.longitude;
-                    const dLat = (lat2-lat1)*Math.PI/180;
-                    const dLon = (lon2-lon1)*Math.PI/180;
-                    const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
-                    const dist = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+                    const dist = calculateDist(STATION_LAT, STATION_LNG, pos.coords.latitude, pos.coords.longitude);
                     if(dist <= MAX_DIST_KM) resolve(true); else resolve(false);
                 }, () => resolve(false), { enableHighAccuracy: true, timeout: 5000 });
             });
+        }
+
+        // === FITUR AUTO KICK WATCHER (JIKA JAUH 500m) ===
+        if(navigator.geolocation) {
+            navigator.geolocation.watchPosition((pos) => {
+                // Hanya jalankan logic ini jika user sudah login (punya plat)
+                if(localStorage.getItem('myPlat')) {
+                    const dist = calculateDist(STATION_LAT, STATION_LNG, pos.coords.latitude, pos.coords.longitude);
+                    if(dist > AUTO_KICK_KM) {
+                        // JIKA JARAK > 500 METER -> LOGOUT PAKSA
+                        alert(`ANDA TERDETEKSI JAUH (${Math.round(dist*1000)}m) DARI LOKASI.\nSISTEM OTOMATIS MERESET AKSES ANDA.`);
+                        localStorage.clear();
+                        location.reload();
+                    }
+                }
+            }, (err) => {}, {enableHighAccuracy: true, maximumAge: 10000});
         }
 
         const firebaseConfig = { apiKey: "AIzaSyB666i9lYWIpxOdkwpoX9EvFvHLmHczeq8", authDomain: "fcgadingnew22.firebaseapp.com", projectId: "fcgadingnew22", storageBucket: "fcgadingnew22.firebasestorage.app", messagingSenderId: "537736846678", appId: "1:537736846678:web:53788d71a196423ac08af7" };
@@ -383,15 +369,32 @@
             $('totalQDisplay').innerText = localQueue.length; $('nextQDisplay').innerText = localQueue.length > 0 ? localQueue[0].plat : "--";
         }
 
+        // === LOGIKA BADGE TERBARU SESUAI GRUP ===
         function getBadgeHTML(r) {
-            if(!r || r==="GUEST") return `<div class="badge-empty"></div>`; 
-            if(r === "BOS BUMN PEA" || r === "BUMN PEA") { const fotoBos = "foto_bos.jpg"; return `<div class="badge-bumn-pea"><div class="bumn-img-box"><img src="${fotoBos}" alt="BOS" onerror="this.src='logo.png'"></div><div class="bumn-text-area"><div class="bumn-main-text">BOS BUMN <span class="pea-highlight-red">PEA</span></div><div class="bumn-sub-text">CUAN EROOOOR 📉</div></div></div>`; }
-            if(r === "PEA" || r === "KOKOH PEA") return `<div class="badge-kokoh-pea-chaos"><div class="pea-img-chaos"><img src="cris.png" alt="PEA"></div><div class="pea-text-chaos"><div class="pea-word-chaos">KOKOH<br>PEA</div><div class="pea-sub-chaos">404 WARAS NOT FOUND</div></div></div>`;
-            if(r.includes("SATGAS") || r.includes("KORLAP")) return `<div class="badge-red-tech"><div class="red-scanner"></div><div class="red-word">${r.includes("KOR")?"KORLAP":"SATGAS"}</div></div>`;
-            if(r.includes("TURTLE") || r.includes("PELAN")) return `<div class="badge-green-tech"><div class="green-word">PELAN TAPI KENCENG 🐢</div></div>`;
-            if(r.includes("OFFICE")) return `<div class="badge-cyan-tech"><div class="cyan-word">OFFICE</div></div>`;
-            let txtTop = "MEMBER"; let txtBot = r; if(r.includes("KETUA")) {txtTop="KETUA"; txtBot="UMUM";} if(r.includes("WAKETUM")){txtTop="WAKIL"; txtBot="KETUM";}
-            return `<div class="badge-gold-flow"><div class="flow-bg"></div><div class="flow-text"><div class="ft-top">${txtTop}</div><div class="ft-bot">${txtBot}</div></div></div>`;
+            if (!r || r === "GUEST") return ""; 
+            
+            // 1. ELITE (SULTAN)
+            if (["KETUA UMUM", "WAKETUM", "SEKJEN", "PEMBINA", "KACAB"].some(x => r.includes(x))) {
+                let txtTop = "FC GADING"; 
+                if(r.includes("KACAB")) txtTop = "BRANCH MANAGER";
+                if(r.includes("PEMBINA")) txtTop = "ADVISOR";
+                return `<div class="badge-elite"><div class="shine-bar"></div><div class="txt-top-elite">${txtTop}</div><div class="txt-bot-elite">${r}</div></div>`;
+            }
+
+            // 2. LEGEND
+            if (r.includes("DULUNYA")) return `<div class="badge-legend"><div class="txt-legend">DULUNYA<br>PEMBINA</div></div>`;
+
+            // 3. COMMANDO
+            if (r.includes("SATGAS") || r.includes("KORLAP")) return `<div class="badge-commando"><div class="hazard-stripes"></div><div class="siren-light"></div><div class="txt-commando">${r}</div></div>`;
+
+            // 4. OFFICE
+            if (r.includes("OFFICE")) return `<div class="badge-office"><div class="data-stream"></div><div class="txt-office">OFFICE</div></div>`;
+
+            // 5. TURTLE
+            if (r.includes("PELAN") || r.includes("TURTLE")) return `<div class="badge-turtle"><div class="turtle-track"><div class="turtle-icon">🐢💨</div></div><div class="txt-turtle">PELAN TAPI KENCENG</div></div>`;
+
+            // DEFAULT: MEMBER BIASA
+            return `<div class="badge-keluarga"><div class="bg-gold-flow"></div><div class="text-layer"><div class="txt-top-fam">KELUARGA MLU</div><div class="txt-bot-fam">${r}</div></div></div>`;
         }
 
         window.openQueueList = () => { const body = $('qlBody'); body.innerHTML = ''; if(localQueue.length === 0) body.innerHTML = '<div style="text-align:center; padding:20px; color:#666;">KOSONG</div>'; else { localQueue.forEach((q) => { body.innerHTML += `<div style="background:#222; margin:5px; padding:10px; border-left:3px solid gold;"><div style="font-family:'Teko'; font-size:24px;">${q.plat}</div><div style="font-size:12px; color:#888;">${q.userName}</div></div>`; }); } $('queueListModal').style.display = 'flex'; };
