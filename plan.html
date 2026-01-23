@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MLU Plan Your Trip</title>
+    <title>MLU Ultimate Planner</title>
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -11,14 +11,9 @@
     
     <style>
         :root {
-            /* CYAN MLU PALETTE */
-            --primary: #06b6d4;       /* Cyan 500 */
-            --primary-dark: #0891b2;  /* Cyan 600 */
-            --primary-light: #cffafe; /* Cyan 100 */
-            --accent: #3b82f6;        /* Blue 500 */
-            --danger: #ef4444;
-            --text-dark: #0f172a;
-            --bg-body: #f8fafc;
+            --primary: #06b6d4; --primary-dark: #0891b2; --primary-light: #cffafe;
+            --accent: #3b82f6; --danger: #ef4444; --warning: #f59e0b;
+            --text-dark: #0f172a; --bg-body: #f8fafc;
             --shadow-card: 0 10px 25px -5px rgba(6, 182, 212, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
         }
 
@@ -27,8 +22,8 @@
         
         /* HEADER */
         .header { 
-            background: linear-gradient(135deg, #0f172a, #1e293b); 
-            color: white; padding: 25px 20px; border-bottom: 4px solid var(--primary);
+            background: linear-gradient(135deg, #0f172a, #1e293b); color: white; 
+            padding: 25px 20px; border-bottom: 4px solid var(--primary);
             text-align: center; border-bottom-left-radius: 25px; border-bottom-right-radius: 25px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.2);
         }
@@ -44,8 +39,6 @@
         .form-control:focus { border-color: var(--primary); background: #fff; outline: none; box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.1); }
         
         .btn-add { background: var(--primary-light); color: var(--primary-dark); width: 100%; padding: 12px; border: 1px dashed var(--primary); border-radius: 12px; cursor: pointer; font-weight: 700; margin-bottom: 20px; font-size: 0.9em; transition: 0.3s; }
-        .btn-add:hover { background: #ecfeff; }
-
         .btn-action { 
             width: 100%; padding: 16px; background: linear-gradient(to right, var(--primary), var(--accent)); 
             color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 800; cursor: pointer; 
@@ -55,78 +48,52 @@
 
         /* RESULT CARD */
         .route-card { background: white; border-radius: 16px; padding: 20px; margin-bottom: 20px; border: 1px solid #e2e8f0; box-shadow: var(--shadow-card); position: relative; overflow: hidden; }
-        .route-card.aman { border-left: 6px solid #10b981; }
-        .route-card.nekat { border-left: 6px solid #f97316; }
+        .route-card.aman { border-left: 6px solid #10b981; } 
+        .route-card.nekat { border-left: 6px solid #f97316; } 
+        .route-card.darurat { border-left: 6px solid #ef4444; background: #fff5f5; }
 
         .card-header-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #f1f5f9; }
         .badge-type { padding: 6px 12px; border-radius: 8px; font-size: 0.75em; font-weight: 800; color: white; text-transform: uppercase; }
-        .aman .badge-type { background: #10b981; }
-        .nekat .badge-type { background: #f97316; }
-
+        
         .btn-swap { background: #f1f5f9; color: #475569; border: none; font-size: 0.75em; padding: 8px 12px; border-radius: 20px; cursor: pointer; font-weight: 700; display: flex; align-items: center; gap: 5px; }
-        .btn-swap:hover { background: #e2e8f0; color: var(--primary-dark); }
 
         /* TIMELINE */
         .timeline { position: relative; padding-left: 30px; margin-top: 10px; }
         .timeline::before { content: ''; position: absolute; left: 7px; top: 5px; bottom: 5px; width: 2px; background: #e2e8f0; }
         .t-item { position: relative; margin-bottom: 25px; }
-        .t-item:last-child { margin-bottom: 0; }
         .t-dot { position: absolute; left: -30px; top: 0; width: 16px; height: 16px; border-radius: 50%; background: white; border: 3px solid #cbd5e1; z-index: 2; box-shadow: 0 0 0 3px white; }
-        
         .dist-label { position: absolute; left: -68px; top: 25px; width: 60px; text-align: right; font-size: 0.7em; color: #64748b; font-weight: 600; background: #fff; padding-right: 5px; }
-        
         .t-title { font-weight: 700; font-size: 0.95em; color: #1e293b; }
         .t-desc { font-size: 0.85em; color: #64748b; margin-top: 2px; }
-        
-        /* ALAMAT TERDETEKSI (NEW STYLE) */
-        .detected-addr { 
-            display: block; margin-top: 3px; 
-            font-size: 0.75em; color: var(--primary-dark); font-style: italic; 
-            background: #ecfeff; padding: 4px 8px; border-radius: 6px; border-left: 2px solid var(--primary);
+
+        /* KONFIRMASI ALAMAT - HIGHLIGHTED */
+        .addr-box {
+            margin-top: 5px; font-size: 0.75em; color: #0e7490; background: #ecfeff;
+            padding: 6px 10px; border-radius: 6px; border-left: 3px solid var(--primary);
+            font-style: italic; line-height: 1.4; display: block;
         }
 
-        .info-dest { margin-top: 20px; padding: 15px; background: #ecfeff; border: 1px solid #cffafe; border-radius: 12px; font-size: 0.85em; color: var(--primary-dark); display: flex; align-items: center; gap: 12px; }
+        .info-dest { margin-top: 20px; padding: 15px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; font-size: 0.85em; color: #475569; display: flex; align-items: center; gap: 12px; }
 
         #map { height: 350px; width: 100%; border-radius: 16px; margin-top: 25px; border: 2px solid #e2e8f0; }
         .gmaps-btn { display: block; text-align: center; background: #fff; border: 2px solid #e2e8f0; color: var(--text-dark); padding: 14px; border-radius: 12px; margin-top: 15px; text-decoration: none; font-weight: 800; font-size: 0.9em; transition: 0.2s; }
-        .gmaps-btn:hover { border-color: var(--primary); color: var(--primary); }
+        
         .remove-btn { color: #ef4444; background: none; border: none; font-size: 1.2em; padding: 0 15px; cursor: pointer; }
 
-        /* LOADING SCANNER */
-        .loading-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(15, 23, 42, 0.95); z-index: 10000;
-            display: none; flex-direction: column; align-items: center; justify-content: center;
-            backdrop-filter: blur(5px);
-        }
-        .scan-container {
-            position: relative; width: 180px; height: 180px;
-        }
-        .img-bw {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain;
-            filter: grayscale(100%) contrast(1.2) brightness(0.8); opacity: 0.5;
-        }
-        .scan-mask {
-            position: absolute; top: 0; left: 0; width: 100%; height: 0%;
-            overflow: hidden; border-bottom: 3px solid #00f2ff;
-            box-shadow: 0 5px 20px rgba(0, 242, 255, 0.8);
-            animation: laserScan 2.5s infinite ease-in-out alternate;
-            background: transparent;
-        }
+        /* LOADING LASER */
+        .loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.95); z-index: 10000; display: none; flex-direction: column; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
+        .scan-container { position: relative; width: 180px; height: 180px; }
+        .img-bw { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; filter: grayscale(100%) contrast(1.2) brightness(0.8); opacity: 0.5; }
+        .scan-mask { position: absolute; top: 0; left: 0; width: 100%; height: 0%; overflow: hidden; border-bottom: 3px solid #00f2ff; box-shadow: 0 5px 20px rgba(0, 242, 255, 0.8); animation: laserScan 2.5s infinite ease-in-out alternate; background: transparent; }
         .img-color { width: 180px; height: 180px; object-fit: contain; }
         @keyframes laserScan { 0% { height: 0%; } 100% { height: 100%; } }
-        .loading-text {
-            margin-top: 30px; color: #00f2ff; font-family: 'Manrope', sans-serif;
-            font-weight: 700; letter-spacing: 2px; font-size: 1em; text-transform: uppercase;
-            text-shadow: 0 0 10px rgba(0, 242, 255, 0.5); animation: blinkText 1s infinite;
-        }
+        .loading-text { margin-top: 30px; color: #00f2ff; font-family: 'Manrope', sans-serif; font-weight: 700; letter-spacing: 2px; font-size: 1em; text-transform: uppercase; animation: blinkText 1s infinite; }
         @keyframes blinkText { 50% { opacity: 0.5; } }
 
         /* MODAL */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.7); z-index: 9999; display: none; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
         .modal-box { background: white; width: 90%; max-width: 400px; max-height: 80vh; border-radius: 20px; padding: 25px; overflow-y: auto; }
         .alt-item { padding: 15px; border: 1px solid #e2e8f0; border-radius: 12px; margin-bottom: 10px; cursor: pointer; transition: 0.2s; }
-        .alt-item:hover { border-color: var(--primary); background: #f0f9ff; }
     </style>
 </head>
 <body>
@@ -239,7 +206,7 @@
         resArea.innerHTML = '';
 
         try {
-            await new Promise(r => setTimeout(r, 3000)); // Animasi 3 detik
+            await new Promise(r => setTimeout(r, 3000));
 
             let points = [];
             for(let txt of inputTexts) {
@@ -262,23 +229,35 @@
                 drawRoute(points, '#10b981');
             } 
             else {
+                // FIND CHARGERS (FORCE FIND ENABLED)
                 const opts = await findChargerOptions(points, batStart);
                 currentData.safeList = opts.safeList;
                 currentData.nekatList = opts.nekatList;
 
+                // OPSI 1: SAFE
                 if(opts.safeList.length > 0) {
                     const itinSafe = await buildItinerary(points, batStart, opts.safeList[0]);
                     resArea.innerHTML += `<div id="card-aman-cont">${renderCard('aman', '🛡️ OPSI 1: RUTIN AMAN', itinSafe, nearDest, true)}</div>`;
                     drawComplexRoute(points, opts.safeList[0], '#10b981');
                 }
 
+                // OPSI 2: NEKAT / DARURAT
                 if(opts.nekatList.length > 0) {
                     let idx = 0;
+                    // Hindari duplikat jika opsi safe = nekat
                     if(opts.safeList.length > 0 && opts.nekatList[0].name === opts.safeList[0].name && opts.nekatList.length > 1) idx = 1;
+                    
+                    // Cek apakah ini mode darurat (force find)
+                    const isEmergency = opts.nekatList[idx].distFromStart > batStart;
+                    const cardType = isEmergency ? 'darurat' : 'nekat';
+                    const title = isEmergency ? '⚠️ OPSI DARURAT (FORCE FIND)' : '🚀 OPSI 2: LEBIH CEPAT';
+
                     const itinNekat = await buildItinerary(points, batStart, opts.nekatList[idx]);
-                    resArea.innerHTML += `<div id="card-nekat-cont">${renderCard('nekat', '🚀 OPSI 2: LEBIH CEPAT (EFISIEN)', itinNekat, nearDest, true)}</div>`;
-                } else if (opts.safeList.length === 0) {
-                    resArea.innerHTML = `<div style="padding:20px; text-align:center; color:red; border:1px solid red; border-radius:12px;">❌ Tidak ada charger terjangkau!</div>`;
+                    resArea.innerHTML += `<div id="card-nekat-cont">${renderCard(cardType, title, itinNekat, nearDest, true)}</div>`;
+                    
+                    if(isEmergency && opts.safeList.length === 0) {
+                        drawComplexRoute(points, opts.nekatList[idx], '#ef4444');
+                    }
                 }
             }
 
@@ -287,6 +266,39 @@
         } finally {
             loading.style.display = 'none';
         }
+    }
+
+    // --- FORCE FIND LOGIC ---
+    async function findChargerOptions(points, batStart) {
+        const start = points[0]; const end = points[points.length-1];
+        let safeList = [];
+        let nekatList = [];
+        let absoluteList = []; // Untuk force find
+
+        fcLocations.forEach(fc => {
+            const d = getCrowDist(start.lat, start.lon, fc.lat, fc.lng);
+            const dEnd = getCrowDist(fc.lat, fc.lng, end.lat, end.lon);
+            const direct = getCrowDist(start.lat, start.lon, end.lat, end.lon);
+            const detour = (d + dEnd) - direct;
+            const data = { ...fc, distFromStart: d, detour: detour };
+
+            if(d <= (batStart - 5)) safeList.push(data);
+            if(d <= batStart) nekatList.push(data);
+            
+            absoluteList.push(data); // Masukkan semua ke absolute
+        });
+
+        // Sorting
+        safeList.sort((a,b) => a.distFromStart - b.distFromStart);
+        nekatList.sort((a,b) => a.detour - b.detour);
+        absoluteList.sort((a,b) => a.distFromStart - b.distFromStart); // Terdekat mutlak
+
+        // FORCE FIND: Jika Safe & Nekat kosong, isi Nekat dengan Absolute Nearest
+        if(safeList.length === 0 && nekatList.length === 0) {
+            nekatList = absoluteList.slice(0, 3); // Ambil 3 terdekat fisik
+        }
+
+        return { safeList, nekatList };
     }
 
     async function buildItinerary(originalPoints, startBat, charger) {
@@ -310,17 +322,15 @@
 
             let pointData = {
                 name: path[i].name.split(',')[0],
-                fullName: path[i].name, // Untuk konfirmasi alamat
+                fullName: path[i].name, // ADDRESS CONFIRMATION
                 isCharger: path[i].isCharger,
                 currentBat: currentBat,
                 distToNext: distToNext
             };
 
             if (path[i].isCharger) {
-                pointData.action = "Isi Full (100%)";
                 currentBat = 100; 
             }
-            
             if (i < path.length - 1) {
                 currentBat = Math.floor(currentBat - Math.ceil(distToNext));
             }
@@ -330,7 +340,10 @@
     }
 
     function renderCard(type, title, itineraryData, nearDest, showSwap) {
-        const color = type === 'aman' ? '#10b981' : '#f97316';
+        let color = '#10b981';
+        if(type === 'nekat') color = '#f97316';
+        if(type === 'darurat') color = '#ef4444';
+
         const swapHtml = showSwap ? `<button class="btn-swap" onclick="openModal('${type}')"><i class="fas fa-sync"></i> Ganti Charger</button>` : '';
         
         let html = `
@@ -348,16 +361,15 @@
             if(pt.isCharger) dotColor = color; 
             if(isLast) dotColor = '#10b981'; 
 
-            let distHtml = '';
-            if (!isLast) {
-                distHtml = `<div class="dist-label">⬇ ${pt.distToNext.toFixed(1)} km</div>`;
-            }
-
+            let distHtml = !isLast ? `<div class="dist-label">⬇ ${pt.distToNext.toFixed(1)} km</div>` : '';
+            
             let batColor = '#10b981';
-            if(pt.currentBat < 20) batColor = '#ef4444';
+            if(pt.currentBat < 0) batColor = '#ef4444'; // Minus
+            else if(pt.currentBat < 20) batColor = '#ef4444';
             else if(pt.currentBat < 40) batColor = '#f59e0b';
 
-            let addrHtml = pt.isCharger ? '' : `<span class="detected-addr">📍 Terdeteksi: ${pt.fullName}</span>`;
+            // CONFIRMATION ADDRESS BOX
+            let addrHtml = pt.isCharger ? '' : `<span class="addr-box">📍 ${pt.fullName}</span>`;
 
             let content = `
                 <div class="t-title">${pt.name} ${pt.isCharger ? '⚡' : ''}</div>
@@ -408,7 +420,7 @@
         list.forEach(opt => {
             div.innerHTML += `<div class="alt-item" onclick="selectAlt('${type}', '${opt.name}')">
                 <div style="font-weight:700; color:#0e7490">${opt.name}</div>
-                <div style="font-size:0.85em; color:#64748b">Jarak Lurus: ${opt.distFromStart.toFixed(1)} km | Detour: ${opt.detour.toFixed(1)} km</div>
+                <div style="font-size:0.85em; color:#64748b">Jarak: ${opt.distFromStart.toFixed(1)} km | Detour: ${opt.detour.toFixed(1)} km</div>
             </div>`;
         });
         document.getElementById('modal-overlay').style.display = 'flex';
@@ -420,39 +432,26 @@
         const list = type === 'aman' ? currentData.safeList : currentData.nekatList;
         const selected = list.find(x => x.name === name);
         const container = type === 'aman' ? 'card-aman-cont' : 'card-nekat-cont';
-        const title = type === 'aman' ? '🛡️ OPSI 1: RUTIN AMAN' : '🚀 OPSI 2: LEBIH CEPAT';
         
+        // Cek darurat
+        const isEmergency = selected.distFromStart > currentData.bat;
+        const cardType = isEmergency ? 'darurat' : (type === 'aman' ? 'aman' : 'nekat');
+        const title = isEmergency ? '⚠️ OPSI DARURAT' : (type === 'aman' ? '🛡️ OPSI 1: RUTIN AMAN' : '🚀 OPSI 2: LEBIH CEPAT');
+
         document.getElementById(container).style.opacity = '0.5';
-        
         const itin = await buildItinerary(currentData.points, currentData.bat, selected);
-        document.getElementById(container).innerHTML = renderCard(type, title, itin, currentData.nearDest, true);
+        document.getElementById(container).innerHTML = renderCard(cardType, title, itin, currentData.nearDest, true);
         document.getElementById(container).style.opacity = '1';
         
         mapLayers.clearLayers();
-        drawComplexRoute(currentData.points, selected, type==='aman'?'#10b981':'#f97316');
-    }
-
-    async function findChargerOptions(points, batStart) {
-        const start = points[0]; const end = points[points.length-1];
-        let safeList = [], nekatList = [];
-        fcLocations.forEach(fc => {
-            const d = getCrowDist(start.lat, start.lon, fc.lat, fc.lng);
-            const dEnd = getCrowDist(fc.lat, fc.lng, end.lat, end.lon);
-            const direct = getCrowDist(start.lat, start.lon, end.lat, end.lon);
-            const detour = (d + dEnd) - direct;
-            const data = { ...fc, distFromStart: d, detour: detour };
-            if(d <= (batStart - 5)) safeList.push(data);
-            if(d <= batStart) nekatList.push(data);
-        });
-        safeList.sort((a,b) => a.distFromStart - b.distFromStart);
-        nekatList.sort((a,b) => a.detour - b.detour);
-        return { safeList, nekatList };
+        drawComplexRoute(currentData.points, selected, isEmergency ? '#ef4444' : (type==='aman'?'#10b981':'#f97316'));
     }
 
     async function getGeo(q) {
         const r = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q+" Indonesia")}&limit=1&addressdetails=1`);
         const d = await r.json();
-        return d[0] ? {lat: parseFloat(d[0].lat), lon: parseFloat(d[0].lon), name: d[0].display_name} : null;
+        if(d[0]) return { lat: parseFloat(d[0].lat), lon: parseFloat(d[0].lon), name: d[0].display_name };
+        return null;
     }
     async function getOSRM(pts) {
         const s = pts.map(p => `${p.lon},${p.lat}`).join(';');
@@ -465,12 +464,6 @@
             return {...fc, dist: getCrowDist(coord.lat, coord.lon, fc.lat, fc.lng)};
         }).sort((a,b) => a.dist - b.dist);
         return sorted[0];
-    }
-    async function drawRoute(pts, color, dash=null) {
-        const r = await getOSRM(pts);
-        const l = decodePolyline(r.geometry);
-        L.polyline(l, {color: color, weight: 6, dashArray: dash}).addTo(mapLayers);
-        map.fitBounds(L.latLngBounds(l), {padding:[40,40]});
     }
     function getCrowDist(lat1, lon1, lat2, lon2) {
         const R = 6371; const p = Math.PI/180;
