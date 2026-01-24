@@ -76,6 +76,8 @@
                 <option value="CUSTOM">✍ INPUT MANUAL (CUSTOM)...</option>
                 
                 <optgroup label="--- BOARD OF DIRECTORS ---">
+                    <option value="PRESIDEN MCU">🔥 PRESIDEN MCU</option>
+                    <option value="PROVOKATOR MCU">👿 PROVOKATOR MCU</option>
                     <option value="KETUM">👑 KETUA UMUM</option>
                     <option value="WAKETUM">⭐ WAKETUM</option>
                     <option value="PEMBINA">📜 PEMBINA</option>
@@ -147,7 +149,7 @@
     <div class="box" style="border-top: 3px solid var(--red);">
         <h3 style="color:var(--red);">6. DANGER ZONE (RESET)</h3>
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-            <button onclick="if(confirm('Reset Nomor Antrian jadi 1? Slot charging tetap aman.')) resetDaily()" class="btn-gold">🔄 RESET NOMOR HARIAN</button>
+            <button onclick="if(confirm('Reset Nomor Urut Antrian jadi 1? Daftar antrian tetap aman.')) resetDaily()" class="btn-gold">🔄 RESET NOMOR HARIAN</button>
             <button onclick="if(confirm('BAHAYA: Hapus SEMUA data antrian & slot?')) resetTotal()" class="btn-red">☣ WIPE TOTAL (0)</button>
         </div>
     </div>
@@ -290,6 +292,8 @@
                         count++; let color = '#fff'; let label = d.role;
                         
                         if(d.role === 'PEA') { color = 'var(--purple)'; label = '🟣 KOKOH PEA'; }
+                        else if(d.role === 'PRESIDEN MCU') { color = '#ff003c'; label = '🔥 PRESIDEN MCU'; }
+                        else if(d.role === 'PROVOKATOR MCU') { color = '#ff4500'; label = '👿 PROVOKATOR MCU'; }
                         else if(d.role === 'KETUM') { color = 'var(--gold)'; label = '👑 KETUA UMUM'; }
                         else if(d.role === 'WAKETUM') { color = '#ddd'; label = 'WAKETUM'; }
                         else if(d.role === 'KORLAP') { color = 'var(--red)'; label = '🔴 KORLAP'; }
@@ -329,7 +333,26 @@
             }
         };
 
-        window.resetDaily = () => { runTransaction(db, async(t) => { t.update(mainRef, { waitingQueue: [], recycledNumbers: [], lastTicket: 0 }); addLog("SUPER_ADMIN", "RESET_DAILY", "Reset Queue Numbers"); }); };
+        // RESET NOMOR HARIAN (SAFE MODE)
+        // Reset nomor jadi 1, tapi antrian user TETAP ADA (hanya re-index)
+        window.resetDaily = () => {
+            runTransaction(db, async(t) => {
+                const ref = doc(db, "antrian", "utama");
+                const d = (await t.get(ref)).data();
+                
+                // Re-index antrian yang ada biar mulai dari 1 lagi
+                const newQ = (d.waitingQueue || []).map((q, i) => ({ ...q, qNo: i + 1 }));
+                
+                t.update(ref, { 
+                    waitingQueue: newQ, 
+                    recycledNumbers: [], 
+                    lastTicket: newQ.length 
+                });
+                
+                addLog("SUPER_ADMIN", "RESET_DAILY", "Reset Queue Numbering Only");
+            }); 
+        };
+
         window.resetTotal = () => { setDoc(mainRef, { chargingSlots:[null,null,null], waitingQueue:[], recycledNumbers:[], lastTicket:0 }).then(() => addLog("SUPER_ADMIN", "RESET_TOTAL", "Wiped Everything")); };
         
         onSnapshot(query(logRef, orderBy("timestamp", "desc"), limit(50)), (snap) => {
