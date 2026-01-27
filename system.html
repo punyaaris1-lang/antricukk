@@ -12,90 +12,103 @@
     
     <style>
         :root { 
-            --bg: #050505; --gold: #FFD700; --red: #FF003C; --cyan: #00F0FF; --green: #39FF14;
-            --glass-bg: rgba(10, 10, 10, 0.95); --border-tech: 1px solid rgba(0, 240, 255, 0.3);
+            --bg: #050505; --gold: #FFD700; --cyan: #00F0FF; 
+            --scan-color: rgba(0, 240, 255, 0.5);
         }
         
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; outline: none; }
         
         body { 
             font-family: 'Rajdhani', sans-serif; background: #000;
+            /* Background Grid Tech */
+            background-image: 
+                linear-gradient(rgba(0, 255, 0, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 0, 0.03) 1px, transparent 1px);
+            background-size: 30px 30px;
             color: #ddd; margin: 0; padding: 15px 20px 120px 20px; 
             min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden;
         }
 
-        /* --- LOADING SCREEN --- */
+        /* LOADING */
         #loading-screen { position: fixed; inset: 0; background: #000; z-index: 25000; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s; }
         .loader-spinner { width: 50px; height: 50px; border: 3px solid #222; border-top: 3px solid var(--gold); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
         .loader-text { font-family: 'Orbitron'; color: var(--gold); font-size: 14px; letter-spacing: 3px; animation: pulseText 1s infinite; }
 
-        /* --- NEW SCREENSAVER: TACTICAL SCANNER --- */
+        /* --- NEW SCREENSAVER: TACTICAL HUD --- */
         #hangar-overlay { 
             position: fixed; inset: 0; z-index: 10000; 
             background: #000; 
-            /* Background Grid Militer */
-            background-image: 
-                linear-gradient(rgba(0, 255, 0, 0.05) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0, 255, 0, 0.05) 1px, transparent 1px);
-            background-size: 40px 40px;
             display: none; flex-direction: column; align-items: center; justify-content: center; 
         }
 
-        /* Container Utama Scanner */
-        .scan-container {
-            position: relative;
-            width: 85%; max-width: 400px;
+        .hud-container {
+            position: relative; width: 100%; max-width: 350px;
             display: flex; flex-direction: column; align-items: center;
         }
 
-        /* Bingkai Foto Tech */
+        .hud-label {
+            font-family: 'Orbitron'; font-size: 10px; color: var(--gold); letter-spacing: 3px;
+            margin-bottom: 10px; text-transform: uppercase; border-bottom: 1px solid var(--gold);
+            padding-bottom: 5px; width: 100%; text-align: center;
+        }
+
+        /* BINGKAI FOTO */
         .scan-frame {
             position: relative;
-            width: 250px; height: 350px;
-            border: 2px solid #333;
-            margin-bottom: 30px;
+            width: 280px; height: 380px; /* Ukuran Pas Portrait */
+            border: 2px solid #222;
+            background: #0a0a0a;
+            display: flex; align-items: center; justify-content: center;
             overflow: hidden;
-            box-shadow: 0 0 30px rgba(0,0,0,0.8);
+            box-shadow: 0 0 20px rgba(0,0,0,0.8);
         }
 
-        /* Sudut-sudut Bingkai (Bracket) */
-        .scan-frame::before { content: ''; position: absolute; top: -2px; left: -2px; width: 20px; height: 20px; border-top: 3px solid var(--gold); border-left: 3px solid var(--gold); z-index: 5; }
-        .scan-frame::after { content: ''; position: absolute; bottom: -2px; right: -2px; width: 20px; height: 20px; border-bottom: 3px solid var(--gold); border-right: 3px solid var(--gold); z-index: 5; }
+        /* POJOKAN BINGKAI (Siku Emas) */
+        .corner { position: absolute; width: 15px; height: 15px; border-color: var(--gold); border-style: solid; z-index: 5; transition: 0.3s; }
+        .tl { top: 0; left: 0; border-width: 3px 0 0 3px; }
+        .tr { top: 0; right: 0; border-width: 3px 3px 0 0; }
+        .bl { bottom: 0; left: 0; border-width: 0 0 3px 3px; }
+        .br { bottom: 0; right: 0; border-width: 0 3px 3px 0; }
 
-        /* Foto Target */
+        /* FOTO */
         .scan-img {
             width: 100%; height: 100%;
-            object-fit: cover; object-position: top;
-            filter: grayscale(80%) contrast(1.2);
+            object-fit: cover; /* Pastikan foto full kotak */
+            object-position: top center;
+            filter: contrast(1.1) grayscale(20%);
+            /* Animasi Fade */
             opacity: 0; transform: scale(1.1);
-            transition: opacity 0.5s, transform 5s ease-out;
+            transition: opacity 0.5s ease, transform 6s ease;
         }
         .scan-img.active { opacity: 1; transform: scale(1); }
-        .scan-img.logo-mode { object-fit: contain; filter: drop-shadow(0 0 10px var(--gold)); transform: scale(0.8); }
+        .scan-img.logo-mode { object-fit: contain; width: 80%; filter: drop-shadow(0 0 10px var(--gold)); }
 
-        /* Garis Laser Scanner */
-        .laser-scan {
-            position: absolute; top: 0; left: 0; width: 100%; height: 5px;
+        /* LASER SCANNER */
+        .laser-line {
+            position: absolute; top: 0; left: 0; width: 100%; height: 2px;
             background: var(--cyan);
             box-shadow: 0 0 15px var(--cyan);
-            opacity: 0.8; z-index: 4;
-            animation: scanning 3s infinite ease-in-out;
+            z-index: 4; opacity: 0.7;
+            animation: scanMove 3s infinite linear;
         }
-        @keyframes scanning { 0% { top: 0%; opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { top: 100%; opacity: 0; } }
+        @keyframes scanMove { 0% {top:0;} 50% {top:100%;} 100% {top:0;} }
 
-        /* Text Data */
-        .scan-data { text-align: center; width: 100%; }
-        .scan-label { font-family: 'Orbitron'; font-size: 12px; color: var(--gold); letter-spacing: 2px; margin-bottom: 5px; opacity: 0.7; }
-        .scan-name { font-family: 'Black Ops One'; font-size: 32px; color: #fff; text-transform: uppercase; line-height: 1.1; margin-bottom: 5px; text-shadow: 0 0 10px rgba(255,255,255,0.5); }
-        .scan-role { font-family: 'Teko'; font-size: 24px; color: var(--cyan); letter-spacing: 1px; text-transform: uppercase; border-top: 1px solid #333; display: inline-block; padding-top: 5px; }
-
-        /* HUD Elements Decoration */
-        .hud-circle {
-            position: absolute; border: 1px dashed rgba(0, 240, 255, 0.3); border-radius: 50%;
-            z-index: -1; animation: spin 10s linear infinite;
+        /* DATA TEKS */
+        .scan-info-box {
+            margin-top: 20px; text-align: center; width: 100%;
+            background: rgba(20,20,20,0.8); border: 1px solid #333;
+            padding: 15px;
+            clip-path: polygon(10px 0, 100% 0, 100% 100%, 0 100%, 0 10px);
         }
-        .hud-1 { width: 350px; height: 350px; top: 50%; left: 50%; transform: translate(-50%, -50%); border-color: rgba(255, 215, 0, 0.1); animation-direction: reverse; }
-        .hud-2 { width: 450px; height: 450px; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+        .scan-name { 
+            font-family: 'Black Ops One'; font-size: 26px; color: #fff; 
+            line-height: 1; text-transform: uppercase; margin-bottom: 5px; 
+            text-shadow: 0 0 10px rgba(255,255,255,0.3);
+        }
+        .scan-role { 
+            font-family: 'Teko'; font-size: 24px; color: var(--cyan); 
+            letter-spacing: 2px; text-transform: uppercase; font-weight: bold;
+        }
 
         /* --- UI UTAMA --- */
         .header { text-align: center; margin-bottom: 25px; margin-top: 10px; cursor: pointer; } 
@@ -204,20 +217,22 @@
     </div>
 
     <div id="hangar-overlay" onclick="wakeUp()">
-        <div class="hud-circle hud-1"></div>
-        <div class="hud-circle hud-2"></div>
-        
-        <div class="scan-container">
-            <div class="scan-label">DATABASE PERSONNEL RECORD</div>
+        <div class="hud-container">
+            <div class="hud-label">DATABASE PERSONNEL RECORD</div>
             
             <div class="scan-frame">
-                <div class="laser-scan"></div>
-                <img id="scanFoto" class="scan-img" src="" alt="TARGET" onerror="this.style.opacity='0'">
+                <div class="corner tl"></div><div class="corner tr"></div>
+                <div class="corner bl"></div><div class="corner br"></div>
+                
+                <div class="laser-line"></div>
+                
+                <img id="scanFoto" class="scan-img" src="" alt="NO SIGNAL" 
+                     onerror="this.src='https://placehold.co/300x400/000/FFF?text=IMG+ERROR'; this.style.objectFit='contain';">
             </div>
 
-            <div class="scan-data">
-                <div id="scanName" class="scan-name"></div>
-                <div id="scanRole" class="scan-role"></div>
+            <div class="scan-info-box">
+                <div id="scanName" class="scan-name">...</div>
+                <div id="scanRole" class="scan-role">...</div>
             </div>
         </div>
     </div>
@@ -312,7 +327,8 @@
 
         $('regInput').addEventListener('input', function(e) { if(formStep === 0) { let v = this.value.toUpperCase().replace(/[^A-Z0-9]/g, ''); let formatted = ""; if (v.length > 0) { let match = v.match(/^([A-Z]{1,2})(\d{0,4})([A-Z]*)$/); if (match) { formatted = match[1]; if (match[2]) formatted += " " + match[2]; if (match[3]) formatted += " " + match[3]; } else { formatted = v; } } this.value = formatted; } });
 
-        // --- NEW SCREENSAVER LOGIC ---
+        // --- SCREENSAVER DATA ---
+        // NAMA FILE SUDAH SESUAI INSTRUKSI ANDA (PNG)
         const pengurusList = [
             { nama: "PERIODE 2026 - 2027", jabatan: "PENGURUS MAKA LINTAS UTARA", foto: "logo.png", color: "#FFD700" },
             { nama: "KI AHMAD", jabatan: "KETUA UMUM", foto: "aki.png", color: "#FFD700" },
@@ -345,27 +361,27 @@
             const nameEl = $('scanName');
             const roleEl = $('scanRole');
             
-            // 1. Reset Animation (Hide)
+            // 1. Matikan Foto Dulu
             imgEl.classList.remove('active');
             
             setTimeout(() => {
-                // 2. Change Data
+                // 2. Ganti Data
                 imgEl.src = p.foto;
                 nameEl.innerText = p.nama;
                 roleEl.innerText = p.jabatan;
                 roleEl.style.color = p.color;
 
-                // 3. Special Styling for Logo
+                // 3. Efek Khusus Logo
                 if(p.foto.includes('logo.png')) {
-                    imgEl.classList.add('logo-mode');
+                    imgEl.className = 'scan-img logo-mode';
                 } else {
-                    imgEl.classList.remove('logo-mode');
+                    imgEl.className = 'scan-img';
                 }
 
-                // 4. Trigger Animation (Show)
+                // 4. Nyalakan Lagi
                 imgEl.classList.add('active');
 
-            }, 500);
+            }, 500); // Jeda setengah detik biar transisi berasa
             
             ssTimer = setTimeout(() => { ssIndex = (ssIndex + 1) % pengurusList.length; cycleProfile(); }, 6000);
         }
