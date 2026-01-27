@@ -14,7 +14,7 @@
             --glass-bg: rgba(10, 10, 10, 0.95);
         }
 
-        body { margin: 0; padding: 0; font-family: 'Rajdhani', sans-serif; background: var(--bg); overflow: hidden; color: #ddd; }
+        body { margin: 0; padding: 0; font-family: 'Rajdhani', sans-serif; background: var(--bg); overflow: hidden; color: #ddd; padding-bottom: 90px; }
 
         /* --- MAP SATELIT DARK --- */
         #map { width: 100%; height: 100vh; z-index: 1; background: #000; }
@@ -29,9 +29,7 @@
             padding: 0 !important;
             margin: 0 !important;
         }
-        .leaflet-tooltip-top:before, .leaflet-tooltip-bottom:before, .leaflet-tooltip-left:before, .leaflet-tooltip-right:before {
-            display: none !important;
-        }
+        .leaflet-tooltip-top:before { display: none !important; }
 
         /* Style Label Kita */
         .fc-label-box {
@@ -90,7 +88,7 @@
             box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
         }
 
-        /* --- DOCK MENU (FLAT) --- */
+        /* --- DOCK MENU (NAVIGASI) --- */
         .dock-container { 
             position: fixed; bottom: 0; left: 0; width: 100%; height: 75px; 
             background: #000; border-top: 1px solid #333; 
@@ -115,7 +113,6 @@
             position: relative; width: 20px; height: 20px; background: #00F0FF;
             border-radius: 50%; border: 3px solid #fff; box-shadow: 0 0 10px #00F0FF;
         }
-        /* Efek Denyut Radar yang Hilang sebelumnya saya kembalikan disini */
         .user-radar::before {
             content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
             width: 60px; height: 60px; border-radius: 50%;
@@ -165,15 +162,17 @@
     </div>
 
     <div class="dock-container">
-        <a href="lokasi_fc.html" class="nav-item active">
+        <a href="lokasifc.html" class="nav-item active">
             <div class="nav-icon">🗺️</div>
             <span class="nav-text">PETA FC</span>
         </a>
+
         <a href="system.html" class="nav-item">
             <div class="nav-icon">🏠</div>
             <span class="nav-text">SYSTEM</span>
         </a>
-        <a href="#" onclick="alert('Fitur Plan Trip segera hadir!')" class="nav-item">
+
+        <a href="plan.html" class="nav-item">
             <div class="nav-icon">🚩</div>
             <span class="nav-text">PLAN TRIP</span>
         </a>
@@ -193,7 +192,7 @@
             maxZoom: 19, opacity: 0.6
         }).addTo(map);
 
-        // --- ICON PIN ---
+        // --- ICON PIN (SVG) ---
         const pinSvg = `
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="40" height="40" fill="#FFD700">
             <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 0 1 0-5 2.5 2.5 0 0 1 0 5z"/>
@@ -216,15 +215,7 @@
         });
 
         let userMarker = null;
-        let fcData = [];
-
-        // DATA CADANGAN
-        const backupData = [
-            { name: "MAKA KELAPA GADING", address: "Jl. Boulevard Raya Blok FW 1", lat: -6.171583, lng: 106.899844 },
-            { name: "MAKA PUSAT", address: "Headquarters", lat: -6.200000, lng: 106.816666 }
-        ];
-        
-        renderMarkers(backupData);
+        let isFirstZoom = true; // Agar zoom otomatis sekali saja saat buka
 
         // LOAD CSV
         const SHEET_ID = '1kp7bHdgSTTNZF3uyd1ul-LnTZVjuLs1TVQnRxoViPfQ';
@@ -234,7 +225,6 @@
             download: true, header: true,
             complete: function(results) {
                 document.getElementById('loader').style.opacity = '0';
-                const freshData = [];
                 
                 results.data.forEach(row => {
                     let lat = null, lng = null, name = "FC Station", addr = "Charging Point";
@@ -258,37 +248,20 @@
                     if(row['Alamat']) addr = row['Alamat'];
 
                     if (lat && lng) {
-                        freshData.push({ name, address: addr, lat, lng });
+                        const m = L.marker([lat, lng], {icon: fcIcon}).addTo(map);
+                        
+                        m.bindTooltip(`<div class="fc-label-box">${name}</div>`, {
+                            permanent: true, direction: 'top', className: '', offset: [0, 0]
+                        });
+
+                        m.on('click', () => { showInfoCard(name, addr, lat, lng); });
                     }
                 });
-
-                if(freshData.length > 0) {
-                    renderMarkers(freshData);
-                }
             },
             error: function() { document.getElementById('loader').style.display = 'none'; }
         });
 
-        function renderMarkers(data) {
-            // Hapus marker lama kecuali user
-            map.eachLayer((layer) => {
-                if(layer instanceof L.Marker && layer !== userMarker) {
-                    map.removeLayer(layer);
-                }
-            });
-
-            data.forEach(fc => {
-                const m = L.marker([fc.lat, fc.lng], {icon: fcIcon}).addTo(map);
-                
-                m.bindTooltip(`<div class="fc-label-box">${fc.name}</div>`, {
-                    permanent: true, direction: 'top', className: '', offset: [0, 0]
-                });
-
-                m.on('click', () => { showInfoCard(fc); });
-            });
-        }
-
-        // GPS LOGIC (FIX AUTO ZOOM)
+        // GPS LOGIC (FIX)
         if (navigator.geolocation) {
             navigator.geolocation.watchPosition((pos) => {
                 const { latitude, longitude } = pos.coords;
@@ -300,11 +273,11 @@
                         zIndexOffset: 1000 // PAKSA DI ATAS BIAR GAK KETUTUP
                     }).addTo(map);
                     
-                    // AUTO ZOOM KE LOKASI USER (FLY TO)
-                    map.flyTo([latitude, longitude], 16, {
-                        animate: true,
-                        duration: 1.5
-                    });
+                    // AUTO ZOOM KE LOKASI USER (FLY TO) - Cuma sekali
+                    if(isFirstZoom) {
+                        map.flyTo([latitude, longitude], 16, { animate: true, duration: 1.5 });
+                        isFirstZoom = false;
+                    }
                 } else {
                     userMarker.setLatLng([latitude, longitude]);
                 }
@@ -323,12 +296,12 @@
             return (R * c).toFixed(1) + " KM";
         }
 
-        function showInfoCard(fc) {
-            document.getElementById('fcName').innerText = fc.name;
-            document.getElementById('fcAddress').innerText = fc.address;
-            const dist = calcDistance(fc.lat, fc.lng);
+        function showInfoCard(name, addr, lat, lng) {
+            document.getElementById('fcName').innerText = name;
+            document.getElementById('fcAddress').innerText = addr;
+            const dist = calcDistance(lat, lng);
             document.getElementById('distanceInfo').innerHTML = `<span style="color:var(--gold)">${dist}</span> (Garis Lurus)`;
-            document.getElementById('btnMaps').href = `https://www.google.com/maps/dir/?api=1&destination=${fc.lat},${fc.lng}`;
+            document.getElementById('btnMaps').href = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
             document.getElementById('infoCard').classList.add('active');
         }
 
