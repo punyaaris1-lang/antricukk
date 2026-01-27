@@ -23,14 +23,24 @@
 
         /* --- CUSTOM LABEL (TOOLTIP) --- */
         .leaflet-tooltip {
-            background: transparent !important; border: none !important; box-shadow: none !important; padding: 0 !important; margin: 0 !important;
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            padding: 0 !important;
+            margin: 0 !important;
         }
         .leaflet-tooltip-top:before { display: none !important; }
 
+        /* Style Label Kita */
         .fc-label-box {
-            background: rgba(0, 0, 0, 0.85); border: 1px solid var(--gold); color: var(--gold);
-            font-family: 'Teko'; font-weight: bold; font-size: 14px; padding: 2px 8px; border-radius: 4px;
-            text-shadow: 0 0 5px #000; white-space: nowrap; box-shadow: 0 0 10px rgba(0,0,0,0.8);
+            background: rgba(0, 0, 0, 0.85);
+            border: 1px solid var(--gold);
+            color: var(--gold);
+            font-family: 'Teko'; font-weight: bold; font-size: 14px;
+            padding: 2px 8px; border-radius: 4px;
+            text-shadow: 0 0 5px #000;
+            white-space: nowrap;
+            box-shadow: 0 0 10px rgba(0,0,0,0.8);
         }
 
         /* --- LOADING --- */
@@ -40,7 +50,8 @@
             gap: 15px; transition: opacity 0.5s; pointer-events: none;
         }
         .spinner {
-            width: 50px; height: 50px; border: 3px solid #222; border-top-color: var(--gold); border-radius: 50%;
+            width: 50px; height: 50px; border: 3px solid #222;
+            border-top-color: var(--gold); border-radius: 50%;
             animation: spin 1s infinite linear;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
@@ -51,7 +62,8 @@
             display: flex; flex-direction: column; gap: 10px;
         }
         .header-pill {
-            pointer-events: auto; background: var(--glass-bg); border-left: 4px solid var(--gold); color: #fff; padding: 10px 20px; 
+            pointer-events: auto; background: var(--glass-bg); border-left: 4px solid var(--gold);
+            color: #fff; padding: 10px 20px; 
             clip-path: polygon(0 0, 100% 0, 100% 100%, 10px 100%, 0 calc(100% - 10px));
             display: inline-flex; align-items: center; gap: 10px; align-self: flex-start;
             box-shadow: 0 5px 15px rgba(0,0,0,0.8);
@@ -76,6 +88,13 @@
             box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
         }
 
+        /* Badge Terdekat (Tambahan Dikit buat indikator) */
+        .nearest-badge {
+            display: none; background: var(--cyan); color: #000; font-family: 'Teko'; 
+            font-weight: bold; padding: 2px 8px; border-radius: 4px; font-size: 12px; 
+            margin-bottom: 5px; width: fit-content; box-shadow: 0 0 10px var(--cyan);
+        }
+
         /* --- DOCK MENU --- */
         .dock-container { 
             position: fixed; bottom: 0; left: 0; width: 100%; height: 75px; 
@@ -96,24 +115,19 @@
         .nav-icon { font-size: 24px; margin-bottom: 2px; transition: 0.3s; }
         .nav-text { font-family: 'Teko'; font-size: 16px; letter-spacing: 1px; font-weight: bold; }
 
-        /* --- VISUALISASI TITIK USER (LOGO MLU + RADAR) --- */
-        .user-radar-box { position: relative; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; }
-        
-        .user-logo-img { 
-            width: 35px; height: 35px; object-fit: contain; border-radius: 50%; 
-            border: 2px solid #fff; background: #000; z-index: 2; 
-            box-shadow: 0 0 15px rgba(0,0,0,0.8);
+        /* --- VISUALISASI TITIK USER (RADAR) --- */
+        .user-radar {
+            position: relative; width: 20px; height: 20px; background: #00F0FF;
+            border-radius: 50%; border: 3px solid #fff; box-shadow: 0 0 10px #00F0FF;
         }
-        
-        .user-pulse-ring {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            width: 100%; height: 100%; border-radius: 50%;
-            border: 2px solid rgba(0, 240, 255, 0.6);
-            background: rgba(0, 240, 255, 0.1);
-            animation: radarPing 2s infinite; z-index: 1;
+        .user-radar::before {
+            content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 60px; height: 60px; border-radius: 50%;
+            border: 2px solid rgba(0, 240, 255, 0.5);
+            animation: radarPing 2s infinite; z-index: -1;
         }
         @keyframes radarPing {
-            0% { width: 35px; height: 35px; opacity: 1; }
+            0% { width: 0; height: 0; opacity: 1; }
             100% { width: 80px; height: 80px; opacity: 0; }
         }
 
@@ -128,7 +142,7 @@
 
     <div class="header-float">
         <div class="header-pill">
-            <span style="font-family:'Black Ops One'; font-size:16px;">MLU TACTICAL MAP</span>
+            <span style="font-family:'Black Ops One'; font-size:16px;">MAKA TACTICAL MAP</span>
         </div>
     </div>
 
@@ -137,6 +151,7 @@
     <div id="infoCard" class="info-card">
         <div style="display:flex; justify-content:space-between; align-items:start;">
             <div style="flex: 1;">
+                <div id="badgeNearest" class="nearest-badge">📍 POSISI TERDEKAT</div>
                 <div style="font-size:10px; color:var(--gold); font-weight:bold; letter-spacing:1px;">LOKASI TERPILIH</div>
                 <h2 style="font-family:'Black Ops One'; font-size:24px; color:#fff; margin:5px 0; line-height:1.1;" id="fcName">...</h2>
                 <div style="font-size:12px; color:#888; margin-bottom:10px;" id="fcAddress">...</div>
@@ -185,7 +200,7 @@
             maxZoom: 19, opacity: 0.6
         }).addTo(map);
 
-        // --- ICON PIN (FC) ---
+        // --- ICON PIN (SVG YANG BAPAK KIRIM) ---
         const pinSvg = `
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="40" height="40" fill="#FFD700">
             <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 0 1 0-5 2.5 2.5 0 0 1 0 5z"/>
@@ -201,27 +216,16 @@
             tooltipAnchor: [0, -35]
         });
 
-        // --- USER ICON (LOGO MLU + RADAR) ---
         const userIcon = L.divIcon({
             className: 'custom-div-icon',
-            html: `<div class='user-radar-box'>
-                    <div class='user-pulse-ring'></div>
-                    <img src='logo.png' class='user-logo-img' onerror="this.src='https://placehold.co/40x40/000/FFF?text=YOU'">
-                   </div>`,
-            iconSize: [50, 50], 
-            iconAnchor: [25, 25] 
+            html: "<div class='user-radar'></div>",
+            iconSize: [20, 20], iconAnchor: [10, 10]
         });
 
         let userMarker = null;
-        let fcData = [];
-
-        // DATA CADANGAN
-        const backupData = [
-            { name: "MAKA KELAPA GADING", address: "Jl. Boulevard Raya Blok FW 1", lat: -6.171583, lng: 106.899844 },
-            { name: "MAKA PUSAT", address: "Headquarters", lat: -6.200000, lng: 106.816666 }
-        ];
-        
-        renderMarkers(backupData);
+        let connectorLine = null; // Tambahan untuk garis
+        let allStations = []; // Tambahan untuk simpan data FC
+        let hasFoundNearest = false; // Tambahan biar gak refresh terus
 
         // LOAD CSV
         const SHEET_ID = '1kp7bHdgSTTNZF3uyd1ul-LnTZVjuLs1TVQnRxoViPfQ';
@@ -231,7 +235,6 @@
             download: true, header: true,
             complete: function(results) {
                 document.getElementById('loader').style.opacity = '0';
-                const freshData = [];
                 
                 results.data.forEach(row => {
                     let lat = null, lng = null, name = "FC Station", addr = "Charging Point";
@@ -255,37 +258,24 @@
                     if(row['Alamat']) addr = row['Alamat'];
 
                     if (lat && lng) {
-                        freshData.push({ name, address: addr, lat, lng });
+                        const m = L.marker([lat, lng], {icon: fcIcon}).addTo(map);
+                        
+                        m.bindTooltip(`<div class="fc-label-box">${name}</div>`, {
+                            permanent: true, direction: 'top', className: '', offset: [0, 0]
+                        });
+
+                        // SIMPAN DATA UTK FITUR TERDEKAT
+                        const stationObj = { name, addr, lat, lng, marker: m };
+                        allStations.push(stationObj);
+
+                        m.on('click', () => { showInfoCard(stationObj, false); });
                     }
                 });
-
-                if(freshData.length > 0) {
-                    renderMarkers(freshData);
-                }
             },
             error: function() { document.getElementById('loader').style.display = 'none'; }
         });
 
-        function renderMarkers(data) {
-            // Hapus marker lama kecuali user
-            map.eachLayer((layer) => {
-                if(layer instanceof L.Marker && layer !== userMarker) {
-                    map.removeLayer(layer);
-                }
-            });
-
-            data.forEach(fc => {
-                const m = L.marker([fc.lat, fc.lng], {icon: fcIcon}).addTo(map);
-                
-                m.bindTooltip(`<div class="fc-label-box">${fc.name}</div>`, {
-                    permanent: true, direction: 'top', className: '', offset: [0, 0]
-                });
-
-                m.on('click', () => { showInfoCard(fc); });
-            });
-        }
-
-        // GPS LOGIC (FIX)
+        // GPS LOGIC
         if (navigator.geolocation) {
             navigator.geolocation.watchPosition((pos) => {
                 const { latitude, longitude } = pos.coords;
@@ -296,38 +286,91 @@
                         icon: userIcon,
                         zIndexOffset: 1000 // PAKSA DI ATAS BIAR GAK KETUTUP
                     }).addTo(map);
-                    
-                    // AUTO ZOOM KE LOKASI USER (FLY TO) - Cuma sekali
-                    map.flyTo([latitude, longitude], 16, { animate: true, duration: 1.5 });
                 } else {
                     userMarker.setLatLng([latitude, longitude]);
                 }
+
+                // === INI LOGIKA PENCARI TERDEKAT (YANG DITAMBAHKAN) ===
+                if (!hasFoundNearest && allStations.length > 0) {
+                    findNearestStation(latitude, longitude);
+                    hasFoundNearest = true;
+                }
+
             }, (err) => console.log(err), { enableHighAccuracy: true });
         }
 
-        function calcDistance(destLat, destLng) {
-            if(!userMarker) return "GPS OFF";
-            const u = userMarker.getLatLng();
-            const R = 6371; 
-            const dLat = (destLat - u.lat) * Math.PI/180;
-            const dLng = (destLng - u.lng) * Math.PI/180;
-            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                      Math.cos(u.lat * Math.PI/180) * Math.cos(destLat * Math.PI/180) * Math.sin(dLng/2) * Math.sin(dLng/2);
-            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-            return (R * c).toFixed(1) + " KM";
+        // --- FUNGSI MENCARI TERDEKAT ---
+        function findNearestStation(uLat, uLng) {
+            let minKm = 99999;
+            let nearest = null;
+
+            allStations.forEach(fc => {
+                const d = getDist(uLat, uLng, fc.lat, fc.lng);
+                if (d < minKm) {
+                    minKm = d;
+                    nearest = fc;
+                }
+            });
+
+            if (nearest) {
+                // 1. Gambar Garis Konektor
+                if (connectorLine) map.removeLayer(connectorLine);
+                connectorLine = L.polyline([[uLat, uLng], [nearest.lat, nearest.lng]], {
+                    color: '#00F0FF', weight: 4, dashArray: '10, 10', opacity: 0.7
+                }).addTo(map);
+
+                // 2. Zoom agar User & FC masuk layar
+                const bounds = L.latLngBounds([[uLat, uLng], [nearest.lat, nearest.lng]]);
+                map.fitBounds(bounds, { padding: [80, 80] });
+
+                // 3. Buka Info Card Otomatis
+                showInfoCard(nearest, true);
+            }
         }
 
-        function showInfoCard(fc) {
+        // Hitung Jarak (Rumus Matematika)
+        function getDist(lat1, lon1, lat2, lon2) {
+            const R = 6371; 
+            const dLat = (lat2 - lat1) * Math.PI/180;
+            const dLon = (lon2 - lon1) * Math.PI/180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                      Math.cos(lat1 * Math.PI/180) * Math.cos(lat2 * Math.PI/180) * Math.sin(dLon/2) * Math.sin(dLon/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return R * c; 
+        }
+
+        // Tampilkan Info (Diupdate dikit biar bisa handle auto-detect)
+        function showInfoCard(fc, isNearest) {
             document.getElementById('fcName').innerText = fc.name;
-            document.getElementById('fcAddress').innerText = fc.address;
-            const dist = calcDistance(fc.lat, fc.lng);
+            document.getElementById('fcAddress').innerText = fc.addr;
+            
+            // Hitung ulang jarak kalau user marker ada
+            let dist = "-";
+            if(userMarker) {
+                dist = getDist(userMarker.getLatLng().lat, userMarker.getLatLng().lng, fc.lat, fc.lng).toFixed(1) + " KM";
+            }
+            
             document.getElementById('distanceInfo').innerHTML = `<span style="color:var(--gold)">${dist}</span> (Garis Lurus)`;
+            
+            // Tampilkan badge kalau ini hasil auto-detect
+            document.getElementById('badgeNearest').style.display = isNearest ? 'block' : 'none';
+
             document.getElementById('btnMaps').href = `https://www.google.com/maps/dir/?api=1&destination=${fc.lat},${fc.lng}`;
             document.getElementById('infoCard').classList.add('active');
+
+            // Kalau diklik manual, hapus garis otomatis biar gak bingung
+            if (!isNearest && connectorLine) {
+                map.removeLayer(connectorLine);
+                connectorLine = null;
+            }
         }
 
         function closeCard() {
             document.getElementById('infoCard').classList.remove('active');
+            if(connectorLine) { 
+                map.removeLayer(connectorLine); 
+                connectorLine = null; 
+            }
         }
 
     </script>
