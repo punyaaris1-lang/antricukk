@@ -9,68 +9,36 @@
     
     <style>
         :root { 
-            --bg: #050505;
-            --gold: #FFD700; 
-            --gold-glow: rgba(255, 215, 0, 0.6);
-            --white-glow: rgba(255, 255, 255, 0.3);
+            --bg: #050505; --gold: #FFD700; --gold-glow: rgba(255, 215, 0, 0.6); --white-glow: rgba(255, 255, 255, 0.3);
         }
         
         * { box-sizing: border-box; outline: none; user-select: none; -webkit-tap-highlight-color: transparent; }
         
         body { 
-            font-family: 'Rajdhani', sans-serif; 
-            background: #000;
+            font-family: 'Rajdhani', sans-serif; background: #000;
             background-image: radial-gradient(circle at center, #151515 0%, #000 100%);
             color: #fff; margin: 0; padding: 20px; 
             min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center;
-            overflow: hidden;
+            overflow: hidden; padding-bottom: 90px; /* Space for dock */
         }
 
         /* --- LOADING SCREEN --- */
-        #loading-screen {
-            position: fixed; inset: 0; background: #000; z-index: 9999;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            transition: opacity 0.5s;
-        }
-        .loader-spinner {
-            width: 50px; height: 50px; border: 3px solid #333; border-top: 3px solid var(--gold);
-            border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px;
-        }
-        .loader-text {
-            font-family: 'Orbitron'; color: var(--gold); font-size: 14px; letter-spacing: 3px;
-            animation: pulseText 1s infinite;
-        }
+        #loading-screen { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s; }
+        .loader-spinner { width: 50px; height: 50px; border: 3px solid #333; border-top: 3px solid var(--gold); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
+        .loader-text { font-family: 'Orbitron'; color: var(--gold); font-size: 14px; letter-spacing: 3px; animation: pulseText 1s infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         @keyframes pulseText { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
 
         /* --- MODAL DETAIL LIST --- */
-        .modal-overlay {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 5000;
-            display: none; align-items: center; justify-content: center; backdrop-filter: blur(5px);
-        }
-        .modal-card {
-            width: 90%; max-width: 400px; background: #111; border: 1px solid #333;
-            border-radius: 12px; padding: 20px; display: flex; flex-direction: column;
-            box-shadow: 0 0 30px rgba(0,0,0,0.8); max-height: 80vh;
-        }
-        .modal-header {
-            font-family: 'Black Ops One'; font-size: 20px; color: var(--gold);
-            text-align: center; margin-bottom: 15px; border-bottom: 1px solid #333; padding-bottom: 10px;
-        }
-        .modal-body {
-            flex: 1; overflow-y: auto; padding-right: 5px;
-        }
-        .list-item {
-            background: #1a1a1a; padding: 10px; margin-bottom: 8px; border-radius: 6px;
-            border-left: 3px solid #555; display: flex; justify-content: space-between; align-items: center;
-        }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 5000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
+        .modal-card { width: 90%; max-width: 400px; background: #111; border: 1px solid #333; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; box-shadow: 0 0 30px rgba(0,0,0,0.8); max-height: 80vh; }
+        .modal-header { font-family: 'Black Ops One'; font-size: 20px; color: var(--gold); text-align: center; margin-bottom: 15px; border-bottom: 1px solid #333; padding-bottom: 10px; }
+        .modal-body { flex: 1; overflow-y: auto; padding-right: 5px; }
+        .list-item { background: #1a1a1a; padding: 10px; margin-bottom: 8px; border-radius: 6px; border-left: 3px solid #555; display: flex; justify-content: space-between; align-items: center; }
         .list-item.active { border-left-color: var(--gold); background: #222; }
         .li-plat { font-family: 'Teko'; font-size: 24px; color: #fff; line-height: 1; }
         .li-name { font-size: 12px; color: #888; }
-        .btn-close {
-            margin-top: 15px; padding: 12px; background: #333; color: #fff; border: none;
-            border-radius: 8px; font-family: 'Rajdhani'; font-weight: bold; cursor: pointer; width: 100%;
-        }
+        .btn-close { margin-top: 15px; padding: 12px; background: #333; color: #fff; border: none; border-radius: 8px; font-family: 'Rajdhani'; font-weight: bold; cursor: pointer; width: 100%; }
 
         /* --- MAIN UI --- */
         .header-container { margin-top: 20px; margin-bottom: 20px; text-align: center; display: flex; flex-direction: column; align-items: center; }
@@ -85,35 +53,37 @@
         .sub-title { font-size: 12px; color: var(--gold); text-transform: uppercase; letter-spacing: 4px; font-weight: 800; margin-bottom: 30px; text-shadow: 0 0 15px var(--gold-glow); }
 
         .dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 100%; max-width: 400px; margin-bottom: 40px; }
-        
-        /* UPDATE: CARD BISA DI KLIK */
-        .stat-card { 
-            background: linear-gradient(160deg, #151515, #050505); border: 1px solid #333; 
-            border-radius: 12px; padding: 20px 5px; text-align: center; position: relative; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5); cursor: pointer; transition: transform 0.2s;
-        }
+        .stat-card { background: linear-gradient(160deg, #151515, #050505); border: 1px solid #333; border-radius: 12px; padding: 20px 5px; text-align: center; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.5); cursor: pointer; transition: transform 0.2s; }
         .stat-card:active { transform: scale(0.95); border-color: var(--gold); }
-        
         .stat-label { font-size: 10px; color: #888; letter-spacing: 1px; text-transform: uppercase; font-weight: 800; margin-bottom: 5px; }
         .stat-value { font-family: 'Teko'; font-size: 70px; line-height: 0.8; color: #fff; text-shadow: 0 0 25px var(--white-glow); font-weight: 400; }
         .stat-sub { font-size: 9px; color: #666; font-weight: bold; text-transform: uppercase; margin-top: 8px;}
 
-        /* UPDATE: TOMBOL LEBIH KECIL */
-        .btn-register-glow { 
-            width: 100%; max-width: 280px; /* Lebar diperkecil */
-            background: linear-gradient(90deg, #FFD700, #ff8c00); 
-            color: #000; border: none; 
-            padding: 12px 0; /* Padding diperkecil */
-            font-family: 'Black Ops One'; 
-            font-size: 20px; /* Font diperkecil */
-            letter-spacing: 1px; border-radius: 50px; cursor: pointer; position: relative; overflow: hidden; 
-            box-shadow: 0 0 20px rgba(255, 215, 0, 0.3); transition: transform 0.2s; animation: pulseBtn 2s infinite; 
-        }
+        .btn-register-glow { width: 100%; max-width: 280px; background: linear-gradient(90deg, #FFD700, #ff8c00); color: #000; border: none; padding: 12px 0; font-family: 'Black Ops One'; font-size: 20px; letter-spacing: 1px; border-radius: 50px; cursor: pointer; position: relative; overflow: hidden; box-shadow: 0 0 20px rgba(255, 215, 0, 0.3); transition: transform 0.2s; animation: pulseBtn 2s infinite; }
         .btn-register-glow:active { transform: scale(0.95); }
         .btn-register-glow::after { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: linear-gradient(to bottom right, rgba(255,255,255,0.4) 0%, transparent 50%, transparent 100%); transform: rotate(45deg); transition: 0.5s; }
         @keyframes pulseBtn { 0% { box-shadow: 0 0 15px rgba(255, 215, 0, 0.3); transform: scale(1); } 50% { box-shadow: 0 0 30px rgba(255, 215, 0, 0.6); transform: scale(1.02); } 100% { box-shadow: 0 0 15px rgba(255, 215, 0, 0.3); transform: scale(1); } }
-        
         .btn-register-glow:disabled { background: #333; color: #666; box-shadow: none; animation: none; cursor: not-allowed; }
+
+        /* --- DOCK NAV (MENU BAWAH) --- */
+        .dock-container { 
+            position: fixed; bottom: 0; left: 0; width: 100%; height: 75px; 
+            background: #000; border-top: 1px solid #333; 
+            display: grid; grid-template-columns: 1fr 1fr 1fr; 
+            align-items: center; z-index: 1001; 
+        }
+        .nav-item { 
+            text-decoration: none; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            color: #444; transition: 0.3s; height: 100%; position: relative;
+        }
+        .nav-item.active { color: var(--gold); }
+        .nav-item.active .nav-icon { text-shadow: 0 0 15px var(--gold); transform: translateY(-2px); }
+        .nav-item.active::after {
+            content: ''; position: absolute; bottom: 0; width: 40px; height: 3px; 
+            background: var(--gold); box-shadow: 0 0 10px var(--gold);
+        }
+        .nav-icon { font-size: 24px; margin-bottom: 2px; transition: 0.3s; }
+        .nav-text { font-family: 'Teko'; font-size: 16px; letter-spacing: 1px; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -126,8 +96,7 @@
     <div id="detailModal" class="modal-overlay">
         <div class="modal-card">
             <div class="modal-header" id="modalHeaderTitle">DETAIL</div>
-            <div class="modal-body" id="modalListBody">
-                </div>
+            <div class="modal-body" id="modalListBody"></div>
             <button class="btn-close" onclick="closeDetail()">TUTUP</button>
         </div>
     </div>
@@ -135,9 +104,7 @@
     <div class="header-container">
         <img src="logo.png" alt="MLU" class="logo-img">
         <div class="live-tag"><div class="live-dot"></div> LIVE STATUS</div>
-        
         <div class="main-title" ondblclick="toggleAdmin()">FC KELAPA GADING</div>
-        
         <div class="sub-title">SELAMAT DATANG DI RUMAH MLU</div>
     </div>
 
@@ -158,6 +125,18 @@
         DAFTAR SEKARANG
     </button>
 
+    <div class="dock-container">
+        <a href="lokasifc.html" class="nav-item">
+            <div class="nav-icon">🗺️</div><span class="nav-text">PETA FC</span>
+        </a>
+        <a href="antrian.html" class="nav-item active">
+            <div class="nav-icon">🏠</div><span class="nav-text">HOME</span>
+        </a>
+        <a href="plan.html" class="nav-item">
+            <div class="nav-icon">🚩</div><span class="nav-text">PLAN TRIP</span>
+        </a>
+    </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -166,6 +145,7 @@
         const STATION_LNG = 106.899844; 
         const MAX_DIST_KM = 0.2; 
 
+        // Jika sudah login, langsung lempar ke system.html
         if(localStorage.getItem('myPlat')) window.location.href = "system.html";
 
         const firebaseConfig = {
@@ -181,7 +161,6 @@
         const mainRef = doc(db, "antrian", "utama");
         const TOTAL_SLOTS = 3;
 
-        // VARIABLE GLOBAL UNTUK MENYIMPAN DATA
         let globalSlots = [];
         let globalQueue = [];
 
@@ -211,31 +190,17 @@
             } else {
                 slotEl.style.color = "#fff"; slotEl.style.textShadow = "0 0 25px rgba(255, 255, 255, 0.3)";
             }
-        }, (error) => {
-            const loader = document.getElementById('loading-screen');
-            if(loader) { loader.innerHTML = "<span style='color:red'>KONEKSI TERPUTUS</span>"; }
         });
 
-        // --- FUNGSI TAMPILKAN POPUP DETAIL ---
         window.showSlotDetails = () => {
             const body = document.getElementById('modalListBody');
             document.getElementById('modalHeaderTitle').innerText = "STATUS CHARGING";
             body.innerHTML = "";
-            
             globalSlots.forEach((s, i) => {
                 const status = s ? `<span style="color:var(--gold)">${s.plat}</span>` : "<span style='color:#444'>KOSONG</span>";
                 const name = s ? s.userName : "TERSEDIA";
                 const activeClass = s ? "active" : "";
-                
-                body.innerHTML += `
-                    <div class="list-item ${activeClass}">
-                        <div class="li-info">
-                            <div class="li-name">SLOT ${i+1}</div>
-                            <div class="li-plat">${status}</div>
-                        </div>
-                        <div class="li-name" style="font-weight:bold">${name}</div>
-                    </div>
-                `;
+                body.innerHTML += `<div class="list-item ${activeClass}"><div class="li-info"><div class="li-name">SLOT ${i+1}</div><div class="li-plat">${status}</div></div><div class="li-name" style="font-weight:bold">${name}</div></div>`;
             });
             document.getElementById('detailModal').style.display = 'flex';
         };
@@ -244,30 +209,18 @@
             const body = document.getElementById('modalListBody');
             document.getElementById('modalHeaderTitle').innerText = "DAFTAR ANTRIAN";
             body.innerHTML = "";
-
             if(globalQueue.length === 0) {
                 body.innerHTML = "<div style='text-align:center; padding:20px; color:#666'>TIDAK ADA ANTRIAN</div>";
             } else {
                 globalQueue.forEach((q, i) => {
-                    body.innerHTML += `
-                        <div class="list-item">
-                            <div class="li-info">
-                                <div class="li-name">NO. ${i+1}</div>
-                                <div class="li-plat">${q.plat}</div>
-                            </div>
-                            <div class="li-name" style="font-weight:bold">${q.userName}</div>
-                        </div>
-                    `;
+                    body.innerHTML += `<div class="list-item"><div class="li-info"><div class="li-name">NO. ${i+1}</div><div class="li-plat">${q.plat}</div></div><div class="li-name" style="font-weight:bold">${q.userName}</div></div>`;
                 });
             }
             document.getElementById('detailModal').style.display = 'flex';
         };
 
-        window.closeDetail = () => {
-            document.getElementById('detailModal').style.display = 'none';
-        }
+        window.closeDetail = () => { document.getElementById('detailModal').style.display = 'none'; }
 
-        // --- GPS LOGIC ---
         function calculateDistance(lat1, lon1, lat2, lon2) {
             const R = 6371;
             const dLat = (lat2 - lat1) * Math.PI / 180;
