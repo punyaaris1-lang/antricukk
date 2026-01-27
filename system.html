@@ -31,7 +31,7 @@
         .loader-spinner { width: 50px; height: 50px; border: 3px solid #222; border-top: 3px solid var(--gold); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
         .loader-text { font-family: 'Orbitron'; color: var(--gold); font-size: 14px; letter-spacing: 3px; animation: pulseText 1s infinite; }
 
-        /* --- SCREENSAVER: HERO CARD --- */
+        /* --- SCREENSAVER: HERO CARD (UPDATED SMOOTHNESS) --- */
         #hangar-overlay { 
             position: fixed; inset: 0; z-index: 10000; 
             background: #000; 
@@ -49,14 +49,39 @@
             box-shadow: 0 0 50px rgba(0,0,0,0.8), inset 0 0 20px rgba(255, 255, 255, 0.05);
             display: flex; flex-direction: column; align-items: center;
             padding: 30px 20px; text-align: center; overflow: hidden;
-            transition: all 0.5s ease; opacity: 0; transform: scale(0.9);
+            /* Update Smooth Transition: 0.8s Cubic Bezier */
+            transition: all 0.8s cubic-bezier(0.25, 0.8, 0.25, 1); 
+            opacity: 0; transform: scale(0.95) translateY(20px);
         }
-        .hero-card.active { opacity: 1; transform: scale(1); }
+        .hero-card.active { opacity: 1; transform: scale(1) translateY(0); }
 
         /* Elemen Hero Card */
         .hero-aura { position: absolute; top: -50px; left: -50px; width: 420px; height: 420px; background-image: url('1000307954.png'); background-size: contain; background-position: center; background-repeat: no-repeat; opacity: 0.2; mix-blend-mode: screen; filter: grayscale(100%) contrast(1.5); z-index: 0; animation: pulseAura 6s infinite ease-in-out; }
         .hero-badge-sm { position: absolute; top: 20px; right: 20px; width: 60px; height: 60px; background-image: url('1000307954.png'); background-size: contain; background-repeat: no-repeat; z-index: 2; mix-blend-mode: screen; filter: drop-shadow(0 0 5px var(--cyan)); }
-        .hero-img { position: absolute; top: 0; left: 0; width: 100%; height: 85%; object-fit: cover; object-position: top center; z-index: 1; -webkit-mask-image: linear-gradient(to bottom, black 60%, transparent 100%); mask-image: linear-gradient(to bottom, black 60%, transparent 100%); filter: contrast(1.1); }
+        
+        /* STANDARD HERO IMAGE (FOTO ORANG) */
+        .hero-img { 
+            position: absolute; top: 0; left: 0; width: 100%; height: 85%; 
+            object-fit: cover; object-position: top center; z-index: 1; 
+            -webkit-mask-image: linear-gradient(to bottom, black 60%, transparent 100%); 
+            mask-image: linear-gradient(to bottom, black 60%, transparent 100%); 
+            filter: contrast(1.1); transition: 0.5s;
+        }
+
+        /* --- KHUSUS LOGO YANG MEMANCAR (NEW) --- */
+        .hero-img.logo-mode {
+            object-fit: contain; /* Jangan dicrop */
+            width: 70%; height: 50%; /* Ukuran pas di tengah */
+            top: 20%; left: 15%;
+            -webkit-mask-image: none; mask-image: none; /* Hapus efek pudar */
+            filter: drop-shadow(0 0 20px var(--gold)); /* Efek Memancar */
+            animation: pulseLogo 3s infinite ease-in-out;
+        }
+        @keyframes pulseLogo { 
+            0% { transform: scale(1); filter: drop-shadow(0 0 15px var(--gold)); } 
+            50% { transform: scale(1.05); filter: drop-shadow(0 0 40px var(--gold)); }
+            100% { transform: scale(1); filter: drop-shadow(0 0 15px var(--gold)); } 
+        }
         
         .hero-text-area { position: absolute; bottom: 0; width: 100%; height: 35%; background: linear-gradient(to top, #000 10%, transparent); z-index: 3; display: flex; flex-direction: column; justify-content: flex-end; padding-bottom: 30px; text-align: center; }
         .hero-jabatan { font-family: 'Black Ops One'; font-size: 32px; line-height: 1; margin: 0; background: linear-gradient(to bottom, var(--gold), #B8860B); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-transform: uppercase; letter-spacing: 1px; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.8)); }
@@ -337,9 +362,7 @@
 
         // --- SCREENSAVER LOGIC ---
         const pengurusList = [
-            // Slide 1: JUDUL UTAMA (Baru Ditambahkan)
             { nama: "PERIODE 2026 - 2027", jabatan: "PENGURUS MAKA LINTAS UTARA", foto: "logo.png", color: "#FFD700" },
-            // Slide 2 dst: Data Lama
             { nama: "KI AHMAD", jabatan: "KETUA UMUM", foto: "aki.png", color: "#FFD700" },
             { nama: "SANDI DAYYAN", jabatan: "WAKIL KETUA UMUM", foto: "dayan.png", color: "#00F0FF" },
             { nama: "DEDI UBAY", jabatan: "SEKERTARIS", foto: "ubay.png", color: "#00F0FF" },
@@ -368,16 +391,42 @@
             const p = pengurusList[ssIndex];
             const card = $('ssCard'); const bar = $('pBar');
             const line = $('pLine'); const jabatan = $('pJabatan');
+            const imgEl = $('pFoto');
             
-            card.classList.remove('active'); bar.style.transition = 'none'; bar.style.width = '0%';
+            // TRANSISI HALUS (FADE OUT)
+            card.classList.remove('active'); 
+            bar.style.transition = 'none'; bar.style.width = '0%';
+            
             setTimeout(() => {
-                $('pFoto').src = p.foto; $('pJabatan').innerText = p.jabatan; $('pNama').innerText = p.nama;
-                line.style.backgroundColor = p.color; line.style.boxShadow = `0 0 10px ${p.color}`;
+                // SWAP DATA SETELAH CARD HILANG (BIAR GAK PATAH)
+                imgEl.src = p.foto; 
+                
+                // DETEKSI KHUSUS LOGO (Supaya Memancar)
+                if(p.foto.includes('logo.png')) {
+                    imgEl.className = 'hero-img logo-mode'; 
+                } else {
+                    imgEl.className = 'hero-img';
+                }
+
+                $('pJabatan').innerText = p.jabatan; 
+                $('pNama').innerText = p.nama;
+                line.style.backgroundColor = p.color; 
+                line.style.boxShadow = `0 0 10px ${p.color}`;
                 jabatan.style.background = `linear-gradient(to bottom, ${p.color}, #888)`;
-                jabatan.style.webkitBackgroundClip = "text"; bar.style.backgroundColor = p.color;
+                jabatan.style.webkitBackgroundClip = "text"; 
+                bar.style.backgroundColor = p.color;
+                
+                // TRANSISI HALUS (FADE IN)
                 card.classList.add('active'); 
-                setTimeout(() => { bar.style.transition = `width 7000ms linear`; bar.style.width = '100%'; }, 300);
-            }, 500);
+                
+                // Animasi Loading Bar
+                setTimeout(() => { 
+                    bar.style.transition = `width 7000ms linear`; 
+                    bar.style.width = '100%'; 
+                }, 300);
+
+            }, 800); // Waktu tunggu sedikit lebih lama agar animasi out selesai dulu
+            
             ssTimer = setTimeout(() => { ssIndex = (ssIndex + 1) % pengurusList.length; cycleProfile(); }, 8000);
         }
 
