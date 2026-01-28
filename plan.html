@@ -91,6 +91,14 @@
         .bat-ok { color: var(--green); }
         .bat-low { color: var(--red); animation: blink 1s infinite; }
 
+        /* INFO DESTINATION */
+        .dest-info {
+            margin-top: 15px; padding: 10px; background: rgba(0, 240, 255, 0.1); 
+            border: 1px solid var(--cyan); border-radius: 5px;
+        }
+        .dest-label { font-size: 10px; color: var(--cyan); letter-spacing: 1px; font-weight: bold; }
+        .dest-val { font-family: 'Teko'; font-size: 20px; color: #fff; }
+
         /* MAP */
         #map { height: 300px; width: 100%; background: #000; border: 1px solid #333; margin-top: 20px; }
         .leaflet-layer { filter: brightness(0.7) contrast(1.1) grayscale(20%); } 
@@ -219,22 +227,38 @@
             });
         };
 
-        function useCurrentLocation() {
+        // --- 1. FITUR KONFIRMASI ALAMAT GPS (REVERSE GEOCODING) ---
+        async function useCurrentLocation() {
             const input = document.getElementById('start-input');
             if(!navigator.geolocation) return alert("Browser tidak support GPS");
             
             input.value = "MENCARI LOKASI...";
             input.classList.remove('gps-active');
 
-            navigator.geolocation.getCurrentPosition((pos) => {
+            navigator.geolocation.getCurrentPosition(async (pos) => {
                 const { latitude, longitude } = pos.coords;
-                gpsStartCoords = { lat: latitude, lon: longitude, name: "LOKASI SAYA (GPS)" };
-                input.value = "[ GPS LOKASI SAYA TERKUNCI ]";
+                gpsStartCoords = { lat: latitude, lon: longitude, name: "LOKASI SAYA" };
+                
+                // Panggil Reverse Geo
+                try {
+                    const addr = await getAddressFromCoords(latitude, longitude);
+                    gpsStartCoords.name = addr;
+                    input.value = "📍 " + addr; 
+                } catch(e) {
+                    input.value = "[ GPS TERSAMBUNG ]";
+                }
+                
                 input.classList.add('gps-active'); 
             }, (err) => {
                 alert("Gagal mengambil lokasi GPS. Pastikan GPS nyala.");
                 input.value = "";
             }, { enableHighAccuracy: true });
+        }
+
+        async function getAddressFromCoords(lat, lon) {
+            const r = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
+            const d = await r.json();
+            return d.display_name.split(',').slice(0, 3).join(',');
         }
 
         function addStop() {
@@ -252,7 +276,11 @@
             const mapDiv = document.getElementById('map');
             
             let inputTexts = [];
-            inputs.forEach(i => { if(i.value.trim()) inputTexts.push(i.value.trim()); });
+            inputs.forEach(i => { 
+                let val = i.value.trim();
+                if(val.startsWith("📍 ")) val = val.substring(2); 
+                if(val) inputTexts.push(val); 
+            });
             
             if(inputTexts.length < 2) return alert("MASUKKAN LOKASI AWAL & TUJUAN!");
 
@@ -265,7 +293,7 @@
                 let points = [];
                 for(let i=0; i<inputTexts.length; i++) {
                     const txt = inputTexts[i];
-                    if(i === 0 && gpsStartCoords && txt === "[ GPS LOKASI SAYA TERKUNCI ]") {
+                    if(i === 0 && gpsStartCoords && (txt === gpsStartCoords.name || txt === "[ GPS TERSAMBUNG ]")) {
                         points.push(gpsStartCoords);
                     } else {
                         const c = await getGeo(txt);
@@ -279,16 +307,19 @@
                 const needed = Math.ceil(totalDistKm);
                 const finalBat = batStart - needed;
 
+                const destPoint = points[points.length-1];
+                const nearestFromDest = findNearestFC(destPoint);
+
                 if (finalBat >= 10) {
-                    renderResult('aman', 'RUTE LANGSUNG (AMAN)', points, batStart, null);
+                    renderResult('aman', 'RUTE LANGSUNG (AMAN)', points, batStart, null, nearestFromDest);
                     drawMap(points, '#39FF14');
                 } else {
                     const bestCharger = await findBestCharger(points[0], points[points.length-1], batStart);
                     if (bestCharger) {
-                        renderResult('aman', 'RUTE VIA CHARGER', points, batStart, bestCharger);
+                        renderResult('aman', 'RUTE VIA CHARGER', points, batStart, bestCharger, nearestFromDest);
                         drawComplexRoute(points[0], bestCharger, points[points.length-1]);
                     } else {
-                        renderResult('nekat', 'PERINGATAN: TIDAK ADA CHARGER TERJANGKAU', points, batStart, null);
+                        renderResult('nekat', 'PERINGATAN: TIDAK ADA CHARGER TERJANGKAU', points, batStart, null, nearestFromDest);
                         drawMap(points, '#FF003C');
                     }
                 }
@@ -301,6 +332,16 @@
             } finally {
                 loading.style.display = 'none';
             }
+        }
+
+        function findNearestFC(point) {
+            let minKm = 99999;
+            let nearest = null;
+            fcLocations.forEach(fc => {
+                const d = getCrowDist(point.lat, point.lon, fc.lat, fc.lng);
+                if(d < minKm) { minKm = d; nearest = fc; }
+            });
+            return nearest ? { ...nearest, dist: minKm } : null;
         }
 
         async function findBestCharger(start, end, currentBat) {
@@ -335,7 +376,7 @@
             return bestFC;
         }
 
-        async function renderResult(type, title, points, startBat, charger) {
+        async function renderResult(type, title, points, startBat, charger, nearestEnd) {
             const area = document.getElementById('result-area');
             let html = `<div class="route-card ${type}"><div class="card-title"><span>${title}</span><span class="badge ${type}">${type === 'aman' ? 'RECOMMENDED' : 'WARNING'}</span></div><div class="timeline">`;
 
@@ -366,7 +407,17 @@
 
                 if (currentBat < 20) batClass = "bat-low";
 
-                html += `<div class="t-item"><div class="t-dot"></div><div class="t-info"><div class="t-name">${pt.name.split(',')[0]}</div><div class="t-meta"><span>${distInfo}</span><span class="t-bat ${batClass}">${currentBat}%</span></div></div></div>`;
+                html += `<div class="t-item"><div class="t-dot"></div><div class="t-info"><div class="t-name">${pt.name}</div><div class="t-meta"><span>${distInfo}</span><span class="t-bat ${batClass}">${currentBat}%</span></div></div></div>`;
+            }
+
+            if(nearestEnd) {
+                html += `
+                <div class="dest-info">
+                    <div class="dest-label">CHARGER TERDEKAT DARI TUJUAN</div>
+                    <div class="dest-val">${nearestEnd.name}</div>
+                    <div style="font-size:12px; color:#aaa;">Jarak: ${nearestEnd.dist.toFixed(1)} KM (Garis Lurus)</div>
+                    <a href="https://www.google.com/maps/dir/?api=1&destination=$${nearestEnd.lat},${nearestEnd.lng}" target="_blank" style="color:var(--cyan); font-size:12px;">NAVIGASI KE SANA →</a>
+                </div>`;
             }
 
             let gmapsLink = `https://www.google.com/maps/dir/`;
@@ -391,12 +442,21 @@
             drawMap([start, {lat:mid.lat, lon:mid.lng, name:mid.name}, end], '#00F0FF');
         }
 
+        // --- FITUR UTAMA YANG DIPERBAIKI (PENCARIAN LOKASI) ---
         async function getGeo(q) {
             try {
-                const r = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&limit=1`);
+                // FIXED: Tambahkan countrycodes=id agar hanya mencari di Indonesia
+                const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&countrycodes=id&limit=1&addressdetails=1`;
+                const r = await fetch(url);
                 const d = await r.json();
-                if(d[0]) return { lat: parseFloat(d[0].lat), lon: parseFloat(d[0].lon), name: d[0].display_name };
-            } catch(e) {}
+                if(d[0]) {
+                    // Ambil nama depan saja biar tidak kepanjangan
+                    let cleanName = d[0].display_name.split(',')[0];
+                    return { lat: parseFloat(d[0].lat), lon: parseFloat(d[0].lon), name: cleanName };
+                }
+            } catch(e) {
+                console.log("Error Geo:", e);
+            }
             return null;
         }
 
