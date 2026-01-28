@@ -12,15 +12,14 @@
     
     <style>
         :root { 
-            --bg: #050505; --gold: #FFD700; --cyan: #00F0FF; 
-            --scan-color: rgba(0, 240, 255, 0.5);
+            --bg: #050505; --gold: #FFD700; --red: #FF003C; --cyan: #00F0FF; --green: #39FF14;
+            --glass-bg: rgba(10, 10, 10, 0.95); --border-tech: 1px solid rgba(0, 240, 255, 0.3);
         }
         
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; outline: none; }
         
         body { 
             font-family: 'Rajdhani', sans-serif; background: #000;
-            /* Background Grid Tech */
             background-image: 
                 linear-gradient(rgba(0, 255, 0, 0.03) 1px, transparent 1px),
                 linear-gradient(90deg, rgba(0, 255, 0, 0.03) 1px, transparent 1px);
@@ -29,86 +28,41 @@
             min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden;
         }
 
-        /* LOADING */
+        /* --- LOADING SCREEN --- */
         #loading-screen { position: fixed; inset: 0; background: #000; z-index: 25000; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s; }
         .loader-spinner { width: 50px; height: 50px; border: 3px solid #222; border-top: 3px solid var(--gold); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
         .loader-text { font-family: 'Orbitron'; color: var(--gold); font-size: 14px; letter-spacing: 3px; animation: pulseText 1s infinite; }
 
-        /* --- NEW SCREENSAVER: TACTICAL HUD --- */
+        /* --- SCREENSAVER: TACTICAL HUD --- */
         #hangar-overlay { 
             position: fixed; inset: 0; z-index: 10000; 
             background: #000; 
             display: none; flex-direction: column; align-items: center; justify-content: center; 
         }
 
-        .hud-container {
-            position: relative; width: 100%; max-width: 350px;
-            display: flex; flex-direction: column; align-items: center;
-        }
+        .hud-container { position: relative; width: 100%; max-width: 350px; display: flex; flex-direction: column; align-items: center; }
+        .hud-label { font-family: 'Orbitron'; font-size: 10px; color: var(--gold); letter-spacing: 3px; margin-bottom: 10px; text-transform: uppercase; border-bottom: 1px solid var(--gold); padding-bottom: 5px; width: 100%; text-align: center; }
 
-        .hud-label {
-            font-family: 'Orbitron'; font-size: 10px; color: var(--gold); letter-spacing: 3px;
-            margin-bottom: 10px; text-transform: uppercase; border-bottom: 1px solid var(--gold);
-            padding-bottom: 5px; width: 100%; text-align: center;
-        }
-
-        /* BINGKAI FOTO */
         .scan-frame {
-            position: relative;
-            width: 280px; height: 380px; /* Ukuran Pas Portrait */
-            border: 2px solid #222;
-            background: #0a0a0a;
-            display: flex; align-items: center; justify-content: center;
-            overflow: hidden;
-            box-shadow: 0 0 20px rgba(0,0,0,0.8);
+            position: relative; width: 280px; height: 380px; border: 2px solid #222; background: #0a0a0a;
+            display: flex; align-items: center; justify-content: center; overflow: hidden; box-shadow: 0 0 20px rgba(0,0,0,0.8);
         }
-
-        /* POJOKAN BINGKAI (Siku Emas) */
         .corner { position: absolute; width: 15px; height: 15px; border-color: var(--gold); border-style: solid; z-index: 5; transition: 0.3s; }
         .tl { top: 0; left: 0; border-width: 3px 0 0 3px; }
         .tr { top: 0; right: 0; border-width: 3px 3px 0 0; }
         .bl { bottom: 0; left: 0; border-width: 0 0 3px 3px; }
         .br { bottom: 0; right: 0; border-width: 0 3px 3px 0; }
 
-        /* FOTO */
-        .scan-img {
-            width: 100%; height: 100%;
-            object-fit: cover; /* Pastikan foto full kotak */
-            object-position: top center;
-            filter: contrast(1.1) grayscale(20%);
-            /* Animasi Fade */
-            opacity: 0; transform: scale(1.1);
-            transition: opacity 0.5s ease, transform 6s ease;
-        }
+        .scan-img { width: 100%; height: 100%; object-fit: cover; object-position: top center; filter: contrast(1.1) grayscale(20%); opacity: 0; transform: scale(1.1); transition: opacity 0.5s ease, transform 6s ease; }
         .scan-img.active { opacity: 1; transform: scale(1); }
         .scan-img.logo-mode { object-fit: contain; width: 80%; filter: drop-shadow(0 0 10px var(--gold)); }
 
-        /* LASER SCANNER */
-        .laser-line {
-            position: absolute; top: 0; left: 0; width: 100%; height: 2px;
-            background: var(--cyan);
-            box-shadow: 0 0 15px var(--cyan);
-            z-index: 4; opacity: 0.7;
-            animation: scanMove 3s infinite linear;
-        }
+        .laser-line { position: absolute; top: 0; left: 0; width: 100%; height: 2px; background: var(--cyan); box-shadow: 0 0 15px var(--cyan); z-index: 4; opacity: 0.7; animation: scanMove 3s infinite linear; }
         @keyframes scanMove { 0% {top:0;} 50% {top:100%;} 100% {top:0;} }
 
-        /* DATA TEKS */
-        .scan-info-box {
-            margin-top: 20px; text-align: center; width: 100%;
-            background: rgba(20,20,20,0.8); border: 1px solid #333;
-            padding: 15px;
-            clip-path: polygon(10px 0, 100% 0, 100% 100%, 0 100%, 0 10px);
-        }
-        .scan-name { 
-            font-family: 'Black Ops One'; font-size: 26px; color: #fff; 
-            line-height: 1; text-transform: uppercase; margin-bottom: 5px; 
-            text-shadow: 0 0 10px rgba(255,255,255,0.3);
-        }
-        .scan-role { 
-            font-family: 'Teko'; font-size: 24px; color: var(--cyan); 
-            letter-spacing: 2px; text-transform: uppercase; font-weight: bold;
-        }
+        .scan-info-box { margin-top: 20px; text-align: center; width: 100%; background: rgba(20,20,20,0.8); border: 1px solid #333; padding: 15px; clip-path: polygon(10px 0, 100% 0, 100% 100%, 0 100%, 0 10px); }
+        .scan-name { font-family: 'Black Ops One'; font-size: 26px; color: #fff; line-height: 1; text-transform: uppercase; margin-bottom: 5px; text-shadow: 0 0 10px rgba(255,255,255,0.3); }
+        .scan-role { font-family: 'Teko'; font-size: 24px; color: var(--cyan); letter-spacing: 2px; text-transform: uppercase; font-weight: bold; }
 
         /* --- UI UTAMA --- */
         .header { text-align: center; margin-bottom: 25px; margin-top: 10px; cursor: pointer; } 
@@ -135,26 +89,49 @@
         .info-plat { font-family: 'Teko'; font-size: 38px; line-height: 1; color: #fff; text-shadow: 2px 2px 0px #000; letter-spacing: 0.5px; white-space: nowrap; }
         .armor-badge { width: 100px; height: 100%; display: flex; align-items: center; justify-content: center; padding-right: 5px; flex-shrink: 0; }
 
-        /* BADGES */
-        .badge-presiden { width: 100px; height: 35px; background: linear-gradient(135deg, #500000, #800000); border: 2px solid #FFD700; border-radius: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 0 15px rgba(255, 215, 0, 0.5); }
+        /* === BADGES RESTORED (YANG TADI HILANG) === */
+        .badge-presiden { width: 100px; height: 35px; background: linear-gradient(135deg, #500000, #800000); border: 2px solid #FFD700; border-radius: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 0 15px rgba(255, 215, 0, 0.5); position: relative; overflow: hidden; }
+        .badge-presiden::after { content: ''; position: absolute; top: -50%; left: -100%; width: 50%; height: 200%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent); transform: skewX(-20deg); animation: shinePass 2s infinite; }
         .txt-top-pres { font-size: 7px; color: #FFD700; font-weight: bold; letter-spacing: 1px; }
-        .txt-main-pres { font-family: 'Black Ops One'; font-size: 10px; color: #fff; text-transform: uppercase; }
-        .badge-provokator { width: 100px; height: 35px; background: #220500; border: 1px solid #FF4500; border-radius: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 0 10px #FF4500; }
-        .txt-top-prov { font-size: 7px; color: #FFA500; letter-spacing: 1px; }
-        .txt-main-prov { font-family: 'Black Ops One'; font-size: 9px; color: #fff; text-transform: uppercase; }
-        .badge-senyap { width: 100px; height: 35px; background-color: #050505; border: 1px solid #333; border-radius: 4px; display: flex; align-items: center; justify-content: center; }
-        .senyap-text { font-family: 'Black Ops One'; font-size: 9px; color: #ccc; text-transform: uppercase; }
+        .txt-main-pres { font-family: 'Black Ops One'; font-size: 10px; color: #fff; text-transform: uppercase; text-shadow: 0 0 5px #000; }
+
+        .badge-provokator { width: 100px; height: 35px; background: #220500; border: 1px solid #FF4500; border-radius: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 0 10px #FF4500; position: relative; overflow: hidden; }
+        .fire-anim { position: absolute; bottom: 0; left: 0; width: 100%; height: 100%; background: url('https://i.gifer.com/origin/d7/d7ac4f38b77abe73165d85edf2cb8d2e.gif'); background-size: cover; opacity: 0.3; mix-blend-mode: screen; }
+        .txt-top-prov { font-size: 7px; color: #FFA500; letter-spacing: 1px; z-index: 2; }
+        .txt-main-prov { font-family: 'Black Ops One'; font-size: 9px; color: #fff; z-index: 2; text-shadow: 0 0 5px #FF0000; text-transform: uppercase; }
+
+        .badge-senyap { width: 100px; height: 35px; background-color: #050505; border: 1px solid #333; border-radius: 4px; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; box-shadow: 0 0 10px rgba(255, 255, 255, 0.05); }
+        .senyap-text { font-family: 'Black Ops One'; font-size: 9px; color: #ccc; z-index: 2; text-transform: uppercase; letter-spacing: 1px; text-shadow: 2px 2px 0 #000; animation: textImpact 3s infinite ease-in-out; }
+        .ninja-anim { position: absolute; font-size: 20px; z-index: 3; filter: drop-shadow(-5px 0 2px rgba(0,0,0,0.5)); animation: shadowDash 3s infinite ease-in-out; }
+        .wind-group { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
+        .wind { position: absolute; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.9), transparent); border-radius: 50%; opacity: 0; }
+        .w1 { top: 20%; height: 1px; animation: windGust 3s infinite ease-in-out; }
+        .w2 { top: 50%; height: 2px; animation: windGust 3s infinite ease-in-out 0.05s; }
+        .w3 { top: 80%; height: 1px; animation: windGust 3s infinite ease-in-out 0.1s; }
+
         .badge-donatur { width: 100px; height: 35px; background: #002200; border: 1px solid #00FF00; border-radius: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; animation: pulseGreen 2s infinite; }
         .txt-donatur { font-family: 'Orbitron'; font-size: 10px; color: #00FF00; font-weight: bold; letter-spacing: 1px; }
         .icon-donatur { font-size: 12px; }
-        .badge-keluarga { width: 100px; height: 35px; border: 1px solid #FFD700; border-radius: 4px; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .txt-top-fam { font-size: 7px; color: #fff; font-weight: 800; text-transform: uppercase; }
-        .txt-bot-fam { font-family: 'Orbitron'; font-size: 10px; color: #FFD700; font-weight: 900; text-transform: uppercase; }
-        .badge-elite { width: 100px; height: 35px; background: linear-gradient(180deg, #1a1a1a, #000); border: 1px solid #B8860B; border-radius: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .txt-top-elite { font-size: 7px; color: #aaa; letter-spacing: 2px; }
-        .txt-bot-elite { font-family: 'Black Ops One'; font-size: 11px; color: #FFD700; }
 
+        .badge-keluarga { width: 100px; height: 35px; border: 1px solid #FFD700; border-radius: 4px; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; overflow: hidden; }
+        .bg-gold-flow { position: absolute; inset: -50%; background: conic-gradient(from 0deg, #423103, #FFD700, #FFF8DC, #FFD700, #423103); animation: rotateFlow 6s linear infinite; opacity: 0.6; }
+        .text-layer { position: relative; z-index: 2; text-align: center; width: 100%; }
+        .txt-top-fam { font-size: 7px; color: #fff; letter-spacing: 1px; font-weight: 800; text-transform: uppercase; }
+        .txt-bot-fam { font-family: 'Orbitron'; font-size: 10px; color: #FFD700; letter-spacing: 1px; font-weight: 900; text-transform: uppercase; white-space: nowrap; }
+
+        .badge-elite { width: 100px; height: 35px; background: linear-gradient(180deg, #1a1a1a, #000); border: 1px solid #B8860B; border-radius: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; overflow: hidden; animation: pulseGoldBorder 3s infinite ease-in-out; }
+        .shine-bar { position: absolute; top: 0; left: -100%; width: 50%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent); transform: skewX(-20deg); animation: shinePass 2.5s infinite ease-in-out; }
+        .txt-top-elite { font-size: 7px; color: #aaa; letter-spacing: 2px; }
+        .txt-bot-elite { font-family: 'Black Ops One'; font-size: 11px; background: linear-gradient(to bottom, #FFF8DC, #FFD700, #B8860B); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.3)); }
+
+        /* Keyframes */
+        @keyframes rotateFlow { 0%{transform:rotate(0deg);} 100%{transform:rotate(360deg);} }
+        @keyframes shinePass { 0% {left:-100%; opacity:0;} 50% {left:150%; opacity:1;} 100% {left:150%; opacity:0;} }
+        @keyframes pulseGoldBorder { 0%, 100% { box-shadow: 0 0 5px rgba(184, 134, 11, 0.3); border-color: #B8860B; } 50% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.7); border-color: #FFD700; } }
         @keyframes pulseGreen { 0%, 100% { box-shadow: 0 0 5px rgba(0, 255, 0, 0.2); } 50% { box-shadow: 0 0 15px rgba(0, 255, 0, 0.6); } }
+        @keyframes shadowDash { 0% { left: -50px; opacity: 0; transform: skewX(50deg) scaleX(1.3); filter: blur(5px); } 10% { left: 15px; opacity: 1; transform: skewX(-10deg) scaleX(1); filter: blur(0px); } 15% { transform: skewX(0deg); } 75% { left: 15px; opacity: 1; transform: skewX(0deg); filter: blur(0px); } 80% { transform: skewX(-20deg); } 90% { left: 160px; opacity: 0; transform: skewX(-50deg) scaleX(1.3); filter: blur(5px); } 100% { left: 160px; opacity: 0; } }
+        @keyframes windGust { 0%, 5% { left: -60px; width: 20px; opacity: 0; } 10% { left: 10px; width: 100px; opacity: 0.8; } 15% { left: 150px; width: 20px; opacity: 0; } 85% { left: 10px; width: 20px; opacity: 0; } 90% { left: 100px; width: 120px; opacity: 0.6; } 95% { left: 200px; width: 20px; opacity: 0; } }
+        @keyframes textImpact { 0%, 8% { transform: translate(0, 0); color: #ccc; } 10% { transform: translate(3px, 0); color: #fff; text-shadow: 4px 0 5px rgba(255,255,255,0.5); } 12% { transform: translate(-2px, 0); } 14% { transform: translate(0, 0); color: #ccc; } 88% { transform: translate(0, 0); color: #ccc; } 90% { transform: translate(3px, 0); color: #fff; text-shadow: 4px 0 5px rgba(255,255,255,0.5); } 92% { transform: translate(-2px, 0); } 94% { transform: translate(0, 0); color: #ccc; } }
         @keyframes pulseText { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
@@ -331,7 +308,7 @@
         // NAMA FILE SUDAH SESUAI INSTRUKSI ANDA (PNG)
         const pengurusList = [
             { nama: "PERIODE 2026 - 2027", jabatan: "PENGURUS MAKA LINTAS UTARA", foto: "logo.png", color: "#FFD700" },
-            { nama: "KI AHMAD", jabatan: "KETUA UMUM", foto: "akiaki.jpg", color: "#FFD700" },
+            { nama: "KI AHMAD", jabatan: "KETUA UMUM", foto: "aki.jpg", color: "#FFD700" },
             { nama: "SANDI DAYYAN", jabatan: "WAKIL KETUA UMUM", foto: "dayan.jpg", color: "#00F0FF" },
             { nama: "DEDI UBAY", jabatan: "SEKERTARIS", foto: "ubay.jpg", color: "#00F0FF" },
             { nama: "BANG IWAN", jabatan: "PEMBINA", foto: "iwan.jpg", color: "#E5E4E2" },
