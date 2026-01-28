@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Cek Lokasi Saya</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; padding-top: 50px; }
+        button { padding: 10px 20px; font-size: 16px; cursor: pointer; }
+        #output { margin-top: 20px; font-size: 18px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <h2>📍 Cek Posisi Saya</h2>
+    <p>Klik tombol di bawah untuk mendapatkan koordinatmu saat ini.</p>
+    
+    <button onclick="getLocation()">Ambil Koordinat</button>
+    
+    <div id="output"></div>
+
+    <script>
+        const output = document.getElementById("output");
+
+        function getLocation() {
+            if (navigator.geolocation) {
+                output.innerHTML = "Sedang mencari lokasi...";
+                // Meminta posisi user
+                navigator.geolocation.getCurrentPosition(showPosition, showError);
+            } else {
+                output.innerHTML = "Browser kamu tidak mendukung Geolocation.";
+            }
+        }
+
+        function showPosition(position) {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+            
+            output.innerHTML = `
+                Latitude: <br><code>${lat}</code><br><br>
+                Longitude: <br><code>${lng}</code><br><br>
+                <a href="https://www.google.com/maps?q=${lat},${lng}" target="_blank">Lihat di Google Maps</a>
+            `;
+        }
+
+        function showError(error) {
+            switch(error.code) {
+                case error.PERMISSION_DENIED:
+                    output.innerHTML = "Akses lokasi ditolak oleh pengguna.";
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    output.innerHTML = "Informasi lokasi tidak tersedia.";
+                    break;
+                case error.TIMEOUT:
+                    output.innerHTML = "Waktu permintaan habis.";
+                    break;
+                default:
+                    output.innerHTML = "Terjadi error yang tidak diketahui.";
+            }
+        }
+    </script>
+
+</body>
+</html>
