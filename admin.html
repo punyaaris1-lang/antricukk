@@ -6,7 +6,7 @@
     <title>ADMIN TITANIUM - FC KG</title>
     <link href="https://fonts.googleapis.com/css2?family=Teko:wght@300;500;700&family=Rajdhani:wght@500;700&family=Orbitron:wght@700&display=swap" rel="stylesheet">
     <style>
-        /* === STYLE TITANIUM ORIGINAL === */
+        /* === STYLE TITANIUM ORIGINAL (TIDAK DIUBAH) === */
         :root { 
             --bg: #050505; --panel: #111; --border: #333; 
             --gold: #FFD700; --cyan: #00F0FF; --red: #FF003C; 
@@ -43,7 +43,6 @@
         .slot-item { border: 1px solid #333; padding: 10px; background: #050505; text-align: center; border-radius: 6px; min-height: 140px; display: flex; flex-direction: column; justify-content: space-between; position: relative; overflow: hidden; }
         .slot-item.active { border-color: var(--cyan); background: rgba(0, 240, 255, 0.05); }
         
-        /* BADGE LABEL DI ADMIN */
         .adm-badge { font-size: 9px; padding: 2px 6px; border-radius: 3px; font-weight: bold; display: inline-block; margin-top: 3px; }
         .bg-pea { background: var(--purple); color: #fff; }
         .bg-gold { background: var(--gold); color: #000; }
@@ -58,7 +57,7 @@
         .adm-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 15px; }
 
         /* MODAL */
-        #customModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 9999; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
+        #customModal, #editModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 9999; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
         .modal-box { background: #111; border: 1px solid var(--gold); width: 85%; max-width: 300px; padding: 25px; border-radius: 10px; text-align: center; box-shadow: 0 0 30px rgba(255, 215, 0, 0.1); }
         .modal-btns { display: flex; gap: 10px; margin-top: 20px; }
         .mb-yes { flex:1; background: var(--gold); color: #000; }
@@ -142,6 +141,26 @@
         </div>
     </div>
 
+    <div id="editModal">
+        <div class="modal-box">
+            <h2 style="margin:0 0 15px 0; font-family:'Teko'; color:var(--cyan); font-size:24px;">EDIT USER</h2>
+            
+            <label style="display:block; text-align:left; color:#888; font-size:10px; margin-bottom:2px;">PLAT NOMOR</label>
+            <input id="editPlat" type="text">
+            
+            <label style="display:block; text-align:left; color:#888; font-size:10px; margin-bottom:2px;">NAMA USER</label>
+            <input id="editName" type="text">
+            
+            <label style="display:block; text-align:left; color:#888; font-size:10px; margin-bottom:2px;">SISA BATRE (%)</label>
+            <input id="editBatt" type="number" max="100">
+
+            <input type="hidden" id="editIndex"> <div class="modal-btns">
+                <button onclick="saveEdit()" class="mb-yes">SIMPAN PERUBAHAN</button>
+                <button onclick="closeEditModal()" class="mb-no">BATAL</button>
+            </div>
+        </div>
+    </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, doc, onSnapshot, runTransaction, collection, addDoc, query, orderBy, limit, getDocs, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -157,7 +176,6 @@
         let cachedQueue = [];
         let snapshotData = null;
 
-        // AUTH SIMPLE
         if(localStorage.getItem('adm_sess')) {} 
         else { 
             let p = prompt("PIN ADMIN:"); 
@@ -165,7 +183,7 @@
             else { alert("Salah!"); location.reload(); } 
         }
 
-        // MODAL
+        // --- MODAL LOGIC ---
         let currentCallback = null;
         window.askConfirm = (text, callback) => {
             document.getElementById('modalText').innerText = text;
@@ -174,6 +192,44 @@
         };
         document.getElementById('btnYes').onclick = () => { if(currentCallback) currentCallback(); closeModal(); };
         window.closeModal = () => { document.getElementById('customModal').style.display = 'none'; currentCallback = null; };
+
+        // --- EDIT MODAL LOGIC (BARU) ---
+        window.openEdit = (idx) => {
+            const user = cachedQueue[idx];
+            if(!user) return;
+            document.getElementById('editIndex').value = idx;
+            document.getElementById('editPlat').value = user.plat;
+            document.getElementById('editName').value = user.userName;
+            document.getElementById('editBatt').value = user.batreSisa || ""; // Load Batre
+            document.getElementById('editModal').style.display = 'flex';
+        };
+
+        window.closeEditModal = () => { document.getElementById('editModal').style.display = 'none'; };
+
+        window.saveEdit = () => {
+            const idx = parseInt(document.getElementById('editIndex').value);
+            const p = document.getElementById('editPlat').value.toUpperCase();
+            const n = document.getElementById('editName').value.toUpperCase();
+            const b = document.getElementById('editBatt').value;
+
+            if(!p || !n) return alert("Plat & Nama tidak boleh kosong!");
+
+            runTransaction(db, async(t) => {
+                const d = (await t.get(mainRef)).data();
+                let q = d.waitingQueue;
+                
+                if(q[idx]) {
+                    q[idx].plat = p;
+                    q[idx].userName = n;
+                    q[idx].batreSisa = b; // Update Batre
+                    t.update(mainRef, { waitingQueue: q });
+                    addLog("ADMIN", "EDIT_USER", `Updated: ${p}`);
+                }
+            }).then(() => {
+                closeEditModal();
+                alert("Data Berhasil Diupdate!");
+            }).catch(e => alert("Gagal Update: " + e));
+        };
 
         // === MONITOR ===
         onSnapshot(mainRef, (snap) => {
@@ -190,18 +246,18 @@
                 const el = document.getElementById(`slot${i+1}`);
                 if(s) {
                     let badgeClass = "bg-guest"; let roleText = s.role || "GUEST";
-                    if(roleText === "MEMBER" || roleText.includes("KELUARGA") || roleText.includes("KETUA")) { badgeClass = "bg-gold"; }
+                    if(roleText.includes("MEMBER") || roleText.includes("KELUARGA") || roleText.includes("KETUA")) { badgeClass = "bg-gold"; }
                     else if(roleText.includes("PEA")) { badgeClass = "bg-pea"; }
                     else if(roleText.includes("SATGAS")) { badgeClass = "bg-red"; }
                     else if(roleText.includes("TURTLE")) { badgeClass = "bg-green"; }
                     else if(roleText.includes("OFFICE")) { badgeClass = "bg-cyan"; }
-                    else if(roleText === "GUEST") { roleText = "NON-MEMBER"; }
 
                     el.className = "slot-item active";
                     el.innerHTML = `
                         <div>
                             <div style="font-size:24px; font-family:'Teko'; color:#fff; line-height:1;">${s.plat}</div>
                             <div style="font-size:10px; color:#aaa;">${s.userName}</div>
+                            <div style="font-size:10px; color:var(--cyan);">BAT: ${s.batreSisa || '-'}%</div>
                             <span class="adm-badge ${badgeClass}">${roleText}</span>
                         </div>
                         <div style="display:grid; gap:2px; width:100%;">
@@ -215,17 +271,22 @@
                 }
             });
 
-            // UPDATE QUEUE TABLE
-            let h = `<table><tr><th width="20">#</th><th>PLAT / NAMA</th><th width="120">PINDAH KE</th><th width="40">AKSI</th></tr>`;
+            // UPDATE QUEUE TABLE (DITAMBAH TOMBOL EDIT)
+            let h = `<table><tr><th width="20">#</th><th>PLAT / NAMA / BAT</th><th width="100">PINDAH KE</th><th width="60">AKSI</th></tr>`;
             if(cachedQueue.length === 0) h += `<tr><td colspan="4" style="text-align:center; padding:10px; color:#444;">TIDAK ADA ANTRIAN</td></tr>`;
             
             cachedQueue.forEach((q, idx) => {
                 let badgeClass = "bg-guest"; let roleText = q.role || "GUEST";
-                if(roleText === "MEMBER" || roleText.includes("KELUARGA")) badgeClass = "bg-gold";
+                if(roleText.includes("MEMBER") || roleText.includes("KELUARGA")) badgeClass = "bg-gold";
                 
                 h += `<tr>
                     <td style="font-size:14px; font-weight:bold; color:var(--cyan)">${q.qNo}</td>
-                    <td><b style="color:#fff; font-size:14px;">${q.plat}</b><br><span style="color:#888;">${q.userName}</span> <span class="adm-badge ${badgeClass}" style="font-size:8px;">${roleText}</span></td>
+                    <td>
+                        <b style="color:#fff; font-size:14px;">${q.plat}</b> 
+                        <span style="color:#aaa;">(${q.batreSisa || '?'}%)</span><br>
+                        <span style="color:#888;">${q.userName}</span> 
+                        <span class="adm-badge ${badgeClass}" style="font-size:8px;">${roleText}</span>
+                    </td>
                     <td>
                         <div style="display:flex; gap:2px;">
                             <button class="btn-gold btn-mini" onclick="forceToSlot('${q.plat}', 0)">S1</button>
@@ -235,7 +296,7 @@
                     </td>
                     <td>
                         <div style="display:flex; gap:2px;">
-                            <button class="btn-blue btn-mini" onclick="switchQueue(${idx}, -1)">⬆</button>
+                            <button class="btn-cyan btn-mini" onclick="openEdit(${idx})" title="Edit User">✏</button> <button class="btn-blue btn-mini" onclick="switchQueue(${idx}, -1)">⬆</button>
                             <button class="btn-blue btn-mini" onclick="switchQueue(${idx}, 1)">⬇</button>
                             <button class="btn-red btn-mini" onclick="askConfirm('Hapus?', ()=>delQueue('${q.plat}'))">X</button>
                         </div>
@@ -245,7 +306,6 @@
             document.getElementById('queueTable').innerHTML = h + `</table>`;
         }
 
-        // === FITUR BARU: RESET NOMOR (RE-INDEX) ===
         window.resetTicketNumbers = () => {
             runTransaction(db, async(t) => {
                 const d = (await t.get(mainRef)).data();
@@ -256,13 +316,11 @@
             }).then(() => alert("Nomor berhasil diurutkan ulang dari 1!")).catch(e => alert("Gagal: " + e));
         };
 
-        // === INPUT MANUAL (FORCE) ===
         window.manualAdd = async (target) => {
             const p = document.getElementById('newPlat').value.trim().toUpperCase();
             const n = document.getElementById('newNama').value.trim().toUpperCase();
             if(!p) return alert("Plat Nomor Wajib Diisi!");
 
-            // Cek Role dari DB (Biar sinkron sama System)
             let userRole = "GUEST";
             const cleanID = p.replace(/[^A-Z0-9]/g, '');
             try {
@@ -276,7 +334,7 @@
                 if([...(d.chargingSlots||[]), ...d.waitingQueue].some(u => u && u.plat === p)) throw "User sudah ada!";
 
                 const newNo = (d.lastTicket||0)+1;
-                const u = { plat:p, userName:n||"MANUAL", qNo:newNo, entryTime:Date.now(), role: userRole };
+                const u = { plat:p, userName:n||"MANUAL", qNo:newNo, entryTime:Date.now(), role: userRole, batreSisa: "-" }; // Default Batre strip
 
                 if(target === 'queue') d.waitingQueue.push(u); 
                 else { 
@@ -284,7 +342,6 @@
                     u.startTime = Date.now(); d.chargingSlots[target] = u; 
                 }
 
-                // SIMPAN SNAPSHOT OTOMATIS
                 t.set(snapshotRef, { ...d, backupTime: new Date() });
                 t.update(mainRef, { waitingQueue:d.waitingQueue, chargingSlots:d.chargingSlots, lastTicket:newNo });
                 addLog("ADMIN", "MANUAL_INPUT", `Add ${p} (${userRole})`);
@@ -294,7 +351,6 @@
             }).catch(e => alert("GAGAL: " + e));
         };
 
-        // === ACTION BUTTONS ===
         window.forceToSlot = (plat, slotIdx) => {
             runTransaction(db, async(t) => {
                 const d = (await t.get(mainRef)).data();
@@ -363,7 +419,6 @@
             });
         };
 
-        // === SNAPSHOT & LOG ===
         window.checkRecovery = async () => {
             const s = await getDoc(snapshotRef);
             if(!s.exists()) return alert("Tidak ada backup.");
