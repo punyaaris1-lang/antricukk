@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>PERSONNEL DATABASE - MLU</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Teko:wght@300;500;600;700&family=Rajdhani:wght@500;600;700;800;900&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root { 
+            --bg: #050505; 
+            --primary: #00F0FF;       
+            --gold: #FFD700;
+            --red: #FF003C;
+            --green: #39FF14;
+            --glass: rgba(10, 15, 20, 0.8);
+            
+            --font-tech: 'Rajdhani', sans-serif;
+            --font-head: 'Orbitron', sans-serif;
+            --font-num: 'Teko', sans-serif;
+        }
+        
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
+        body { 
+            margin: 0; padding: 0; background: var(--bg); color: #fff;
+            font-family: var(--font-tech); overflow-x: hidden;
+            background-image: 
+                linear-gradient(rgba(0, 240, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 240, 255, 0.03) 1px, transparent 1px);
+            background-size: 30px 30px;
+            padding-bottom: 100px;
+        }
+
+        /* HEADER */
+        .header {
+            text-align: center; padding: 30px 20px;
+            background: linear-gradient(180deg, #000 0%, rgba(0,20,30,0.95) 100%);
+            border-bottom: 2px solid var(--primary);
+            box-shadow: 0 0 30px rgba(0, 240, 255, 0.15);
+            position: relative; z-index: 10;
+        }
+        .main-title { 
+            font-family: var(--font-head); font-size: 26px; letter-spacing: 2px;
+            color: #fff; text-shadow: 0 0 15px var(--primary); margin-bottom: 5px;
+        }
+        .sub-title { 
+            font-family: var(--font-tech); font-size: 12px; color: var(--primary); 
+            letter-spacing: 4px; font-weight: 800; text-transform: uppercase;
+        }
+
+        /* CONTAINER GRID */
+        .container {
+            padding: 20px; max-width: 600px; margin: 0 auto;
+            display: grid; grid-template-columns: 1fr 1fr; gap: 15px;
+        }
+        
+        /* Full Width untuk Ketua */
+        .full-width { grid-column: span 2; }
+
+        /* CARD STYLE */
+        .profile-card {
+            background: var(--glass);
+            border: 1px solid #333;
+            position: relative; overflow: hidden;
+            clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px);
+            transition: 0.3s;
+        }
+        .profile-card::before {
+            content: ''; position: absolute; inset: 0;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+            pointer-events: none; z-index: 2;
+        }
+        
+        /* Image Container */
+        .img-box {
+            width: 100%; height: 200px; /* Tinggi standar */
+            position: relative; overflow: hidden;
+            background: #000;
+        }
+        .p-img {
+            width: 100%; height: 100%; object-fit: cover; object-position: top;
+            filter: grayscale(40%) contrast(1.1); transition: 0.5s;
+        }
+        
+        /* Laser Scan Effect */
+        .scan-line {
+            position: absolute; top: 0; left: 0; width: 100%; height: 2px;
+            background: rgba(255,255,255,0.8);
+            box-shadow: 0 0 10px var(--primary);
+            animation: scan 3s infinite linear;
+            z-index: 3; opacity: 0.5;
+        }
+
+        /* Text Info */
+        .info-box {
+            padding: 15px; text-align: center; position: relative; z-index: 4;
+            background: linear-gradient(0deg, #000 0%, rgba(0,0,0,0.8) 100%);
+            border-top: 1px solid #333;
+        }
+        .p-name {
+            font-family: var(--font-head); font-size: 16px; color: #fff;
+            text-transform: uppercase; margin-bottom: 4px; letter-spacing: 1px;
+        }
+        .p-role {
+            font-family: var(--font-tech); font-size: 12px; font-weight: 800;
+            letter-spacing: 2px; text-transform: uppercase;
+        }
+
+        /* --- COLOR VARIANTS --- */
+        
+        /* GOLD (KETUA/VIP) */
+        .card-gold { border-color: var(--gold); box-shadow: 0 0 15px rgba(255, 215, 0, 0.1); }
+        .card-gold .p-role { color: var(--gold); text-shadow: 0 0 10px rgba(255, 215, 0, 0.5); }
+        .card-gold .scan-line { background: var(--gold); box-shadow: 0 0 10px var(--gold); }
+        
+        /* CYAN (PENGURUS) */
+        .card-cyan { border-color: var(--primary); box-shadow: 0 0 15px rgba(0, 240, 255, 0.1); }
+        .card-cyan .p-role { color: var(--primary); text-shadow: 0 0 10px rgba(0, 240, 255, 0.5); }
+        
+        /* RED (SATGAS/OPS) */
+        .card-red { border-color: var(--red); box-shadow: 0 0 15px rgba(255, 0, 60, 0.1); }
+        .card-red .p-role { color: var(--red); text-shadow: 0 0 10px rgba(255, 0, 60, 0.5); }
+
+        /* BACK BUTTON FIXED */
+        .back-btn-container {
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+            z-index: 100;
+        }
+        .btn-back {
+            background: rgba(0, 0, 0, 0.9); border: 2px solid var(--primary);
+            color: var(--primary); padding: 12px 40px; border-radius: 30px;
+            font-family: var(--font-head); font-size: 14px; letter-spacing: 2px;
+            cursor: pointer; box-shadow: 0 0 20px rgba(0, 240, 255, 0.3);
+            display: flex; align-items: center; gap: 10px; transition: 0.3s;
+            text-decoration: none;
+        }
+        .btn-back:active { transform: scale(0.95); background: var(--primary); color: #000; }
+
+        @keyframes scan { 0%{top:0; opacity:0;} 10%{opacity:1;} 90%{opacity:1;} 100%{top:100%; opacity:0;} }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="main-title">COMMAND CENTER</div>
+        <div class="sub-title">STRUKTUR PENGURUS 2026-2027</div>
+    </div>
+
+    <div class="container" id="teamContainer">
+        </div>
+
+    <div class="back-btn-container">
+        <a href="system.html" class="btn-back">
+            <i class="fas fa-arrow-left"></i> KEMBALI
+        </a>
+    </div>
+
+    <script>
+        // DATA PENGURUS (Sama dengan System.html)
+        const TEAM_DATA = [
+            { nama: "KI AHMAD", jabatan: "KETUA UMUM", foto: "akiaki.jpg", type: "gold", full: true },
+            { nama: "SANDI DAYYAN", jabatan: "WAKIL KETUA", foto: "dayan.jpg", type: "gold", full: false },
+            { nama: "DEDI UBAY", jabatan: "SEKERTARIS", foto: "ubay.jpg", type: "cyan", full: false },
+            { nama: "BANG IWAN", jabatan: "PEMBINA", foto: "iwan.jpg", type: "cyan", full: false },
+            { nama: "PAK AJI", jabatan: "PENASEHAT", foto: "aji.jpg", type: "cyan", full: false },
+            { nama: "FERRY", jabatan: "HUMAS", foto: "ferry.jpg", type: "cyan", full: false },
+            { nama: "DONI", jabatan: "HUMAS", foto: "doni.jpg", type: "cyan", full: false },
+            { nama: "AMAR", jabatan: "KORLAP", foto: "amar.jpg", type: "red", full: false },
+            { nama: "SANDI", jabatan: "KORLAP", foto: "sandi.jpg", type: "red", full: false },
+            { nama: "SANDI JET LEE", jabatan: "SATGAS", foto: "jetlee.jpg", type: "red", full: false },
+            { nama: "HENDRO", jabatan: "SATGAS", foto: "hendro.jpg", type: "red", full: false }
+        ];
+
+        const container = document.getElementById('teamContainer');
+
+        TEAM_DATA.forEach(p => {
+            const card = document.createElement('div');
+            // Tentukan kelas warna dan lebar layout
+            const colorClass = p.type === 'gold' ? 'card-gold' : (p.type === 'red' ? 'card-red' : 'card-cyan');
+            const widthClass = p.full ? 'full-width' : '';
+            
+            card.className = `profile-card ${colorClass} ${widthClass}`;
+            
+            // HTML Structure Kartu
+            card.innerHTML = `
+                <div class="img-box">
+                    <div class="scan-line"></div>
+                    <img src="${p.foto}" class="p-img" onerror="this.src='logo.png'; this.style.objectFit='contain'; this.style.padding='20px';">
+                </div>
+                <div class="info-box">
+                    <div class="p-name">${p.nama}</div>
+                    <div class="p-role">${p.jabatan}</div>
+                </div>
+            `;
+            
+            container.appendChild(card);
+        });
+    </script>
+</body>
+</html>
