@@ -6,133 +6,187 @@
     <title>MAKA - PLAN TRIP</title>
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Teko:wght@300;500;700&family=Rajdhani:wght@500;600;800&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Teko:wght@300;500;700&family=Rajdhani:wght@500;600;700;800&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
         :root {
-            --bg: #050505; --gold: #FFD700; --cyan: #00F0FF; --red: #FF003C; --green: #39FF14;
-            --glass-bg: rgba(10, 10, 10, 0.9);
-            --border: 1px solid rgba(255, 215, 0, 0.3);
+            --bg: #050505; 
+            --primary: #00F0FF; /* CYAN UTAMA */
+            --primary-dim: rgba(0, 240, 255, 0.15);
+            --gold: #FFD700; 
+            --red: #FF003C; 
+            --green: #39FF14;
+            --gray: #333;
+            
+            --font-tech: 'Rajdhani', sans-serif;
+            --font-num: 'Teko', sans-serif;
+            --font-head: 'Orbitron', sans-serif;
         }
 
-        body { margin: 0; padding: 0; font-family: 'Rajdhani', sans-serif; background: var(--bg); color: #ddd; padding-bottom: 90px; }
+        body { 
+            margin: 0; padding: 0; font-family: var(--font-tech); 
+            background: var(--bg); color: #fff; padding-bottom: 90px; 
+            background-image: 
+                linear-gradient(rgba(0, 240, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 240, 255, 0.03) 1px, transparent 1px);
+            background-size: 30px 30px;
+        }
         
         /* --- HEADER --- */
-        .header { text-align: center; padding: 20px; border-bottom: 1px solid #333; background: linear-gradient(180deg, #111 0%, #050505 100%); }
-        .main-title { font-family: 'Black Ops One'; font-size: 28px; color: #fff; line-height: 1; letter-spacing: 1px; }
-        .sub-title { font-size: 12px; color: var(--gold); letter-spacing: 3px; font-weight: bold; margin-top: 5px; }
+        .header { 
+            text-align: center; padding: 25px 20px; 
+            background: linear-gradient(180deg, #000 0%, rgba(0,20,30,0.9) 100%);
+            border-bottom: 1px solid rgba(0, 240, 255, 0.2); 
+        }
+        .main-title { 
+            font-family: var(--font-head); font-weight: 900; font-size: 28px; 
+            color: #fff; line-height: 1; letter-spacing: 2px;
+            text-shadow: 0 0 20px var(--primary);
+        }
+        .sub-title { 
+            font-family: var(--font-tech); font-size: 10px; color: var(--primary); 
+            letter-spacing: 4px; font-weight: 700; margin-top: 5px;
+            display: inline-block; border-bottom: 2px solid var(--primary); padding-bottom: 3px;
+        }
 
         /* --- FORM INPUT --- */
         .container { padding: 20px; }
         
         .input-group { position: relative; margin-bottom: 15px; }
-        .input-icon { position: absolute; left: 15px; top: 12px; color: var(--gold); font-size: 18px; z-index: 2; }
+        .input-icon { 
+            position: absolute; left: 15px; top: 12px; 
+            color: var(--primary); font-family: var(--font-head); 
+            font-size: 12px; z-index: 2; font-weight: bold; 
+        }
         
         .form-control {
-            width: 100%; padding: 12px 45px 12px 45px; 
-            background: #111; border: 1px solid #333; border-radius: 5px;
-            color: #fff; font-family: 'Rajdhani'; font-weight: bold; font-size: 16px;
+            width: 100%; padding: 12px 10px 12px 60px; /* Space for label */
+            background: rgba(0, 10, 20, 0.8); 
+            border: 1px solid #333; border-radius: 4px;
+            color: #fff; font-family: var(--font-tech); font-weight: 700; font-size: 16px;
             box-sizing: border-box; transition: 0.3s;
+            text-transform: uppercase;
         }
-        .form-control:focus { border-color: var(--cyan); outline: none; box-shadow: 0 0 10px rgba(0, 240, 255, 0.2); }
-        .form-control.gps-active { border-color: var(--green); color: var(--green); background: rgba(0, 255, 0, 0.05); }
+        .form-control:focus { 
+            border-color: var(--primary); outline: none; 
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.2); 
+        }
+        .form-control::placeholder { color: #555; }
+        .form-control.gps-active { border-color: var(--green); color: var(--green); background: rgba(0, 50, 0, 0.2); }
 
         /* TOMBOL GPS */
         .gps-trigger {
             position: absolute; right: 10px; top: 8px;
-            background: none; border: 1px solid var(--cyan); color: var(--cyan);
-            width: 35px; height: 35px; border-radius: 5px;
+            background: rgba(0, 240, 255, 0.1); border: 1px solid var(--primary); color: var(--primary);
+            width: 35px; height: 35px; border-radius: 4px;
             display: flex; align-items: center; justify-content: center;
-            cursor: pointer; font-size: 18px; transition: 0.2s;
+            cursor: pointer; font-size: 16px; transition: 0.2s;
         }
-        .gps-trigger:active { background: var(--cyan); color: #000; }
+        .gps-trigger:active { background: var(--primary); color: #000; }
 
+        /* TOMBOL ADD */
         .btn-add {
-            width: 100%; background: transparent; border: 1px dashed #555; color: #888;
-            padding: 10px; font-family: 'Teko'; font-size: 18px; cursor: pointer;
-            margin-bottom: 15px; transition: 0.2s;
+            width: 100%; background: rgba(255,255,255,0.05); 
+            border: 1px dashed #555; color: #888;
+            padding: 10px; font-family: var(--font-tech); font-weight: bold; font-size: 14px; 
+            cursor: pointer; margin-bottom: 15px; transition: 0.2s;
         }
-        .btn-add:active { background: #111; color: #fff; border-color: #fff; }
+        .btn-add:active { background: #111; color: var(--primary); border-color: var(--primary); }
 
+        /* TOMBOL UTAMA */
         .btn-action {
-            width: 100%; padding: 15px; background: var(--gold); color: #000;
-            border: none; font-family: 'Black Ops One'; font-size: 20px; letter-spacing: 1px;
+            width: 100%; padding: 15px; background: var(--primary); color: #000;
+            border: none; font-family: var(--font-head); font-weight: 900; font-size: 18px; letter-spacing: 2px;
             clip-path: polygon(10px 0, 100% 0, 100% 100%, 0 100%, 0 10px);
-            cursor: pointer; text-transform: uppercase; box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+            cursor: pointer; text-transform: uppercase; 
+            box-shadow: 0 0 25px rgba(0, 240, 255, 0.4);
+            transition: 0.2s;
         }
-        .btn-action:active { transform: scale(0.98); }
+        .btn-action:active { transform: scale(0.98); background: #fff; }
 
         /* --- RESULT CARD --- */
         .route-card {
-            background: #080808; border: 1px solid #333; margin-top: 25px;
-            padding: 20px; border-radius: 10px; position: relative;
+            background: #050a10; border: 1px solid #333; margin-top: 25px;
+            padding: 20px; border-radius: 8px; position: relative;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
         .route-card.aman { border-left: 4px solid var(--green); }
         .route-card.nekat { border-left: 4px solid var(--red); }
 
-        .card-title { font-family: 'Black Ops One'; font-size: 18px; color: #fff; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
-        .badge { font-family: 'Teko'; padding: 2px 8px; font-size: 14px; border-radius: 2px; color: #000; }
-        .badge.aman { background: var(--green); }
-        .badge.nekat { background: var(--red); color: #fff; }
-
-        /* TIMELINE */
-        .timeline { position: relative; padding-left: 20px; border-left: 2px dashed #333; margin-left: 10px; }
-        .t-item { position: relative; margin-bottom: 25px; }
-        .t-dot { 
-            position: absolute; left: -26px; top: 0; width: 10px; height: 10px; 
-            background: #000; border: 2px solid var(--gold); border-radius: 50%;
-            box-shadow: 0 0 10px var(--gold);
+        .card-title { 
+            font-family: var(--font-head); font-size: 16px; color: #fff; 
+            margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; 
+            border-bottom: 1px solid #222; padding-bottom: 10px;
         }
-        .t-info { background: #111; padding: 10px; border: 1px solid #333; border-radius: 5px; }
-        .t-name { font-family: 'Teko'; font-size: 18px; color: var(--cyan); line-height: 1; }
-        .t-meta { font-size: 12px; color: #888; display: flex; justify-content: space-between; margin-top: 5px; }
-        .t-bat { font-weight: bold; }
+        .badge { font-family: var(--font-tech); font-weight: bold; padding: 2px 8px; font-size: 12px; border-radius: 2px; color: #000; }
+        .badge.aman { background: var(--green); box-shadow: 0 0 10px var(--green); }
+        .badge.nekat { background: var(--red); color: #fff; box-shadow: 0 0 10px var(--red); }
+
+        /* TIMELINE (Ganti Gold ke Cyan) */
+        .timeline { position: relative; padding-left: 20px; border-left: 1px dashed #333; margin-left: 10px; }
+        .t-item { position: relative; margin-bottom: 20px; }
+        .t-dot { 
+            position: absolute; left: -25px; top: 5px; width: 10px; height: 10px; 
+            background: #000; border: 2px solid var(--primary); border-radius: 50%;
+            box-shadow: 0 0 10px var(--primary);
+        }
+        .t-info { background: rgba(255,255,255,0.03); padding: 10px; border: 1px solid #222; border-radius: 4px; }
+        .t-name { font-family: var(--font-tech); font-weight: 700; font-size: 16px; color: var(--primary); line-height: 1; }
+        .t-meta { font-size: 12px; color: #888; display: flex; justify-content: space-between; margin-top: 5px; font-family: var(--font-tech); }
+        .t-bat { font-weight: bold; font-family: var(--font-num); font-size: 16px; }
         
         .bat-ok { color: var(--green); }
         .bat-low { color: var(--red); animation: blink 1s infinite; }
 
         /* INFO DESTINATION */
         .dest-info {
-            margin-top: 15px; padding: 10px; background: rgba(0, 240, 255, 0.1); 
-            border: 1px solid var(--cyan); border-radius: 5px;
+            margin-top: 15px; padding: 10px; background: rgba(0, 240, 255, 0.05); 
+            border: 1px solid var(--primary); border-radius: 4px;
         }
-        .dest-label { font-size: 10px; color: var(--cyan); letter-spacing: 1px; font-weight: bold; }
-        .dest-val { font-family: 'Teko'; font-size: 20px; color: #fff; }
+        .dest-label { font-size: 10px; color: var(--primary); letter-spacing: 1px; font-weight: bold; margin-bottom: 2px; }
+        .dest-val { font-family: var(--font-tech); font-weight: 700; font-size: 18px; color: #fff; }
 
         /* MAP */
-        #map { height: 300px; width: 100%; background: #000; border: 1px solid #333; margin-top: 20px; }
-        .leaflet-layer { filter: brightness(0.7) contrast(1.1) grayscale(20%); } 
-
+        #map { height: 300px; width: 100%; background: #020205; border: 1px solid var(--primary); margin-top: 20px; border-radius: 8px; }
+        
         /* LOADING */
         #loading-overlay {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 9999;
+            position: fixed; inset: 0; background: #000; z-index: 9999;
             display: none; align-items: center; justify-content: center; flex-direction: column;
         }
-        .scanner-line { width: 100%; height: 2px; background: var(--cyan); box-shadow: 0 0 10px var(--cyan); animation: scan 1s infinite alternate; width: 200px; }
-        .loading-text { font-family: 'Orbitron'; color: var(--cyan); margin-top: 20px; letter-spacing: 2px; font-size: 14px; animation: blink 0.5s infinite; }
+        .scanner-line { width: 50px; height: 50px; border: 2px solid #333; border-top: 2px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; box-shadow: 0 0 20px var(--primary-dim); }
+        .loading-text { font-family: var(--font-head); color: var(--primary); margin-top: 20px; letter-spacing: 2px; font-size: 12px; animation: blink 1s infinite; }
 
-        /* DOCK NAV (MENU BAWAH) */
-        .dock-container { 
-            position: fixed; bottom: 0; left: 0; width: 100%; height: 75px; 
-            background: #000; border-top: 1px solid #333; 
-            display: grid; grid-template-columns: 1fr 1fr 1fr; 
-            align-items: center; z-index: 1001; 
+        /* DOCK NAV (SAMA DENGAN SYSTEM.HTML) */
+        .dock-container {
+            position: fixed; bottom: 0; left: 0; width: 100%; height: 80px;
+            background: rgba(2, 5, 8, 0.98); border-top: 2px solid var(--primary);
+            display: grid; grid-template-columns: 1fr 1fr 1fr; align-items: center;
+            z-index: 2000;
         }
-        .nav-item { 
-            text-decoration: none; display: flex; flex-direction: column; align-items: center; justify-content: center;
-            color: #444; transition: 0.3s; height: 100%; position: relative;
+        .nav-item { text-decoration: none; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #444; transition: 0.3s; height: 100%; position: relative; }
+        
+        /* Menu Kanan Aktif (PLAN) */
+        .nav-item.active { color: var(--primary); text-shadow: 0 0 15px var(--primary); }
+        
+        /* Center Button Style */
+        .nav-item.center-btn { transform: translateY(-30px); }
+        .center-icon-box { 
+            width: 65px; height: 65px; background: #000; 
+            border: 2px solid #333; /* Grey Border (Inactive) */
+            border-radius: 50%; display: flex; align-items: center; justify-content: center; 
+            box-shadow: 0 0 10px rgba(0,0,0,0.5); 
+            font-size: 26px; color: #555; /* Grey Icon */
+            position: relative; z-index: 10;
         }
-        .nav-item.active { color: var(--gold); }
-        .nav-item.active .nav-icon { text-shadow: 0 0 15px var(--gold); transform: translateY(-2px); }
-        .nav-item.active::after {
-            content: ''; position: absolute; bottom: 0; width: 40px; height: 3px; 
-            background: var(--gold); box-shadow: 0 0 10px var(--gold);
-        }
-        .nav-icon { font-size: 24px; margin-bottom: 2px; }
-        .nav-text { font-family: 'Teko'; font-size: 16px; letter-spacing: 1px; font-weight: bold; }
+        .center-icon-box::after { content:''; position: absolute; inset: -5px; border-radius: 50%; border: 1px dashed #333; }
 
-        @keyframes blink { 0%,100% {opacity:1} 50% {opacity:0.3} }
-        @keyframes scan { from{width:10px} to{width:200px} }
+        .nav-icon { font-size: 22px; margin-bottom: 4px; }
+        .nav-text { font-family: var(--font-head); font-size: 10px; letter-spacing: 2px; font-weight: 700; margin-top: 5px; }
+
+        @keyframes blink { 0%,100% {opacity:1} 50% {opacity:0.5} }
+        @keyframes spin { 100% {transform: rotate(360deg);} }
 
     </style>
 </head>
@@ -140,7 +194,7 @@
 
     <div id="loading-overlay">
         <div class="scanner-line"></div>
-        <div class="loading-text">CALCULATING ROUTE...</div>
+        <div class="loading-text">MENGHITUNG JALUR...</div>
     </div>
 
     <div class="header">
@@ -149,26 +203,26 @@
     </div>
 
     <div class="container">
-        <div id="db-status" style="text-align:center; font-size:10px; color:#555; margin-bottom:10px; font-family:'Orbitron';">INITIALIZING SATELLITE...</div>
+        <div id="db-status" style="text-align:center; font-size:10px; color:#555; margin-bottom:15px; font-family:var(--font-head); letter-spacing: 1px;">INITIALIZING SATELLITE...</div>
 
         <div id="waypoints">
             <div class="input-group">
-                <div class="input-icon">Start</div>
-                <input type="text" id="start-input" class="form-control loc-input" placeholder="LOKASI AWAL (Atau Tap GPS ➡)">
-                <div class="gps-trigger" onclick="useCurrentLocation()">🎯</div>
+                <div class="input-icon">START</div>
+                <input type="text" id="start-input" class="form-control loc-input" placeholder="LOKASI AWAL (Tap Target)">
+                <div class="gps-trigger" onclick="useCurrentLocation()"><i class="fas fa-crosshairs"></i></div>
             </div>
 
             <div class="input-group">
-                <div class="input-icon">End</div>
-                <input type="text" class="form-control loc-input" placeholder="TUJUAN AKHIR (Contoh: Bandung)">
+                <div class="input-icon">END</div>
+                <input type="text" class="form-control loc-input" placeholder="TUJUAN AKHIR">
             </div>
         </div>
         
         <button class="btn-add" onclick="addStop()">+ TAMBAH PERSINGGAHAN</button>
 
         <div class="input-group">
-            <div class="input-icon">⚡</div>
-            <input type="number" id="battery" class="form-control" value="100" placeholder="BATERAI AWAL (%)" style="color:var(--gold);">
+            <div class="input-icon"><i class="fas fa-bolt"></i></div>
+            <input type="number" id="battery" class="form-control" value="100" placeholder="BATERAI AWAL (%)" style="color:var(--primary);">
         </div>
 
         <button class="btn-action" onclick="calculateRoute()">ANALISA RUTE</button>
@@ -179,22 +233,26 @@
 
     <div class="dock-container">
         <a href="lokasifc.html" class="nav-item">
-            <div class="nav-icon">🗺️</div><span class="nav-text">PETA FC</span>
+            <i class="fas fa-map-marked-alt nav-icon"></i><span class="nav-text">PETA FC</span>
         </a>
-        <a href="system.html" class="nav-item">
-            <div class="nav-icon">🏠</div><span class="nav-text">SYSTEM</span>
+        
+        <a href="system.html" class="nav-item center-btn">
+            <div class="center-icon-box"><i class="fas fa-charging-station"></i></div>
+            <span class="nav-text" style="color:#555; margin-top:8px;">ANTRIAN</span>
         </a>
-        <a href="plan.html" class="nav-item active">
-            <div class="nav-icon">🚩</div><span class="nav-text">PLAN TRIP</span>
-        </a>
+        
+        <div class="nav-item active">
+            <i class="fas fa-route nav-icon"></i><span class="nav-text">TRIP PLAN</span>
+        </div>
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
 
     <script>
+        // INIT MAP (Dark Mode agar sesuai tema)
         const map = L.map('map').setView([-6.2, 106.8], 10);
-        L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19 }).addTo(map);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 19, opacity: 0.9 }).addTo(map);
         
         let fcLocations = [];
         let mapLayers = L.layerGroup().addTo(map);
@@ -218,16 +276,24 @@
                                 }
                             }
                         });
-                        if(row['Nama']) name = row['Nama']; else if(row['Lokasi']) name = row['Lokasi'];
+                        // Logic Nama sama dengan lokasifc.html
+                        const keys = Object.keys(row);
+                        for(let k of keys) {
+                            let cleanKey = k.toLowerCase().trim();
+                            if(cleanKey.includes('nama') || cleanKey.includes('lokasi') || cleanKey.includes('station')) {
+                                if(row[k] && row[k].trim() !== "") { name = row[k]; break; }
+                            }
+                        }
+
                         if(lat && lng) fcLocations.push({ name, lat, lng });
                     });
-                    document.getElementById('db-status').innerHTML = '✅ DATABASE CONNECTED - ' + fcLocations.length + ' POINTS';
-                    document.getElementById('db-status').style.color = 'var(--green)';
+                    document.getElementById('db-status').innerHTML = 'SYSTEM ONLINE - ' + fcLocations.length + ' FC DETECTED';
+                    document.getElementById('db-status').style.color = 'var(--primary)';
                 }
             });
         };
 
-        // --- 1. FITUR KONFIRMASI ALAMAT GPS (REVERSE GEOCODING) ---
+        // --- 1. FITUR GPS ---
         async function useCurrentLocation() {
             const input = document.getElementById('start-input');
             if(!navigator.geolocation) return alert("Browser tidak support GPS");
@@ -239,7 +305,6 @@
                 const { latitude, longitude } = pos.coords;
                 gpsStartCoords = { lat: latitude, lon: longitude, name: "LOKASI SAYA" };
                 
-                // Panggil Reverse Geo
                 try {
                     const addr = await getAddressFromCoords(latitude, longitude);
                     gpsStartCoords.name = addr;
@@ -264,7 +329,7 @@
         function addStop() {
             const div = document.createElement('div');
             div.className = 'input-group';
-            div.innerHTML = `<div class="input-icon" style="font-size:12px; top:15px;">STOP</div><input type="text" class="form-control loc-input" placeholder="NAMA KOTA/LOKASI"><div style="position:absolute; right:10px; top:10px; color:red; cursor:pointer;" onclick="this.parentElement.remove()">x</div>`;
+            div.innerHTML = `<div class="input-icon" style="font-size:10px; top:15px;">STOP</div><input type="text" class="form-control loc-input" placeholder="NAMA KOTA/LOKASI"><div style="position:absolute; right:10px; top:10px; color:var(--red); cursor:pointer;" onclick="this.parentElement.remove()">x</div>`;
             document.getElementById('waypoints').insertBefore(div, document.getElementById('waypoints').lastElementChild);
         }
 
@@ -312,15 +377,15 @@
 
                 if (finalBat >= 10) {
                     renderResult('aman', 'RUTE LANGSUNG (AMAN)', points, batStart, null, nearestFromDest);
-                    drawMap(points, '#39FF14');
+                    drawMap(points, '#00F0FF'); // Cyan
                 } else {
                     const bestCharger = await findBestCharger(points[0], points[points.length-1], batStart);
                     if (bestCharger) {
                         renderResult('aman', 'RUTE VIA CHARGER', points, batStart, bestCharger, nearestFromDest);
                         drawComplexRoute(points[0], bestCharger, points[points.length-1]);
                     } else {
-                        renderResult('nekat', 'PERINGATAN: TIDAK ADA CHARGER TERJANGKAU', points, batStart, null, nearestFromDest);
-                        drawMap(points, '#FF003C');
+                        renderResult('nekat', 'PERINGATAN: TIDAK ADA CHARGER', points, batStart, null, nearestFromDest);
+                        drawMap(points, '#FF003C'); // Red
                     }
                 }
                 
@@ -397,12 +462,12 @@
                     const dist = leg.distance / 1000;
                     const used = Math.ceil(dist);
                     currentBat -= used;
-                    distInfo = `<span style="color:var(--gold)">⬇ ${dist.toFixed(1)} KM (-${used}%)</span>`;
+                    distInfo = `<span style="color:var(--primary); font-size:10px;">⬇ ${dist.toFixed(1)} KM (-${used}%)</span>`;
                 }
 
                 if (pt.isCharge) {
                     currentBat = 100; 
-                    distInfo += ` <span style="color:var(--cyan); font-weight:bold;">[ ISI PENUH ]</span>`;
+                    distInfo += ` <span style="color:var(--green); font-weight:bold;">[ ISI PENUH ]</span>`;
                 }
 
                 if (currentBat < 20) batClass = "bat-low";
@@ -416,7 +481,7 @@
                     <div class="dest-label">CHARGER TERDEKAT DARI TUJUAN</div>
                     <div class="dest-val">${nearestEnd.name}</div>
                     <div style="font-size:12px; color:#aaa;">Jarak: ${nearestEnd.dist.toFixed(1)} KM (Garis Lurus)</div>
-                    <a href="https://www.google.com/maps/dir/?api=1&destination=$${nearestEnd.lat},${nearestEnd.lng}" target="_blank" style="color:var(--cyan); font-size:12px;">NAVIGASI KE SANA →</a>
+                    <a href="https://www.google.com/maps/dir/?api=1&destination=$${nearestEnd.lat},${nearestEnd.lng}" target="_blank" style="color:var(--primary); font-size:12px; font-weight:bold; display:block; margin-top:5px;">NAVIGASI KE SANA →</a>
                 </div>`;
             }
 
@@ -430,10 +495,10 @@
         async function drawMap(points, color) {
             const r = await getOSRM(points);
             const coords = decodePolyline(r.geometry);
-            L.polyline(coords, {color: color, weight: 5}).addTo(mapLayers);
+            L.polyline(coords, {color: color, weight: 4}).addTo(mapLayers);
             points.forEach((p, i) => {
-                const iconColor = i === 0 ? 'green' : (i === points.length-1 ? 'red' : 'gold');
-                L.circleMarker([p.lat, p.lon], {radius: 8, color: iconColor, fillColor: iconColor, fillOpacity: 1}).addTo(mapLayers).bindPopup(p.name);
+                const iconColor = i === 0 ? '#39FF14' : (i === points.length-1 ? '#FF003C' : '#FFD700');
+                L.circleMarker([p.lat, p.lon], {radius: 6, color: iconColor, fillColor: iconColor, fillOpacity: 1}).addTo(mapLayers).bindPopup(p.name);
             });
             map.fitBounds(L.polyline(coords).getBounds(), {padding:[50,50]});
         }
@@ -442,21 +507,17 @@
             drawMap([start, {lat:mid.lat, lon:mid.lng, name:mid.name}, end], '#00F0FF');
         }
 
-        // --- FITUR UTAMA YANG DIPERBAIKI (PENCARIAN LOKASI) ---
+        // --- GEO & OSRM ---
         async function getGeo(q) {
             try {
-                // FIXED: Tambahkan countrycodes=id agar hanya mencari di Indonesia
                 const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&countrycodes=id&limit=1&addressdetails=1`;
                 const r = await fetch(url);
                 const d = await r.json();
                 if(d[0]) {
-                    // Ambil nama depan saja biar tidak kepanjangan
                     let cleanName = d[0].display_name.split(',')[0];
                     return { lat: parseFloat(d[0].lat), lon: parseFloat(d[0].lon), name: cleanName };
                 }
-            } catch(e) {
-                console.log("Error Geo:", e);
-            }
+            } catch(e) { console.log("Error Geo:", e); }
             return null;
         }
 

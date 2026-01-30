@@ -3,249 +3,435 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>LIVE MONITOR - FC KELAPA GADING</title>
+    <title>Dashboard MLU Final Fixed</title>
     
-    <link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Teko:wght@400;600&family=Rajdhani:wght@600;800&family=Orbitron:wght@700&display=swap" rel="stylesheet">
-    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Rajdhani:wght@600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
     <style>
-        :root { 
-            --bg: #050505; --gold: #FFD700; --gold-glow: rgba(255, 215, 0, 0.6); --white-glow: rgba(255, 255, 255, 0.3);
+        :root {
+            --primary: #00E5FF;       
+            --bg-dark: #020202;
+            --glass-panel: rgba(20, 20, 22, 0.95);
+            --border-color: rgba(255, 255, 255, 0.2);
+            --white: #ffffff;
+            --off-white: #f0f0f0; /* Pengganti abu-abu */
+        }
+
+        html, body {
+            height: 100%; margin: 0; padding: 0;
+            background: var(--bg-dark); 
+            background-image: 
+                linear-gradient(rgba(0, 229, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 229, 255, 0.03) 1px, transparent 1px);
+            background-size: 30px 30px;
+            color: var(--white);
+            font-family: 'Inter', sans-serif;
+            overflow: hidden; 
+            display: flex; flex-direction: column;
+        }
+
+        /* --- 1. AREA ATAS (LOGO) 25% --- */
+        .top-area {
+            height: 25vh; width: 100%;
+            display: flex; align-items: center; justify-content: center;
+            position: relative; z-index: 1;
+        }
+
+        .logo-glow {
+            width: 120px; height: 120px; /* Logo sedikit diperbesar */
+            border-radius: 50%; padding: 5px;
+            background: #000; border: 2px solid var(--primary);
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 0 50px rgba(0, 229, 255, 0.4);
+            animation: float 4s ease-in-out infinite;
+        }
+        .logo-img { width: 85%; height: 85%; object-fit: contain; filter: drop-shadow(0 0 8px var(--primary)); }
+        @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+
+        /* --- 2. PANEL BAWAH (ISI PADAT) 75% --- */
+        .bottom-panel {
+            height: 75vh; width: 100%;
+            background: var(--glass-panel);
+            border-top: 2px solid var(--primary);
+            border-radius: 30px 30px 0 0;
+            padding: 25px; box-sizing: border-box;
+            display: flex; flex-direction: column; 
+            gap: 15px; 
+            box-shadow: 0 -10px 50px rgba(0,0,0,0.8);
+            position: relative; z-index: 2;
+        }
+
+        /* HEADER */
+        .header-section { text-align: center; margin-bottom: 5px; }
+        
+        .live-tag {
+            display: inline-block; background: rgba(0, 255, 0, 0.15); 
+            border: 1px solid #00ff00; padding: 6px 14px; border-radius: 20px;
+            color: #00ff00; font-family: 'Rajdhani'; font-weight: 800; font-size: 14px; margin-bottom: 8px;
+        }
+
+        h1 {
+            font-family: 'Rajdhani', sans-serif; 
+            /* Font Responsif: Minimal 34px, Maksimal 46px tergantung layar */
+            font-size: clamp(34px, 5vh, 46px); 
+            font-weight: 900; margin: 0; line-height: 1;
+            color: #fff; text-shadow: 0 0 20px rgba(0,0,0,0.5);
+        }
+        .sub-text {
+            color: var(--primary); font-size: 14px; font-weight: 800; letter-spacing: 2px;
+            text-transform: uppercase; margin-top: 6px; opacity: 1; /* Opacity full agar tidak abu */
+        }
+
+        /* STATS GRID */
+        .stats-container { 
+            display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%;
         }
         
-        * { box-sizing: border-box; outline: none; user-select: none; -webkit-tap-highlight-color: transparent; }
+        .stat-btn {
+            background: rgba(255,255,255,0.05); 
+            border: 1px solid var(--border-color); border-radius: 18px;
+            padding: 15px; cursor: pointer; position: relative;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .stat-btn:active { background: rgba(0, 229, 255, 0.1); border-color: var(--primary); }
         
-        body { 
-            font-family: 'Rajdhani', sans-serif; background: #000;
-            background-image: radial-gradient(circle at center, #151515 0%, #000 100%);
-            color: #fff; margin: 0; padding: 20px; 
-            min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center;
-            overflow: hidden; padding-bottom: 90px; /* Ruang untuk menu bawah */
+        /* Label diganti Putih/Off-white, Ukuran diperbesar */
+        .st-label { font-size: 14px; color: var(--off-white); font-weight: 700; text-transform: uppercase; margin-bottom: 2px; }
+        
+        /* Angka Sangat Besar Responsif */
+        .st-val {
+            font-family: 'Rajdhani', sans-serif; 
+            font-size: clamp(50px, 8vh, 65px); 
+            font-weight: 900; 
+            color: #fff; line-height: 1; text-shadow: 0 0 10px rgba(255,255,255,0.2);
         }
+        .st-hint { font-size: 12px; color: var(--primary); margin-top: 4px; font-weight: 600; }
 
-        /* --- LOADING SCREEN --- */
-        #loading-screen { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s; }
-        .loader-spinner { width: 50px; height: 50px; border: 3px solid #333; border-top: 3px solid var(--gold); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
-        .loader-text { font-family: 'Orbitron'; color: var(--gold); font-size: 14px; letter-spacing: 3px; animation: pulseText 1s infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        @keyframes pulseText { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
-
-        /* --- MODAL DETAIL LIST --- */
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 5000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
-        .modal-card { width: 90%; max-width: 400px; background: #111; border: 1px solid #333; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; box-shadow: 0 0 30px rgba(0,0,0,0.8); max-height: 80vh; }
-        .modal-header { font-family: 'Black Ops One'; font-size: 20px; color: var(--gold); text-align: center; margin-bottom: 15px; border-bottom: 1px solid #333; padding-bottom: 10px; }
-        .modal-body { flex: 1; overflow-y: auto; padding-right: 5px; }
-        .list-item { background: #1a1a1a; padding: 10px; margin-bottom: 8px; border-radius: 6px; border-left: 3px solid #555; display: flex; justify-content: space-between; align-items: center; }
-        .list-item.active { border-left-color: var(--gold); background: #222; }
-        .li-plat { font-family: 'Teko'; font-size: 24px; color: #fff; line-height: 1; }
-        .li-name { font-size: 12px; color: #888; }
-        .btn-close { margin-top: 15px; padding: 12px; background: #333; color: #fff; border: none; border-radius: 8px; font-family: 'Rajdhani'; font-weight: bold; cursor: pointer; width: 100%; }
-
-        /* --- MAIN UI --- */
-        .header-container { margin-top: 20px; margin-bottom: 20px; text-align: center; display: flex; flex-direction: column; align-items: center; }
-        .logo-img { width: 100px; height: 100px; object-fit: contain; filter: drop-shadow(0 0 30px rgba(255, 215, 0, 0.2)); animation: floatLogo 4s infinite ease-in-out; margin-bottom: 15px; }
-        @keyframes floatLogo { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-10px);} }
-
-        .live-tag { background: rgba(0, 255, 0, 0.1); border: 1px solid #00ff00; color: #00ff00; padding: 5px 15px; border-radius: 20px; font-size: 11px; font-family: 'Orbitron'; letter-spacing: 2px; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; box-shadow: 0 0 10px rgba(0, 255, 0, 0.2); }
-        .live-dot { width: 8px; height: 8px; background: #00ff00; border-radius: 50%; box-shadow: 0 0 8px #00ff00; animation: blink 1s infinite; }
-        @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
-
-        .main-title { font-family: 'Black Ops One'; font-size: 32px; color: #eee; text-transform: uppercase; letter-spacing: 1px; text-align: center; line-height: 1; margin-bottom: 5px; text-shadow: 0 0 20px rgba(255,255,255,0.2); white-space: nowrap; cursor: pointer; }
-        .sub-title { font-size: 12px; color: var(--gold); text-transform: uppercase; letter-spacing: 4px; font-weight: 800; margin-bottom: 30px; text-shadow: 0 0 15px var(--gold-glow); }
-
-        .dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 100%; max-width: 400px; margin-bottom: 40px; }
-        .stat-card { background: linear-gradient(160deg, #151515, #050505); border: 1px solid #333; border-radius: 12px; padding: 20px 5px; text-align: center; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.5); cursor: pointer; transition: transform 0.2s; }
-        .stat-card:active { transform: scale(0.95); border-color: var(--gold); }
-        .stat-label { font-size: 10px; color: #888; letter-spacing: 1px; text-transform: uppercase; font-weight: 800; margin-bottom: 5px; }
-        .stat-value { font-family: 'Teko'; font-size: 70px; line-height: 0.8; color: #fff; text-shadow: 0 0 25px var(--white-glow); font-weight: 400; }
-        .stat-sub { font-size: 9px; color: #666; font-weight: bold; text-transform: uppercase; margin-top: 8px;}
-
-        .btn-register-glow { width: 100%; max-width: 280px; background: linear-gradient(90deg, #FFD700, #ff8c00); color: #000; border: none; padding: 12px 0; font-family: 'Black Ops One'; font-size: 20px; letter-spacing: 1px; border-radius: 50px; cursor: pointer; position: relative; overflow: hidden; box-shadow: 0 0 20px rgba(255, 215, 0, 0.3); transition: transform 0.2s; animation: pulseBtn 2s infinite; }
-        .btn-register-glow:active { transform: scale(0.95); }
-        .btn-register-glow::after { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: linear-gradient(to bottom right, rgba(255,255,255,0.4) 0%, transparent 50%, transparent 100%); transform: rotate(45deg); transition: 0.5s; }
-        @keyframes pulseBtn { 0% { box-shadow: 0 0 15px rgba(255, 215, 0, 0.3); transform: scale(1); } 50% { box-shadow: 0 0 30px rgba(255, 215, 0, 0.6); transform: scale(1.02); } 100% { box-shadow: 0 0 15px rgba(255, 215, 0, 0.3); transform: scale(1); } }
-        .btn-register-glow:disabled { background: #333; color: #666; box-shadow: none; animation: none; cursor: not-allowed; }
-
-        /* --- DOCK NAV (MENU BAWAH) --- */
-        .dock-container { 
-            position: fixed; bottom: 0; left: 0; width: 100%; height: 75px; 
-            background: #000; border-top: 1px solid #333; 
-            display: grid; grid-template-columns: 1fr 1fr 1fr; 
-            align-items: center; z-index: 1001; 
+        /* TOMBOL DAFTAR */
+        .btn-main {
+            background: linear-gradient(90deg, var(--primary), #0099aa);
+            color: #000; width: 100%; padding: 22px; 
+            border: none; border-radius: 18px;
+            font-family: 'Rajdhani', sans-serif; font-size: 26px; font-weight: 900; 
+            text-transform: uppercase; cursor: pointer;
+            box-shadow: 0 5px 20px rgba(0, 229, 255, 0.3);
+            display: flex; align-items: center; justify-content: center; gap: 10px;
         }
-        .nav-item { 
-            text-decoration: none; display: flex; flex-direction: column; align-items: center; justify-content: center;
-            color: #444; transition: 0.3s; height: 100%; position: relative;
+        .btn-main:active { transform: scale(0.98); opacity: 0.9; }
+
+        /* NAVIGASI */
+        .nav-bar { 
+            display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; 
+            margin-top: auto; 
         }
-        .nav-item.active { color: var(--gold); }
-        .nav-item.active .nav-icon { text-shadow: 0 0 15px var(--gold); transform: translateY(-2px); }
-        .nav-item.active::after {
-            content: ''; position: absolute; bottom: 0; width: 40px; height: 3px; 
-            background: var(--gold); box-shadow: 0 0 10px var(--gold);
+        .nav-item {
+            background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); 
+            color: #fff; padding: 14px; border-radius: 14px; cursor: pointer; /* Warna icon putih */
+            display: flex; flex-direction: column; align-items: center; gap: 6px;
         }
-        .nav-icon { font-size: 24px; margin-bottom: 2px; transition: 0.3s; }
-        .nav-text { font-family: 'Teko'; font-size: 16px; letter-spacing: 1px; font-weight: bold; }
+        .nav-item:active { background: rgba(255,255,255,0.2); }
+        .nav-item i { font-size: 22px; color: #fff; }
+        .nav-item span { font-size: 12px; font-weight: 700; color: #fff; }
+
+        /* --- MODAL (POPUP) --- */
+        .modal-wrap {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95); backdrop-filter: blur(8px);
+            z-index: 9999; display: none; align-items: center; justify-content: center;
+        }
+        .modal-wrap.open { display: flex; animation: zoomIn 0.2s; }
+        @keyframes zoomIn { from{transform:scale(0.95);opacity:0} to{transform:scale(1);opacity:1} }
+        
+        .modal-panel {
+            background: #0a0a0a; border: 2px solid var(--primary);
+            width: 85%; max-width: 400px; padding: 25px; border-radius: 25px;
+            box-shadow: 0 0 60px rgba(0, 229, 255, 0.15);
+            max-height: 90vh; display: flex; flex-direction: column;
+        }
+        .modal-head { 
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 2px solid #333; padding-bottom: 15px; margin-bottom: 15px;
+        }
+        .modal-h-title { font-family: 'Rajdhani'; font-size: 28px; font-weight: 900; color: #fff; }
+        .close-x { background: none; border: none; color: #fff; font-size: 28px; cursor: pointer; font-weight: bold; }
+
+        /* SLOT LIST */
+        .slot-list-box { display: flex; flex-direction: column; gap: 12px; }
+        
+        .slot-row {
+            background: #151515; border-left: 5px solid #444;
+            padding: 15px 20px; border-radius: 12px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .slot-row.active { border-left-color: var(--primary); background: linear-gradient(90deg, rgba(0,229,255,0.15), transparent); }
+        .slot-row.empty { border-left-color: #00ff00; }
+        
+        .sr-left { display: flex; flex-direction: column; gap: 4px; }
+        .sr-plat { font-family: 'Rajdhani'; font-size: 24px; font-weight: 900; color: #fff; }
+        .sr-name { font-size: 14px; color: var(--off-white); font-weight: 600; text-transform: uppercase; } /* Tidak abu */
+        
+        .sr-right { text-align: right; display: flex; flex-direction: column; gap: 4px;}
+        .sr-time { font-family: 'Rajdhani'; font-size: 22px; font-weight: 800; color: var(--primary); }
+        .sr-batt { font-size: 12px; color: #000; background: #fff; padding: 3px 8px; border-radius: 4px; display: inline-block; font-weight: 800;}
+
+        /* ANTRIAN LIST */
+        .queue-table { display: flex; flex-direction: column; gap: 5px; }
+        .q-row {
+            display: flex; align-items: center; padding: 12px 0;
+            border-bottom: 1px solid #333;
+        }
+        /* Nomer antrian pake warna primary, bukan abu */
+        .q-num { width: 40px; font-family: 'Rajdhani'; font-size: 24px; font-weight: 800; color: var(--primary); text-align: center; }
+        .q-data { flex: 1; padding-left: 15px; display: flex; flex-direction: column; gap: 2px; }
+        .q-plat { font-family: 'Rajdhani'; font-size: 22px; font-weight: 800; color: #fff; display: block; }
+        .q-name { font-size: 14px; color: var(--off-white); font-weight: 600; text-transform: uppercase; } /* Tidak abu */
+        .q-batt { font-family: 'Rajdhani'; font-size: 20px; font-weight: 800; color: #fff; }
+
+        /* FORM */
+        .inp-label { color: var(--primary); font-size: 14px; font-weight: 800; margin-bottom: 8px; display: block; }
+        .inp-box { 
+            width: 100%; padding: 16px; background: #222; border: 2px solid #444; 
+            color: #fff; font-family: 'Rajdhani'; font-size: 24px; font-weight: 700; 
+            border-radius: 12px; margin-bottom: 20px; box-sizing: border-box;
+        }
+        .inp-box:focus { border-color: var(--primary); outline: none; background: #000; }
+
+        .btn-kirim { width: 100%; padding: 18px; background: var(--primary); border: none; border-radius: 12px; font-family: 'Rajdhani'; font-weight: 900; font-size: 22px; cursor: pointer; margin-bottom: 12px; color: #000;}
+        .btn-batal { width: 100%; padding: 15px; background: transparent; border: 2px solid #500; color: #f55; border-radius: 12px; font-weight: 800; font-size: 18px; cursor: pointer; }
+
     </style>
 </head>
 <body>
 
-    <div id="loading-screen">
-        <div class="loader-spinner"></div>
-        <div class="loader-text">MEMUAT SISTEM...</div>
-    </div>
-
-    <div id="detailModal" class="modal-overlay">
-        <div class="modal-card">
-            <div class="modal-header" id="modalHeaderTitle">DETAIL</div>
-            <div class="modal-body" id="modalListBody"></div>
-            <button class="btn-close" onclick="closeDetail()">TUTUP</button>
+    <div class="top-area">
+        <div class="logo-glow">
+            <img src="logo.png" alt="Logo" class="logo-img" onerror="this.style.display='none'; this.parentNode.innerHTML='<i class=\'fas fa-bolt\' style=\'font-size:50px; color:var(--primary)\'></i>'">
         </div>
     </div>
 
-    <div class="header-container">
-        <img src="logo.png" alt="MLU" class="logo-img" onerror="this.src='https://placehold.co/100x100/000/FFF?text=LOGO'">
-        <div class="live-tag"><div class="live-dot"></div> LIVE STATUS</div>
-        <div class="main-title" ondblclick="toggleAdmin()">FC KELAPA GADING</div>
-        <div class="sub-title">SELAMAT DATANG DI RUMAH MLU</div>
+    <div class="bottom-panel">
+        
+        <div class="header-section">
+            <div class="live-tag"><i class="fas fa-circle" style="font-size:8px; vertical-align:middle; margin-right:5px;"></i> <span id="liveClock">ONLINE</span></div>
+            <h1>FC KELAPA GADING</h1>
+            <div class="sub-text">SELAMAT DATANG DI RUMAH MLU</div>
+        </div>
+
+        <div class="stats-container">
+            <div class="stat-btn" onclick="openModal('slot')">
+                <div class="st-label">Slot Tersedia</div>
+                <div class="st-val" id="slotVal">...</div>
+                <div class="st-hint">LIHAT DETAIL ►</div>
+            </div>
+            <div class="stat-btn" onclick="openModal('queue')">
+                <div class="st-label">Antrian</div>
+                <div class="st-val" id="queueVal">...</div>
+                <div class="st-hint">LIHAT DAFTAR ►</div>
+            </div>
+        </div>
+
+        <button id="btnDaftar" class="btn-main" onclick="checkLocationAndOpenForm()">
+            DAFTAR ANTRIAN <i class="fas fa-arrow-right"></i>
+        </button>
+
+        <div class="nav-bar">
+            <div class="nav-item" onclick="navTo('map')"><i class="fas fa-map-marked-alt"></i><span>PETA</span></div>
+            <div class="nav-item" onclick="navTo('plan')"><i class="fas fa-route"></i><span>TRIP</span></div>
+            <div class="nav-item" onclick="navTo('infomlu.html')"><i class="fas fa-info-circle"></i><span>INFO</span></div>
+        </div>
+
     </div>
 
-    <div class="dashboard-grid">
-        <div class="stat-card" onclick="showSlotDetails()">
-            <div class="stat-label">STATUS SLOT</div>
-            <div class="stat-value" id="slotVal">-/-</div>
-            <div class="stat-sub">KLIK UNTUK LIHAT</div>
-        </div>
-        <div class="stat-card" onclick="showQueueDetails()">
-            <div class="stat-label">TOTAL ANTRIAN</div>
-            <div class="stat-value" id="queueVal">-</div>
-            <div class="stat-sub">KLIK UNTUK LIHAT</div>
+    <div id="detailModal" class="modal-wrap">
+        <div class="modal-panel">
+            <div class="modal-head">
+                <div class="modal-h-title" id="mTitle">STATUS SLOT</div>
+                <button class="close-x" onclick="closeModal('detailModal')">✕</button>
+            </div>
+            <div id="mContent" class="slot-list-box"></div>
         </div>
     </div>
 
-    <button id="btnDaftar" class="btn-register-glow" onclick="goToSystem()">
-        DAFTAR SEKARANG
-    </button>
-
-    <div class="dock-container">
-        <a href="lokasifc.html" class="nav-item">
-            <div class="nav-icon">🗺️</div><span class="nav-text">PETA FC</span>
-        </a>
-        <a href="antrian.html" class="nav-item active">
-            <div class="nav-icon">🏠</div><span class="nav-text">HOME</span>
-        </a>
-        <a href="plan.html" class="nav-item">
-            <div class="nav-icon">🚩</div><span class="nav-text">PLAN TRIP</span>
-        </a>
+    <div id="formModal" class="modal-wrap">
+        <div class="modal-panel">
+            <div class="modal-head">
+                <div class="modal-h-title">FORMULIR</div>
+                <button class="close-x" onclick="closeModal('formModal')">✕</button>
+            </div>
+            <div>
+                <span class="inp-label">NAMA LENGKAP</span>
+                <input type="text" id="inpNama" class="inp-box" placeholder="NAMA ANDA">
+                
+                <span class="inp-label">NOMOR PLAT</span>
+                <input type="text" id="inpPlat" class="inp-box" placeholder="B 1234 XYZ">
+                
+                <span class="inp-label">SISA BATERAI (%)</span>
+                <input type="tel" id="inpBatre" class="inp-box" placeholder="0-100" maxlength="3">
+                
+                <button class="btn-kirim" onclick="submitData()">AMBIL TIKET</button>
+                <button class="btn-batal" onclick="closeModal('formModal')">BATAL</button>
+            </div>
+        </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, doc, onSnapshot, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        const STATION_LAT = -6.171583; 
-        const STATION_LNG = 106.899844; 
-        const MAX_DIST_KM = 0.2; 
-
-        // Jika sudah login, langsung lempar ke system.html
-        if(localStorage.getItem('myPlat')) window.location.href = "system.html";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyB666i9lYWIpxOdkwpoX9EvFvHLmHczeq8",
-            authDomain: "fcgadingnew22.firebaseapp.com",
-            projectId: "fcgadingnew22",
-            storageBucket: "fcgadingnew22.firebasestorage.app",
-            messagingSenderId: "537736846678",
-            appId: "1:537736846678:web:53788d71a196423ac08af7"
-        };
+        const STATION_LAT = -6.171583; const STATION_LNG = 106.899844; const MAX_DIST_KM = 0.2; 
+        const firebaseConfig = { apiKey: "AIzaSyB666i9lYWIpxOdkwpoX9EvFvHLmHczeq8", authDomain: "fcgadingnew22.firebaseapp.com", projectId: "fcgadingnew22", storageBucket: "fcgadingnew22.firebasestorage.app", messagingSenderId: "537736846678", appId: "1:537736846678:web:53788d71a196423ac08af7" };
+        
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const mainRef = doc(db, "antrian", "utama");
         const TOTAL_SLOTS = 3;
 
-        let globalSlots = [];
+        let globalSlots = [null, null, null];
         let globalQueue = [];
 
-        window.toggleAdmin = () => {
-            const pass = prompt("MASUKKAN KODE ADMIN:");
-            if(pass === "1131") window.location.href = "admin.html";
-            else if (pass) alert("PASSWORD SALAH!");
-        };
+        // Check LocalStorage
+        if(localStorage.getItem('myPlat')) {
+            const btn = document.getElementById('btnDaftar');
+            btn.innerHTML = 'TIKET SAYA <i class="fas fa-ticket-alt"></i>';
+            btn.style.background = "#fff";
+            btn.onclick = () => openModal('queue'); 
+        }
 
         onSnapshot(mainRef, (snap) => {
-            const loader = document.getElementById('loading-screen');
-            if(loader) { loader.style.opacity = '0'; setTimeout(()=>loader.remove(), 500); }
-
             if (!snap.exists()) return;
             const d = snap.data();
             globalSlots = d.chargingSlots || [null, null, null];
             globalQueue = d.waitingQueue || [];
             
             const usedCount = globalSlots.filter(s => s !== null).length;
-            
-            document.getElementById('slotVal').innerText = `${usedCount}/${TOTAL_SLOTS}`;
+            document.getElementById('slotVal').innerHTML = `${usedCount}<span style="font-size:24px;opacity:0.8;margin-left:5px">/${TOTAL_SLOTS}</span>`;
             document.getElementById('queueVal').innerText = globalQueue.length;
 
-            const slotEl = document.getElementById('slotVal');
-            if(usedCount === TOTAL_SLOTS) {
-                slotEl.style.color = "#FFD700"; slotEl.style.textShadow = "0 0 30px rgba(255, 215, 0, 0.5)";
-            } else {
-                slotEl.style.color = "#fff"; slotEl.style.textShadow = "0 0 25px rgba(255, 255, 255, 0.3)";
+            if(document.getElementById('detailModal').style.display === 'flex') {
+                if(document.getElementById('mTitle').innerText.includes('SLOT')) window.openModal('slot');
+                else window.openModal('queue');
             }
         });
 
-        window.showSlotDetails = () => {
-            const body = document.getElementById('modalListBody');
-            document.getElementById('modalHeaderTitle').innerText = "STATUS CHARGING";
-            body.innerHTML = "";
-            globalSlots.forEach((s, i) => {
-                const status = s ? `<span style="color:var(--gold)">${s.plat}</span>` : "<span style='color:#444'>KOSONG</span>";
-                const name = s ? s.userName : "TERSEDIA";
-                const activeClass = s ? "active" : "";
-                body.innerHTML += `<div class="list-item ${activeClass}"><div class="li-info"><div class="li-name">SLOT ${i+1}</div><div class="li-plat">${status}</div></div><div class="li-name" style="font-weight:bold">${name}</div></div>`;
-            });
-            document.getElementById('detailModal').style.display = 'flex';
-        };
+        window.openModal = (type) => {
+            const content = document.getElementById('mContent');
+            const title = document.getElementById('mTitle');
+            content.innerHTML = ""; 
 
-        window.showQueueDetails = () => {
-            const body = document.getElementById('modalListBody');
-            document.getElementById('modalHeaderTitle').innerText = "DAFTAR ANTRIAN";
-            body.innerHTML = "";
-            if(globalQueue.length === 0) {
-                body.innerHTML = "<div style='text-align:center; padding:20px; color:#666'>TIDAK ADA ANTRIAN</div>";
-            } else {
-                globalQueue.forEach((q, i) => {
-                    body.innerHTML += `<div class="list-item"><div class="li-info"><div class="li-name">NO. ${i+1}</div><div class="li-plat">${q.plat}</div></div><div class="li-name" style="font-weight:bold">${q.userName}</div></div>`;
+            if(type === 'slot') {
+                title.innerText = "STATUS SLOT";
+                content.className = "slot-list-box"; // Pakai style compact
+                
+                globalSlots.forEach((s, i) => {
+                    let html;
+                    if (s) {
+                        let timeText = "WAIT";
+                        let timeColor = "#FFD700"; // Gold
+                        if (s.startTime) {
+                            const diff = Math.floor((Date.now() - s.startTime) / 60000);
+                            timeText = `${diff} MNT`;
+                            timeColor = "var(--primary)";
+                        }
+                        html = `
+                        <div class="slot-row active">
+                            <div class="sr-left">
+                                <span class="sr-plat">${s.plat}</span>
+                                <span class="sr-name">${s.userName}</span>
+                            </div>
+                            <div class="sr-right">
+                                <span class="sr-time" style="color:${timeColor}">${timeText}</span>
+                                <span class="sr-batt">BAT: ${s.batreSisa}%</span>
+                            </div>
+                        </div>`;
+                    } else {
+                        html = `
+                        <div class="slot-row empty">
+                            <div class="sr-left">
+                                <span class="sr-plat" style="color:#0f0">SLOT ${i+1}</span>
+                                <span class="sr-name" style="color:#fff">TERSEDIA</span>
+                            </div>
+                            <div class="sr-right">
+                                <span class="sr-time" style="color:#0f0">OPEN</span>
+                            </div>
+                        </div>`;
+                    }
+                    content.innerHTML += html;
                 });
+            } else {
+                title.innerText = "DAFTAR ANTRIAN";
+                content.className = "queue-table"; // Pakai style table
+
+                if(globalQueue.length === 0) content.innerHTML = "<div style='text-align:center;padding:20px;color:#fff;font-size:18px;'>TIDAK ADA ANTRIAN</div>";
+                else {
+                    globalQueue.forEach((q, i) => {
+                        content.innerHTML += `
+                        <div class="q-row">
+                            <div class="q-num">#${i+1}</div>
+                            <div class="q-data">
+                                <span class="q-plat">${q.plat}</span>
+                                <span class="q-name">${q.userName}</span>
+                            </div>
+                            <div class="q-batt">${q.batreSisa}%</div>
+                        </div>`;
+                    });
+                }
             }
+            document.getElementById('detailModal').classList.add('open');
             document.getElementById('detailModal').style.display = 'flex';
         };
 
-        window.closeDetail = () => { document.getElementById('detailModal').style.display = 'none'; }
-
-        function calculateDistance(lat1, lon1, lat2, lon2) {
-            const R = 6371;
-            const dLat = (lat2 - lat1) * Math.PI / 180;
-            const dLon = (lon2 - lon1) * Math.PI / 180;
-            const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon/2) * Math.sin(dLon/2);
-            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-            return R * c;
-        }
-
-        window.goToSystem = () => {
+        window.checkLocationAndOpenForm = () => {
             const btn = document.getElementById('btnDaftar');
-            if (!navigator.geolocation) { alert("Browser tidak mendukung GPS."); return; }
-            btn.innerHTML = "LOKASI..."; btn.disabled = true;
-
-            navigator.geolocation.getCurrentPosition(
-                (pos) => {
-                    const dist = calculateDistance(STATION_LAT, STATION_LNG, pos.coords.latitude, pos.coords.longitude);
-                    btn.innerHTML = "DAFTAR SEKARANG"; btn.disabled = false;
-                    if (dist <= MAX_DIST_KM) window.location.href = "system.html?action=register";
-                    else { const m = Math.round(dist * 1000); alert(`AKSES DITOLAK!\nJarak: ${m}m.\nMax: 200m.`); }
-                }, 
-                (err) => { btn.innerHTML = "DAFTAR SEKARANG"; btn.disabled = false; alert("GAGAL LOKASI."); }, 
-                { enableHighAccuracy: true, timeout: 5000 }
-            );
+            if (!navigator.geolocation) { alert("GPS WAJIB AKTIF!"); return; }
+            const ori = btn.innerHTML;
+            btn.innerHTML = 'CEK LOKASI...';
+            
+            navigator.geolocation.getCurrentPosition((pos) => {
+                const dist = calculateDistance(STATION_LAT, STATION_LNG, pos.coords.latitude, pos.coords.longitude);
+                btn.innerHTML = ori;
+                if (dist <= MAX_DIST_KM) { 
+                    document.getElementById('formModal').classList.add('open'); 
+                    document.getElementById('formModal').style.display = 'flex';
+                } else { alert(`AKSES DITOLAK!\nJarak: ${(dist*1000).toFixed(0)}m (Max 200m)`); }
+            }, () => { btn.innerHTML = ori; alert("GAGAL LOKASI"); }, { enableHighAccuracy: true });
         };
+
+        window.submitData = async () => {
+            const nama = document.getElementById('inpNama').value.toUpperCase();
+            const plat = document.getElementById('inpPlat').value.toUpperCase();
+            const batre = document.getElementById('inpBatre').value;
+            if(!nama || !plat || !batre) return alert("LENGKAPI DATA!");
+            
+            const btn = document.querySelector('.btn-kirim');
+            btn.innerText = "PROSES...";
+            try {
+                const snap = await getDoc(mainRef);
+                if(snap.exists()) {
+                    let queue = snap.data().waitingQueue || [];
+                    if(queue.find(q => q.plat === plat)) { alert("SUDAH ANTRI!"); location.reload(); return; }
+                    queue.push({ userName: nama, plat: plat, batreSisa: batre, timestamp: Date.now() });
+                    await updateDoc(mainRef, { waitingQueue: queue });
+                    localStorage.setItem('myPlat', plat);
+                    alert("BERHASIL!"); location.reload();
+                }
+            } catch(e) { alert("ERROR"); btn.innerText = "AMBIL TIKET"; }
+        };
+
+        window.closeModal = (id) => { 
+            document.getElementById(id).classList.remove('open'); 
+            setTimeout(() => document.getElementById(id).style.display = 'none', 200); 
+        };
+        function calculateDistance(lat1, lon1, lat2, lon2) { const p = 0.017453292519943295; const c = Math.cos; const a = 0.5 - c((lat2 - lat1) * p)/2 + c(lat1 * p) * c(lat2 * p) * (1 - c((lon2 - lon1) * p))/2; return 12742 * Math.asin(Math.sqrt(a)); }
+        window.navTo = (id) => { try { parent.switchPage(id, parent.document.querySelector(`.nav-item[onclick*='${id}']`)); } catch(e) { if(id==='map') window.location.href='lokasifc.html'; if(id==='plan') window.location.href='plan.html'; } };
+        
+        setInterval(() => {
+            const d = new Date();
+            const days = ['MINGGU','SENIN','SELASA','RABU','KAMIS','JUMAT','SABTU'];
+            const months = ['JAN','FEB','MAR','APR','MEI','JUN','JUL','AGU','SEP','OKT','NOV','DES'];
+            const time = `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+            document.getElementById('liveClock').innerText = `LIVE | ${days[d.getDay()]}, ${d.getDate()} ${months[d.getMonth()]} ${time}`;
+        }, 1000);
     </script>
 </body>
 </html>

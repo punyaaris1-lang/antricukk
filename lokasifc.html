@@ -3,270 +3,280 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MAKA - PETA LOKASI</title>
+    <title>PETA LOKASI</title>
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Teko:wght@300;500;700&family=Rajdhani:wght@500;600;800&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Teko:wght@300;500;700&family=Rajdhani:wght@500;600;700;800;900&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        :root {
-            --bg: #050505; --gold: #FFD700; --cyan: #00F0FF;
-            --glass-bg: rgba(10, 10, 10, 0.95);
+        :root { 
+            --bg: #050505; 
+            --primary: #00F0FF;       
+            --primary-dim: rgba(0, 240, 255, 0.15);
+            --accent: #FF003C;
+            --gray-dark: #222;
+            --gray-light: #555;
+            
+            --font-tech: 'Rajdhani', sans-serif;
+            --font-num: 'Teko', sans-serif;
+            --font-head: 'Orbitron', sans-serif;
+        }
+        
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { margin: 0; padding: 0; background: var(--bg); overflow: hidden; font-family: var(--font-tech); color: #fff; }
+
+        /* HEADER (RAJDHANI BOLD) */
+        .header-fixed {
+            position: fixed; top: 0; left: 0; width: 100%; z-index: 1000;
+            background: linear-gradient(180deg, #000 0%, rgba(0,15,20,0.95) 70%, transparent 100%);
+            padding: 20px; text-align: center; pointer-events: none;
+            border-bottom: 1px solid rgba(0, 240, 255, 0.1);
+        }
+        .main-title { 
+            font-family: var(--font-tech); font-weight: 800; font-size: 32px; color: #fff; 
+            line-height: 1; text-shadow: 0 0 20px var(--primary); letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+        .sub-title { 
+            font-family: var(--font-tech); font-size: 11px; color: var(--primary); 
+            letter-spacing: 4px; font-weight: 700; text-transform: uppercase; margin-top: 5px;
+            display: inline-block; border-bottom: 2px solid var(--primary); padding-bottom: 3px;
         }
 
-        body { margin: 0; padding: 0; font-family: 'Rajdhani', sans-serif; background: var(--bg); overflow: hidden; color: #ddd; padding-bottom: 90px; }
+        /* MAP */
+        #map { width: 100%; height: 100vh; z-index: 1; background: #020205; }
+        .leaflet-control-attribution { display: none; }
 
-        #map { width: 100%; height: 100vh; z-index: 1; background: #000; }
-        .leaflet-layer { filter: brightness(0.7) contrast(1.1) grayscale(20%); }
-        .leaflet-marker-pane { filter: none; } 
-
-        .leaflet-tooltip {
-            background: transparent !important; border: none !important; box-shadow: none !important; padding: 0 !important; margin: 0 !important;
-        }
-        .leaflet-tooltip-top:before { display: none !important; }
-
-        .fc-label-box {
-            background: rgba(0, 0, 0, 0.85); border: 1px solid var(--gold); color: var(--gold);
-            font-family: 'Teko'; font-weight: bold; font-size: 14px; padding: 2px 8px; border-radius: 4px;
-            text-shadow: 0 0 5px #000; white-space: nowrap; box-shadow: 0 0 10px rgba(0,0,0,0.8);
+        /* --- MARKER DESIGN --- */
+        .marker-wrapper {
+            display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
+            width: 150px !important; height: auto !important;
+            transform: translate(-50%, -100%);
         }
 
-        #loader {
-            position: fixed; inset: 0; background: #000; z-index: 9999;
-            display: flex; align-items: center; justify-content: center; flex-direction: column;
-            gap: 15px; transition: opacity 0.5s; pointer-events: none;
+        /* LABEL NAMA (Kotak Hitam + Border Cyan) */
+        .pin-label-box {
+            background: rgba(0, 0, 0, 0.9);
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            font-family: 'Teko', sans-serif;
+            font-weight: 600; font-size: 16px; /* Font lebih besar */
+            text-transform: uppercase; letter-spacing: 0.5px;
+            padding: 2px 8px; border-radius: 4px;
+            margin-bottom: 2px;
+            white-space: nowrap;
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.3);
+            text-align: center;
+            z-index: 100;
         }
-        .spinner { width: 50px; height: 50px; border: 3px solid #222; border-top-color: var(--gold); border-radius: 50%; animation: spin 1s infinite linear; }
-        @keyframes spin { to { transform: rotate(360deg); } }
 
-        .header-float { position: fixed; top: 20px; left: 0; width: 100%; padding: 0 20px; z-index: 1000; pointer-events: none; display: flex; flex-direction: column; gap: 10px; }
-        .header-pill {
-            pointer-events: auto; background: var(--glass-bg); border-left: 4px solid var(--gold); color: #fff; padding: 10px 20px; 
-            clip-path: polygon(0 0, 100% 0, 100% 100%, 10px 100%, 0 calc(100% - 10px)); display: inline-flex; align-items: center; gap: 10px; align-self: flex-start;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.8);
+        /* PIN BASIC */
+        .pin-body {
+            width: 24px; height: 38px;
+            background: linear-gradient(180deg, var(--primary) 0%, #000 90%);
+            border: 1px solid #fff;
+            clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+            box-shadow: 0 0 20px var(--primary);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .pin-body::after {
+            content: ''; width: 6px; height: 6px; background: #fff;
+            box-shadow: 0 0 5px #fff;
         }
 
+        /* USER MARKER */
+        .user-wrap { position: relative; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; }
+        .user-pulse {
+            position: absolute; width: 100%; height: 100%;
+            border-radius: 50%; border: 2px solid var(--primary);
+            opacity: 0; animation: pulse 1.5s infinite;
+        }
+        .user-img {
+            width: 40px; height: 40px; border-radius: 50%;
+            border: 2px solid #fff; box-shadow: 0 0 20px var(--primary);
+            object-fit: cover; background: #000; position: relative; z-index: 2;
+        }
+        @keyframes pulse { 0% {transform: scale(0.5); opacity: 1;} 100% {transform: scale(1.5); opacity: 0;} }
+
+        /* INFO CARD */
         .info-card {
-            position: fixed; bottom: 90px; left: 15px; right: 15px; background: rgba(15, 15, 15, 0.95); border: 1px solid var(--gold);
-            padding: 20px; z-index: 1000; clip-path: polygon(20px 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%, 0 20px);
-            transform: translateY(150%); transition: transform 0.3s ease-out; box-shadow: 0 0 50px rgba(0,0,0,0.9);
+            position: fixed; bottom: 100px; left: 15px; right: 15px; 
+            background: #0a0a0a; border: 1px solid var(--primary); 
+            padding: 20px; z-index: 1500; 
+            clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px);
+            transform: translateY(150%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 0 50px rgba(0, 240, 255, 0.1);
         }
         .info-card.active { transform: translateY(0); }
-
-        .btn-nav-map {
-            display: flex; align-items: center; justify-content: center; gap: 10px;
-            background: var(--gold); color: #000; padding: 12px; font-family: 'Black Ops One'; font-size: 16px; text-decoration: none; margin-top: 15px; border-radius: 2px; box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
+        .close-btn { position: absolute; top: 10px; right: 15px; color: #555; font-size: 24px; cursor: pointer; }
+        
+        .card-label { font-size: 10px; color: var(--primary); font-weight: 800; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 5px; font-family: var(--font-head); }
+        .card-title { font-family: var(--font-tech); font-weight: 800; font-size: 26px; line-height: 1; margin-bottom: 5px; color: #fff; text-transform: uppercase; }
+        .card-sub { font-size: 14px; color: #aaa; margin-bottom: 15px; font-family: var(--font-tech); padding-bottom: 10px; border-bottom: 1px solid #333; }
+        
+        .btn-nav {
+            display: block; width: 100%; padding: 12px; background: var(--primary); color: #000;
+            text-align: center; font-family: var(--font-head); font-weight: 800; font-size: 16px;
+            text-decoration: none; text-transform: uppercase; letter-spacing: 1px;
+            clip-path: polygon(10px 0, 100% 0, 100% 100%, 0 100%, 0 10px);
         }
 
-        /* --- UPDATE: Ganti User Radar jadi Logo MLU (Sesuai Request) --- */
-        .user-radar-box { position: relative; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; }
-        .user-logo-img { width: 35px; height: 35px; object-fit: contain; border-radius: 50%; border: 2px solid #fff; background: #000; z-index: 2; box-shadow: 0 0 15px rgba(0,0,0,0.8); }
-        .user-pulse-ring { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 100%; height: 100%; border-radius: 50%; border: 2px solid rgba(0, 240, 255, 0.6); background: rgba(0, 240, 255, 0.1); animation: radarPing 2s infinite; z-index: 1; }
-        @keyframes radarPing { 0% { width: 35px; height: 35px; opacity: 1; } 100% { width: 80px; height: 80px; opacity: 0; } }
+        /* DOCK NAV */
+        .dock-container {
+            position: fixed; bottom: 0; left: 0; width: 100%; height: 80px;
+            background: rgba(2, 5, 8, 0.98); border-top: 2px solid var(--primary);
+            display: grid; grid-template-columns: 1fr 1fr 1fr; align-items: center;
+            z-index: 2000;
+        }
+        .nav-item { text-decoration: none; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--gray-light); transition: 0.3s; height: 100%; }
+        
+        /* MENU TENGAH (ANTRIAN) - MATI/GREY */
+        .nav-item.center-btn { transform: translateY(-30px); }
+        .center-icon-box { 
+            width: 65px; height: 65px; background: #000; 
+            border: 2px solid var(--gray-light); /* Grey Border */
+            border-radius: 50%; display: flex; align-items: center; justify-content: center; 
+            box-shadow: 0 0 10px rgba(0,0,0,0.5); /* No Glow */
+            font-size: 26px; color: var(--gray-light); /* Grey Icon */
+            position: relative; z-index: 10;
+        }
+        
+        /* MENU KIRI (PETA) - AKTIF/CYAN */
+        .nav-item.active { color: var(--primary); text-shadow: 0 0 15px var(--primary); }
+        .nav-icon { font-size: 22px; margin-bottom: 4px; }
+        .nav-text { font-family: var(--font-head); font-size: 10px; letter-spacing: 2px; font-weight: 700; margin-top: 5px; }
 
-        /* Badge Terdekat */
-        .nearest-badge { display: none; background: var(--cyan); color: #000; font-family: 'Teko'; font-weight: bold; padding: 2px 8px; border-radius: 4px; font-size: 12px; margin-bottom: 5px; width: fit-content; box-shadow: 0 0 10px var(--cyan); }
-
-        .dock-container { position: fixed; bottom: 0; left: 0; width: 100%; height: 75px; background: #000; border-top: 1px solid #333; display: grid; grid-template-columns: 1fr 1fr 1fr; align-items: center; z-index: 1001; }
-        .nav-item { text-decoration: none; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #444; transition: 0.3s; height: 100%; position: relative; }
-        .nav-item.active { color: var(--gold); }
-        .nav-item.active .nav-icon { text-shadow: 0 0 15px var(--gold); transform: translateY(-2px); }
-        .nav-item.active::after { content: ''; position: absolute; bottom: 0; width: 40px; height: 3px; background: var(--gold); box-shadow: 0 0 10px var(--gold); }
-        .nav-icon { font-size: 24px; margin-bottom: 2px; transition: 0.3s; }
-        .nav-text { font-family: 'Teko'; font-size: 16px; letter-spacing: 1px; font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <div id="loader">
-        <div class="spinner"></div>
-        <div style="margin-top:10px; font-family:'Teko'; font-size:18px; color:var(--gold);">LOADING MAP DATA...</div>
-    </div>
-
-    <div class="header-float">
-        <div class="header-pill">
-            <span style="font-family:'Black Ops One'; font-size:16px;">MLU TACTICAL MAP</span>
-        </div>
+    <div class="header-fixed">
+        <div class="main-title">TACTICAL MAP</div>
+        <div class="sub-title">LIVE TRACKING SYSTEM</div>
     </div>
 
     <div id="map"></div>
 
     <div id="infoCard" class="info-card">
-        <div style="display:flex; justify-content:space-between; align-items:start;">
-            <div style="flex: 1;">
-                <div id="badgeNearest" class="nearest-badge">📍 POSISI TERDEKAT</div>
-                <div style="font-size:10px; color:var(--gold); font-weight:bold; letter-spacing:1px;">LOKASI TERPILIH</div>
-                <h2 style="font-family:'Black Ops One'; font-size:24px; color:#fff; margin:5px 0; line-height:1.1;" id="fcName">...</h2>
-                <div style="font-size:12px; color:#888; margin-bottom:10px;" id="fcAddress">...</div>
-            </div>
-            <div style="font-size:28px; cursor:pointer; color:#555;" onclick="closeCard()">×</div>
-        </div>
-
-        <div style="background:#000; padding:10px; border-radius:5px; border-left:3px solid var(--gold); margin-bottom:15px; margin-top:10px;">
-            <div style="font-size:10px; color:#aaa;">JARAK RUTE JALAN RAYA</div>
-            <div id="distanceInfo" style="font-family:'Teko'; font-size:24px; color:#fff;">MENGHITUNG...</div>
-        </div>
-        
-        <a href="#" id="btnMaps" target="_blank" class="btn-nav-map">
-            BUKA GOOGLE MAPS
-        </a>
+        <div class="close-btn" onclick="closeCard()">×</div>
+        <div class="card-label">LOKASI TERPILIH</div>
+        <div class="card-title" id="fcName">...</div>
+        <div class="card-sub" id="fcAddr">...</div>
+        <a href="#" id="btnMaps" target="_blank" class="btn-nav">BUKA GOOGLE MAPS</a>
     </div>
 
     <div class="dock-container">
-        <a href="lokasifc.html" class="nav-item active">
-            <div class="nav-icon">🗺️</div><span class="nav-text">PETA FC</span>
+        <div class="nav-item active">
+            <i class="fas fa-map-marked-alt nav-icon"></i><span class="nav-text">PETA FC</span>
+        </div>
+        
+        <a href="system.html" class="nav-item center-btn">
+            <div class="center-icon-box"><i class="fas fa-charging-station"></i></div>
+            <span class="nav-text" style="margin-top:8px;">ANTRIAN</span>
         </a>
-        <a href="system.html" class="nav-item">
-            <div class="nav-icon">🏠</div><span class="nav-text">SYSTEM</span>
-        </a>
+        
         <a href="plan.html" class="nav-item">
-            <div class="nav-icon">🚩</div><span class="nav-text">PLAN TRIP</span>
+            <i class="fas fa-route nav-icon"></i><span class="nav-text">TRIP PLAN</span>
         </a>
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
-
     <script>
-        const map = L.map('map', {zoomControl: false}).setView([-6.1754, 106.8272], 12);
-        L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19 }).addTo(map);
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png', { maxZoom: 19, opacity: 0.6 }).addTo(map);
+        // 1. INIT MAP
+        const map = L.map('map', {zoomControl: false}).setView([-6.2, 106.8], 11);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { 
+            maxZoom: 19, opacity: 0.9 
+        }).addTo(map);
 
-        // --- ICON PIN (TETAP KUNING SVG DARI SCRIPT ASLI BAPAK) ---
-        const pinSvg = `
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="40" height="40" fill="#FFD700">
-            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 0 1 0-5 2.5 2.5 0 0 1 0 5z"/>
-            <path d="M0 0h24v24H0z" fill="none"/>
-            <circle cx="12" cy="9" r="2.5" fill="black"/>
-        </svg>`;
-
-        const fcIcon = L.divIcon({ className: 'custom-div-icon', html: pinSvg, iconSize: [40, 40], iconAnchor: [20, 40], tooltipAnchor: [0, -35] });
-
-        // --- UPDATE: ICON USER JADI LOGO MLU (Sesuai Request) ---
+        // 2. ICON USER
         const userIcon = L.divIcon({
-            className: 'custom-div-icon',
-            html: `<div class='user-radar-box'>
-                    <div class='user-pulse-ring'></div>
-                    <img src='logo.png' class='user-logo-img' onerror="this.src='https://placehold.co/40x40/000/FFF?text=YOU'">
-                   </div>`,
-            iconSize: [50, 50], iconAnchor: [25, 25] 
+            className: 'custom-user',
+            html: `<div class="user-wrap"><div class="user-pulse"></div><img src="logo.png" class="user-img"></div>`,
+            iconSize: [60, 60], iconAnchor: [30, 30]
         });
-
-        let userMarker = null;
-        let connectorLine = null; 
-        let allStations = []; 
-        let hasFoundNearest = false;
-
-        const SHEET_ID = '1kp7bHdgSTTNZF3uyd1ul-LnTZVjuLs1TVQnRxoViPfQ';
+        
+        // 3. DATA
+        const SHEET_ID = '1EJOTMMfGpBMFPqR0LzbMbh7tZUcTCZld4x387OO9aJM'; 
         const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Sheet1`;
 
-        Papa.parse(CSV_URL, {
-            download: true, header: true,
-            complete: function(results) {
-                document.getElementById('loader').style.opacity = '0';
-                results.data.forEach(row => {
-                    let lat = null, lng = null, name = "FC Station", addr = "Charging Point";
-                    Object.values(row).forEach(val => { if(val) { let num = parseFloat(val.toString().replace(',','.')); if(!isNaN(num)) { if(num < -5 && num > -11) lat = num; if(num > 95 && num < 141) lng = num; } } });
-                    const textCols = Object.values(row).filter(val => isNaN(parseFloat(val)) && val.length > 3);
-                    if(textCols.length > 0) name = textCols[0]; if(textCols.length > 1) addr = textCols[1];
-                    if(row['Nama']) name = row['Nama']; if(row['Lokasi']) name = row['Lokasi']; if(row['Alamat']) addr = row['Alamat'];
+        let userLat = null, userLng = null;
 
-                    if (lat && lng) {
-                        const m = L.marker([lat, lng], {icon: fcIcon}).addTo(map);
-                        m.bindTooltip(`<div class="fc-label-box">${name}</div>`, { permanent: true, direction: 'top', className: '', offset: [0, 0] });
-                        
-                        // SIMPAN DATA
-                        const sData = {name, addr, lat, lng, marker: m};
-                        allStations.push(sData);
-                        m.on('click', () => { showInfoCard(sData, false); });
-                    }
-                });
-            },
-            error: function() { document.getElementById('loader').style.display = 'none'; }
-        });
-
+        // 4. LOGIC
         if (navigator.geolocation) {
-            navigator.geolocation.watchPosition((pos) => {
-                const { latitude, longitude } = pos.coords;
-                if (!userMarker) {
-                    userMarker = L.marker([latitude, longitude], { icon: userIcon, zIndexOffset: 1000 }).addTo(map);
-                } else {
-                    userMarker.setLatLng([latitude, longitude]);
-                }
-                // AUTO DETECT HANYA SEKALI SAAT START
-                if(!hasFoundNearest && allStations.length > 0) {
-                    findNearestStation(latitude, longitude);
-                    hasFoundNearest = true;
-                }
-            }, (err) => console.log(err), { enableHighAccuracy: true });
-        }
+            navigator.geolocation.getCurrentPosition(pos => {
+                userLat = pos.coords.latitude;
+                userLng = pos.coords.longitude;
+                L.marker([userLat, userLng], {icon: userIcon, zIndexOffset: 1000}).addTo(map);
+                map.setView([userLat, userLng], 14); 
+                loadFCData(true);
+            }, () => { loadFCData(false); });
+        } else { loadFCData(false); }
 
-        function findNearestStation(uLat, uLng) {
-            let minKm = 99999;
-            let nearest = null;
-            allStations.forEach(fc => {
-                const d = getCrowDist(uLat, uLng, fc.lat, fc.lng);
-                if(d < minKm) { minKm = d; nearest = fc; }
+        function loadFCData(hasUserLoc) {
+            Papa.parse(CSV_URL, {
+                download: true, header: true,
+                complete: function(results) {
+                    let nearestDist = Infinity;
+                    let nearestFC = null;
+
+                    results.data.forEach(row => {
+                        let lat=null, lng=null, name="FC"; // Default FC
+
+                        // --- FIX PENCARIAN NAMA (Cari kolom Nama/Lokasi/Station secara case-insensitive) ---
+                        const keys = Object.keys(row);
+                        for(let k of keys) {
+                            let cleanKey = k.toLowerCase().trim();
+                            if(cleanKey.includes('nama') || cleanKey.includes('lokasi') || cleanKey.includes('station')) {
+                                if(row[k] && row[k].trim() !== "") {
+                                    name = row[k]; // KETEMU! Update nama
+                                    break;
+                                }
+                            }
+                        }
+
+                        // Parse Koordinat
+                        Object.values(row).forEach(val => { if(val){ let v=String(val).replace(',','.'); if(!isNaN(parseFloat(v)) && parseFloat(v)<-5) lat=parseFloat(v); if(!isNaN(parseFloat(v)) && parseFloat(v)>95) lng=parseFloat(v); }});
+                        
+                        if (lat && lng) {
+                            if(hasUserLoc) {
+                                const dist = Math.sqrt(Math.pow(lat-userLat, 2) + Math.pow(lng-userLng, 2));
+                                if(dist < nearestDist) { nearestDist = dist; nearestFC = { name, addr: row['Alamat'], lat, lng }; }
+                            }
+
+                            // GENERATE MARKER + LABEL
+                            const fcIcon = L.divIcon({ 
+                                className: 'custom-pin', 
+                                html: `
+                                    <div class="marker-wrapper">
+                                        <div class="pin-label-box">${name}</div>
+                                        <div class="pin-body"></div>
+                                    </div>
+                                `, 
+                                iconSize: [150, 80], 
+                                iconAnchor: [75, 80] 
+                            });
+
+                            const m = L.marker([lat, lng], {icon: fcIcon}).addTo(map);
+                            m.on('click', () => showInfo(name, row['Alamat'] || "Detail lokasi belum tersedia", lat, lng));
+                        }
+                    });
+
+                    if(nearestFC) {
+                        showInfo(nearestFC.name, nearestFC.addr, nearestFC.lat, nearestFC.lng);
+                    }
+                }
             });
-
-            if(nearest) {
-                if(connectorLine) map.removeLayer(connectorLine);
-                connectorLine = L.polyline([[uLat, uLng], [nearest.lat, nearest.lng]], { color: '#00F0FF', weight: 4, dashArray: '10, 10', opacity: 0.7 }).addTo(map);
-                const bounds = L.latLngBounds([[uLat, uLng], [nearest.lat, nearest.lng]]);
-                map.fitBounds(bounds, {padding: [80, 80]});
-                showInfoCard(nearest, true);
-            }
         }
 
-        function getCrowDist(lat1, lon1, lat2, lon2) {
-            const R = 6371; 
-            const dLat = (lat2 - lat1) * Math.PI/180;
-            const dLon = (lon2 - lon1) * Math.PI/180;
-            const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLon/2)**2;
-            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-        }
-
-        // --- FUNGSI BARU: HITUNG JARAK OSRM (RUTE JALAN) ---
-        async function getRoadDist(lat1, lon1, lat2, lon2) {
-            try {
-                // Panggil API OSRM
-                const url = `https://router.project-osrm.org/route/v1/driving/${lon1},${lat1};${lon2},${lat2}?overview=false`;
-                const res = await fetch(url);
-                const json = await res.json();
-                if(json.code === 'Ok') {
-                    // Konversi meter ke KM
-                    return (json.routes[0].distance / 1000).toFixed(1) + " KM (VIA JALAN)";
-                }
-            } catch(e) { console.log("OSRM Error:", e); }
-            // Fallback ke garis lurus jika OSRM gagal
-            return getCrowDist(lat1, lon1, lat2, lon2).toFixed(1) + " KM (GARIS LURUS)";
-        }
-
-        async function showInfoCard(fc, isNearest) {
-            document.getElementById('fcName').innerText = fc.name;
-            document.getElementById('fcAddress').innerText = fc.addr;
-            document.getElementById('badgeNearest').style.display = isNearest ? 'block' : 'none';
-            document.getElementById('btnMaps').href = `https://www.google.com/maps/dir/?api=1&destination=${fc.lat},${fc.lng}`;
+        function showInfo(name, addr, lat, lng) {
+            document.getElementById('fcName').innerText = name;
+            document.getElementById('fcAddr').innerText = addr || "Alamat tidak tersedia";
+            document.getElementById('btnMaps').href = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
             document.getElementById('infoCard').classList.add('active');
-
-            if(!userMarker) {
-                document.getElementById('distanceInfo').innerHTML = "MENUNGGU GPS...";
-                return;
-            }
-
-            // HITUNG MENGGUNAKAN OSRM
-            document.getElementById('distanceInfo').innerHTML = "<span style='color:#888; font-size:18px;'>MENGHITUNG RUTE...</span>";
-            const u = userMarker.getLatLng();
-            const realDist = await getRoadDist(u.lat, u.lng, fc.lat, fc.lng);
-            document.getElementById('distanceInfo').innerHTML = `<span style="color:var(--gold)">${realDist}</span>`;
-
-            if(!isNearest && connectorLine) { map.removeLayer(connectorLine); connectorLine = null; }
         }
-
-        function closeCard() {
-            document.getElementById('infoCard').classList.remove('active');
-            if(connectorLine) { map.removeLayer(connectorLine); connectorLine = null; }
-        }
+        function closeCard() { document.getElementById('infoCard').classList.remove('active'); }
     </script>
 </body>
 </html>
