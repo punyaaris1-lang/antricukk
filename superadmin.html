@@ -6,7 +6,7 @@
     <title>SUPER ADMIN - GOD MODE</title>
     <link href="https://fonts.googleapis.com/css2?family=Teko:wght@300;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        /* === STYLE ULTIMATE (TEMA EMAS - TIDAK DIUBAH) === */
+        /* === STYLE ULTIMATE (TEMA EMAS) === */
         :root { 
             --bg: #050505; --panel: #111; --border: #333; 
             --gold: #FFD700; --red: #FF003C; --blue: #00F0FF; --green: #00FF00; --purple: #9D00FF; --neon: #39FF14; --orange: #FFAA00;
@@ -14,27 +14,38 @@
         }
         body { background: #0a0a0a; color: #fff; font-family: 'JetBrains Mono', monospace; padding: 10px; font-size: 11px; margin: 0; }
         .box { border: 1px solid #333; padding: 15px; margin-bottom: 15px; background: #000; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
-        h3 { margin: 0 0 15px 0; color: var(--gold); border-bottom: 1px solid #333; padding-bottom: 5px; font-family: 'Teko', sans-serif; font-size: 20px; letter-spacing: 1px; }
+        h3 { margin: 0 0 15px 0; color: var(--gold); border-bottom: 1px solid #333; padding-bottom: 5px; font-family: 'Teko', sans-serif; font-size: 20px; letter-spacing: 1px; display:flex; justify-content:space-between; align-items:center; }
+        
         button { cursor: pointer; padding: 8px 12px; margin: 0; font-weight: bold; font-family: 'Teko'; font-size: 14px; letter-spacing: 0.5px; border-radius: 4px; transition: 0.2s; border: none; text-transform: uppercase; }
         button:hover { filter: brightness(1.2); transform: translateY(-1px); }
+        
         .btn-gold { background: linear-gradient(45deg, #DAA520, #FFD700); color: #000; border: 1px solid #FFD700; }
         .btn-red { background: linear-gradient(45deg, #900, #d00); color: #fff; border: 1px solid #f00; }
         .btn-blue { background: linear-gradient(45deg, #005, #009); color: #fff; border: 1px solid #00f; }
         .btn-green { background: linear-gradient(45deg, #006400, #00FF00); color: #000; border: 1px solid #00FF00; }
         .btn-purple { background: linear-gradient(45deg, #4B0082, #9D00FF); color: #fff; border: 1px solid #9D00FF; }
         .btn-orange { background: linear-gradient(45deg, #FF8C00, #FFAA00); color: #000; border: 1px solid #FFAA00; }
-        .btn-gray { background: #333; color: #fff; border: 1px solid #555; }
+        .btn-cyan { background: linear-gradient(45deg, #008B8B, #00FFFF); color: #000; border: 1px solid #00FFFF; }
         .btn-mini { padding: 4px 8px; font-size: 12px; margin: 2px; }
-        input, select { background: #1a1a1a; color: #fff; border: 1px solid #444; padding: 8px; border-radius: 4px; font-family: 'JetBrains Mono'; width: 100%; box-sizing: border-box; }
+
+        input, select { background: #1a1a1a; color: #fff; border: 1px solid #444; padding: 8px; border-radius: 4px; font-family: 'JetBrains Mono'; width: 100%; box-sizing: border-box; margin-bottom:5px; }
+        
         .slot-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
         .slot-item { border: 1px solid #333; padding: 10px; background: #050505; text-align: center; border-radius: 5px; min-height: 100px; display: flex; flex-direction: column; justify-content: space-between; }
-        .term-container { background: var(--term-bg); border: 1px solid #333; height: 250px; overflow-y: auto; padding: 10px; font-size: 10px; color: #ccc; border-radius: 5px; display: flex; flex-direction: column-reverse; }
+        
+        .term-container { background: var(--term-bg); border: 1px solid #333; height: 150px; overflow-y: auto; padding: 10px; font-size: 10px; color: #ccc; border-radius: 5px; display: flex; flex-direction: column-reverse; }
         .log-line { margin-bottom: 4px; border-bottom: 1px solid #111; padding-bottom: 2px; }
+        
         #loginOverlay { display: flex; position: fixed; inset: 0; background: #000; z-index: 10000; justify-content: center; align-items: center; flex-direction: column; }
         .login-box { width: 300px; padding: 30px; border: 1px solid var(--gold); border-radius: 10px; background: #111; text-align: center; box-shadow: 0 0 30px rgba(255, 215, 0, 0.15); }
         
-        /* EDIT LABEL */
         .edit-label { text-align: left; color: var(--gold); font-size: 10px; margin-bottom: 2px; margin-top: 10px; letter-spacing: 1px; }
+        .adm-badge { font-size: 9px; padding: 2px 6px; border-radius: 3px; font-weight: bold; display: inline-block; margin-top: 3px; }
+        .bg-gold { background: var(--gold); color: #000; }
+        .bg-red { background: var(--red); color: #fff; }
+        .bg-green { background: var(--green); color: #000; }
+        .bg-cyan { background: var(--cyan); color: #000; }
+        .bg-guest { background: #333; color: #aaa; }
 
         /* MODAL */
         #customModal, #editModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 12000; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
@@ -42,6 +53,12 @@
         .modal-btns { display: flex; gap: 10px; margin-top: 20px; }
         .mb-yes { flex:1; background: var(--gold); color: #000; }
         .mb-no { flex:1; background: #333; color: #fff; border: 1px solid #555; }
+        
+        /* TABLE MEMBER */
+        table { width: 100%; border-collapse: collapse; margin-top: 5px; font-size: 11px; }
+        td, th { border-bottom: 1px solid #222; padding: 5px; text-align: left; vertical-align: middle; }
+        th { color: var(--cyan); text-transform: uppercase; font-size: 10px; letter-spacing: 1px; }
+        tr:nth-child(even) { background: rgba(255,255,255,0.02); }
     </style>
 </head>
 <body>
@@ -54,12 +71,13 @@
             <button onclick="attemptLogin()" class="btn-gold" style="width:100%; font-size:20px;">BUKA AKSES</button>
         </div>
     </div>
+    
     <div style="display:flex; justify-content:space-between; margin-bottom:15px; align-items:center;">
         <div><span style="font-family:'Teko'; font-size:28px; color:var(--gold);">SUPER ADMIN <span style="color:#fff; font-size:12px;">(GOD MODE)</span></span></div>
-        <div style="display:flex; gap:5px;"><button onclick="window.location.href='system.html'" class="btn-blue">DEPAN</button><button onclick="logout()" class="btn-red">KELUAR</button></div>
+        <div style="display:flex; gap:5px;"><button onclick="window.location.href='system.html'" class="btn-blue">KE DASHBOARD (SYSTEM)</button><button onclick="logout()" class="btn-red">KELUAR</button></div>
     </div>
 
-    <div class="box">
+    <div class="box" style="border-top: 2px solid var(--cyan);">
         <h3>1. LIVE MONITORING & SLOT CONTROL</h3>
         <div class="slot-grid"><div id="slot1" class="slot-item">...</div><div id="slot2" class="slot-item">...</div><div id="slot3" class="slot-item">...</div></div>
         
@@ -69,50 +87,51 @@
         </div>
     </div>
 
-    <div class="box" style="border-top: 3px solid var(--blue);">
-        <h3 style="color:var(--blue);">2. SET JABATAN & BADGE</h3>
-        <div style="font-size:10px; color:#aaa; margin-bottom:10px;">Atur Badge Spesial untuk Plat tertentu.</div>
-        <div style="display:flex; gap:5px; margin-bottom:5px;">
-            <input id="rolePlat" placeholder="PLAT NOMOR (Cth: B 1234 XYZ)" style="flex:2; text-transform:uppercase;">
-            <select id="roleSelect" style="flex:2;">
-                <option value="MEMBER">👤 KELUARGA MLU (DEFAULT)</option>
-                
-                <optgroup label="--- COMMANDER ---">
-                    <option value="PRESIDEN MCU">🔥 PRESIDEN MCU</option>
-                    <option value="PROVOKATOR">👿 PROVOKATOR</option>
-                    <option value="KETUM">👑 KETUA UMUM</option>
-                    <option value="WAKETUM">⭐ WAKETUM</option>
-                </optgroup>
-
-                <optgroup label="--- OFFICER ---">
-                    <option value="PEMBINA">📜 PEMBINA</option>
-                    <option value="PENASEHAT">🧠 PENASEHAT</option>
-                    <option value="SEKJEN">💻 SEKJEN</option>
-                    <option value="HUMAS">📢 HUMAS</option>
-                </optgroup>
-
-                <optgroup label="--- TACTICAL ---">
-                    <option value="KORLAP">🔴 KORLAP</option>
-                    <option value="SATGAS">⚡ SATGAS</option>
-                    <option value="PASUKAN SENYAP">🥷 PASUKAN SENYAP (NINJA)</option>
-                    <option value="PELAN TAPI KENCENG">🐢 PELAN TAPI KENCENG</option>
-                </optgroup>
-
-                <optgroup label="--- OPERATIONAL ---">
-                    <option value="OFFICE">🏢 OFFICE MAKA</option>
-                    <option value="KACAB">📍 KACAB</option>
-                    <option value="MEKANIK">🔧 MEKANIK</option>
-                </optgroup>
-
-                <optgroup label="--- SPECIALS ---">
-                    <option value="VIP">💎 VIP</option>
-                    <option value="DONATUR">💸 DONATUR</option>
-                </optgroup>
-                
-                <option value="CUSTOM">✍ INPUT MANUAL...</option>
-            </select>
+    <div class="box" style="border-top: 3px solid var(--green);">
+        <h3>2. MANAJEMEN MEMBER & BADGE <button onclick="loadMembers()" class="btn-green btn-mini">REFRESH LIST</button></h3>
+        
+        <div style="background:#111; padding:10px; border-radius:5px; margin-bottom:15px;">
+            <div style="font-size:10px; color:#aaa; margin-bottom:5px;">TAMBAH / UPDATE JABATAN:</div>
+            <div style="display:flex; gap:5px; margin-bottom:5px;">
+                <input id="rolePlat" placeholder="PLAT NOMOR" style="flex:2; text-transform:uppercase;">
+                <select id="roleSelect" style="flex:2;">
+                    <option value="MEMBER">👤 KELUARGA MLU (DEFAULT)</option>
+                    <optgroup label="--- COMMANDER ---">
+                        <option value="PRESIDEN MCU">🔥 PRESIDEN MCU</option>
+                        <option value="PROVOKATOR">👿 PROVOKATOR</option>
+                        <option value="KETUM">👑 KETUA UMUM</option>
+                        <option value="WAKETUM">⭐ WAKETUM</option>
+                    </optgroup>
+                    <optgroup label="--- OFFICER ---">
+                        <option value="PEMBINA">📜 PEMBINA</option>
+                        <option value="PENASEHAT">🧠 PENASEHAT</option>
+                        <option value="SEKJEN">💻 SEKJEN</option>
+                        <option value="HUMAS">📢 HUMAS</option>
+                    </optgroup>
+                    <optgroup label="--- TACTICAL ---">
+                        <option value="KORLAP">🔴 KORLAP</option>
+                        <option value="SATGAS">⚡ SATGAS</option>
+                        <option value="PASUKAN SENYAP">🥷 PASUKAN SENYAP</option>
+                        <option value="PELAN TAPI KENCENG">🐢 PELAN TAPI KENCENG</option>
+                    </optgroup>
+                    <optgroup label="--- OPERATIONAL ---">
+                        <option value="OFFICE">🏢 OFFICE MAKA</option>
+                        <option value="KACAB">📍 KACAB</option>
+                        <option value="MEKANIK">🔧 MEKANIK</option>
+                    </optgroup>
+                    <optgroup label="--- SPECIALS ---">
+                        <option value="VIP">💎 VIP</option>
+                        <option value="DONATUR">💸 DONATUR</option>
+                    </optgroup>
+                    <option value="CUSTOM">✍ INPUT MANUAL...</option>
+                </select>
+            </div>
+            <button onclick="setJabatan()" class="btn-blue" style="width:100%;">SIMPAN BADGE</button>
         </div>
-        <button onclick="setJabatan()" class="btn-blue" style="width:100%;">SIMPAN PERUBAHAN</button>
+
+        <div id="memberListArea" style="max-height:250px; overflow-y:auto; border:1px solid #333;">
+            <div style="padding:20px; text-align:center; color:#666;">KLIK REFRESH LIST UNTUK MELIHAT DATA</div>
+        </div>
     </div>
 
     <div class="box" style="border-top: 3px solid var(--orange);">
@@ -150,18 +169,14 @@
     <div id="editModal">
         <div class="modal-box">
             <h2 style="margin:0 0 10px 0; font-family:'Teko'; color:var(--blue); font-size:24px;">EDIT DATA USER</h2>
-            <p style="color:#666; font-size:10px; margin-top:-10px;">UBAH DATA JIKA USER SALAH INPUT</p>
-            
             <div class="edit-label">PLAT NOMOR</div>
             <input id="editPlat" type="text" style="text-align:center; font-weight:bold;">
-            
             <div class="edit-label">NAMA USER</div>
             <input id="editName" type="text" style="text-align:center;">
-            
             <div class="edit-label">SISA BATERAI (%)</div>
             <input id="editBatt" type="number" max="100" style="text-align:center;">
-
-            <input type="hidden" id="editType"> <input type="hidden" id="editId">   <div class="modal-btns">
+            <input type="hidden" id="editType"> <input type="hidden" id="editId">
+            <div class="modal-btns">
                 <button onclick="saveEdit()" class="mb-yes">SIMPAN</button>
                 <button onclick="closeEditModal()" class="mb-no">BATAL</button>
             </div>
@@ -170,7 +185,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, doc, onSnapshot, runTransaction, collection, addDoc, query, orderBy, limit, setDoc, getDocs, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, doc, onSnapshot, runTransaction, collection, addDoc, query, orderBy, limit, setDoc, getDocs, updateDoc, getDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         
         const firebaseConfig = { apiKey: "AIzaSyB666i9lYWIpxOdkwpoX9EvFvHLmHczeq8", authDomain: "fcgadingnew22.firebaseapp.com", projectId: "fcgadingnew22", storageBucket: "fcgadingnew22.firebasestorage.app", messagingSenderId: "537736846678", appId: "1:537736846678:web:53788d71a196423ac08af7" };
         const app = initializeApp(firebaseConfig);
@@ -192,43 +207,23 @@
         document.getElementById('btnYes').onclick = () => { if(currentCallback) currentCallback(); closeModal(); };
         window.closeModal = () => { document.getElementById('customModal').style.display = 'none'; currentCallback = null; };
 
-        // --- EDIT MODAL (GOD MODE) ---
+        // --- EDIT MODAL ---
         window.openEdit = (type, id) => {
-            let data;
-            if(type === 'slot') data = cachedSlots[id];
-            else data = cachedQueue[id];
-
-            if(!data) return alert("Data kosong / error.");
-
-            document.getElementById('editType').value = type;
-            document.getElementById('editId').value = id;
-            document.getElementById('editPlat').value = data.plat;
-            document.getElementById('editName').value = data.userName;
-            document.getElementById('editBatt').value = data.batreSisa || "";
+            let data; if(type === 'slot') data = cachedSlots[id]; else data = cachedQueue[id];
+            if(!data) return alert("Data kosong.");
+            document.getElementById('editType').value = type; document.getElementById('editId').value = id;
+            document.getElementById('editPlat').value = data.plat; document.getElementById('editName').value = data.userName; document.getElementById('editBatt').value = data.batreSisa || "";
             document.getElementById('editModal').style.display = 'flex';
         };
         window.closeEditModal = () => { document.getElementById('editModal').style.display = 'none'; };
-
         window.saveEdit = () => {
-            const type = document.getElementById('editType').value;
-            const id = parseInt(document.getElementById('editId').value);
-            const p = document.getElementById('editPlat').value.toUpperCase();
-            const n = document.getElementById('editName').value.toUpperCase();
-            const b = document.getElementById('editBatt').value;
-
+            const type = document.getElementById('editType').value; const id = parseInt(document.getElementById('editId').value);
+            const p = document.getElementById('editPlat').value.toUpperCase(); const n = document.getElementById('editName').value.toUpperCase(); const b = document.getElementById('editBatt').value;
             if(!p || !n) return alert("Data tidak boleh kosong!");
-
             runTransaction(db, async(t) => {
                 const d = (await t.get(mainRef)).data();
-                if(type === 'slot') {
-                    if(d.chargingSlots[id]) {
-                        d.chargingSlots[id].plat = p; d.chargingSlots[id].userName = n; d.chargingSlots[id].batreSisa = b;
-                    }
-                } else {
-                    if(d.waitingQueue[id]) {
-                        d.waitingQueue[id].plat = p; d.waitingQueue[id].userName = n; d.waitingQueue[id].batreSisa = b;
-                    }
-                }
+                if(type === 'slot') { if(d.chargingSlots[id]) { d.chargingSlots[id].plat = p; d.chargingSlots[id].userName = n; d.chargingSlots[id].batreSisa = b; } } 
+                else { if(d.waitingQueue[id]) { d.waitingQueue[id].plat = p; d.waitingQueue[id].userName = n; d.waitingQueue[id].batreSisa = b; } }
                 t.update(mainRef, { chargingSlots: d.chargingSlots, waitingQueue: d.waitingQueue });
                 addLog("SUPER_ADMIN", "EDIT_DATA", `Edited: ${p}`);
             }).then(() => { closeEditModal(); }).catch(e => alert("Gagal: " + e));
@@ -241,39 +236,79 @@
             cachedSlots = d.chargingSlots || [null,null,null];
             cachedQueue = d.waitingQueue || [];
             
-            // SLOT RENDER
             cachedSlots.forEach((s, i) => {
                 const el = document.getElementById(`slot${i+1}`);
                 if(s) { 
-                    el.innerHTML = `
-                    <div style="color:var(--blue); font-size:20px; font-weight:bold;">${s.plat}</div>
-                    <div style="font-size:12px;">${s.userName}</div>
-                    <div style="color:var(--gold); font-size:10px;">BATRE: ${s.batreSisa || '-'}%</div>
-                    <div style="margin-top:auto; width:100%; display:grid; gap:2px;">
-                        <button onclick="openEdit('slot', ${i})" class="btn-gold btn-mini">✏ EDIT</button>
-                        <button onclick="askConfirm('KICK USER?', ()=>forceStop(${i}))" class="btn-red btn-mini">KICK</button>
-                    </div>`; 
-                    el.style.border = "1px solid var(--blue)"; 
+                    let badgeClass = "bg-guest"; let roleText = s.role || "GUEST";
+                    if(roleText.includes("MEMBER") || roleText.includes("KELUARGA")) badgeClass = "bg-gold";
+                    el.innerHTML = `<div style="color:var(--blue); font-size:20px; font-weight:bold;">${s.plat}</div><div style="font-size:12px;">${s.userName}</div><div style="color:var(--gold); font-size:10px;">BAT: ${s.batreSisa || '-'}% <span class="adm-badge ${badgeClass}">${roleText}</span></div><div style="margin-top:auto; width:100%; display:grid; gap:2px;"><button onclick="openEdit('slot', ${i})" class="btn-cyan btn-mini">✏ EDIT</button><button onclick="askConfirm('KICK USER?', ()=>forceStop(${i}))" class="btn-red btn-mini">KICK</button></div>`; el.style.border = "1px solid var(--blue)"; 
                 } else { 
-                    el.innerHTML = `<div style="color:#555; margin:auto; font-size:10px;">SLOT KOSONG</div><div style="width:100%;"><button onclick="forcePushSlot(${i})" class="btn-green btn-mini" style="width:100%;">+ ISI PAKSA</button></div>`; 
-                    el.style.border = "1px solid #333"; 
+                    el.innerHTML = `<div style="color:#555; margin:auto; font-size:10px;">SLOT KOSONG</div><div style="width:100%;"><button onclick="forcePushSlot(${i})" class="btn-green btn-mini" style="width:100%;">+ ISI PAKSA</button></div>`; el.style.border = "1px solid #333"; 
                 }
             });
             
-            // QUEUE RENDER
             const qList = document.getElementById('queueList'); qList.innerHTML = '';
             cachedQueue.forEach((q, i) => {
+                let badgeClass = "bg-guest"; let roleText = q.role || "GUEST";
+                if(roleText.includes("MEMBER") || roleText.includes("KELUARGA")) badgeClass = "bg-gold";
                 const div = document.createElement('div');
                 div.style.cssText = "display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #222; padding:5px;";
-                div.innerHTML = `
-                <span><span style="color:var(--gold)">#${q.qNo}</span> <b>${q.plat}</b> <span style="font-size:10px; color:#888;">(${q.batreSisa}%)</span></span>
-                <div>
-                    <button onclick="openEdit('queue', ${i})" class="btn-gold btn-mini">✏</button>
-                    <button onclick="askConfirm('Hapus?', ()=>delQueue('${q.plat}'))" class="btn-red btn-mini">X</button>
-                </div>`;
+                div.innerHTML = `<span><span style="color:var(--gold)">#${q.qNo}</span> <b>${q.plat}</b> <span style="font-size:10px; color:#888;">(${q.batreSisa}%)</span> <span class="adm-badge ${badgeClass}">${roleText}</span></span><div><button onclick="openEdit('queue', ${i})" class="btn-gold btn-mini">✏</button><button onclick="askConfirm('Hapus?', ()=>delQueue('${q.plat}'))" class="btn-red btn-mini">X</button></div>`;
                 qList.appendChild(div);
             });
         });
+
+        // --- MEMBER MANAGEMENT (FITUR RESTORED) ---
+        window.loadMembers = async () => {
+            const area = document.getElementById('memberListArea'); area.innerHTML = '<div style="padding:10px; text-align:center;">LOADING DATA...</div>';
+            try {
+                const q = query(collection(db, "members")); const querySnapshot = await getDocs(q);
+                let html = '<table style="width:100%;"><tr><th>PLAT</th><th>JABATAN</th><th>AKSI</th></tr>';
+                let count = 0;
+                querySnapshot.forEach((doc) => {
+                    const d = doc.data();
+                    if (d.role) {
+                        count++;
+                        let color = '#fff';
+                        if(d.role.includes('PRESIDEN') || d.role.includes('KETUA')) color = 'var(--gold)';
+                        else if(d.role.includes('KORLAP') || d.role.includes('SATGAS')) color = 'var(--red)';
+                        else if(d.role.includes('MEMBER') || d.role.includes('KELUARGA')) color = 'var(--blue)';
+                        
+                        html += `<tr><td>${d.plat}</td><td style="color:${color}; font-weight:bold;">${d.role}</td><td><button onclick="hapusBadge('${d.plat}')" class="btn-red btn-mini">HAPUS</button></td></tr>`;
+                    }
+                });
+                area.innerHTML = (count === 0) ? '<div style="padding:10px; text-align:center;">BELUM ADA MEMBER</div>' : html + '</table>';
+            } catch (e) { alert("Gagal load member: " + e); }
+        };
+
+        window.hapusBadge = async (plat) => {
+            if(!confirm("Hapus Badge dari " + plat + "?")) return;
+            const cleanP = plat.replace(/[^A-Z0-9]/g, '');
+            await setDoc(doc(db, "members", cleanP), { plat: plat, role: null }, {merge:true});
+            updateRealtimeRole(plat, "GUEST"); // Update user yg lg online
+            alert("Badge Dihapus!"); loadMembers();
+        };
+
+        window.setJabatan = () => {
+            const p = document.getElementById('rolePlat').value.toUpperCase(); 
+            let r = document.getElementById('roleSelect').value; 
+            if(!p) return alert("Isi Plat Nomor!");
+            if(r === "CUSTOM") { r = prompt("Nama Jabatan Custom:").toUpperCase(); if(!r) return; }
+
+            const cleanP = p.replace(/[^A-Z0-9]/g, '');
+            setDoc(doc(db, "members", cleanP), { plat: p, role: r, verified: true }, {merge:true});
+            updateRealtimeRole(p, r);
+            alert("Jabatan Updated!"); addLog("SUPER_ADMIN", "SET_ROLE", `${p} -> ${r}`); document.getElementById('rolePlat').value = ''; loadMembers();
+        };
+
+        function updateRealtimeRole(plat, role) {
+            runTransaction(db, async(t) => {
+                const d = (await t.get(mainRef)).data(); let upd = false;
+                const newQ = (d.waitingQueue||[]).map(q => { if(q.plat === plat) { upd=true; return {...q, role: role}; } return q; });
+                const newS = (d.chargingSlots||[null,null,null]).map(s => { if(s && s.plat === plat) { upd=true; return {...s, role: role}; } return s; });
+                if(upd) t.update(mainRef, { waitingQueue: newQ, chargingSlots: newS });
+            });
+        }
 
         // --- ACTIONS ---
         window.forcePushSlot = (index) => {
@@ -310,26 +345,7 @@
             if(!msg) return;
             await updateDoc(mainRef, { broadcast: { msg: msg, time: Date.now() } });
             addLog("SUPER_ADMIN", "BROADCAST", msg);
-            alert("Pesan Terkirim!");
-            document.getElementById('broadcastInput').value = "";
-        };
-
-        window.setJabatan = () => {
-            const p = document.getElementById('rolePlat').value.toUpperCase(); 
-            let r = document.getElementById('roleSelect').value; 
-            if(!p) return alert("Isi Plat Nomor!");
-            if(r === "CUSTOM") { r = prompt("Nama Jabatan Custom:").toUpperCase(); if(!r) return; }
-
-            const cleanP = p.replace(/[^A-Z0-9]/g, '');
-            setDoc(doc(db, "members", cleanP), { plat: p, role: r, verified: true }, {merge:true});
-            
-            // Live update
-            runTransaction(db, async(t) => {
-                const d = (await t.get(mainRef)).data(); let upd = false;
-                const newQ = (d.waitingQueue||[]).map(q => { if(q.plat.replace(/[^A-Z0-9]/g,'') === cleanP) { upd=true; return {...q, role: r}; } return q; });
-                const newS = (d.chargingSlots||[null,null,null]).map(s => { if(s && s.plat.replace(/[^A-Z0-9]/g,'') === cleanP) { upd=true; return {...s, role: r}; } return s; });
-                if(upd) t.update(mainRef, { waitingQueue: newQ, chargingSlots: newS });
-            }).then(() => { alert("Jabatan Updated!"); addLog("SUPER_ADMIN", "SET_ROLE", `${p} -> ${r}`); document.getElementById('rolePlat').value = ''; });
+            alert("Pesan Terkirim!"); document.getElementById('broadcastInput').value = "";
         };
 
         window.resetTicketNumbers = () => {
@@ -342,9 +358,7 @@
             });
         };
 
-        window.resetTotal = () => {
-            setDoc(mainRef, { chargingSlots:[null,null,null], waitingQueue:[], lastTicket:0 }).then(() => addLog("SUPER_ADMIN", "WIPE_DATA", "ALL DELETED"));
-        };
+        window.resetTotal = () => { setDoc(mainRef, { chargingSlots:[null,null,null], waitingQueue:[], lastTicket:0 }).then(() => addLog("SUPER_ADMIN", "WIPE_DATA", "ALL DELETED")); };
 
         onSnapshot(query(logRef, orderBy("timestamp", "desc"), limit(20)), (snap) => {
             let h = ''; snap.forEach(d => { const x = d.data(); h += `<div class="log-line"><b style="color:var(--gold)">${x.actor}</b>: ${x.action} - ${x.details}</div>`; });

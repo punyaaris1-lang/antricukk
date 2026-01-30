@@ -129,19 +129,19 @@
         .b-donatur .tb-icon { background: linear-gradient(135deg, #00FF7F, #006400); color: #000; }
         .b-donatur .tb-role { color: #00FF7F; }
 
-        /* KELUARGA MLU (PLATINUM HEARTBEAT) */
+        /* KELUARGA MLU (PLATINUM HEARTBEAT - FIXED) */
         .b-family { border-color: #fff; box-shadow: 0 0 15px rgba(255, 255, 255, 0.3); }
         .b-family .tb-icon { background: linear-gradient(135deg, #ffffff 0%, #bdc3c7 100%); color: #D80027; }
         .b-family .tb-icon i { animation: heartBeat 1.5s infinite ease-in-out; }
         .b-family .tb-role { color: #fff; text-shadow: 0 0 10px rgba(255, 255, 255, 0.8); font-weight: 900; letter-spacing: 1px; }
 
-        /* PASUKAN SENYAP */
+        /* PASUKAN SENYAP (NINJA - STEALTH BLACK) */
         .b-ninja { border-color: #333; background: #050505; box-shadow: 0 0 5px rgba(255,255,255,0.1); }
         .b-ninja .tb-icon { background: #111; color: #ccc; }
         .b-ninja .tb-icon i { animation: stealthMode 3s infinite ease-in-out; }
         .b-ninja .tb-role { color: #888; font-family: var(--font-head); letter-spacing: 2px; }
 
-        /* PELAN TAPI KENCENG */
+        /* PELAN TAPI KENCENG (KURA-KURA - GREEN) */
         .b-turtle { border-color: #39FF14; box-shadow: 0 0 10px rgba(57, 255, 20, 0.2); }
         .b-turtle .tb-icon { background: #39FF14; color: #000; font-size: 16px; }
         .b-turtle .tb-role { color: #39FF14; font-weight: 900; }
@@ -284,7 +284,6 @@
             <i class="fas fa-route" style="font-size:20px; margin-bottom:5px;"></i><span class="nav-text">TRIP PLAN</span>
         </a>
     </div>
-
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, doc, onSnapshot, runTransaction, collection, addDoc, getDoc, updateDoc, arrayUnion, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -307,16 +306,20 @@
         function addUserLog(action, details) { addDoc(logRef, { actor: myPlat || "GUEST", action: action, details: details, timestamp: new Date() }).catch(e=>{}); }
         function calculateDist(lat1, lon1, lat2, lon2) { const R = 6371; const dLat = (lat2-lat1)*Math.PI/180; const dLon = (lon2-lon1)*Math.PI/180; const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2; return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); }
 
-        // --- 1. GATEKEEPER & AUTO-KICK LOGIC ---
+        // --- 1. GATEKEEPER & AUTO-KICK LOGIC (SUPER ADMIN BYPASS) ---
         const myPlat = localStorage.getItem('myPlat');
-        if(!myPlat) {
+        const isSuperAdmin = localStorage.getItem('sa_sess'); // Cek Sesi Super Admin
+
+        // Jika tidak punya tiket DAN bukan super admin -> Tendang ke Antrian
+        if(!myPlat && !isSuperAdmin) {
             window.location.href = 'antrian.html';
         } else {
+            // Izinkan Masuk
             setTimeout(() => { const g = document.getElementById('gate-screen'); if(g) g.style.display = 'none'; }, 1000);
             
-            // AUTO KICK (500 METER)
+            // AUTO KICK (Hanya untuk User Biasa, Super Admin Bebas)
             const AUTO_KICK_KM = 0.5;
-            if(navigator.geolocation) {
+            if(navigator.geolocation && !isSuperAdmin) {
                 navigator.geolocation.watchPosition((pos) => {
                     const dist = calculateDist(STATION_LAT, STATION_LNG, pos.coords.latitude, pos.coords.longitude);
                     if(dist > AUTO_KICK_KM) {
@@ -356,7 +359,6 @@
             const container = $('slotsContainer'); container.innerHTML = ''; let myQIndex = -1;
             if (myPlat && localQueue.length > 0) { myQIndex = localQueue.findIndex(q => cleanStr(q.plat) === cleanStr(myPlat)); }
 
-            // [FIX] TOMBOL CANCEL (PASTIKAN MUNCUL JIKA ANTRI)
             const btnCancel = $('btnCancelQ'); 
             if(myQIndex > -1) { 
                 btnCancel.style.display = 'block'; 
@@ -400,6 +402,7 @@
                     if(isMe) { div.onclick = () => showConfirm("SELESAI CHARGING?", () => stopCharging(i)); }
                 } else {
                     let btnHTML = ''; 
+                    // Tombol PILIH hanya aktif jika user adalah antrian pertama ATAU antrian kosong
                     if (localQueue.length === 0 || myQIndex === 0) btnHTML = `<button style="width:100%; padding:5px 0; background:var(--primary); color:#000; border:none; border-radius:3px; font-family:'Rajdhani'; font-weight:bold; box-shadow:0 0 10px var(--primary);" onclick="window.selectSlot(${i})">PILIH</button>`; 
                     else if (myQIndex > 0) btnHTML = `<div style="font-size:9px; color:#666; font-weight:bold;">ANTRIAN ${myQIndex + 1}</div>`; 
                     else btnHTML = `<div style="font-size:9px; color:#444;">LOCKED</div>`;
@@ -420,7 +423,6 @@
             if (r.includes("PEMBINA")) { css="b-platinum"; icon="fa-star"; label="SENIOR"; roleTxt="PEMBINA"; }
             else if (r.includes("PENASEHAT")) { css="b-platinum"; icon="fa-user-tie"; label="ADVISOR"; roleTxt="PENASEHAT"; }
             
-            // [FIX] WAKETUM DULUAN SEBELUM KETUM
             else if (r.includes("WAKETUM")) { css="b-gold"; icon="fa-chess-king"; label="CO-LEAD"; roleTxt="WAKETUM"; }
             else if (r.includes("KETUM")) { css="b-gold"; icon="fa-crown"; label="LEADER"; roleTxt="KETUM"; }
             
@@ -437,7 +439,6 @@
             else if (r.includes("VIP")) { css="b-vip"; icon="fa-gem"; label="GUEST"; roleTxt="VIP"; }
             else if (r.includes("DONATUR")) { css="b-donatur"; icon="fa-hand-holding-usd"; label="SPONSOR"; roleTxt="DONATUR"; }
             
-            // [FIX] KELUARGA MLU / MEMBER DEFAULT
             else if (r.includes("KELUARGA") || r === "MEMBER") { 
                 css="b-family"; icon="fa-heart"; label=""; roleTxt="KELUARGA MLU"; 
             }
@@ -480,11 +481,9 @@
         
         window.cancelQueue = () => { showConfirm("BATAL & KELUAR DARI ANTRIAN?", () => { runTransaction(db, async(t) => { const d = (await t.get(mainRef)).data(); const newQ = d.waitingQueue.filter(q => cleanStr(q.plat) !== cleanStr(myPlat)); t.update(mainRef, { waitingQueue: newQ }); addUserLog("CANCEL", `User ${myPlat} keluar antrian`); }).then(() => { localStorage.removeItem('myPlat'); window.location.href = 'antrian.html'; }).catch(e => showAlert("GAGAL: " + e)); }); };
         
-        // [FIX] MENAMPILKAN NAMA DI DAFTAR TUNGGU
         window.openQueueList = () => { 
             const body = $('qlBody'); 
             body.innerHTML = ''; 
-            
             if(localQueue.length === 0) {
                 body.innerHTML = '<div style="text-align:center; padding:20px; color:#666;">KOSONG</div>'; 
             } else { 
