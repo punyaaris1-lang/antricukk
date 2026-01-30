@@ -1,4 +1,4 @@
-l<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
@@ -9,7 +9,7 @@ l<!DOCTYPE html>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
-        /* CSS TIDAK BERUBAH */
+        /* --- CSS TIDAK DIUBAH SAMA SEKALI SESUAI REQUEST --- */
         :root {
             --primary: #00E5FF;       
             --bg-dark: #020202;
@@ -130,7 +130,7 @@ l<!DOCTYPE html>
         .modal-wrap {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.95); backdrop-filter: blur(8px);
-            z-index: 30000; /* Z-INDEX TINGGI */
+            z-index: 30000; 
             display: none; align-items: center; justify-content: center;
         }
         .modal-wrap.open { display: flex; animation: zoomIn 0.2s; }
@@ -337,7 +337,7 @@ l<!DOCTYPE html>
                         <div class="slot-row empty" onclick="window.selectSlot(${i})">
                             <div class="sr-left">
                                 <span class="sr-plat" style="color:#0f0">SLOT ${i+1}</span>
-                                <span class="sr-name" style="color:#fff">TERSEDIA (KETUK)</span>
+                                <span class="sr-name" style="color:#fff">TERSEDIA</span>
                             </div>
                             <div class="sr-right">
                                 <span class="sr-time" style="color:#0f0">OPEN</span>
@@ -376,6 +376,12 @@ l<!DOCTYPE html>
 
         window.checkLocationAndOpenForm = () => {
             const btn = document.getElementById('btnDaftar');
+            // Jika tombol berfungsi sebagai redirect (Ticket Recovery)
+            if(btn.innerHTML.includes('SYSTEM')) {
+                window.location.href = 'system.html';
+                return;
+            }
+
             if (!navigator.geolocation) { alert("GPS WAJIB AKTIF!"); return; }
             const ori = btn.innerHTML;
             btn.innerHTML = 'CEK LOKASI...';
@@ -413,53 +419,15 @@ l<!DOCTYPE html>
                     
                     localStorage.setItem('myPlat', plat);
                     
-                    alert("BERHASIL!"); 
-                    checkMyTicketState(); 
-                    window.closeModal('formModal');
+                    alert("BERHASIL! MASUK KE SYSTEM..."); 
+                    window.location.href = 'system.html'; // REDIRECT TO SYSTEM
                 }
             } catch(e) { alert("ERROR: " + e); btn.innerText = "AMBIL TIKET"; }
         };
 
+        // PILIH SLOT HANYA VISUAL DI SINI KARENA REDIRECT KE SYSTEM
         window.selectSlot = async (index) => {
-            const myPlat = localStorage.getItem('myPlat');
-            if(!myPlat) {
-                alert("HARAP DAFTAR ANTRIAN TERLEBIH DAHULU!");
-                return;
-            }
-
-            const myIndexInQueue = globalQueue.findIndex(q => q.plat === myPlat);
-            
-            // Logika: Boleh masuk jika antrian pertama ATAU antrian kosong
-            if (globalQueue.length > 0 && myIndexInQueue !== 0) {
-                alert(`HARAP TUNGGU GILIRAN! ANDA ANTRIAN KE-${myIndexInQueue + 1}`);
-                return;
-            }
-
-            if(confirm(`MASUK KE SLOT ${index + 1}?`)) {
-                try {
-                    await runTransaction(db, async(t) => {
-                        const d = (await t.get(mainRef)).data();
-                        const slots = d.chargingSlots || [null, null, null];
-                        const queue = d.waitingQueue || [];
-
-                        if(slots[index]) throw "SLOT SUDAH TERISI!";
-                        
-                        const qIdx = queue.findIndex(q => q.plat === myPlat);
-                        if(qIdx === -1) throw "DATA ANTRIAN TIDAK DITEMUKAN (REFRESH DULU)";
-                        
-                        const userData = queue[qIdx];
-                        
-                        slots[index] = { ...userData, startTime: Date.now() };
-                        queue.splice(qIdx, 1);
-
-                        t.update(mainRef, { chargingSlots: slots, waitingQueue: queue });
-                    });
-                    alert("BERHASIL MASUK SLOT!");
-                    window.closeModal('detailModal');
-                } catch(e) {
-                    alert("GAGAL: " + e);
-                }
-            }
+           alert("SILAKAN LOGIN / DAFTAR DULU UNTUK MEMILIH SLOT.");
         };
 
         window.navTo = (id) => { 
@@ -476,15 +444,14 @@ l<!DOCTYPE html>
             const btn = document.getElementById('btnDaftar');
             
             if(myPlat) {
-                btn.innerHTML = 'TIKET SAYA <i class="fas fa-ticket-alt"></i>';
+                // MODIFIKASI: Tombol menjadi Redirect ke System
+                btn.innerHTML = 'KEMBALI KE SYSTEM <i class="fas fa-undo"></i>';
                 btn.style.background = "#fff";
                 btn.style.color = "#000";
-                btn.onclick = () => window.openModal('queue'); 
             } else {
                 btn.innerHTML = 'DAFTAR ANTRIAN <i class="fas fa-arrow-right"></i>';
                 btn.style.background = "linear-gradient(90deg, var(--primary), #0099aa)";
                 btn.style.color = "#000";
-                btn.onclick = () => window.checkLocationAndOpenForm(); // Safe wrapper
             }
         }
 
@@ -496,7 +463,7 @@ l<!DOCTYPE html>
             const l = document.getElementById('loading-screen'); 
             if(l) {
                 l.style.opacity = '0';
-                setTimeout(() => { l.style.display = 'none'; }, 500); // INI KUNCINYA
+                setTimeout(() => { l.style.display = 'none'; }, 500); 
             }
 
             if (!snap.exists()) return;
