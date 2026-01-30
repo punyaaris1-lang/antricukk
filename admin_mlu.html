@@ -2,26 +2,97 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<title>Admin MLU - Database</title>
+<title>Admin MLU - Modern Dashboard</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Rajdhani:wght@400;600&display=swap" rel="stylesheet">
 <style>
-/* STYLE ADMIN */
-body { background-color: #050505; color: #fff; font-family: 'Rajdhani', sans-serif; padding: 20px; }
-h2 { color: #00f0ff; font-family: 'Orbitron', sans-serif; text-align: center; margin-bottom: 20px; }
-.controls { max-width: 1000px; margin: 0 auto 20px auto; display: flex; justify-content: space-between; align-items: center; background: #111; padding: 15px; border-radius: 8px; border: 1px solid #333; }
-.count { font-weight: bold; color: #aaa; font-family: 'Orbitron', sans-serif; }
-button { padding: 10px 20px; background: linear-gradient(45deg, #00c3ff, #00f0ff); border: none; border-radius: 4px; font-weight: bold; cursor: pointer; font-family: 'Orbitron', sans-serif; color: #000; }
-button:hover { transform: translateY(-2px); box-shadow: 0 0 15px rgba(0, 240, 255, 0.6); }
+/* --- STYLE DASAR --- */
+* { box-sizing: border-box; }
+body { 
+  background-color: #050505; 
+  background-image: radial-gradient(circle at 50% 0%, #1a1a1a 0%, transparent 70%);
+  color: #fff; font-family: 'Rajdhani', sans-serif; padding: 15px; margin: 0;
+}
 
-.table-responsive { overflow-x: auto; max-width: 1000px; margin: auto; border: 1px solid #333; border-radius: 8px; }
-table { width: 100%; border-collapse: collapse; background: #111; min-width: 900px; }
-th, td { padding: 12px; text-align: left; border-bottom: 1px solid #222; }
-th { background: #1a1a1a; color: #00f0ff; font-family: 'Orbitron', sans-serif; font-size: 13px; letter-spacing: 1px; }
-tr:hover { background: #1f1f1f; }
-.plat-cell { font-family: 'Orbitron', sans-serif; color: #ffcc00; font-weight: bold; }
-.prog-cell { color: #0f0; font-weight: bold; }
-.loading { text-align: center; color: #666; padding: 30px; }
+h2 { color: #00f0ff; font-family: 'Orbitron', sans-serif; text-align: center; margin-bottom: 20px; text-shadow: 0 0 10px rgba(0, 240, 255, 0.4); }
+
+/* --- CONTROLS (SEARCH & BUTTON) --- */
+.controls { 
+  max-width: 1200px; margin: 0 auto 25px auto; 
+  display: flex; flex-wrap: wrap; gap: 10px; 
+  background: rgba(20,20,20,0.8); padding: 15px; border-radius: 10px; 
+  border: 1px solid #333; backdrop-filter: blur(5px);
+  position: sticky; top: 0; z-index: 100; /* Agar menu nempel diatas saat scroll */
+  box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+}
+
+.search-box { flex-grow: 1; position: relative; }
+.search-box input { 
+    width: 100%; padding: 12px 15px; background: #000; border: 1px solid #444; 
+    color: #fff; font-family: 'Rajdhani', sans-serif; font-size: 16px; border-radius: 6px;
+}
+.search-box input:focus { border-color: #00f0ff; outline: none; box-shadow: 0 0 10px rgba(0, 240, 255, 0.2); }
+
+.btn-download { 
+  padding: 12px 25px; background: linear-gradient(135deg, #00c3ff, #00f0ff); 
+  border: none; border-radius: 6px; font-weight: bold; cursor: pointer; 
+  font-family: 'Orbitron', sans-serif; color: #000; min-width: 120px;
+}
+.total-badge {
+  background: #222; color: #aaa; padding: 5px 15px; border-radius: 20px; 
+  font-size: 12px; font-weight: bold; border: 1px solid #333; display: block; width: 100%; text-align: center; margin-top: 5px;
+}
+
+/* --- GRID LAYOUT (KARTU) --- */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); /* Otomatis menyesuaikan layar */
+  gap: 20px;
+  max-width: 1200px; margin: auto;
+}
+
+.card {
+  background: #111; border: 1px solid #333; border-radius: 10px;
+  padding: 20px; position: relative; overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
+  display: flex; flex-direction: column; gap: 10px;
+}
+
+.card:hover { transform: translateY(-3px); border-color: #555; box-shadow: 0 5px 20px rgba(0,0,0,0.5); }
+
+/* Jika data dobel, kartu jadi merah */
+.card.duplicate { border: 1px solid #ff3333; background: rgba(255, 0, 0, 0.05); }
+.dobel-tag { position: absolute; top: 0; right: 0; background: #ff3333; color: #fff; font-size: 10px; padding: 2px 8px; font-weight: bold; border-bottom-left-radius: 8px; }
+
+/* Header Kartu (Nama & Program) */
+.card-header { border-bottom: 1px solid #222; padding-bottom: 10px; margin-bottom: 5px; display: flex; justify-content: space-between; align-items: start; }
+.card-name { font-family: 'Orbitron', sans-serif; font-size: 18px; color: #fff; margin: 0; line-height: 1.2; text-transform: uppercase; }
+.card-prog { font-size: 11px; padding: 4px 8px; border-radius: 4px; font-weight: bold; text-transform: uppercase; white-space: nowrap; margin-left: 10px;}
+
+/* Warna Program */
+.prog-TransGO { background: rgba(255, 165, 0, 0.2); color: orange; border: 1px solid orange; }
+.prog-RTO { background: rgba(255, 0, 255, 0.2); color: magenta; border: 1px solid magenta; }
+.prog-Umum { background: rgba(0, 240, 255, 0.1); color: #00f0ff; border: 1px solid #00f0ff; }
+
+/* Body Kartu */
+.card-row { display: flex; justify-content: space-between; font-size: 14px; border-bottom: 1px solid #1a1a1a; padding: 6px 0; }
+.card-row:last-child { border: none; }
+.label { color: #666; font-weight: 600; }
+.val { text-align: right; color: #ddd; font-weight: 500; max-width: 65%; word-wrap: break-word; }
+
+/* Highlight Plat */
+.val-plat { font-family: 'Orbitron', sans-serif; color: #ffcc00; font-size: 16px; letter-spacing: 1px; text-shadow: 0 0 5px rgba(255, 204, 0, 0.3); }
+
+/* Tombol WA */
+.btn-wa {
+  display: inline-block; background: #075e54; color: #fff; text-decoration: none;
+  padding: 4px 10px; border-radius: 4px; font-size: 12px; margin-top: 2px;
+}
+.btn-wa:hover { background: #128c7e; }
+
+.footer-date { font-size: 11px; color: #444; text-align: right; margin-top: auto; padding-top: 10px; }
+
+.loading-text { text-align: center; width: 100%; padding: 50px; color: #666; grid-column: 1 / -1; }
 </style>
 </head>
 <body>
@@ -29,31 +100,20 @@ tr:hover { background: #1f1f1f; }
 <h2>DATABASE ANGGOTA MLU</h2>
 
 <div class="controls">
-  <span class="count" id="totalData">Total: 0 Anggota</span>
-  <button onclick="downloadExcel()">DOWNLOAD EXCEL (.CSV)</button>
+  <div class="search-box">
+    <input type="text" id="searchInput" placeholder="Cari Nama / Plat / HP...">
+  </div>
+  <button class="btn-download" onclick="downloadExcel()">UNDUH EXCEL</button>
+  <span class="total-badge" id="totalData">Menyiapkan Data...</span>
 </div>
 
-<div class="table-responsive">
-  <table id="tabelAnggota">
-    <thead>
-      <tr>
-        <th>NAMA</th>
-        <th>WHATSAPP</th>
-        <th>PLAT NOMOR</th>
-        <th>PROGRAM</th> <th>DOMISILI</th>
-        <th>LINTAS</th>
-        <th>WAKTU DAFTAR</th>
-      </tr>
-    </thead>
-    <tbody id="tbody">
-      <tr><td colspan="7" class="loading">Memuat data...</td></tr>
-    </tbody>
-  </table>
+<div id="cardContainer" class="card-grid">
+  <div class="loading-text">Memuat Data dari Server...</div>
 </div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+  import { getFirestore, collection, getDocs, orderBy, query } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
   const firebaseConfig = {
       apiKey: "AIzaSyB666i9lYWIpxOdkwpoX9EvFvHLmHczeq8",
@@ -68,71 +128,121 @@ tr:hover { background: #1f1f1f; }
   const db = getFirestore(app);
   let allData = [];
 
+  function renderCards(dataArray) {
+    const container = document.getElementById("cardContainer");
+    let html = "";
+    
+    // Hitung duplikat untuk highlight merah
+    const platCounts = {};
+    dataArray.forEach(d => {
+       const p = d.plat || "";
+       platCounts[p] = (platCounts[p] || 0) + 1;
+    });
+
+    if (dataArray.length === 0) {
+      container.innerHTML = '<div class="loading-text">TIDAK DITEMUKAN DATA YANG COCOK</div>';
+      document.getElementById("totalData").innerText = "Total: 0";
+      return;
+    }
+
+    dataArray.forEach(d => {
+      const tglTampil = d.tgl ? new Date(d.tgl).toLocaleDateString("id-ID") : "-";
+      const isDuplicate = platCounts[d.plat] > 1;
+      
+      // Tentukan Class warna program
+      let progClass = "prog-Umum";
+      if(d.program && d.program.includes("TransGO")) progClass = "prog-TransGO";
+      if(d.program && d.program.includes("RTO")) progClass = "prog-RTO";
+
+      // Format HP WA
+      let hpRaw = d.hp || "";
+      let hpClean = hpRaw.replace(/^0/, '62').replace(/[^0-9]/g, '');
+      let waLink = hpClean ? `https://wa.me/${hpClean}` : "#";
+
+      html += `
+        <div class="card ${isDuplicate ? 'duplicate' : ''}">
+          ${isDuplicate ? '<div class="dobel-tag">DOBEL</div>' : ''}
+          
+          <div class="card-header">
+            <h3 class="card-name">${d.nama || 'Tanpa Nama'}</h3>
+            <span class="card-prog ${progClass}">${d.program || 'Umum'}</span>
+          </div>
+
+          <div class="card-row">
+            <span class="label">PLAT</span>
+            <span class="val val-plat">${d.plat || '-'}</span>
+          </div>
+
+          <div class="card-row">
+            <span class="label">WHATSAPP</span>
+            <span class="val">
+               ${hpRaw} <br>
+               ${hpClean ? `<a href="${waLink}" target="_blank" class="btn-wa">CHAT WA</a>` : ''}
+            </span>
+          </div>
+
+          <div class="card-row">
+            <span class="label">DOMISILI</span>
+            <span class="val">${d.alamat || '-'}</span>
+          </div>
+
+          <div class="card-row">
+            <span class="label">LINTAS</span>
+            <span class="val">${d.lintas || '-'}</span>
+          </div>
+
+          <div class="footer-date">
+            Terdaftar: ${tglTampil}
+          </div>
+        </div>
+      `;
+    });
+
+    container.innerHTML = html;
+    document.getElementById("totalData").innerText = "Total: " + dataArray.length + " Anggota";
+  }
+
   async function loadData() {
-    const tbody = document.getElementById("tbody");
     try {
-      const q = collection(db, "anggota_mlu");
+      const q = query(collection(db, "anggota_mlu"), orderBy("nama")); 
       const snapshot = await getDocs(q);
       
-      let html = "";
       allData = []; 
-      let count = 0;
-
-      if (snapshot.empty) {
-        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:30px;">DATABASE KOSONG</td></tr>';
-        return;
-      }
-
-      snapshot.forEach(doc => {
-        const d = doc.data();
-        allData.push(d);
-        count++;
-        
-        const tglTampil = d.tgl ? new Date(d.tgl).toLocaleDateString("id-ID") : "-";
-        
-        html += `
-          <tr>
-            <td><strong>${d.nama || '-'}</strong></td>
-            <td><a href="https://wa.me/${d.hp ? d.hp.replace(/^0/, '62').replace(/[^0-9]/g, '') : ''}" target="_blank" style="color:#00f0ff;text-decoration:none">${d.hp || '-'}</a></td>
-            <td class="plat-cell">${d.plat || '-'}</td>
-            <td class="prog-cell">${d.program || 'Umum'}</td> <td>${d.alamat || '-'}</td>
-            <td>${d.lintas || '-'}</td>
-            <td style="font-size:12px; color:#888;">${tglTampil}</td>
-          </tr>
-        `;
-      });
-
-      tbody.innerHTML = html;
-      document.getElementById("totalData").innerText = "Total: " + count + " Anggota";
+      snapshot.forEach(doc => { allData.push(doc.data()); });
+      renderCards(allData);
 
     } catch (e) {
       console.error(e);
-      tbody.innerHTML = `<tr><td colspan="7" style="color:red;text-align:center">Error: ${e.message}</td></tr>`;
+      // Fallback jika error index
+      const snap = await getDocs(collection(db, "anggota_mlu"));
+      allData = [];
+      snap.forEach(doc => allData.push(doc.data()));
+      renderCards(allData);
     }
   }
 
+  document.getElementById('searchInput').addEventListener('keyup', function(e) {
+    const keyword = e.target.value.toLowerCase();
+    const filtered = allData.filter(item => {
+        return (item.nama || "").toLowerCase().includes(keyword) || 
+               (item.plat || "").toLowerCase().includes(keyword) || 
+               (item.hp || "").toLowerCase().includes(keyword) ||
+               (item.program || "").toLowerCase().includes(keyword);
+    });
+    renderCards(filtered);
+  });
+
   window.downloadExcel = function() {
     if(allData.length === 0) { alert("Data kosong!"); return; }
-
-    let csvContent = "data:text/csv;charset=utf-8,";
-    csvContent += "Nama Lengkap,No HP,Plat Nomor,Program,Alamat,Lintas,Waktu Daftar\r\n";
-
+    let csvContent = "data:text/csv;charset=utf-8,Nama,No HP,Plat,Program,Alamat,Lintas,Tanggal\r\n";
     allData.forEach(d => {
-      const nama = (d.nama || "").replace(/,/g, " ");
-      const hp = "'" + (d.hp || "");
-      const plat = (d.plat || "").replace(/,/g, " ");
-      const program = (d.program || "Umum").replace(/,/g, " "); // PROGRAM
-      const alamat = (d.alamat || "").replace(/,/g, " ").replace(/\n/g, " ");
-      const lintas = (d.lintas || "").replace(/,/g, " & ");
       const tgl = d.tgl ? new Date(d.tgl).toLocaleString("id-ID") : "-";
-
-      csvContent += `${nama},${hp},${plat},${program},${alamat},${lintas},${tgl}\r\n`;
+      csvContent += `"${d.nama}","'${d.hp}","${d.plat}","${d.program}","${d.alamat.replace(/\n/g, ' ')}","${d.lintas}","${tgl}"\r\n`;
     });
-
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "Database_MLU_Program.csv");
+    link.setAttribute("download", "Database_MLU_Card.csv");
     document.body.appendChild(link);
     link.click();
   }
