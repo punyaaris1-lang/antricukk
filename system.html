@@ -129,7 +129,7 @@
         .b-donatur .tb-icon { background: linear-gradient(135deg, #00FF7F, #006400); color: #000; }
         .b-donatur .tb-role { color: #00FF7F; }
 
-        /* KELUARGA MLU (PLATINUM HEARTBEAT) */
+        /* KELUARGA MLU (PLATINUM HEARTBEAT - FIXED) */
         .b-family { border-color: #fff; box-shadow: 0 0 15px rgba(255, 255, 255, 0.3); }
         .b-family .tb-icon { background: linear-gradient(135deg, #ffffff 0%, #bdc3c7 100%); color: #D80027; }
         .b-family .tb-icon i { animation: heartBeat 1.5s infinite ease-in-out; }
@@ -413,7 +413,14 @@
             else if (r.includes("VIP")) { css="b-vip"; icon="fa-gem"; label="GUEST"; roleTxt="VIP"; }
             else if (r.includes("DONATUR")) { css="b-donatur"; icon="fa-hand-holding-usd"; label="SPONSOR"; roleTxt="DONATUR"; }
             
-            else if (r.includes("KELUARGA")) { css="b-family"; icon="fa-heart"; label=""; roleTxt="KELUARGA MLU"; }
+            // --- FIX KELUARGA (PLATINUM + HEARTBEAT) ---
+            else if (r.includes("KELUARGA") || r === "MEMBER") { 
+                css="b-family"; 
+                icon="fa-heart"; 
+                label=""; // Label kosong biar teks tengah
+                roleTxt="KELUARGA MLU"; 
+            }
+            
             else if (r.includes("SENYAP") || r.includes("NINJA")) { css="b-ninja"; icon="fa-user-ninja"; label="GHOST"; roleTxt="PASUKAN SENYAP"; }
             else if (r.includes("KURA") || r.includes("PELAN")) { css="b-turtle"; icon="fa-stopwatch"; label="SLOW"; roleTxt="PELAN"; } 
 
@@ -438,10 +445,7 @@
         
         window.kudeta = (i, targetPlat, durationMin) => { 
             event.stopPropagation(); 
-            // Rule: Min 20 Menit (untuk antrian 1), Min 25 Menit (untuk antrian 2)
-            // Logic handled in UI button visibility, double check here
-            if (durationMin < 20) { showAlert(`BELUM BISA KUDETA!\nMINIMAL 20 MENIT.`, "GAGAL"); return; }
-            
+            if(durationMin < 20) { showAlert(`BELUM BISA KUDETA!\nDURASI BARU ${durationMin} MENIT.\n(MINIMAL 20 MENIT)`, "GAGAL"); return; }
             showConfirm(`KUDETA ${targetPlat}?`, () => { 
                 runTransaction(db, async(t)=>{ 
                     const d = (await t.get(mainRef)).data(); const u = d.chargingSlots[i]; if(!u) throw "Slot kosong!"; 
