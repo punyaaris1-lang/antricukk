@@ -49,9 +49,20 @@
         @keyframes pulseLogo { 0%, 100% {transform: scale(1); opacity: 1;} 50% {transform: scale(1.1); opacity: 0.8;} }
 
         /* --- HEADER --- */
-        .header { text-align: center; margin-bottom: 30px; margin-top: 10px; cursor: pointer; position: relative; } 
-        .main-title { font-family: var(--font-tech); font-weight: 900; font-size: 42px; line-height: 0.9; color: #fff; text-shadow: 0 0 25px var(--primary-dim); letter-spacing: 2px; text-transform: uppercase; }
-        .sub-title { font-family: var(--font-head); font-size: 10px; color: var(--primary); letter-spacing: 4px; font-weight: 800; text-transform: uppercase; margin-top: 10px; background: rgba(0, 240, 255, 0.1); padding: 4px 15px; display: inline-block; }
+        .header { text-align: center; margin-bottom: 30px; margin-top: 10px; cursor: pointer; position: relative; z-index: 5; } 
+        .main-title { 
+            font-family: var(--font-tech); 
+            font-weight: 900;
+            font-size: 42px; line-height: 0.9; color: #fff; 
+            text-shadow: 0 0 25px var(--primary-dim); letter-spacing: 2px; text-transform: uppercase;
+        }
+        .sub-title { 
+            font-family: var(--font-head);
+            font-size: 10px; color: var(--primary); letter-spacing: 4px; font-weight: 800; 
+            text-transform: uppercase; margin-top: 10px; 
+            background: rgba(0, 240, 255, 0.1); padding: 4px 15px;
+            display: inline-block;
+        }
 
         /* --- QUEUE BAR --- */
         .queue-bar-wrapper { width: 100%; margin-bottom: 25px; cursor: pointer; }
@@ -172,14 +183,16 @@
         <div style="color:#666; font-size:10px; margin-top:5px; font-family:var(--font-head); letter-spacing:2px; animation:pulseText 2s infinite;">TAP TO WAKE UP</div>
     </div>
 
-    <div class="header" ondblclick="toggleAdmin()" style="position: relative;">
+    <div class="header" style="position: relative;">
         <div onclick="window.location.href='infomlu.html'" 
              style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); cursor: pointer; z-index: 50;">
             <i class="fas fa-info-circle" style="font-size: 24px; color: var(--primary); text-shadow: 0 0 10px var(--primary);"></i>
         </div>
 
-        <div class="main-title">FC KELAPA GADING</div>
-        <div class="sub-title">MAKA LINTAS UTARA</div>
+        <div ondblclick="toggleAdmin()" style="position:relative; z-index:20; display:inline-block;">
+            <div class="main-title">FC KELAPA GADING</div>
+            <div class="sub-title">MAKA LINTAS UTARA</div>
+        </div>
     </div>
 
     <div class="queue-bar-wrapper" onclick="openQueueList()">
@@ -275,19 +288,11 @@
         onSnapshot(mainRef, (snap) => {
             const loader = $('loading-screen'); if(loader) { loader.style.opacity='0'; setTimeout(()=>loader.remove(),500); }
             if (!snap.exists()) return; const d = snap.data(); localSlots = d.chargingSlots || [null, null, null]; localQueue = d.waitingQueue || []; 
-            
-            // AUTO CLEANUP LOCAL STORAGE
             if(myPlat) {
                 const cleanPlat = cleanStr(myPlat);
                 const inSlot = localSlots.some(s => s && cleanStr(s.plat) === cleanPlat);
                 const inQueue = localQueue.some(q => cleanStr(q.plat) === cleanPlat);
-                
-                // Jika plat ada di local storage TAPI tidak ada di slot maupun antrian -> Hapus local storage
-                if(!inSlot && !inQueue) {
-                    console.log("Sesi kadaluarsa, membersihkan...");
-                    localStorage.removeItem('myPlat');
-                    myPlat = null;
-                }
+                if(!inSlot && !inQueue) { localStorage.removeItem('myPlat'); myPlat = null; }
             }
             updateUI();
         });
@@ -383,9 +388,41 @@
                 const cleanID = regData.plat.replace(/[^A-Z0-9]/g, ''); let userRole = "GUEST"; 
                 try { let m = await getDoc(doc(db, "members", cleanID)); if(m.exists()) userRole = m.data().role || "MEMBER"; } catch(e) {}
                 try { const docSnap = await getDoc(mainRef); if(docSnap.exists()) { const d = docSnap.data(); const allUsers = [...(d.chargingSlots||[]), ...d.waitingQueue].filter(x=>x); const existing = allUsers.find(u => cleanStr(u.plat) === cleanStr(regData.plat)); if(existing) { localStorage.setItem('myPlat', existing.plat); myPlat = existing.plat; updateUI(); showAlert(`SESI DIPULIHKAN!\nHALO KEMBALI, ${existing.userName}.`, "WELCOME BACK"); return; } } } catch(e) {}
-                runTransaction(db, async(t) => { const d = (await t.get(mainRef)).data(); const n = (d.lastTicket||0)+1; const all = [...(d.chargingSlots||[]), ...d.waitingQueue].filter(x=>x); if(all.some(u => u.plat.replace(/[^A-Z0-9]/g, '') === cleanID)) throw "PLAT SUDAH ADA!"; t.update(mainRef, { waitingQueue: arrayUnion({ plat: regData.plat, userName: regData.name, qNo: n, entryTime: Date.now(), role: userRole }), lastTicket: n }); }).then(() => { localStorage.setItem('myPlat', regData.plat); myPlat = regData.plat; addUserLog("REGISTER", `${regData.plat}`); showAlert(`SELAMAT DATANG!\nSTATUS: ${userRole}`, "SUKSES"); }).catch(e=>showAlert(e, "GAGAL"));
+                
+                runTransaction(db, async(t) => { const d = (await t.get(mainRef)).data(); const n = (d.lastTicket||0)+1; const all = [...(d.chargingSlots||[]), ...d.waitingQueue].filter(x=>x); if(all.some(u => u.plat.replace(/[^A-Z0-9]/g, '') === cleanID)) throw "PLAT SUDAH ADA!"; t.update(mainRef, { waitingQueue: arrayUnion({ plat: regData.plat, userName: regData.name, qNo: n, entryTime: Date.now(), role: userRole }), lastTicket: n }); }).then(() => { 
+                    localStorage.setItem('myPlat', regData.plat); myPlat = regData.plat; 
+                    addUserLog("REGISTER", `${regData.plat}`); 
+                    
+                    // --- AUTO CHECK SLOT ---
+                    // Cek jika ada slot kosong, langsung tawarkan
+                    setTimeout(() => checkAutoSelectSlot(), 500);
+                    
+                }).catch(e=>showAlert(e, "GAGAL"));
             }
         };
+
+        // --- NEW FUNCTION: Auto Prompt Slot ---
+        function checkAutoSelectSlot() {
+            // Hanya jalankan jika user baru daftar & belum masuk slot
+            if(!myPlat) return;
+            const myQIdx = localQueue.findIndex(q => cleanStr(q.plat) === cleanStr(myPlat));
+            
+            // Jika user adalah antrian pertama (index 0) ATAU antrian kosong
+            if(myQIdx === 0 || (localQueue.length === 1 && localQueue[0].plat === myPlat)) {
+                // Cari slot kosong pertama
+                const emptySlotIndex = localSlots.findIndex(s => s === null);
+                if(emptySlotIndex !== -1) {
+                    // Tampilkan konfirmasi langsung
+                    showConfirm(`SLOT ${emptySlotIndex+1} KOSONG! MASUK SEKARANG?`, () => {
+                        window.selectSlot(emptySlotIndex);
+                    });
+                } else {
+                    showAlert("PENDAFTARAN SUKSES!\nANDA MASUK DAFTAR TUNGGU.", "INFO");
+                }
+            } else {
+                showAlert(`PENDAFTARAN SUKSES!\nANDA ANTRIAN KE-${myQIdx+1}.`, "INFO");
+            }
+        }
 
         window.selectSlot = async (i) => { if(!myPlat) return showAlert("DAFTAR DULU!"); if (localQueue.length > 0 && cleanStr(localQueue[0].plat) !== cleanStr(myPlat)) return showAlert(`HARAP TUNGGU GILIRAN!`, "ANTRIAN"); showConfirm(`MASUK SLOT ${i+1}?`, () => { runTransaction(db, async(t)=>{ const d = (await t.get(mainRef)).data(); if(d.chargingSlots[i]) throw "SLOT PENUH!"; let q = d.waitingQueue; const idx = q.findIndex(x => cleanStr(x.plat) === cleanStr(myPlat)); if(idx === -1) throw "DAFTAR ULANG!"; const me = q[idx]; q.splice(idx, 1); me.startTime = Date.now(); d.chargingSlots[i] = me; t.update(mainRef, { chargingSlots: d.chargingSlots, waitingQueue: q }); }).then(() => addUserLog("START", `Slot ${i+1}`)).catch(e => showAlert(e)); }); };
         window.stopCharging = (i) => { runTransaction(db, async(t)=>{ const d = (await t.get(mainRef)).data(); const u = d.chargingSlots[i]; if(u) addDoc(historyRef, {...u, finishTime: new Date(), action: "STOP"}); d.chargingSlots[i] = null; t.update(mainRef, {chargingSlots: d.chargingSlots}); }).then(() => { localStorage.clear(); myPlat=null; location.reload(); }); };
