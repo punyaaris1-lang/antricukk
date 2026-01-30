@@ -90,7 +90,7 @@
         /* --- NEW BADGE STYLE (TACTICAL TAG) --- */
         .badge-container { display: flex; align-items: center; justify-content: flex-end; width: 100px; }
         .tactical-badge { display: flex; align-items: center; width: 90px; height: 38px; background: rgba(0,0,0,0.8); border: 1px solid #333; position: relative; overflow: hidden; clip-path: polygon(10px 0, 100% 0, 100% 100%, 0 100%, 0 10px); }
-        .tb-icon { width: 30px; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 14px; color: #000; clip-path: polygon(0 0, 100% 0, 75% 100%, 0 100%); margin-right: -2px; z-index: 2; }
+        .tb-icon { width: 30px; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 14px; color: #000; clip-path: polygon(0 0, 100% 0, 75% 100%, 0 100%); margin-right: -2px; z-index: 2; position: relative; overflow: hidden; }
         .tb-text { flex: 1; display: flex; flex-direction: column; justify-content: center; padding-left: 2px; text-align: center; z-index: 1; }
         .tb-label { font-size: 6px; letter-spacing: 1px; color: #aaa; text-transform: uppercase; font-family: var(--font-head); line-height: 1; margin-bottom: 2px; }
         .tb-role { font-size: 9px; font-weight: 800; text-transform: uppercase; line-height: 0.9; font-family: var(--font-tech); letter-spacing: 0.5px; }
@@ -129,21 +129,26 @@
         .b-donatur .tb-icon { background: linear-gradient(135deg, #00FF7F, #006400); color: #000; }
         .b-donatur .tb-role { color: #00FF7F; }
 
-        /* KELUARGA MLU (PLATINUM HEARTBEAT - FIXED) */
+        /* KELUARGA MLU (PLATINUM HEARTBEAT) */
         .b-family { border-color: #fff; box-shadow: 0 0 15px rgba(255, 255, 255, 0.3); }
         .b-family .tb-icon { background: linear-gradient(135deg, #ffffff 0%, #bdc3c7 100%); color: #D80027; }
         .b-family .tb-icon i { animation: heartBeat 1.5s infinite ease-in-out; }
         .b-family .tb-role { color: #fff; text-shadow: 0 0 10px rgba(255, 255, 255, 0.8); font-weight: 900; letter-spacing: 1px; }
 
-        /* PASUKAN SENYAP (NINJA - STEALTH BLACK) */
-        .b-ninja { border-color: #333; background: #050505; box-shadow: 0 0 5px rgba(255,255,255,0.1); }
-        .b-ninja .tb-icon { background: #111; color: #ccc; }
-        .b-ninja .tb-icon i { animation: stealthMode 3s infinite ease-in-out; }
-        .b-ninja .tb-role { color: #888; font-family: var(--font-head); letter-spacing: 2px; }
+        /* --- PASUKAN SENYAP (NINJA - REVISI KEREN) --- */
+        .b-ninja { border-color: #333; background: #000; box-shadow: 0 0 8px rgba(255,255,255,0.15); overflow: hidden; position: relative; }
+        /* Efek Angin Lewat */
+        .b-ninja::before { content: ''; position: absolute; top: 0; left: -150%; width: 50%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent); animation: windPass 2s infinite linear; transform: skewX(-20deg); pointer-events: none; }
+        .b-ninja .tb-icon { background: #111; color: #fff; z-index: 2; }
+        /* Animasi Jutsu Menghilang */
+        .b-ninja .tb-icon i { animation: ninjaPoof 3s infinite; text-shadow: 0 0 5px #fff; }
+        .b-ninja .tb-role { color: #888; font-family: var(--font-head); letter-spacing: 2px; z-index: 2; }
 
-        /* PELAN TAPI KENCENG (KURA-KURA - GREEN) */
+        /* --- PELAN TAPI KENCENG (TURTLE - REVISI GERAK) --- */
         .b-turtle { border-color: #39FF14; box-shadow: 0 0 10px rgba(57, 255, 20, 0.2); }
-        .b-turtle .tb-icon { background: #39FF14; color: #000; font-size: 16px; }
+        .b-turtle .tb-icon { background: #39FF14; color: #000; font-size: 16px; overflow: hidden; }
+        /* Animasi Jalan Pelan Tapi Pasti */
+        .b-turtle .tb-icon div { display: inline-block; animation: turtleWalk 3s infinite linear; }
         .b-turtle .tb-role { color: #39FF14; font-weight: 900; }
 
         /* --- ACTIONS --- */
@@ -162,19 +167,19 @@
         .btn-yes { background: var(--primary); color: #000; }
         .btn-no { background: #222; color: var(--accent); border: 1px solid var(--accent); }
         
-        /* [FIX] TOMBOL CANCEL BIAR KELIHATAN */
+        /* TOMBOL CANCEL (BESAR & JELAS) */
         .btn-cancel-q { 
             margin-top: 15px; 
             background: rgba(255, 0, 60, 0.15); 
-            border: 2px solid var(--accent); /* Tebalkan Border */
+            border: 2px solid var(--accent); 
             color: var(--accent); 
-            padding: 15px 30px; /* Perbesar Padding */
+            padding: 15px 30px; 
             font-family: var(--font-head); 
             font-size: 14px; 
             font-weight: 900; 
             cursor: pointer; 
             letter-spacing: 2px; 
-            display: none; /* Default Hidden, JS akan unhide */
+            display: none; 
             box-shadow: 0 0 15px rgba(255, 0, 60, 0.2); 
             clip-path: polygon(10px 0, 100% 0, 100% 100%, 0 100%, 0 10px); 
             width: 100%;
@@ -207,7 +212,19 @@
         @keyframes pulseText { 0%,100% {opacity: 1;} 50% {opacity: 0.5;} }
         @keyframes blinkKudeta { 0%, 100% { opacity: 1; transform: skewX(-10deg) scale(1); box-shadow: 0 0 20px #ff0000; } 50% { opacity: 0.6; transform: skewX(-10deg) scale(0.95); box-shadow: 0 0 5px #ff0000; } }
         @keyframes heartBeat { 0% {transform:scale(1);} 14% {transform:scale(1.15);} 28% {transform:scale(1);} 42% {transform:scale(1.15);} 70% {transform:scale(1);} }
-        @keyframes stealthMode { 0%, 100% { opacity: 1; filter: blur(0px); } 50% { opacity: 0.2; filter: blur(2px); } }
+        
+        /* NEW NINJA ANIMATION: POOF VANISH */
+        @keyframes ninjaPoof {
+            0% { opacity: 1; transform: scale(1); filter: blur(0); }
+            45% { opacity: 1; transform: scale(1); filter: blur(0); }
+            50% { opacity: 0; transform: scale(1.2); filter: blur(4px); } /* POOF */
+            55% { opacity: 0; transform: scale(0.5); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        /* NEW WIND ANIMATION */
+        @keyframes windPass { 0% { left: -150%; } 100% { left: 150%; } }
+        /* NEW TURTLE WALK */
+        @keyframes turtleWalk { 0% { transform: translateX(-5px); } 50% { transform: translateX(5px); } 100% { transform: translateX(-5px); } }
     </style>
 </head>
 <body>
@@ -284,11 +301,11 @@
             <i class="fas fa-route" style="font-size:20px; margin-bottom:5px;"></i><span class="nav-text">TRIP PLAN</span>
         </a>
     </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, doc, onSnapshot, runTransaction, collection, addDoc, getDoc, updateDoc, arrayUnion, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // CONFIG FIREBASE
         const firebaseConfig = { apiKey: "AIzaSyB666i9lYWIpxOdkwpoX9EvFvHLmHczeq8", authDomain: "fcgadingnew22.firebaseapp.com", projectId: "fcgadingnew22", storageBucket: "fcgadingnew22.firebasestorage.app", messagingSenderId: "537736846678", appId: "1:537736846678:web:53788d71a196423ac08af7" };
         const STATION_LAT = -6.171583; const STATION_LNG = 106.899844; const MAX_DIST_KM = 0.2; 
         
@@ -306,18 +323,16 @@
         function addUserLog(action, details) { addDoc(logRef, { actor: myPlat || "GUEST", action: action, details: details, timestamp: new Date() }).catch(e=>{}); }
         function calculateDist(lat1, lon1, lat2, lon2) { const R = 6371; const dLat = (lat2-lat1)*Math.PI/180; const dLon = (lon2-lon1)*Math.PI/180; const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2; return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); }
 
-        // --- 1. GATEKEEPER & AUTO-KICK LOGIC (SUPER ADMIN BYPASS) ---
+        // --- GATEKEEPER & AUTO-KICK (SUPER ADMIN BYPASS) ---
         const myPlat = localStorage.getItem('myPlat');
-        const isSuperAdmin = localStorage.getItem('sa_sess'); // Cek Sesi Super Admin
+        const isSuperAdmin = localStorage.getItem('sa_sess');
 
-        // Jika tidak punya tiket DAN bukan super admin -> Tendang ke Antrian
         if(!myPlat && !isSuperAdmin) {
             window.location.href = 'antrian.html';
         } else {
-            // Izinkan Masuk
             setTimeout(() => { const g = document.getElementById('gate-screen'); if(g) g.style.display = 'none'; }, 1000);
             
-            // AUTO KICK (Hanya untuk User Biasa, Super Admin Bebas)
+            // Auto Kick (User Biasa Only)
             const AUTO_KICK_KM = 0.5;
             if(navigator.geolocation && !isSuperAdmin) {
                 navigator.geolocation.watchPosition((pos) => {
@@ -359,6 +374,7 @@
             const container = $('slotsContainer'); container.innerHTML = ''; let myQIndex = -1;
             if (myPlat && localQueue.length > 0) { myQIndex = localQueue.findIndex(q => cleanStr(q.plat) === cleanStr(myPlat)); }
 
+            // TOMBOL CANCEL (FIXED)
             const btnCancel = $('btnCancelQ'); 
             if(myQIndex > -1) { 
                 btnCancel.style.display = 'block'; 
@@ -379,8 +395,6 @@
                     if(isMe) timerHTML = `<div class="mini-timer" style="color:var(--primary)">${durationMin} MIN (ANDA)</div>`; 
                     else {
                         timerHTML = `<div class="mini-timer">${durationMin} MIN</div>`; 
-                        
-                        // --- KUDETA LOGIC ---
                         if (myQIndex === 0 && durationMin >= 20) {
                             kudetaHTML = `<button class="btn-kudeta" onclick="window.kudeta(${i}, '${escapeHtml(s.plat)}', ${durationMin})">⚡ KUDETA</button>`;
                         } else if (myQIndex === 1 && durationMin >= 25) {
@@ -402,7 +416,6 @@
                     if(isMe) { div.onclick = () => showConfirm("SELESAI CHARGING?", () => stopCharging(i)); }
                 } else {
                     let btnHTML = ''; 
-                    // Tombol PILIH hanya aktif jika user adalah antrian pertama ATAU antrian kosong
                     if (localQueue.length === 0 || myQIndex === 0) btnHTML = `<button style="width:100%; padding:5px 0; background:var(--primary); color:#000; border:none; border-radius:3px; font-family:'Rajdhani'; font-weight:bold; box-shadow:0 0 10px var(--primary);" onclick="window.selectSlot(${i})">PILIH</button>`; 
                     else if (myQIndex > 0) btnHTML = `<div style="font-size:9px; color:#666; font-weight:bold;">ANTRIAN ${myQIndex + 1}</div>`; 
                     else btnHTML = `<div style="font-size:9px; color:#444;">LOCKED</div>`;
@@ -414,7 +427,7 @@
             $('totalQDisplay').innerText = localQueue.length; $('nextQDisplay').innerText = localQueue.length > 0 ? localQueue[0].plat : "--";
         }
 
-        // --- NEW BADGE LOGIC (FIXED WAKETUM PRIORITY) ---
+        // --- BADGE LOGIC (WAKETUM PRIORITY FIXED) ---
         function getBadgeHTML(r) {
             if (!r || r === "GUEST") return ""; 
             
@@ -423,19 +436,17 @@
             if (r.includes("PEMBINA")) { css="b-platinum"; icon="fa-star"; label="SENIOR"; roleTxt="PEMBINA"; }
             else if (r.includes("PENASEHAT")) { css="b-platinum"; icon="fa-user-tie"; label="ADVISOR"; roleTxt="PENASEHAT"; }
             
+            // PRIORITY FIX: Waketum dulu, baru Ketum (karena Waketum mengandung kata Ketum)
             else if (r.includes("WAKETUM")) { css="b-gold"; icon="fa-chess-king"; label="CO-LEAD"; roleTxt="WAKETUM"; }
             else if (r.includes("KETUM")) { css="b-gold"; icon="fa-crown"; label="LEADER"; roleTxt="KETUM"; }
             
             else if (r.includes("SEKJEN")) { css="b-cyan"; icon="fa-file-signature"; label="ADMIN"; roleTxt="SEKJEN"; }
             else if (r.includes("HUMAS")) { css="b-cyan"; icon="fa-bullhorn"; label="PR DIV"; roleTxt="HUMAS"; }
-            
             else if (r.includes("KORLAP")) { css="b-red"; icon="fa-map-marked-alt"; label="FIELD"; roleTxt="KORLAP"; }
             else if (r.includes("SATGAS")) { css="b-red"; icon="fa-shield-alt"; label="GUARD"; roleTxt="SATGAS"; }
-            
             else if (r.includes("OFFICE")) { css="b-blue"; icon="fa-building"; label="HQ"; roleTxt="OFFICE"; }
             else if (r.includes("KACAB")) { css="b-blue"; icon="fa-briefcase"; label="BRANCH"; roleTxt="KACAB"; }
             else if (r.includes("MEKANIK")) { css="b-tech"; icon="fa-wrench"; label="TECH"; roleTxt="MEKANIK"; }
-            
             else if (r.includes("VIP")) { css="b-vip"; icon="fa-gem"; label="GUEST"; roleTxt="VIP"; }
             else if (r.includes("DONATUR")) { css="b-donatur"; icon="fa-hand-holding-usd"; label="SPONSOR"; roleTxt="DONATUR"; }
             
@@ -449,7 +460,9 @@
             return `
             <div class="badge-container">
                 <div class="tactical-badge ${css}">
-                    <div class="tb-icon">${roleTxt === 'PELAN' ? '🐢' : `<i class="fas ${icon}"></i>`}</div>
+                    <div class="tb-icon">
+                        ${roleTxt === 'PELAN' ? '<div>🐢</div>' : `<i class="fas ${icon}"></i>`}
+                    </div>
                     <div class="tb-text">
                         ${label ? `<div class="tb-label">${label}</div>` : ''}
                         <div class="tb-role">${roleTxt}</div>
