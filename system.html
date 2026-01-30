@@ -353,7 +353,12 @@
                     if(isMe) timerHTML = `<div class="mini-timer" style="color:var(--primary)">${durationMin} MIN (ANDA)</div>`; 
                     else {
                         timerHTML = `<div class="mini-timer">${durationMin} MIN</div>`; 
-                        if (myQIndex === 0 || myQIndex === 1) {
+                        
+                        // --- KUDETA LOGIC ---
+                        // Rule: Antrian 1 (20 mnt), Antrian 2 (25 mnt)
+                        if (myQIndex === 0 && durationMin >= 20) {
+                            kudetaHTML = `<button class="btn-kudeta" onclick="window.kudeta(${i}, '${escapeHtml(s.plat)}', ${durationMin})">⚡ KUDETA</button>`;
+                        } else if (myQIndex === 1 && durationMin >= 25) {
                             kudetaHTML = `<button class="btn-kudeta" onclick="window.kudeta(${i}, '${escapeHtml(s.plat)}', ${durationMin})">⚡ KUDETA</button>`;
                         }
                     }
@@ -433,7 +438,10 @@
         
         window.kudeta = (i, targetPlat, durationMin) => { 
             event.stopPropagation(); 
-            if(durationMin < 20) { showAlert(`BELUM BISA KUDETA!\nDURASI BARU ${durationMin} MENIT.\n(MINIMAL 20 MENIT)`, "GAGAL"); return; }
+            // Rule: Min 20 Menit (untuk antrian 1), Min 25 Menit (untuk antrian 2)
+            // Logic handled in UI button visibility, double check here
+            if (durationMin < 20) { showAlert(`BELUM BISA KUDETA!\nMINIMAL 20 MENIT.`, "GAGAL"); return; }
+            
             showConfirm(`KUDETA ${targetPlat}?`, () => { 
                 runTransaction(db, async(t)=>{ 
                     const d = (await t.get(mainRef)).data(); const u = d.chargingSlots[i]; if(!u) throw "Slot kosong!"; 
@@ -447,11 +455,28 @@
         
         window.cancelQueue = () => { showConfirm("BATAL & KELUAR DARI ANTRIAN?", () => { runTransaction(db, async(t) => { const d = (await t.get(mainRef)).data(); const newQ = d.waitingQueue.filter(q => cleanStr(q.plat) !== cleanStr(myPlat)); t.update(mainRef, { waitingQueue: newQ }); addUserLog("CANCEL", `User ${myPlat} keluar antrian`); }).then(() => { localStorage.removeItem('myPlat'); window.location.href = 'antrian.html'; }).catch(e => showAlert("GAGAL: " + e)); }); };
         
-        window.openQueueList = () => { const body = $('qlBody'); body.innerHTML = ''; if(localQueue.length === 0) body.innerHTML = '<div style="text-align:center; padding:20px; color:#666;">KOSONG</div>'; else { localQueue.forEach((q, i) => { body.innerHTML += `
-        <div style="background:rgba(0,240,255,0.1); margin:0 0 10px 0; padding:15px; border-left:4px solid var(--primary); display:flex; justify-content:space-between; align-items:center; border-radius:0 4px 4px 0;">
-            <div style="font-family:'Teko'; font-size:36px; color:#fff; letter-spacing:1px; line-height:1;">${q.plat}</div>
-            <div style="font-family:'Rajdhani'; font-size:14px; color:#000; background:var(--primary); padding:4px 10px; font-weight:800; border-radius:4px;">ANTRIAN #${i+1}</div>
-        </div>`; }); } $('queueListModal').style.display = 'flex'; };
+        // --- FIXED: MENAMPILKAN NAMA DI DAFTAR TUNGGU ---
+        window.openQueueList = () => { 
+            const body = $('qlBody'); 
+            body.innerHTML = ''; 
+            
+            if(localQueue.length === 0) {
+                body.innerHTML = '<div style="text-align:center; padding:20px; color:#666;">KOSONG</div>'; 
+            } else { 
+                localQueue.forEach((q, i) => { 
+                    // [FIX] Menambahkan q.userName agar Nama muncul di modal
+                    body.innerHTML += `
+                    <div style="background:rgba(0,240,255,0.1); margin:0 0 10px 0; padding:15px; border-left:4px solid var(--primary); display:flex; justify-content:space-between; align-items:center; border-radius:0 4px 4px 0;">
+                        <div>
+                            <div style="font-family:'Teko'; font-size:36px; color:#fff; letter-spacing:1px; line-height:1;">${q.plat}</div>
+                            <div style="font-family:'Rajdhani'; font-size:16px; color:#ccc; font-weight:bold; text-transform:uppercase;">${q.userName}</div>
+                        </div>
+                        <div style="font-family:'Rajdhani'; font-size:14px; color:#000; background:var(--primary); padding:4px 10px; font-weight:800; border-radius:4px;">ANTRIAN #${i+1}</div>
+                    </div>`; 
+                }); 
+            } 
+            $('queueListModal').style.display = 'flex'; 
+        };
         
         window.resetApp = () => showConfirm("RESET APLIKASI?", () => { localStorage.clear(); location.reload(); });
     </script>
