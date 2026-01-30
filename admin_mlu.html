@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<title>Admin MLU - Modern Dashboard</title>
+<title>Admin MLU - Kelola Data</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Rajdhani:wght@400;600&display=swap" rel="stylesheet">
 <style>
@@ -16,13 +16,13 @@ body {
 
 h2 { color: #00f0ff; font-family: 'Orbitron', sans-serif; text-align: center; margin-bottom: 20px; text-shadow: 0 0 10px rgba(0, 240, 255, 0.4); }
 
-/* --- CONTROLS (SEARCH & BUTTON) --- */
+/* --- CONTROLS --- */
 .controls { 
   max-width: 1200px; margin: 0 auto 25px auto; 
   display: flex; flex-wrap: wrap; gap: 10px; 
   background: rgba(20,20,20,0.8); padding: 15px; border-radius: 10px; 
   border: 1px solid #333; backdrop-filter: blur(5px);
-  position: sticky; top: 0; z-index: 100; /* Agar menu nempel diatas saat scroll */
+  position: sticky; top: 0; z-index: 50; 
   box-shadow: 0 5px 15px rgba(0,0,0,0.5);
 }
 
@@ -31,13 +31,14 @@ h2 { color: #00f0ff; font-family: 'Orbitron', sans-serif; text-align: center; ma
     width: 100%; padding: 12px 15px; background: #000; border: 1px solid #444; 
     color: #fff; font-family: 'Rajdhani', sans-serif; font-size: 16px; border-radius: 6px;
 }
-.search-box input:focus { border-color: #00f0ff; outline: none; box-shadow: 0 0 10px rgba(0, 240, 255, 0.2); }
+.search-box input:focus { border-color: #00f0ff; outline: none; }
 
 .btn-download { 
   padding: 12px 25px; background: linear-gradient(135deg, #00c3ff, #00f0ff); 
   border: none; border-radius: 6px; font-weight: bold; cursor: pointer; 
-  font-family: 'Orbitron', sans-serif; color: #000; min-width: 120px;
+  font-family: 'Orbitron', sans-serif; color: #000; 
 }
+
 .total-badge {
   background: #222; color: #aaa; padding: 5px 15px; border-radius: 20px; 
   font-size: 12px; font-weight: bold; border: 1px solid #333; display: block; width: 100%; text-align: center; margin-top: 5px;
@@ -45,59 +46,76 @@ h2 { color: #00f0ff; font-family: 'Orbitron', sans-serif; text-align: center; ma
 
 /* --- GRID LAYOUT (KARTU) --- */
 .card-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); /* Otomatis menyesuaikan layar */
-  gap: 20px;
-  max-width: 1200px; margin: auto;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); 
+  gap: 20px; max-width: 1200px; margin: auto; padding-bottom: 50px;
 }
 
 .card {
   background: #111; border: 1px solid #333; border-radius: 10px;
   padding: 20px; position: relative; overflow: hidden;
-  transition: transform 0.2s, box-shadow 0.2s;
   display: flex; flex-direction: column; gap: 10px;
+  transition: 0.2s;
 }
+.card:hover { border-color: #555; transform: translateY(-3px); }
 
-.card:hover { transform: translateY(-3px); border-color: #555; box-shadow: 0 5px 20px rgba(0,0,0,0.5); }
-
-/* Jika data dobel, kartu jadi merah */
+/* Data Dobel */
 .card.duplicate { border: 1px solid #ff3333; background: rgba(255, 0, 0, 0.05); }
 .dobel-tag { position: absolute; top: 0; right: 0; background: #ff3333; color: #fff; font-size: 10px; padding: 2px 8px; font-weight: bold; border-bottom-left-radius: 8px; }
 
-/* Header Kartu (Nama & Program) */
+/* Header Kartu */
 .card-header { border-bottom: 1px solid #222; padding-bottom: 10px; margin-bottom: 5px; display: flex; justify-content: space-between; align-items: start; }
 .card-name { font-family: 'Orbitron', sans-serif; font-size: 18px; color: #fff; margin: 0; line-height: 1.2; text-transform: uppercase; }
 .card-prog { font-size: 11px; padding: 4px 8px; border-radius: 4px; font-weight: bold; text-transform: uppercase; white-space: nowrap; margin-left: 10px;}
 
-/* Warna Program */
 .prog-TransGO { background: rgba(255, 165, 0, 0.2); color: orange; border: 1px solid orange; }
 .prog-RTO { background: rgba(255, 0, 255, 0.2); color: magenta; border: 1px solid magenta; }
 .prog-Umum { background: rgba(0, 240, 255, 0.1); color: #00f0ff; border: 1px solid #00f0ff; }
 
-/* Body Kartu */
+/* Isi Kartu */
 .card-row { display: flex; justify-content: space-between; font-size: 14px; border-bottom: 1px solid #1a1a1a; padding: 6px 0; }
-.card-row:last-child { border: none; }
 .label { color: #666; font-weight: 600; }
 .val { text-align: right; color: #ddd; font-weight: 500; max-width: 65%; word-wrap: break-word; }
+.val-plat { font-family: 'Orbitron', sans-serif; color: #ffcc00; font-size: 16px; letter-spacing: 1px; }
 
-/* Highlight Plat */
-.val-plat { font-family: 'Orbitron', sans-serif; color: #ffcc00; font-size: 16px; letter-spacing: 1px; text-shadow: 0 0 5px rgba(255, 204, 0, 0.3); }
-
-/* Tombol WA */
-.btn-wa {
-  display: inline-block; background: #075e54; color: #fff; text-decoration: none;
-  padding: 4px 10px; border-radius: 4px; font-size: 12px; margin-top: 2px;
+/* --- TOMBOL AKSI (EDIT & HAPUS) --- */
+.action-buttons {
+  display: flex; gap: 10px; margin-top: 15px; padding-top: 15px; border-top: 1px solid #222;
 }
-.btn-wa:hover { background: #128c7e; }
+.btn-action {
+  flex: 1; padding: 8px; border: none; border-radius: 4px; 
+  font-family: 'Orbitron', sans-serif; font-weight: bold; cursor: pointer; color: #fff;
+}
+.btn-edit { background: #333; border: 1px solid #555; }
+.btn-edit:hover { background: #00f0ff; color: #000; border-color: #00f0ff; }
+.btn-del { background: rgba(255, 0, 0, 0.2); border: 1px solid #ff3333; color: #ff3333; }
+.btn-del:hover { background: #ff3333; color: #fff; }
 
-.footer-date { font-size: 11px; color: #444; text-align: right; margin-top: auto; padding-top: 10px; }
+/* --- MODAL EDIT (POPUP) --- */
+.modal-overlay {
+  display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.8); z-index: 100; align-items: center; justify-content: center;
+  backdrop-filter: blur(5px);
+}
+.modal-box {
+  background: #111; border: 1px solid #00f0ff; padding: 25px; width: 90%; max-width: 400px;
+  border-radius: 10px; box-shadow: 0 0 20px rgba(0, 240, 255, 0.2);
+}
+.modal-title { font-family: 'Orbitron', sans-serif; color: #00f0ff; margin-top: 0; text-align: center; }
+.form-group { margin-bottom: 15px; }
+.form-group label { display: block; color: #aaa; font-size: 12px; margin-bottom: 5px; }
+.form-group input, .form-group select {
+  width: 100%; background: #000; border: 1px solid #333; color: #fff; padding: 10px;
+  font-family: 'Rajdhani', sans-serif; border-radius: 4px;
+}
+.modal-btns { display: flex; gap: 10px; margin-top: 20px; }
+.btn-save { flex: 1; background: #00f0ff; color: #000; border: none; padding: 10px; font-weight: bold; cursor: pointer; border-radius: 4px; }
+.btn-cancel { flex: 1; background: #333; color: #fff; border: none; padding: 10px; font-weight: bold; cursor: pointer; border-radius: 4px; }
 
-.loading-text { text-align: center; width: 100%; padding: 50px; color: #666; grid-column: 1 / -1; }
 </style>
 </head>
 <body>
 
-<h2>DATABASE ANGGOTA MLU</h2>
+<h2>ADMIN MLU DASHBOARD</h2>
 
 <div class="controls">
   <div class="search-box">
@@ -108,12 +126,49 @@ h2 { color: #00f0ff; font-family: 'Orbitron', sans-serif; text-align: center; ma
 </div>
 
 <div id="cardContainer" class="card-grid">
-  <div class="loading-text">Memuat Data dari Server...</div>
+  <div style="text-align:center;width:100%;color:#666;">Memuat Data...</div>
+</div>
+
+<div id="editModal" class="modal-overlay">
+  <div class="modal-box">
+    <h3 class="modal-title">EDIT DATA ANGGOTA</h3>
+    <input type="hidden" id="editId">
+    
+    <div class="form-group">
+      <label>NAMA LENGKAP</label>
+      <input type="text" id="editNama">
+    </div>
+    <div class="form-group">
+      <label>NO. WHATSAPP</label>
+      <input type="text" id="editHp">
+    </div>
+    <div class="form-group">
+      <label>PLAT NOMOR</label>
+      <input type="text" id="editPlat" style="text-transform:uppercase; color:#ffcc00; font-weight:bold;">
+    </div>
+    <div class="form-group">
+      <label>PROGRAM</label>
+      <select id="editProgram">
+        <option value="Umum">Umum</option>
+        <option value="TransGO">TransGO</option>
+        <option value="RTO Maka">RTO Maka</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>LINTAS / AREA</label>
+      <input type="text" id="editLintas">
+    </div>
+
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="tutupModal()">BATAL</button>
+      <button class="btn-save" onclick="simpanEdit()" id="btnSave">SIMPAN PERUBAHAN</button>
+    </div>
+  </div>
 </div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { getFirestore, collection, getDocs, orderBy, query } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+  import { getFirestore, collection, getDocs, orderBy, query, doc, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
   const firebaseConfig = {
       apiKey: "AIzaSyB666i9lYWIpxOdkwpoX9EvFvHLmHczeq8",
@@ -128,11 +183,12 @@ h2 { color: #00f0ff; font-family: 'Orbitron', sans-serif; text-align: center; ma
   const db = getFirestore(app);
   let allData = [];
 
+  // --- RENDER KARTU ---
   function renderCards(dataArray) {
     const container = document.getElementById("cardContainer");
     let html = "";
     
-    // Hitung duplikat untuk highlight merah
+    // Hitung Duplikat
     const platCounts = {};
     dataArray.forEach(d => {
        const p = d.plat || "";
@@ -140,25 +196,19 @@ h2 { color: #00f0ff; font-family: 'Orbitron', sans-serif; text-align: center; ma
     });
 
     if (dataArray.length === 0) {
-      container.innerHTML = '<div class="loading-text">TIDAK DITEMUKAN DATA YANG COCOK</div>';
+      container.innerHTML = '<div style="text-align:center;width:100%;color:#666;padding:50px;">DATA TIDAK DITEMUKAN</div>';
       document.getElementById("totalData").innerText = "Total: 0";
       return;
     }
 
     dataArray.forEach(d => {
-      const tglTampil = d.tgl ? new Date(d.tgl).toLocaleDateString("id-ID") : "-";
       const isDuplicate = platCounts[d.plat] > 1;
       
-      // Tentukan Class warna program
       let progClass = "prog-Umum";
       if(d.program && d.program.includes("TransGO")) progClass = "prog-TransGO";
       if(d.program && d.program.includes("RTO")) progClass = "prog-RTO";
 
-      // Format HP WA
-      let hpRaw = d.hp || "";
-      let hpClean = hpRaw.replace(/^0/, '62').replace(/[^0-9]/g, '');
-      let waLink = hpClean ? `https://wa.me/${hpClean}` : "#";
-
+      // Kita simpan ID dokumen di atribut tombol agar bisa diambil function edit/hapus
       html += `
         <div class="card ${isDuplicate ? 'duplicate' : ''}">
           ${isDuplicate ? '<div class="dobel-tag">DOBEL</div>' : ''}
@@ -174,16 +224,8 @@ h2 { color: #00f0ff; font-family: 'Orbitron', sans-serif; text-align: center; ma
           </div>
 
           <div class="card-row">
-            <span class="label">WHATSAPP</span>
-            <span class="val">
-               ${hpRaw} <br>
-               ${hpClean ? `<a href="${waLink}" target="_blank" class="btn-wa">CHAT WA</a>` : ''}
-            </span>
-          </div>
-
-          <div class="card-row">
-            <span class="label">DOMISILI</span>
-            <span class="val">${d.alamat || '-'}</span>
+            <span class="label">HP/WA</span>
+            <span class="val">${d.hp || '-'}</span>
           </div>
 
           <div class="card-row">
@@ -191,8 +233,9 @@ h2 { color: #00f0ff; font-family: 'Orbitron', sans-serif; text-align: center; ma
             <span class="val">${d.lintas || '-'}</span>
           </div>
 
-          <div class="footer-date">
-            Terdaftar: ${tglTampil}
+          <div class="action-buttons">
+            <button class="btn-action btn-edit" onclick="bukaModal('${d.id}')">EDIT</button>
+            <button class="btn-action btn-del" onclick="hapusData('${d.id}', '${d.nama}')">HAPUS</button>
           </div>
         </div>
       `;
@@ -202,32 +245,93 @@ h2 { color: #00f0ff; font-family: 'Orbitron', sans-serif; text-align: center; ma
     document.getElementById("totalData").innerText = "Total: " + dataArray.length + " Anggota";
   }
 
+  // --- LOAD DATA DARI FIREBASE ---
   async function loadData() {
     try {
       const q = query(collection(db, "anggota_mlu"), orderBy("nama")); 
       const snapshot = await getDocs(q);
       
       allData = []; 
-      snapshot.forEach(doc => { allData.push(doc.data()); });
+      snapshot.forEach(doc => { 
+        // PENTING: Kita masukkan ID dokumen ke dalam object data
+        allData.push({ id: doc.id, ...doc.data() }); 
+      });
       renderCards(allData);
 
     } catch (e) {
       console.error(e);
-      // Fallback jika error index
+      // Fallback jika belum index
       const snap = await getDocs(collection(db, "anggota_mlu"));
       allData = [];
-      snap.forEach(doc => allData.push(doc.data()));
+      snap.forEach(doc => allData.push({ id: doc.id, ...doc.data() })); 
       renderCards(allData);
     }
   }
 
+  // --- FITUR HAPUS ---
+  window.hapusData = async function(id, nama) {
+    if(confirm(`Yakin ingin menghapus data atas nama: ${nama}?`)) {
+      try {
+        await deleteDoc(doc(db, "anggota_mlu", id));
+        alert("Data berhasil dihapus!");
+        loadData(); // Refresh data
+      } catch(e) {
+        alert("Gagal menghapus: " + e.message);
+      }
+    }
+  }
+
+  // --- FITUR EDIT ---
+  window.bukaModal = function(id) {
+    const data = allData.find(item => item.id === id);
+    if(!data) return;
+
+    document.getElementById('editId').value = id;
+    document.getElementById('editNama').value = data.nama || "";
+    document.getElementById('editHp').value = data.hp || "";
+    document.getElementById('editPlat').value = data.plat || "";
+    document.getElementById('editLintas').value = data.lintas || "";
+    document.getElementById('editProgram').value = data.program || "Umum";
+    
+    document.getElementById('editModal').style.display = "flex";
+  }
+
+  window.tutupModal = function() {
+    document.getElementById('editModal').style.display = "none";
+  }
+
+  window.simpanEdit = async function() {
+    const id = document.getElementById('editId').value;
+    const btn = document.getElementById('btnSave');
+    
+    const newData = {
+      nama: document.getElementById('editNama').value,
+      hp: document.getElementById('editHp').value,
+      plat: document.getElementById('editPlat').value.toUpperCase(),
+      program: document.getElementById('editProgram').value,
+      lintas: document.getElementById('editLintas').value
+    };
+
+    btn.innerText = "MENYIMPAN...";
+    try {
+      await updateDoc(doc(db, "anggota_mlu", id), newData);
+      alert("Data berhasil diupdate!");
+      tutupModal();
+      loadData(); // Refresh tampilan
+    } catch(e) {
+      alert("Gagal update: " + e.message);
+    } finally {
+      btn.innerText = "SIMPAN PERUBAHAN";
+    }
+  }
+
+  // --- FITUR PENCARIAN & EXCEL ---
   document.getElementById('searchInput').addEventListener('keyup', function(e) {
     const keyword = e.target.value.toLowerCase();
     const filtered = allData.filter(item => {
         return (item.nama || "").toLowerCase().includes(keyword) || 
                (item.plat || "").toLowerCase().includes(keyword) || 
-               (item.hp || "").toLowerCase().includes(keyword) ||
-               (item.program || "").toLowerCase().includes(keyword);
+               (item.hp || "").toLowerCase().includes(keyword);
     });
     renderCards(filtered);
   });
@@ -237,12 +341,12 @@ h2 { color: #00f0ff; font-family: 'Orbitron', sans-serif; text-align: center; ma
     let csvContent = "data:text/csv;charset=utf-8,Nama,No HP,Plat,Program,Alamat,Lintas,Tanggal\r\n";
     allData.forEach(d => {
       const tgl = d.tgl ? new Date(d.tgl).toLocaleString("id-ID") : "-";
-      csvContent += `"${d.nama}","'${d.hp}","${d.plat}","${d.program}","${d.alamat.replace(/\n/g, ' ')}","${d.lintas}","${tgl}"\r\n`;
+      csvContent += `"${d.nama}","'${d.hp}","${d.plat}","${d.program}","${d.alamat ? d.alamat.replace(/\n/g, ' ') : ''}","${d.lintas}","${tgl}"\r\n`;
     });
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "Database_MLU_Card.csv");
+    link.setAttribute("download", "Database_MLU_Update.csv");
     document.body.appendChild(link);
     link.click();
   }
