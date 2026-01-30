@@ -36,6 +36,12 @@
             min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden;
         }
 
+        /* --- LOADING & BLOCKER --- */
+        #gate-screen { 
+            position: fixed; inset: 0; background: #000; z-index: 99999; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+        
         /* --- SCREENSAVER LOGO MODE --- */
         #hangar-overlay { 
             position: fixed; inset: 0; z-index: 10000; 
@@ -83,7 +89,6 @@
         .armor-info { flex: 1; padding: 0 12px; display: flex; flex-direction: column; justify-content: center; min-width: 0; }
         .info-name { font-family: var(--font-head); font-weight: 700; font-size: 10px; color: var(--primary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         
-        /* FIX FONT PLAT NOMOR AGAR TIDAK KEPOTONG */
         .info-plat { font-family: var(--font-num); font-size: 32px; line-height: 0.9; color: #fff; letter-spacing: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         
         .armor-badge { width: 100px; flex-shrink: 0; height: 100%; display: flex; align-items: center; justify-content: center; padding-right: 15px; }
@@ -118,12 +123,6 @@
         .btn-no { background: #222; color: var(--accent); border: 1px solid var(--accent); }
         .btn-cancel-q { margin-top: 15px; background: rgba(255, 0, 60, 0.15); border: 1px solid var(--accent); color: var(--accent); padding: 12px 30px; font-family: var(--font-head); font-size: 12px; font-weight: bold; cursor: pointer; letter-spacing: 1px; display: none; box-shadow: 0 0 15px rgba(255, 0, 60, 0.2); clip-path: polygon(10px 0, 100% 0, 100% 100%, 0 100%, 0 10px); }
 
-        .login-card { width: 100%; max-width: 350px; background: #050a10; padding: 40px 25px; text-align: center; position: relative; clip-path: polygon(30px 0, 100% 0, 100% calc(100% - 30px), calc(100% - 30px) 100%, 0 100%, 0 30px); }
-        .login-card::before { content:''; position:absolute; inset:0; box-shadow: inset 0 0 0 2px var(--primary); pointer-events: none; clip-path: polygon(30px 0, 100% 0, 100% calc(100% - 30px), calc(100% - 30px) 100%, 0 100%, 0 30px); }
-        .holo-input { background: rgba(0, 240, 255, 0.05); border: none; border-bottom: 2px solid var(--primary); width: 100%; color: var(--primary); font-family: var(--font-num); font-size: 48px; text-align: center; margin: 25px 0; text-transform: uppercase; padding: 5px; outline: none; }
-        .btn-next { width: 100%; padding: 15px; background: var(--primary); color: #000; font-family: var(--font-tech); font-weight: 800; font-size: 20px; border:none; cursor: pointer; clip-path: polygon(10px 0, 100% 0, 100% 100%, 0 100%, 0 10px); transition: 0.2s; }
-        .btn-next:active { transform: scale(0.98); }
-
         .queue-list-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 9999; flex-direction: column; padding: 20px; backdrop-filter: blur(5px); align-items: center; justify-content: center; }
         .ql-card { background: #050a10; border: 1px solid var(--primary); width: 100%; max-width: 400px; margin: auto; overflow: hidden; display: flex; flex-direction: column; height: 70vh; box-shadow: 0 0 40px rgba(0,240,255,0.15); position: relative; clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px); }
         .ql-card::after { content:''; position:absolute; inset:0; box-shadow: inset 0 0 0 1px var(--primary); pointer-events:none; clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px); }
@@ -142,11 +141,6 @@
         .nav-item.active { color: var(--primary); text-shadow: 0 0 15px var(--primary); }
         .nav-text { font-family: var(--font-head); font-size: 10px; letter-spacing: 2px; font-weight: 700; margin-top: 5px; }
 
-        /* Loading */
-        #loading-screen { position: fixed; inset: 0; background: #000; z-index: 25000; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s; }
-        .loader-spinner { width: 60px; height: 60px; border: 4px solid #111; border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; box-shadow: 0 0 20px var(--primary-dim); }
-        .loader-text { font-family: var(--font-head); color: var(--primary); font-size: 14px; letter-spacing: 4px; animation: pulseText 1s infinite; text-shadow: 0 0 10px var(--primary); }
-
         @keyframes shinePass { 0% {left:-100%; opacity:0;} 50% {left:150%; opacity:1;} 100% {left:150%; opacity:0;} }
         @keyframes pulseCyan { 0%,100% {box-shadow: inset 0 0 5px var(--primary);} 50% {box-shadow: inset 0 0 20px var(--primary);} }
         @keyframes pulseRed { 0%,100% {box-shadow: inset 0 0 5px var(--accent);} 50% {box-shadow: inset 0 0 15px var(--accent);} }
@@ -161,9 +155,8 @@
 </head>
 <body>
 
-    <div id="loading-screen">
-        <div class="loader-spinner"></div>
-        <div class="loader-text">SYSTEM INITIALIZING...</div>
+    <div id="gate-screen">
+        <div style="font-family:'Orbitron'; color:#00F0FF; font-size:24px; animation:pulseText 1s infinite;">VERIFYING ACCESS...</div>
     </div>
 
     <div id="customModal" class="modal-overlay">
@@ -183,16 +176,14 @@
         <div style="color:#666; font-size:10px; margin-top:5px; font-family:var(--font-head); letter-spacing:2px; animation:pulseText 2s infinite;">TAP TO WAKE UP</div>
     </div>
 
-    <div class="header" style="position: relative;">
+    <div class="header" ondblclick="toggleAdmin()" style="position: relative;">
         <div onclick="window.location.href='infomlu.html'" 
              style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); cursor: pointer; z-index: 50;">
             <i class="fas fa-info-circle" style="font-size: 24px; color: var(--primary); text-shadow: 0 0 10px var(--primary);"></i>
         </div>
 
-        <div ondblclick="toggleAdmin()" style="position:relative; z-index:20; display:inline-block;">
-            <div class="main-title">FC KELAPA GADING</div>
-            <div class="sub-title">MAKA LINTAS UTARA</div>
-        </div>
+        <div class="main-title">FC KELAPA GADING</div>
+        <div class="sub-title">MAKA LINTAS UTARA</div>
     </div>
 
     <div class="queue-bar-wrapper" onclick="openQueueList()">
@@ -214,15 +205,6 @@
         <div onclick="resetApp()" style="margin-top:20px; font-size:9px; color:#444; text-decoration:underline; cursor:pointer; font-family:var(--font-tech);">[ SYSTEM RESET ]</div>
     </div>
 
-    <div id="regModal" class="screen-overlay">
-        <div class="login-card">
-            <div style="font-size:12px; color:var(--primary); margin-bottom:5px; text-transform:uppercase; letter-spacing:2px; font-weight:bold; font-family:var(--font-head);" id="regLabel">LANGKAH 1</div>
-            <input type="text" id="regInput" class="holo-input" placeholder="B 1234 XYZ" autocomplete="off">
-            <button class="btn-next" onclick="nextRegStep()">LANJUT</button>
-            <button style="margin-top:25px; background:none; border:none; color:var(--accent); font-family:var(--font-head); font-size:12px; font-weight:bold; cursor:pointer; letter-spacing:2px;" onclick="closeModal('regModal')">BATAL</button>
-        </div>
-    </div>
-
     <div id="queueListModal" class="queue-list-modal">
         <div class="ql-card">
             <div style="padding:15px; text-align:center; border-bottom:1px solid #333; font-family:var(--font-tech); font-weight:800; font-size:24px; color:var(--primary); letter-spacing:1px;">DAFTAR TUNGGU</div>
@@ -236,9 +218,9 @@
             <i class="fas fa-map-marked-alt" style="font-size:20px; margin-bottom:5px;"></i><span class="nav-text">PETA FC</span>
         </a>
         
-        <div class="nav-item center-btn active" onclick="handleMainAction()">
+        <div class="nav-item center-btn active">
             <div class="center-icon-box"><i class="fas fa-charging-station"></i></div>
-            <span class="nav-text" style="color:var(--primary); margin-top:8px;">ANTRIAN</span>
+            <span class="nav-text" style="color:var(--primary); margin-top:8px;">SYSTEM</span>
         </div>
         
         <a href="plan.html" class="nav-item">
@@ -250,25 +232,32 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, doc, onSnapshot, runTransaction, collection, addDoc, getDoc, updateDoc, arrayUnion, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // CONFIG FIREBASE
+        // 1. GATEKEEPER LOGIC (Strict Entry)
+        // Cek dulu, ada sesi gak? Kalau gak ada -> TENDANG KE ANTRIAN
+        const myPlat = localStorage.getItem('myPlat');
+        if(!myPlat) {
+            window.location.href = 'antrian.html';
+        } else {
+            // Kalau ada, hilangkan loading screen setelah 1 detik (biar smooth)
+            setTimeout(() => {
+                const g = document.getElementById('gate-screen');
+                if(g) g.style.display = 'none';
+            }, 1000);
+        }
+
         const firebaseConfig = { apiKey: "AIzaSyB666i9lYWIpxOdkwpoX9EvFvHLmHczeq8", authDomain: "fcgadingnew22.firebaseapp.com", projectId: "fcgadingnew22", storageBucket: "fcgadingnew22.firebasestorage.app", messagingSenderId: "537736846678", appId: "1:537736846678:web:53788d71a196423ac08af7" };
-        const STATION_LAT = -6.171583; const STATION_LNG = 106.899844; const MAX_DIST_KM = 0.2; 
-        
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const mainRef = doc(db, "antrian", "utama");
         const historyRef = collection(db, "riwayatCharging");
         const logRef = collection(db, "activityLog");
-        const bannedRef = collection(db, "banned_plates"); 
 
         const $ = (id) => document.getElementById(id);
-        let localSlots = [null, null, null]; let localQueue = []; let myPlat = localStorage.getItem('myPlat'); 
+        let localSlots = [null, null, null]; let localQueue = []; 
 
         function cleanStr(s) { return s ? s.replace(/[^A-Z0-9]/gi, '').toUpperCase() : ''; }
         function escapeHtml(text) { if (!text) return ""; return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); }
         function addUserLog(action, details) { addDoc(logRef, { actor: myPlat || "GUEST", action: action, details: details, timestamp: new Date() }).catch(e=>{}); }
-        function calculateDist(lat1, lon1, lat2, lon2) { const R = 6371; const dLat = (lat2-lat1)*Math.PI/180; const dLon = (lon2-lon1)*Math.PI/180; const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2; return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); }
-        function checkLocation() { return new Promise((resolve, reject) => { if(!navigator.geolocation) { resolve(false); return; } navigator.geolocation.getCurrentPosition((pos) => { const dist = calculateDist(STATION_LAT, STATION_LNG, pos.coords.latitude, pos.coords.longitude); if(dist <= MAX_DIST_KM) resolve(true); else resolve(false); }, () => resolve(false), { enableHighAccuracy: true, timeout: 5000 }); }); }
 
         window.toggleAdmin = () => { const pass = prompt("ADMIN CODE:"); if(pass === "1131") window.location.href = "admin.html"; else if (pass) showAlert("ACCESS DENIED!", "ERROR"); };
         window.showAlert = (msg, title="INFO") => { $('modalTitle').innerText = title; $('modalMsg').innerText = msg; $('modalBtns').innerHTML = `<button class="btn-modal btn-yes" onclick="closeCustomModal()">OK</button>`; $('customModal').style.display = 'flex'; };
@@ -276,23 +265,28 @@
         window.closeCustomModal = () => { $('customModal').style.display = 'none'; };
         window.closeModal = (id) => { $(id).style.display = 'none'; };
 
-        // SCREENSAVER (LOGO ONLY)
+        // SCREENSAVER LOGIC
         let ssTimer; let idleTime = 0; let isStandby = false;
-        setInterval(() => { idleTime++; const limit = myPlat ? 300 : 30; if (idleTime > limit && !isStandby) enterStandby(); }, 1000);
+        setInterval(() => { idleTime++; const limit = 300; if (idleTime > limit && !isStandby) enterStandby(); }, 1000);
         function resetTimer() { idleTime = 0; }
         window.onclick = resetTimer; window.ontouchstart = resetTimer;
-        function enterStandby() { if($('regModal').style.display === 'flex') return; isStandby = true; $('hangar-overlay').style.display = 'flex'; }
+        function enterStandby() { isStandby = true; $('hangar-overlay').style.display = 'flex'; }
         window.wakeUp = () => { if(!isStandby) return; $('hangar-overlay').style.display = 'none'; isStandby = false; resetTimer(); };
 
-        // --- VALIDASI SESI (Hapus 'Tiket Saya' jika sudah tidak ada di DB) ---
+        // CORE LOGIC
         onSnapshot(mainRef, (snap) => {
-            const loader = $('loading-screen'); if(loader) { loader.style.opacity='0'; setTimeout(()=>loader.remove(),500); }
             if (!snap.exists()) return; const d = snap.data(); localSlots = d.chargingSlots || [null, null, null]; localQueue = d.waitingQueue || []; 
+            
+            // SECURITY CHECK: Apakah user masih ada di DB? Kalau gak ada, tendang!
             if(myPlat) {
                 const cleanPlat = cleanStr(myPlat);
                 const inSlot = localSlots.some(s => s && cleanStr(s.plat) === cleanPlat);
                 const inQueue = localQueue.some(q => cleanStr(q.plat) === cleanPlat);
-                if(!inSlot && !inQueue) { localStorage.removeItem('myPlat'); myPlat = null; }
+                if(!inSlot && !inQueue) {
+                    localStorage.removeItem('myPlat');
+                    alert("SESI ANDA TELAH BERAKHIR / DIHAPUS ADMIN");
+                    window.location.href = 'antrian.html';
+                }
             }
             updateUI();
         });
@@ -302,6 +296,7 @@
             if (myPlat && localQueue.length > 0) { myQIndex = localQueue.findIndex(q => cleanStr(q.plat) === cleanStr(myPlat)); }
 
             const btnCancel = $('btnCancelQ'); 
+            // Tampilkan tombol batal HANYA jika sedang antri
             if(myQIndex > -1) { btnCancel.style.display = 'block'; } 
             else { btnCancel.style.display = 'none'; }
 
@@ -315,11 +310,15 @@
                     const durationMs = Date.now() - (s.startTime || Date.now()); const durationMin = Math.floor(durationMs / 60000);
                     
                     if(isMe) timerHTML = `<div class="mini-timer" style="color:var(--primary)">${durationMin} MIN (ANDA)</div>`; 
-                    else if (myPlat) { 
+                    else {
                         timerHTML = `<div class="mini-timer">${durationMin} MIN</div>`; 
-                        if (myQIndex === 0 && durationMin >= 20) kudetaHTML = `<button class="btn-kudeta" onclick="window.kudeta(${i}, '${escapeHtml(s.plat)}')">⚡ KUDETA</button>`;
-                        else if (myQIndex === 1 && durationMin >= 25) kudetaHTML = `<button class="btn-kudeta" onclick="window.kudeta(${i}, '${escapeHtml(s.plat)}')">⚡ KUDETA</button>`;
-                    } else { timerHTML = `<div class="mini-timer">${durationMin} MIN</div>`; }
+                        
+                        // --- KUDETA LOGIC ---
+                        // Syarat: User harus di antrian 1 atau 2 (index 0 atau 1)
+                        if (myQIndex === 0 || myQIndex === 1) {
+                            kudetaHTML = `<button class="btn-kudeta" onclick="window.kudeta(${i}, '${escapeHtml(s.plat)}', ${durationMin})">⚡ KUDETA</button>`;
+                        }
+                    }
 
                     div.innerHTML = `
                         <div class="armor-inner">
@@ -332,14 +331,14 @@
                             ${timerHTML} ${kudetaHTML}
                         </div>`;
                     
+                    // --- STOP CHARGING (KLIK SLOT SENDIRI) ---
                     if(isMe) {
                         div.onclick = () => showConfirm("SELESAI CHARGING?", () => stopCharging(i));
                     }
                 } else {
                     let btnHTML = ''; 
-                    // FIX TOMBOL PILIH: Cek myPlat Wajib Ada
-                    if (!myPlat) btnHTML = `<button style="width:100%; padding:5px 0; background:transparent; color:#666; border:1px solid #444; border-radius:3px; font-family:'Rajdhani'; font-weight:bold;" onclick="window.showAlert('HARAP DAFTAR ANTRIAN DULU!', 'AKSES DITOLAK')">PILIH</button>`; 
-                    else if (localQueue.length === 0 || myQIndex === 0) btnHTML = `<button style="width:100%; padding:5px 0; background:var(--primary); color:#000; border:none; border-radius:3px; font-family:'Rajdhani'; font-weight:bold; box-shadow:0 0 10px var(--primary);" onclick="window.selectSlot(${i})">PILIH</button>`; 
+                    // Tombol PILIH hanya aktif jika user adalah antrian pertama ATAU antrian kosong
+                    if (localQueue.length === 0 || myQIndex === 0) btnHTML = `<button style="width:100%; padding:5px 0; background:var(--primary); color:#000; border:none; border-radius:3px; font-family:'Rajdhani'; font-weight:bold; box-shadow:0 0 10px var(--primary);" onclick="window.selectSlot(${i})">PILIH</button>`; 
                     else if (myQIndex > 0) btnHTML = `<div style="font-size:9px; color:#666; font-weight:bold;">ANTRIAN ${myQIndex + 1}</div>`; 
                     else btnHTML = `<div style="font-size:9px; color:#444;">LOCKED</div>`;
                     
@@ -359,75 +358,47 @@
             return `<div class="badge-base badge-elite" style="border-color:#fff;"><div class="b-top" style="color:#ccc">MEMBER</div><div class="b-main">${r}</div></div>`;
         }
 
-        let formStep=0; let regData={}; const steps = [{l:"LANGKAH 1", q:"PLAT NOMOR"}, {l:"LANGKAH 2", q:"NAMA ANDA"}];
-        $('regInput').addEventListener('input', function(e) { if(formStep === 0) { let v = this.value.toUpperCase().replace(/[^A-Z0-9]/g, ''); let formatted = ""; if (v.length > 0) { let match = v.match(/^([A-Z]{1,2})(\d{0,4})([A-Z]*)$/); if (match) { formatted = match[1]; if (match[2]) formatted += " " + match[2]; if (match[3]) formatted += " " + match[3]; } else { formatted = v; } } this.value = formatted; } });
-
-        window.handleMainAction = async () => { 
-            if(localStorage.getItem('myPlat')) { 
-                const p = localStorage.getItem('myPlat'); 
-                const isInQueue = localQueue.some(q => cleanStr(q.plat) === cleanStr(p)); 
-                const isInSlot = localSlots.some(s => s && cleanStr(s.plat) === cleanStr(p)); 
-                if(isInQueue || isInSlot) return showAlert("ANDA SUDAH TERDAFTAR!\nSELESAIKAN SESI SEBELUM GANTI PLAT.", "AKSES DITOLAK"); 
-                else { localStorage.removeItem('myPlat'); myPlat=null; } 
-            }
-            const isInside = await checkLocation(); if(!isInside) { showAlert("GPS LOCK: Wajib di lokasi FC Kelapa Gading.", "AKSES DITOLAK"); return; } 
-            showLoginForm(); 
-        };
-
-        function showLoginForm() { $('regModal').style.display = 'flex'; formStep = 0; renderRegStep(); }
-        function renderRegStep() { $('regLabel').innerText = steps[formStep].l; $('regInput').placeholder = (formStep===0) ? "B 1234 XYZ" : "NAMA"; $('regInput').value = ""; $('regInput').focus(); }
+        window.selectSlot = async (i) => { showConfirm(`MASUK SLOT ${i+1}?`, () => { runTransaction(db, async(t)=>{ const d = (await t.get(mainRef)).data(); if(d.chargingSlots[i]) throw "SLOT PENUH!"; let q = d.waitingQueue; const idx = q.findIndex(x => cleanStr(x.plat) === cleanStr(myPlat)); if(idx === -1) throw "DATA ANTRIAN HILANG!"; const me = q[idx]; q.splice(idx, 1); me.startTime = Date.now(); d.chargingSlots[i] = me; t.update(mainRef, { chargingSlots: d.chargingSlots, waitingQueue: q }); }).then(() => addUserLog("START", `Slot ${i+1}`)).catch(e => showAlert(e)); }); };
         
-        window.nextRegStep = async () => {
-            let val = $('regInput').value.trim().toUpperCase(); if(!val) return;
-            if(formStep === 0) { 
-                const cleanID = val.replace(/[^A-Z0-9]/g, ''); 
-                try { const banQ = query(bannedRef, where("plat", "==", cleanID)); const banSnap = await getDocs(banQ); if(!banSnap.empty) { showAlert("PLAT NOMOR ANDA DIBLOKIR OLEH ADMIN!", "BANNED"); $('regModal').style.display = 'none'; return; } } catch(e) {}
-                regData.plat = val; formStep++; renderRegStep(); 
-            } else {
-                regData.name = val; $('regModal').style.display = 'none'; 
-                const cleanID = regData.plat.replace(/[^A-Z0-9]/g, ''); let userRole = "GUEST"; 
-                try { let m = await getDoc(doc(db, "members", cleanID)); if(m.exists()) userRole = m.data().role || "MEMBER"; } catch(e) {}
-                try { const docSnap = await getDoc(mainRef); if(docSnap.exists()) { const d = docSnap.data(); const allUsers = [...(d.chargingSlots||[]), ...d.waitingQueue].filter(x=>x); const existing = allUsers.find(u => cleanStr(u.plat) === cleanStr(regData.plat)); if(existing) { localStorage.setItem('myPlat', existing.plat); myPlat = existing.plat; updateUI(); showAlert(`SESI DIPULIHKAN!\nHALO KEMBALI, ${existing.userName}.`, "WELCOME BACK"); return; } } } catch(e) {}
-                
-                runTransaction(db, async(t) => { const d = (await t.get(mainRef)).data(); const n = (d.lastTicket||0)+1; const all = [...(d.chargingSlots||[]), ...d.waitingQueue].filter(x=>x); if(all.some(u => u.plat.replace(/[^A-Z0-9]/g, '') === cleanID)) throw "PLAT SUDAH ADA!"; t.update(mainRef, { waitingQueue: arrayUnion({ plat: regData.plat, userName: regData.name, qNo: n, entryTime: Date.now(), role: userRole }), lastTicket: n }); }).then(() => { 
-                    localStorage.setItem('myPlat', regData.plat); myPlat = regData.plat; 
-                    addUserLog("REGISTER", `${regData.plat}`); 
-                    
-                    // --- AUTO CHECK SLOT ---
-                    // Cek jika ada slot kosong, langsung tawarkan
-                    setTimeout(() => checkAutoSelectSlot(), 500);
-                    
-                }).catch(e=>showAlert(e, "GAGAL"));
+        window.stopCharging = (i) => { runTransaction(db, async(t)=>{ const d = (await t.get(mainRef)).data(); const u = d.chargingSlots[i]; if(u) addDoc(historyRef, {...u, finishTime: new Date(), action: "STOP"}); d.chargingSlots[i] = null; t.update(mainRef, {chargingSlots: d.chargingSlots}); }).then(() => { 
+            localStorage.removeItem('myPlat'); // Hapus sesi
+            window.location.href = 'antrian.html'; // Balik ke gerbang
+        }); };
+        
+        window.kudeta = (i, targetPlat, durationMin) => { 
+            event.stopPropagation(); 
+            // SYARAT: MINIMAL 20 MENIT
+            if(durationMin < 20) {
+                showAlert(`BELUM BISA KUDETA!\nDURASI BARU ${durationMin} MENIT.\n(MINIMAL 20 MENIT)`, "GAGAL");
+                return;
             }
-        };
-
-        // --- NEW FUNCTION: Auto Prompt Slot ---
-        function checkAutoSelectSlot() {
-            // Hanya jalankan jika user baru daftar & belum masuk slot
-            if(!myPlat) return;
-            const myQIdx = localQueue.findIndex(q => cleanStr(q.plat) === cleanStr(myPlat));
             
-            // Jika user adalah antrian pertama (index 0) ATAU antrian kosong
-            if(myQIdx === 0 || (localQueue.length === 1 && localQueue[0].plat === myPlat)) {
-                // Cari slot kosong pertama
-                const emptySlotIndex = localSlots.findIndex(s => s === null);
-                if(emptySlotIndex !== -1) {
-                    // Tampilkan konfirmasi langsung
-                    showConfirm(`SLOT ${emptySlotIndex+1} KOSONG! MASUK SEKARANG?`, () => {
-                        window.selectSlot(emptySlotIndex);
-                    });
-                } else {
-                    showAlert("PENDAFTARAN SUKSES!\nANDA MASUK DAFTAR TUNGGU.", "INFO");
-                }
-            } else {
-                showAlert(`PENDAFTARAN SUKSES!\nANDA ANTRIAN KE-${myQIdx+1}.`, "INFO");
-            }
-        }
-
-        window.selectSlot = async (i) => { if(!myPlat) return showAlert("DAFTAR DULU!"); if (localQueue.length > 0 && cleanStr(localQueue[0].plat) !== cleanStr(myPlat)) return showAlert(`HARAP TUNGGU GILIRAN!`, "ANTRIAN"); showConfirm(`MASUK SLOT ${i+1}?`, () => { runTransaction(db, async(t)=>{ const d = (await t.get(mainRef)).data(); if(d.chargingSlots[i]) throw "SLOT PENUH!"; let q = d.waitingQueue; const idx = q.findIndex(x => cleanStr(x.plat) === cleanStr(myPlat)); if(idx === -1) throw "DAFTAR ULANG!"; const me = q[idx]; q.splice(idx, 1); me.startTime = Date.now(); d.chargingSlots[i] = me; t.update(mainRef, { chargingSlots: d.chargingSlots, waitingQueue: q }); }).then(() => addUserLog("START", `Slot ${i+1}`)).catch(e => showAlert(e)); }); };
-        window.stopCharging = (i) => { runTransaction(db, async(t)=>{ const d = (await t.get(mainRef)).data(); const u = d.chargingSlots[i]; if(u) addDoc(historyRef, {...u, finishTime: new Date(), action: "STOP"}); d.chargingSlots[i] = null; t.update(mainRef, {chargingSlots: d.chargingSlots}); }).then(() => { localStorage.clear(); myPlat=null; location.reload(); }); };
-        window.kudeta = (i, targetPlat) => { event.stopPropagation(); showConfirm(`KUDETA ${targetPlat}?`, () => { runTransaction(db, async(t)=>{ const d = (await t.get(mainRef)).data(); const u = d.chargingSlots[i]; if(!u) throw "Slot kosong!"; const dur = (Date.now() - u.startTime) / 60000; const qIdx = d.waitingQueue.findIndex(x => cleanStr(x.plat) === cleanStr(myPlat)); if (qIdx === 0 && dur < 20) throw "BELUM 20 MENIT!"; if (qIdx === 1 && dur < 25) throw "BELUM 25 MENIT!"; if (qIdx > 1) throw "ANDA BELUM BERHAK KUDETA!"; addDoc(historyRef, {...u, finishTime: new Date(), action: "KUDETA_BY_" + myPlat}); addUserLog("KUDETA", `Kudeta ${targetPlat}`); d.chargingSlots[i] = null; t.update(mainRef, {chargingSlots: d.chargingSlots}); }).catch(e => showAlert(e)); }); };
-        window.cancelQueue = () => { if(!myPlat) return; showConfirm("BATAL & KELUAR DARI ANTRIAN?", () => { runTransaction(db, async(t) => { const d = (await t.get(mainRef)).data(); const newQ = d.waitingQueue.filter(q => cleanStr(q.plat) !== cleanStr(myPlat)); t.update(mainRef, { waitingQueue: newQ }); addUserLog("CANCEL", `User ${myPlat} keluar antrian`); }).then(() => { localStorage.removeItem('myPlat'); myPlat = null; showAlert("ANDA TELAH KELUAR ANTRIAN", "SUKSES"); setTimeout(() => location.reload(), 1500); }).catch(e => showAlert("GAGAL: " + e)); }); };
+            showConfirm(`KUDETA ${targetPlat}?`, () => { 
+                runTransaction(db, async(t)=>{ 
+                    const d = (await t.get(mainRef)).data(); 
+                    const u = d.chargingSlots[i]; 
+                    if(!u) throw "Slot kosong!"; 
+                    
+                    // Logic Kudeta: Keluarkan dia, Masukkan saya
+                    addDoc(historyRef, {...u, finishTime: new Date(), action: "KUDETA_BY_" + myPlat}); 
+                    addUserLog("KUDETA", `Kudeta ${targetPlat}`); 
+                    
+                    // Cari data saya di antrian
+                    let q = d.waitingQueue;
+                    const myIdx = q.findIndex(x => cleanStr(x.plat) === cleanStr(myPlat));
+                    const me = q[myIdx];
+                    q.splice(myIdx, 1); // Hapus saya dari antrian
+                    
+                    // Masukkan saya ke slot dengan waktu baru
+                    me.startTime = Date.now();
+                    d.chargingSlots[i] = me;
+                    
+                    t.update(mainRef, {chargingSlots: d.chargingSlots, waitingQueue: q}); 
+                }).catch(e => showAlert(e)); 
+            }); 
+        };
+        
+        window.cancelQueue = () => { showConfirm("BATAL & KELUAR DARI ANTRIAN?", () => { runTransaction(db, async(t) => { const d = (await t.get(mainRef)).data(); const newQ = d.waitingQueue.filter(q => cleanStr(q.plat) !== cleanStr(myPlat)); t.update(mainRef, { waitingQueue: newQ }); addUserLog("CANCEL", `User ${myPlat} keluar antrian`); }).then(() => { localStorage.removeItem('myPlat'); window.location.href = 'antrian.html'; }).catch(e => showAlert("GAGAL: " + e)); }); };
         
         window.openQueueList = () => { const body = $('qlBody'); body.innerHTML = ''; if(localQueue.length === 0) body.innerHTML = '<div style="text-align:center; padding:20px; color:#666;">KOSONG</div>'; else { localQueue.forEach((q, i) => { body.innerHTML += `
         <div style="background:rgba(0,240,255,0.1); margin:0 0 10px 0; padding:15px; border-left:4px solid var(--primary); display:flex; justify-content:space-between; align-items:center; border-radius:0 4px 4px 0;">
@@ -436,8 +407,6 @@
         </div>`; }); } $('queueListModal').style.display = 'flex'; };
         
         window.resetApp = () => showConfirm("RESET APLIKASI?", () => { localStorage.clear(); location.reload(); });
-        
-        window.onload = () => { const urlParams = new URLSearchParams(window.location.search); if (localStorage.getItem('myPlat') || urlParams.get('action') === 'register') { isStandby = false; $('hangar-overlay').style.display = 'none'; if(urlParams.get('action') === 'register') showLoginForm(); } else { enterStandby(); } };
     </script>
 </body>
 </html>
