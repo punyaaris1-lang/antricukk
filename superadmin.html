@@ -6,7 +6,7 @@
     <title>SUPER ADMIN - GOD MODE</title>
     <link href="https://fonts.googleapis.com/css2?family=Teko:wght@300;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        /* === STYLE ULTIMATE (TEMA EMAS) === */
+        /* === STYLE ULTIMATE (TEMA EMAS - TIDAK DIUBAH) === */
         :root { 
             --bg: #050505; --panel: #111; --border: #333; 
             --gold: #FFD700; --red: #FF003C; --blue: #00F0FF; --green: #00FF00; --purple: #9D00FF; --neon: #39FF14; --orange: #FFAA00;
@@ -33,13 +33,15 @@
         #loginOverlay { display: flex; position: fixed; inset: 0; background: #000; z-index: 10000; justify-content: center; align-items: center; flex-direction: column; }
         .login-box { width: 300px; padding: 30px; border: 1px solid var(--gold); border-radius: 10px; background: #111; text-align: center; box-shadow: 0 0 30px rgba(255, 215, 0, 0.15); }
         
-        .qr-display-box { 
-            margin-top: 15px; background: #fff; padding: 15px; border-radius: 10px; 
-            display: none; flex-direction: column; align-items: center; 
-            box-shadow: 0 0 20px rgba(0,240,255,0.3);
-        }
-        .qr-display-box img { width: 180px; height: 180px; }
-        .qr-label { color: #000; font-family: 'Teko'; font-size: 24px; margin-top: 5px; text-transform: uppercase; font-weight: bold; }
+        /* EDIT LABEL */
+        .edit-label { text-align: left; color: var(--gold); font-size: 10px; margin-bottom: 2px; margin-top: 10px; letter-spacing: 1px; }
+
+        /* MODAL */
+        #customModal, #editModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 12000; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
+        .modal-box { background: #111; border: 1px solid var(--gold); width: 85%; max-width: 350px; padding: 25px; border-radius: 10px; text-align: center; box-shadow: 0 0 30px rgba(255, 215, 0, 0.1); }
+        .modal-btns { display: flex; gap: 10px; margin-top: 20px; }
+        .mb-yes { flex:1; background: var(--gold); color: #000; }
+        .mb-no { flex:1; background: #333; color: #fff; border: 1px solid #555; }
     </style>
 </head>
 <body>
@@ -58,311 +60,297 @@
     </div>
 
     <div class="box">
-        <h3>1. LIVE EDIT (GANTI PLAT/NAMA) & PAKSA SLOT</h3>
+        <h3>1. LIVE MONITORING & SLOT CONTROL</h3>
         <div class="slot-grid"><div id="slot1" class="slot-item">...</div><div id="slot2" class="slot-item">...</div><div id="slot3" class="slot-item">...</div></div>
+        
         <div style="margin-top:15px; padding-top:10px; border-top:1px dashed #333;">
-            <div style="color:#888; margin-bottom:5px;">ANTRIAN (Klik Edit untuk Ubah Typo):</div>
+            <div style="color:#888; margin-bottom:5px;">DAFTAR ANTRIAN (KLIK TOMBOL UNTUK EDIT):</div>
             <div id="queueList" style="max-height:200px; overflow-y:auto; border:1px solid #333; padding:5px; background:#050505;"></div>
         </div>
     </div>
 
     <div class="box" style="border-top: 3px solid var(--blue);">
-        <h3 style="color:var(--blue);">2. SET JABATAN PENGURUS</h3>
-        <div style="font-size:10px; color:#aaa; margin-bottom:10px;">Pilih "INPUT MANUAL" jika jabatan tidak ada di list.</div>
+        <h3 style="color:var(--blue);">2. SET JABATAN & BADGE</h3>
+        <div style="font-size:10px; color:#aaa; margin-bottom:10px;">Atur Badge Spesial untuk Plat tertentu.</div>
         <div style="display:flex; gap:5px; margin-bottom:5px;">
-            <input id="rolePlat" placeholder="PLAT NOMOR (Cth: B 1 ILHAM)" style="flex:2; text-transform:uppercase;">
+            <input id="rolePlat" placeholder="PLAT NOMOR (Cth: B 1234 XYZ)" style="flex:2; text-transform:uppercase;">
             <select id="roleSelect" style="flex:2;">
                 <option value="MEMBER">👤 KELUARGA MLU (DEFAULT)</option>
-                <option value="CUSTOM">✍ INPUT MANUAL (CUSTOM)...</option>
                 
-                <optgroup label="--- BOARD OF DIRECTORS ---">
+                <optgroup label="--- COMMANDER ---">
                     <option value="PRESIDEN MCU">🔥 PRESIDEN MCU</option>
-                    <option value="PROVOKATOR MCU">👿 PROVOKATOR MCU</option>
+                    <option value="PROVOKATOR">👿 PROVOKATOR</option>
                     <option value="KETUM">👑 KETUA UMUM</option>
                     <option value="WAKETUM">⭐ WAKETUM</option>
-                    <option value="PEMBINA">📜 PEMBINA</option>
-                    <option value="SEKRETARIS">💻 SEKJEN</option>
                 </optgroup>
 
-                <optgroup label="--- OPERASIONAL ---">
-                    <option value="KORLAP">🔴 KORLAP</option>
-                    <option value="SATGAS">⚡ SATGAS</option>
-                    <option value="KACAB">📍 KACAB</option>
+                <optgroup label="--- OFFICER ---">
+                    <option value="PEMBINA">📜 PEMBINA</option>
+                    <option value="PENASEHAT">🧠 PENASEHAT</option>
+                    <option value="SEKJEN">💻 SEKJEN</option>
                     <option value="HUMAS">📢 HUMAS</option>
                 </optgroup>
 
-                <optgroup label="--- LAINNYA ---">
-                    <option value="PASUKAN SENYAP">🥷 PASUKAN SENYAP</option>
-                    <option value="DONATUR">💸 DONATUR</option>
-                    <option value="PEA">🟣 KOKOH PEA</option>
-                    <option value="PELAN">🐢 SPECIAL TURTLE (SALTO)</option>
-                    <option value="OFFICE">🏢 OFFICE MAKA KG</option>
+                <optgroup label="--- TACTICAL ---">
+                    <option value="KORLAP">🔴 KORLAP</option>
+                    <option value="SATGAS">⚡ SATGAS</option>
+                    <option value="PASUKAN SENYAP">🥷 PASUKAN SENYAP (NINJA)</option>
+                    <option value="PELAN TAPI KENCENG">🐢 PELAN TAPI KENCENG</option>
                 </optgroup>
+
+                <optgroup label="--- OPERATIONAL ---">
+                    <option value="OFFICE">🏢 OFFICE MAKA</option>
+                    <option value="KACAB">📍 KACAB</option>
+                    <option value="MEKANIK">🔧 MEKANIK</option>
+                </optgroup>
+
+                <optgroup label="--- SPECIALS ---">
+                    <option value="VIP">💎 VIP</option>
+                    <option value="DONATUR">💸 DONATUR</option>
+                </optgroup>
+                
+                <option value="CUSTOM">✍ INPUT MANUAL...</option>
             </select>
         </div>
-        <button onclick="setJabatan()" class="btn-blue" style="width:100%;">SIMPAN & UPDATE BADGE</button>
-    </div>
-
-    <div class="box" style="border-top: 3px solid var(--purple);">
-        <h3 style="color:var(--purple);">3. SAKLAR KEAMANAN (HYBRID)</h3>
-        
-        <div style="background:#111; padding:15px; border-radius:8px; text-align:center; margin-bottom:15px; border:1px solid #333;">
-            <div style="color:#aaa; font-size:10px; letter-spacing:2px; margin-bottom:5px;">STATUS SAAT INI</div>
-            <div id="activeQRDisplay" style="font-family:'Teko'; font-size:32px; color:#fff; font-weight:bold; text-shadow:0 0 10px rgba(255,255,255,0.3);">LOADING...</div>
-            
-            <div id="qrContainer" class="qr-display-box">
-                <div style="color:#666; font-size:9px; margin-bottom:5px;">TAMPILKAN QR INI KE USER UNTUK SCAN</div>
-                <img id="qrImg" src="" alt="QR CODE">
-                <div id="qrTextLabel" class="qr-label"></div>
-            </div>
-        </div>
-
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-            <button onclick="setActiveQR('OFF')" class="btn-green" style="height:50px; font-size:16px;">
-                🌍 MODE GPS (OFF)
-            </button>
-            
-            <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:5px;">
-                <button onclick="setActiveQR('A')" class="btn-purple">KODE A</button>
-                <button onclick="setActiveQR('B')" class="btn-purple">KODE B</button>
-                <button onclick="setActiveQR('C')" class="btn-purple">KODE C</button>
-                <button onclick="setActiveQR('D')" class="btn-purple">KODE D</button>
-                <button onclick="setActiveQR('E')" class="btn-purple">KODE E</button>
-                <div style="display:flex; align-items:center; justify-content:center; font-size:9px; color:#666; text-align:center;">WAJIB SCAN</div>
-            </div>
-        </div>
-    </div>
-
-    <div class="box" style="border-top: 3px solid var(--green);">
-        <h3 style="color:var(--green);">4. INFO MEMBER VIP (BADGE)</h3>
-        <button onclick="loadMembers()" class="btn-green" style="width:100%; margin-bottom:10px;">👥 LIHAT DATA MEMBER</button>
-        <div id="memberListArea" style="max-height:200px; overflow-y:auto; border:1px solid #333; display:none;"></div>
+        <button onclick="setJabatan()" class="btn-blue" style="width:100%;">SIMPAN PERUBAHAN</button>
     </div>
 
     <div class="box" style="border-top: 3px solid var(--orange);">
-        <h3 style="color:var(--orange);">5. LIVE BROADCAST (PENGUMUMAN)</h3>
-        <div style="font-size:10px; color:#aaa; margin-bottom:10px;">Pesan akan muncul sebagai POP-UP MERAH di semua layar.</div>
+        <h3 style="color:var(--orange);">3. SYSTEM BROADCAST</h3>
         <div style="display:flex; gap:5px;">
-            <input id="broadcastInput" placeholder="Ketik pesan darurat disini..." style="flex:3;">
+            <input id="broadcastInput" placeholder="PESAN DARURAT UNTUK SEMUA LAYAR..." style="flex:3;">
             <button onclick="kirimBroadcast()" class="btn-orange" style="flex:1;">📢 KIRIM</button>
         </div>
     </div>
 
     <div class="box" style="border-top: 3px solid var(--red);">
-        <h3 style="color:var(--red);">6. DANGER ZONE (RESET)</h3>
+        <h3 style="color:var(--red);">4. DANGER ZONE</h3>
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-            <button onclick="if(confirm('Reset Nomor Urut Antrian jadi 1? Daftar antrian tetap aman.')) resetDaily()" class="btn-gold">🔄 RESET NOMOR HARIAN</button>
-            <button onclick="if(confirm('BAHAYA: Hapus SEMUA data antrian & slot?')) resetTotal()" class="btn-red">☣ WIPE TOTAL (0)</button>
+            <button onclick="if(confirm('Reset Nomor Antrian? Data user tidak hilang.')) resetTicketNumbers()" class="btn-gray">♻ RESET NO. ANTRIAN</button>
+            <button onclick="if(confirm('BAHAYA: Hapus SEMUA data?')) resetTotal()" class="btn-red">☠ WIPE ALL DATA</button>
         </div>
     </div>
 
     <div class="box">
         <h3>SYSTEM LOGS</h3>
-        <div class="term-container" id="termLog"><div class="log-line">Waiting for logs...</div></div>
+        <div class="term-container" id="termLog"></div>
+    </div>
+
+    <div id="customModal">
+        <div class="modal-box">
+            <h2 style="margin:0 0 10px 0; font-family:'Teko'; color:#fff; font-size:24px;">KONFIRMASI</h2>
+            <div id="modalText" style="color:#ccc; margin-bottom:20px; font-size:14px;">Text</div>
+            <div class="modal-btns">
+                <button id="btnYes" class="mb-yes">YA, LANJUTKAN</button>
+                <button onclick="closeModal()" class="mb-no">BATAL</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="editModal">
+        <div class="modal-box">
+            <h2 style="margin:0 0 10px 0; font-family:'Teko'; color:var(--blue); font-size:24px;">EDIT DATA USER</h2>
+            <p style="color:#666; font-size:10px; margin-top:-10px;">UBAH DATA JIKA USER SALAH INPUT</p>
+            
+            <div class="edit-label">PLAT NOMOR</div>
+            <input id="editPlat" type="text" style="text-align:center; font-weight:bold;">
+            
+            <div class="edit-label">NAMA USER</div>
+            <input id="editName" type="text" style="text-align:center;">
+            
+            <div class="edit-label">SISA BATERAI (%)</div>
+            <input id="editBatt" type="number" max="100" style="text-align:center;">
+
+            <input type="hidden" id="editType"> <input type="hidden" id="editId">   <div class="modal-btns">
+                <button onclick="saveEdit()" class="mb-yes">SIMPAN</button>
+                <button onclick="closeEditModal()" class="mb-no">BATAL</button>
+            </div>
+        </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, doc, onSnapshot, runTransaction, collection, addDoc, query, orderBy, limit, setDoc, getDocs, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, doc, onSnapshot, runTransaction, collection, addDoc, query, orderBy, limit, setDoc, getDocs, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         
         const firebaseConfig = { apiKey: "AIzaSyB666i9lYWIpxOdkwpoX9EvFvHLmHczeq8", authDomain: "fcgadingnew22.firebaseapp.com", projectId: "fcgadingnew22", storageBucket: "fcgadingnew22.firebasestorage.app", messagingSenderId: "537736846678", appId: "1:537736846678:web:53788d71a196423ac08af7" };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const mainRef = doc(db, "antrian", "utama");
         const logRef = collection(db, "activityLog");
-        let cachedData = null;
         
+        let cachedSlots = [null, null, null];
+        let cachedQueue = [];
+
+        // LOGIN SYSTEM
         if(localStorage.getItem('sa_sess')) { document.getElementById('loginOverlay').style.display = 'none'; }
-        window.attemptLogin = () => { if(document.getElementById('loginPin').value === "090815") { localStorage.setItem('sa_sess', '1'); document.getElementById('loginOverlay').style.display = 'none'; addLog("SUPER_ADMIN", "LOGIN", "God Mode Accessed"); } else { alert("PIN SALAH!"); } };
+        window.attemptLogin = () => { if(document.getElementById('loginPin').value === "090815") { localStorage.setItem('sa_sess', '1'); document.getElementById('loginOverlay').style.display = 'none'; addLog("SUPER_ADMIN", "LOGIN", "God Mode Active"); } else { alert("PIN SALAH!"); } };
         window.logout = () => { localStorage.removeItem('sa_sess'); window.location.href='system.html'; };
 
+        // --- UTILS ---
+        let currentCallback = null;
+        window.askConfirm = (text, callback) => { document.getElementById('modalText').innerText = text; document.getElementById('customModal').style.display = 'flex'; currentCallback = callback; };
+        document.getElementById('btnYes').onclick = () => { if(currentCallback) currentCallback(); closeModal(); };
+        window.closeModal = () => { document.getElementById('customModal').style.display = 'none'; currentCallback = null; };
+
+        // --- EDIT MODAL (GOD MODE) ---
+        window.openEdit = (type, id) => {
+            let data;
+            if(type === 'slot') data = cachedSlots[id];
+            else data = cachedQueue[id];
+
+            if(!data) return alert("Data kosong / error.");
+
+            document.getElementById('editType').value = type;
+            document.getElementById('editId').value = id;
+            document.getElementById('editPlat').value = data.plat;
+            document.getElementById('editName').value = data.userName;
+            document.getElementById('editBatt').value = data.batreSisa || "";
+            document.getElementById('editModal').style.display = 'flex';
+        };
+        window.closeEditModal = () => { document.getElementById('editModal').style.display = 'none'; };
+
+        window.saveEdit = () => {
+            const type = document.getElementById('editType').value;
+            const id = parseInt(document.getElementById('editId').value);
+            const p = document.getElementById('editPlat').value.toUpperCase();
+            const n = document.getElementById('editName').value.toUpperCase();
+            const b = document.getElementById('editBatt').value;
+
+            if(!p || !n) return alert("Data tidak boleh kosong!");
+
+            runTransaction(db, async(t) => {
+                const d = (await t.get(mainRef)).data();
+                if(type === 'slot') {
+                    if(d.chargingSlots[id]) {
+                        d.chargingSlots[id].plat = p; d.chargingSlots[id].userName = n; d.chargingSlots[id].batreSisa = b;
+                    }
+                } else {
+                    if(d.waitingQueue[id]) {
+                        d.waitingQueue[id].plat = p; d.waitingQueue[id].userName = n; d.waitingQueue[id].batreSisa = b;
+                    }
+                }
+                t.update(mainRef, { chargingSlots: d.chargingSlots, waitingQueue: d.waitingQueue });
+                addLog("SUPER_ADMIN", "EDIT_DATA", `Edited: ${p}`);
+            }).then(() => { closeEditModal(); }).catch(e => alert("Gagal: " + e));
+        };
+
+        // --- MONITOR ---
         onSnapshot(mainRef, (snap) => {
             if(!snap.exists()) return;
-            const d = snap.data(); cachedData = d;
+            const d = snap.data();
+            cachedSlots = d.chargingSlots || [null,null,null];
+            cachedQueue = d.waitingQueue || [];
             
-            (d.chargingSlots || [null,null,null]).forEach((s, i) => {
+            // SLOT RENDER
+            cachedSlots.forEach((s, i) => {
                 const el = document.getElementById(`slot${i+1}`);
                 if(s) { 
-                    el.innerHTML = `<div style="color:var(--blue); font-size:16px; font-weight:bold;">${s.plat}</div><div style="font-size:12px;">${s.userName}</div><div style="margin-top:auto; width:100%;"><button onclick="editData('slot', ${i})" class="btn-gold btn-mini" style="width:100%;">EDIT DATA</button></div>`; 
+                    el.innerHTML = `
+                    <div style="color:var(--blue); font-size:20px; font-weight:bold;">${s.plat}</div>
+                    <div style="font-size:12px;">${s.userName}</div>
+                    <div style="color:var(--gold); font-size:10px;">BATRE: ${s.batreSisa || '-'}%</div>
+                    <div style="margin-top:auto; width:100%; display:grid; gap:2px;">
+                        <button onclick="openEdit('slot', ${i})" class="btn-gold btn-mini">✏ EDIT</button>
+                        <button onclick="askConfirm('KICK USER?', ()=>forceStop(${i}))" class="btn-red btn-mini">KICK</button>
+                    </div>`; 
                     el.style.border = "1px solid var(--blue)"; 
                 } else { 
-                    // UPDATE: TOMBOL ISI SLOT
-                    el.innerHTML = `<div style="color:#555; margin:auto; font-size:10px;">KOSONG</div><div style="width:100%;"><button onclick="forcePushSlot(${i})" class="btn-green btn-mini" style="width:100%;">+ ISI SLOT</button></div>`; 
+                    el.innerHTML = `<div style="color:#555; margin:auto; font-size:10px;">SLOT KOSONG</div><div style="width:100%;"><button onclick="forcePushSlot(${i})" class="btn-green btn-mini" style="width:100%;">+ ISI PAKSA</button></div>`; 
                     el.style.border = "1px solid #333"; 
                 }
             });
             
+            // QUEUE RENDER
             const qList = document.getElementById('queueList'); qList.innerHTML = '';
-            (d.waitingQueue || []).forEach((q, i) => {
+            cachedQueue.forEach((q, i) => {
                 const div = document.createElement('div');
                 div.style.cssText = "display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #222; padding:5px;";
-                div.innerHTML = `<span><span style="color:var(--gold)">#${q.qNo}</span> <b>${q.plat}</b> <span style="font-size:10px; color:#888;">${q.userName}</span></span><button onclick="editData('queue', '${q.plat}')" class="btn-gold btn-mini">EDIT</button>`;
+                div.innerHTML = `
+                <span><span style="color:var(--gold)">#${q.qNo}</span> <b>${q.plat}</b> <span style="font-size:10px; color:#888;">(${q.batreSisa}%)</span></span>
+                <div>
+                    <button onclick="openEdit('queue', ${i})" class="btn-gold btn-mini">✏</button>
+                    <button onclick="askConfirm('Hapus?', ()=>delQueue('${q.plat}'))" class="btn-red btn-mini">X</button>
+                </div>`;
                 qList.appendChild(div);
             });
-
-            const activeCode = d.activeQrCode || 'OFF'; 
-            const displayEl = document.getElementById('activeQRDisplay');
-            const qrBox = document.getElementById('qrContainer');
-            const qrImg = document.getElementById('qrImg');
-            const qrText = document.getElementById('qrTextLabel');
-
-            if(activeCode === 'OFF') {
-                displayEl.innerText = "MODE GPS (TANPA BARCODE)"; displayEl.style.color = "var(--green)"; qrBox.style.display = 'none';
-            } else {
-                displayEl.innerText = "SECURE MODE: " + activeCode.replace("FC-CODE-", "KODE "); displayEl.style.color = "var(--purple)"; qrBox.style.display = 'flex';
-                qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${activeCode}`; qrText.innerText = activeCode.replace("FC-CODE-", "KODE ");
-            }
         });
 
-        window.setActiveQR = (mode) => {
-            let newVal = "OFF"; let msg = "Matikan Barcode? Kembali ke Mode GPS?";
-            if(mode !== 'OFF') { newVal = "FC-CODE-" + mode; msg = "Aktifkan KODE " + mode + "?\nUser WAJIB scan kertas Kode " + mode + " untuk masuk."; }
-            if(!confirm(msg)) return;
-            setDoc(mainRef, { activeQrCode: newVal }, {merge: true}).then(() => { addLog("SUPER_ADMIN", "CHANGE_SECURITY", `Set Security to ${newVal}`); });
-        };
-
-        // NEW FEATURE: PAKSA ISI SLOT
+        // --- ACTIONS ---
         window.forcePushSlot = (index) => {
-            const p = prompt(`MASUKKAN PLAT NOMOR UNTUK SLOT ${index+1}:`);
-            if(!p) return;
-            const n = prompt(`MASUKKAN NAMA PEMILIK ${p}:`);
-            if(!n) return;
-            
+            const p = prompt("PLAT NOMOR:"); if(!p) return;
+            const n = prompt("NAMA:"); if(!n) return;
             runTransaction(db, async(t) => {
                 const d = (await t.get(mainRef)).data();
-                if(d.chargingSlots[index]) return alert("Slot sudah terisi orang lain!");
-                
-                d.chargingSlots[index] = {
-                    plat: p.toUpperCase(),
-                    userName: n.toUpperCase(),
-                    role: "MEMBER",
-                    startTime: Date.now(),
-                    qNo: "ADMIN",
-                    entryTime: Date.now()
-                };
+                if(d.chargingSlots[index]) return alert("Sudah terisi!");
+                d.chargingSlots[index] = { plat: p.toUpperCase(), userName: n.toUpperCase(), batreSisa: "-", role: "MEMBER", startTime: Date.now(), entryTime: Date.now() };
                 t.update(mainRef, { chargingSlots: d.chargingSlots });
-            }).then(() => addLog("SUPER_ADMIN", "FORCE_FILL", `Forced ${p} into Slot ${index+1}`));
+            }).then(() => addLog("SUPER_ADMIN", "FORCE_PUSH", `Slot ${index+1}`));
         };
 
-        window.editData = (type, id) => {
-            let oldP = "", oldN = "";
-            if(type === 'slot') { if(!cachedData.chargingSlots[id]) return alert("Slot Kosong"); oldP = cachedData.chargingSlots[id].plat; oldN = cachedData.chargingSlots[id].userName; } 
-            else { const q = cachedData.waitingQueue.find(x => x.plat === id); oldP = q.plat; oldN = q.userName; }
-            const newP = prompt("GANTI PLAT:", oldP); if(!newP) return;
-            const newN = prompt("GANTI NAMA:", oldN); if(!newN) return;
+        window.forceStop = (i) => {
             runTransaction(db, async(t) => {
                 const d = (await t.get(mainRef)).data();
-                if(type === 'slot') { d.chargingSlots[id].plat = newP.toUpperCase(); d.chargingSlots[id].userName = newN.toUpperCase(); } 
-                else { const idx = d.waitingQueue.findIndex(x => x.plat === id); if(idx > -1) { d.waitingQueue[idx].plat = newP.toUpperCase(); d.waitingQueue[idx].userName = newN.toUpperCase(); } }
-                t.update(mainRef, { chargingSlots: d.chargingSlots, waitingQueue: d.waitingQueue });
-                addLog("SUPER_ADMIN", "EDIT_DATA", `${oldP} -> ${newP}`);
+                d.chargingSlots[i] = null;
+                t.update(mainRef, { chargingSlots: d.chargingSlots });
+                addLog("SUPER_ADMIN", "FORCE_STOP", `Slot ${i+1}`);
             });
+        };
+
+        window.delQueue = (p) => {
+            runTransaction(db, async(t) => {
+                const d = (await t.get(mainRef)).data();
+                const newQ = d.waitingQueue.filter(x => x.plat !== p);
+                t.update(mainRef, { waitingQueue: newQ });
+                addLog("SUPER_ADMIN", "DEL_QUEUE", p);
+            });
+        };
+
+        window.kirimBroadcast = async () => {
+            const msg = document.getElementById('broadcastInput').value;
+            if(!msg) return;
+            await updateDoc(mainRef, { broadcast: { msg: msg, time: Date.now() } });
+            addLog("SUPER_ADMIN", "BROADCAST", msg);
+            alert("Pesan Terkirim!");
+            document.getElementById('broadcastInput').value = "";
         };
 
         window.setJabatan = () => {
             const p = document.getElementById('rolePlat').value.toUpperCase(); 
             let r = document.getElementById('roleSelect').value; 
-            
-            if(!p) return alert("ISI KOLOM PLAT NOMOR DULU!"); 
-            
-            // LOGIC CUSTOM BADGE DIPERBAIKI
-            if(r === "CUSTOM") {
-                const c = prompt("MASUKKAN NAMA JABATAN CUSTOM (BEBAS):");
-                if(!c || c.trim() === "") return alert("BATAL: Nama jabatan tidak boleh kosong!");
-                r = c.toUpperCase();
-            }
+            if(!p) return alert("Isi Plat Nomor!");
+            if(r === "CUSTOM") { r = prompt("Nama Jabatan Custom:").toUpperCase(); if(!r) return; }
 
             const cleanP = p.replace(/[^A-Z0-9]/g, '');
             setDoc(doc(db, "members", cleanP), { plat: p, role: r, verified: true }, {merge:true});
+            
+            // Live update
             runTransaction(db, async(t) => {
-                const d = (await t.get(mainRef)).data(); let updated = false;
-                const newQ = (d.waitingQueue||[]).map(q => { if(q.plat.replace(/[^A-Z0-9]/g,'') === cleanP) { updated=true; return {...q, role: r, isMember: true}; } return q; });
-                const newS = (d.chargingSlots||[null,null,null]).map(s => { if(s && s.plat.replace(/[^A-Z0-9]/g,'') === cleanP) { updated=true; return {...s, role: r, isMember: true}; } return s; });
-                if(updated) t.update(mainRef, { waitingQueue: newQ, chargingSlots: newS });
-            }).then(() => { alert(`BERHASIL! ${p} sekarang ${r}`); addLog("SUPER_ADMIN", "SET_ROLE", `Set ${p} as ${r}`); document.getElementById('rolePlat').value = ''; if(document.getElementById('memberListArea').style.display === 'block') loadMembers(); });
+                const d = (await t.get(mainRef)).data(); let upd = false;
+                const newQ = (d.waitingQueue||[]).map(q => { if(q.plat.replace(/[^A-Z0-9]/g,'') === cleanP) { upd=true; return {...q, role: r}; } return q; });
+                const newS = (d.chargingSlots||[null,null,null]).map(s => { if(s && s.plat.replace(/[^A-Z0-9]/g,'') === cleanP) { upd=true; return {...s, role: r}; } return s; });
+                if(upd) t.update(mainRef, { waitingQueue: newQ, chargingSlots: newS });
+            }).then(() => { alert("Jabatan Updated!"); addLog("SUPER_ADMIN", "SET_ROLE", `${p} -> ${r}`); document.getElementById('rolePlat').value = ''; });
         };
 
-        window.loadMembers = async () => {
-            const area = document.getElementById('memberListArea'); area.style.display = 'block'; area.innerHTML = '<div style="padding:10px;">Loading Data...</div>';
-            try {
-                const q = query(collection(db, "members")); const querySnapshot = await getDocs(q);
-                let html = '<table style="width:100%; font-size:10px;"><tr><th style="text-align:left;">PLAT</th><th style="text-align:left;">JABATAN</th><th>AKSI</th></tr>';
-                let count = 0;
-                querySnapshot.forEach((doc) => {
-                    const d = doc.data();
-                    if (d.role) {
-                        count++; let color = '#fff'; let label = d.role;
-                        
-                        if(d.role === 'PEA') { color = 'var(--purple)'; label = '🟣 KOKOH PEA'; }
-                        else if(d.role === 'PRESIDEN MCU') { color = '#ff003c'; label = '🔥 PRESIDEN MCU'; }
-                        else if(d.role === 'PROVOKATOR MCU') { color = '#ff4500'; label = '👿 PROVOKATOR MCU'; }
-                        else if(d.role === 'PASUKAN SENYAP') { color = '#888'; label = '🥷 PASUKAN SENYAP'; }
-                        else if(d.role === 'DONATUR') { color = '#00FF00'; label = '💸 DONATUR'; }
-                        else if(d.role === 'KETUM') { color = 'var(--gold)'; label = '👑 KETUA UMUM'; }
-                        else if(d.role === 'WAKETUM') { color = '#ddd'; label = 'WAKETUM'; }
-                        else if(d.role === 'KORLAP') { color = 'var(--red)'; label = '🔴 KORLAP'; }
-                        else if(d.role === 'SATGAS') { color = 'var(--orange)'; label = '⚡ SATGAS'; }
-                        else if(d.role === 'SEKRETARIS') { color = 'var(--blue)'; label = '💻 SEKJEN'; }
-                        else if(d.role === 'PELAN') { color = 'var(--neon)'; label = '🐢 SPECIAL TURTLE'; }
-                        else if(d.role === 'OFFICE') { color = '#aaa'; label = '🏢 OFFICE MAKA'; }
-                        else if(d.role === 'HUMAS') { color = '#f59e0b'; label = '📢 HUMAS'; }
-                        else if(d.role === 'MEMBER') { color = 'var(--gold)'; label = '👤 KELUARGA MLU'; } 
-                        else { color = '#b08dff'; label = d.role + " (CUSTOM)"; }
-                        
-                        html += `<tr style="border-bottom:1px solid #222;"><td style="padding:5px;">${d.plat}</td><td style="padding:5px; color:${color}; font-weight:bold;">${label}</td><td style="padding:5px; text-align:center;"><button onclick="hapusBadge('${d.plat}')" class="btn-red btn-mini">X</button></td></tr>`;
-                    }
-                });
-                area.innerHTML = (count === 0) ? '<div style="padding:10px;">KOSONG</div>' : html + '</table>';
-            } catch (e) { alert("Gagal: " + e); }
-        };
-
-        window.hapusBadge = async (plat) => {
-            if(!confirm("Copot jabatan " + plat + "?")) return; const cleanP = plat.replace(/[^A-Z0-9]/g, '');
-            await setDoc(doc(db, "members", cleanP), { plat: plat, role: null, verified: true }, {merge:true});
+        window.resetTicketNumbers = () => {
             runTransaction(db, async(t) => {
-                const d = (await t.get(mainRef)).data(); let updated = false;
-                const newQ = (d.waitingQueue||[]).map(q => { if(q.plat.replace(/[^A-Z0-9]/g,'') === cleanP) { updated=true; return {...q, role: null}; } return q; });
-                const newS = (d.chargingSlots||[null,null,null]).map(s => { if(s && s.plat.replace(/[^A-Z0-9]/g,'') === cleanP) { updated=true; return {...s, role: null}; } return s; });
-                if(updated) t.update(mainRef, { waitingQueue: newQ, chargingSlots: newS });
-            }).then(() => { addLog("SUPER_ADMIN", "REMOVE_ROLE", `Removed Role from ${plat}`); loadMembers(); });
+                const d = (await t.get(mainRef)).data();
+                let queue = d.waitingQueue || [];
+                queue.forEach((q, i) => { q.qNo = i + 1; });
+                t.update(mainRef, { waitingQueue: queue, lastTicket: queue.length });
+                addLog("SUPER_ADMIN", "RESET_NUM", "Re-index success");
+            });
         };
 
-        window.kirimBroadcast = async () => {
-            const msg = document.getElementById('broadcastInput').value;
-            if(!msg) return alert("Ketik pesan dulu!");
-            if(confirm("Kirim Broadcast: " + msg + "?")) {
-                await updateDoc(mainRef, { broadcast: { msg: msg, time: Date.now() } });
-                alert("PESAN TERKIRIM!"); addLog("SUPER_ADMIN", "BROADCAST", msg);
-                document.getElementById('broadcastInput').value = "";
-            }
+        window.resetTotal = () => {
+            setDoc(mainRef, { chargingSlots:[null,null,null], waitingQueue:[], lastTicket:0 }).then(() => addLog("SUPER_ADMIN", "WIPE_DATA", "ALL DELETED"));
         };
 
-        // RESET NOMOR HARIAN (SAFE MODE)
-        // Reset nomor jadi 1, tapi antrian user TETAP ADA (hanya re-index)
-        window.resetDaily = () => {
-            runTransaction(db, async(t) => {
-                const ref = doc(db, "antrian", "utama");
-                const d = (await t.get(ref)).data();
-                
-                // Re-index antrian yang ada biar mulai dari 1 lagi
-                const newQ = (d.waitingQueue || []).map((q, i) => ({ ...q, qNo: i + 1 }));
-                
-                t.update(ref, { 
-                    waitingQueue: newQ, 
-                    recycledNumbers: [], 
-                    lastTicket: newQ.length 
-                });
-                
-                addLog("SUPER_ADMIN", "RESET_DAILY", "Reset Queue Numbering Only");
-            }); 
-        };
-
-        window.resetTotal = () => { setDoc(mainRef, { chargingSlots:[null,null,null], waitingQueue:[], recycledNumbers:[], lastTicket:0 }).then(() => addLog("SUPER_ADMIN", "RESET_TOTAL", "Wiped Everything")); };
-        
-        onSnapshot(query(logRef, orderBy("timestamp", "desc"), limit(50)), (snap) => {
-            let h = ''; snap.forEach(d => { const x = d.data(); const time = x.timestamp ? x.timestamp.toDate().toLocaleTimeString() : '-'; h += `<div class="log-line"><span style="color:#666">[${time}]</span> <b style="color:var(--gold)">${x.actor}</b>: ${x.action} - ${x.details}</div>`; });
+        onSnapshot(query(logRef, orderBy("timestamp", "desc"), limit(20)), (snap) => {
+            let h = ''; snap.forEach(d => { const x = d.data(); h += `<div class="log-line"><b style="color:var(--gold)">${x.actor}</b>: ${x.action} - ${x.details}</div>`; });
             document.getElementById('termLog').innerHTML = h;
         });
+
         function addLog(actor, act, det) { addDoc(logRef, { action: act, details: det, actor: actor, timestamp: new Date() }); }
     </script>
 </body>
