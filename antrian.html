@@ -409,13 +409,22 @@
             const btn = document.querySelector('.btn-kirim');
             btn.innerText = "PROSES...";
             try {
+                // MODIFIKASI: Ambil Role dari Database Members sebelum update antrian
+                const memberRef = doc(db, "members", plat.replace(/[^A-Z0-9]/g, ''));
+                const memberSnap = await getDoc(memberRef);
+                let role = "GUEST";
+                if(memberSnap.exists() && memberSnap.data().role) {
+                    role = memberSnap.data().role;
+                }
+
                 const snap = await getDoc(mainRef);
                 if(snap.exists()) {
                     let queue = snap.data().waitingQueue || [];
                     if(queue.find(q => q.plat === plat)) { alert("SUDAH ANTRI!"); location.reload(); return; }
                     
-                    queue.push({ userName: nama, plat: plat, batreSisa: batre, timestamp: Date.now() });
-                    await updateDoc(mainRef, { waitingQueue: queue });
+                    // Simpan data dengan Role yang sudah didapat
+                    queue.push({ userName: nama, plat: plat, batreSisa: batre, role: role, timestamp: Date.now(), qNo: (snap.data().lastTicket || 0) + 1 });
+                    await updateDoc(mainRef, { waitingQueue: queue, lastTicket: (snap.data().lastTicket || 0) + 1 });
                     
                     localStorage.setItem('myPlat', plat);
                     

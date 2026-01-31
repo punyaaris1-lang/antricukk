@@ -39,12 +39,6 @@
         /* --- LOADING & BLOCKER --- */
         #gate-screen { position: fixed; inset: 0; background: #000; z-index: 99999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         
-        /* --- SCREENSAVER --- */
-        #hangar-overlay { position: fixed; inset: 0; z-index: 10000; background: #000; display: none; flex-direction: column; align-items: center; justify-content: center; }
-        .screensaver-logo-container { position: relative; width: 200px; height: 200px; display: flex; align-items: center; justify-content: center; }
-        .logo-ring { position: absolute; inset: 0; border: 2px dashed var(--primary); border-radius: 50%; animation: spinSlow 10s linear infinite; box-shadow: 0 0 30px var(--primary-dim); }
-        .logo-main { width: 120px; height: 120px; object-fit: contain; filter: drop-shadow(0 0 15px var(--primary)); animation: pulseLogo 3s infinite ease-in-out; z-index: 2; }
-
         /* --- HEADER --- */
         .header { text-align: center; margin-bottom: 30px; margin-top: 10px; cursor: pointer; position: relative; z-index: 5; } 
         .main-title { font-family: var(--font-tech); font-weight: 900; font-size: 42px; line-height: 0.9; color: #fff; text-shadow: 0 0 25px var(--primary-dim); letter-spacing: 2px; text-transform: uppercase; }
@@ -54,7 +48,7 @@
         .queue-bar-wrapper { width: 100%; margin-bottom: 25px; cursor: pointer; }
         .queue-bar { background: linear-gradient(90deg, rgba(0, 20, 30, 0.9), rgba(0,0,0,0.9)); clip-path: polygon(0 0, 100% 0, 95% 100%, 0% 100%); border-left: 6px solid var(--primary); padding: 15px 20px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 5px 20px rgba(0,0,0,0.5); }
         .qb-lbl { font-size: 11px; color: var(--primary); letter-spacing: 2px; text-transform: uppercase; font-weight: 800; font-family: var(--font-head); }
-        .qb-val { font-family: var(--font-num); font-size: 34px; color: #fff; display: flex; align-items: center; gap: 10px; letter-spacing: 2px; text-shadow: 0 0 10px rgba(255,255,255,0.5); }
+        .qb-val { font-family: var(--font-tech); font-weight:700; font-size: 24px; color: #fff; display: flex; align-items: center; gap: 10px; letter-spacing: 1px; text-shadow: 0 0 10px rgba(255,255,255,0.5); text-transform: uppercase; }
         .qb-tot { font-family: var(--font-tech); font-weight: 800; font-size: 42px; line-height: 0.8; color: var(--primary); text-shadow: 0 0 15px var(--primary); }
 
         /* --- SLOT CONTAINER --- */
@@ -237,15 +231,6 @@
         </div>
     </div>
 
-    <div id="hangar-overlay" onclick="wakeUp()">
-        <div class="screensaver-logo-container">
-            <div class="logo-ring"></div>
-            <img src="logo.png" class="logo-main" alt="FC">
-        </div>
-        <div class="hud-label" style="margin-top:20px;">SYSTEM STANDBY</div>
-        <div style="color:#666; font-size:10px; margin-top:5px; font-family:var(--font-head); letter-spacing:2px; animation:pulseText 2s infinite;">TAP TO WAKE UP</div>
-    </div>
-
     <div class="header" ondblclick="toggleAdmin()" style="position: relative;">
         <div onclick="window.location.href='infomlu.html'" 
              style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); cursor: pointer; z-index: 50;">
@@ -319,7 +304,7 @@
         function addUserLog(action, details) { addDoc(logRef, { actor: myPlat || "GUEST", action: action, details: details, timestamp: new Date() }).catch(e=>{}); }
         function calculateDist(lat1, lon1, lat2, lon2) { const R = 6371; const dLat = (lat2-lat1)*Math.PI/180; const dLon = (lon2-lon1)*Math.PI/180; const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2; return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); }
 
-        // --- GATEKEEPER & AUTO-KICK (SUPER ADMIN BYPASS) ---
+        // --- GATEKEEPER & AUTO-KICK ---
         const myPlat = localStorage.getItem('myPlat');
         const isSuperAdmin = localStorage.getItem('sa_sess');
 
@@ -328,7 +313,13 @@
         } else {
             setTimeout(() => { const g = document.getElementById('gate-screen'); if(g) g.style.display = 'none'; }, 1000);
             
-            // Auto Kick (User Biasa Only)
+            // AUTO FIX: JIKA SUDAH DAFTAR TAPI BADGE MASIH GUEST
+            if(myPlat && !isSuperAdmin) {
+                setTimeout(() => {
+                    checkAndFixMyRole(myPlat);
+                }, 2000);
+            }
+
             const AUTO_KICK_KM = 0.5;
             if(navigator.geolocation && !isSuperAdmin) {
                 navigator.geolocation.watchPosition((pos) => {
@@ -342,18 +333,60 @@
             }
         }
 
+        // --- FUNGSI AUTO FIX BADGE (SOLUSI MASALAH BAPAK) ---
+        async function checkAndFixMyRole(plat) {
+            try {
+                // 1. Ambil data asli dari Member
+                const cleanPlat = plat.replace(/[^A-Z0-9]/g, '');
+                const memberRef = doc(db, "members", cleanPlat);
+                const memberSnap = await getDoc(memberRef);
+                
+                if (memberSnap.exists() && memberSnap.data().role) {
+                    const correctRole = memberSnap.data().role;
+                    
+                    // 2. Cek apakah di antrian/slot rolenya salah?
+                    await runTransaction(db, async (t) => {
+                        const d = (await t.get(mainRef)).data();
+                        let updated = false;
+                        
+                        // Cek Queue
+                        if (d.waitingQueue) {
+                            d.waitingQueue.forEach(q => {
+                                if (cleanStr(q.plat) === cleanStr(plat) && q.role !== correctRole) {
+                                    q.role = correctRole; // FIX IT
+                                    updated = true;
+                                }
+                            });
+                        }
+                        
+                        // Cek Slot
+                        if (d.chargingSlots) {
+                            d.chargingSlots.forEach(s => {
+                                if (s && cleanStr(s.plat) === cleanStr(plat) && s.role !== correctRole) {
+                                    s.role = correctRole; // FIX IT
+                                    updated = true;
+                                }
+                            });
+                        }
+
+                        // 3. Update cuma kalau ada yang salah
+                        if (updated) {
+                            t.update(mainRef, { 
+                                waitingQueue: d.waitingQueue,
+                                chargingSlots: d.chargingSlots
+                            });
+                            console.log("BADGE FIXED AUTOMATICALLY!");
+                        }
+                    });
+                }
+            } catch (e) { console.log("Auto-fix error (ignore):", e); }
+        }
+
         window.toggleAdmin = () => { const pass = prompt("ADMIN CODE:"); if(pass === "1131") window.location.href = "admin.html"; else if (pass) showAlert("ACCESS DENIED!", "ERROR"); };
         window.showAlert = (msg, title="INFO") => { $('modalTitle').innerText = title; $('modalMsg').innerText = msg; $('modalBtns').innerHTML = `<button class="btn-modal btn-yes" onclick="closeCustomModal()">OK</button>`; $('customModal').style.display = 'flex'; };
         window.showConfirm = (msg, callback) => { $('modalTitle').innerText = "KONFIRMASI"; $('modalMsg').innerText = msg; $('modalBtns').innerHTML = `<button class="btn-modal btn-no" onclick="closeCustomModal()">BATAL</button><button class="btn-modal btn-yes" id="btnYes">YA</button>`; $('btnYes').onclick = () => { closeCustomModal(); callback(); }; $('customModal').style.display = 'flex'; };
         window.closeCustomModal = () => { $('customModal').style.display = 'none'; };
         window.closeModal = (id) => { $(id).style.display = 'none'; };
-
-        let ssTimer; let idleTime = 0; let isStandby = false;
-        setInterval(() => { idleTime++; const limit = 300; if (idleTime > limit && !isStandby) enterStandby(); }, 1000);
-        function resetTimer() { idleTime = 0; }
-        window.onclick = resetTimer; window.ontouchstart = resetTimer;
-        function enterStandby() { isStandby = true; $('hangar-overlay').style.display = 'flex'; }
-        window.wakeUp = () => { if(!isStandby) return; $('hangar-overlay').style.display = 'none'; isStandby = false; resetTimer(); };
 
         onSnapshot(mainRef, (snap) => {
             if (!snap.exists()) return; const d = snap.data(); localSlots = d.chargingSlots || [null, null, null]; localQueue = d.waitingQueue || []; 
@@ -419,7 +452,8 @@
                 }
                 container.appendChild(div);
             });
-            $('totalQDisplay').innerText = localQueue.length; $('nextQDisplay').innerText = localQueue.length > 0 ? localQueue[0].plat : "--";
+            $('totalQDisplay').innerText = localQueue.length; 
+            $('nextQDisplay').innerText = localQueue.length > 0 ? localQueue[0].userName : "--";
         }
 
         // --- BADGE LOGIC (NINJA FIXED) ---
@@ -432,7 +466,8 @@
                 <div class="badge-container">
                     <div class="tactical-badge b-ninja">
                         <div class="tb-icon">
-                            <i class="fas fa-user-ninja"></i> </div>
+                            <i class="fas fa-user-ninja"></i> 
+                        </div>
                         <div class="tb-text"><div class="tb-role" style="font-size:8px;">PASUKAN SENYAP</div></div>
                     </div>
                 </div>`;
@@ -522,6 +557,21 @@
         };
         
         window.resetApp = () => showConfirm("RESET APLIKASI?", () => { localStorage.clear(); location.reload(); });
+
+        // --- SCREENSAVER LOGIC (5 MENIT IDLE) ---
+        let idleTime = 0;
+        // Reset timer kalau layar disentuh atau diklik
+        window.onclick = () => { idleTime = 0; };
+        window.ontouchstart = () => { idleTime = 0; };
+
+        // Cek setiap detik
+        setInterval(() => { 
+            idleTime++; 
+            // Jika diam 300 detik (5 menit), pindah halaman
+            if (idleTime > 300) { 
+                window.location.href = 'screensaver.html'; 
+            } 
+        }, 1000);
     </script>
 </body>
 </html>
