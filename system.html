@@ -8,7 +8,7 @@
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#000000">
     
-    <link href="https://fonts.googleapis.com/css2?family=Teko:wght@300;500;700&family=Rajdhani:wght@500;600;700;800;900&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Teko:wght@300;500;700&family=Rajdhani:wght@500;600;700;800;900&family=Orbitron:wght@700;900&family=Inter:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
@@ -17,6 +17,7 @@
             --primary: #00F0FF;       
             --primary-dim: rgba(0, 240, 255, 0.15);
             --accent: #FF003C;        
+            --gold: #FFD700;
             
             --font-tech: 'Rajdhani', sans-serif;
             --font-num: 'Teko', sans-serif;
@@ -39,6 +40,55 @@
         /* --- LOADING & BLOCKER --- */
         #gate-screen { position: fixed; inset: 0; background: #000; z-index: 99999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         
+        /* --- UNDANGAN POPUP (WELCOME) --- */
+        #invitation-popup {
+            position: fixed; inset: 0; 
+            background: rgba(5, 5, 5, 0.95); 
+            backdrop-filter: blur(10px);
+            z-index: 80000; /* Di bawah loading, di atas konten */
+            display: none; /* Default Hidden, akan di-trigger JS */
+            flex-direction: column; align-items: center; justify-content: center;
+            opacity: 0; transition: opacity 0.5s ease;
+        }
+        #invitation-popup.active { display: flex; opacity: 1; }
+
+        .inv-card {
+            background: rgba(20, 25, 30, 0.9);
+            border: 1px solid rgba(0, 229, 255, 0.3);
+            border-top: 4px solid var(--primary);
+            border-bottom: 4px solid var(--gold);
+            border-radius: 20px;
+            padding: 30px 20px;
+            text-align: center;
+            box-shadow: 0 0 60px rgba(0, 229, 255, 0.15);
+            width: 90%; max-width: 380px;
+            animation: zoomInInv 0.5s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+            position: relative;
+        }
+        @keyframes zoomInInv { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        .inv-close-btn {
+            position: absolute; top: -15px; right: -15px;
+            width: 40px; height: 40px; border-radius: 50%;
+            background: var(--accent); color: #fff;
+            border: 2px solid #fff; font-weight: bold; font-size: 18px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            z-index: 10;
+        }
+
+        .inv-icon { font-size: 40px; color: var(--gold); margin-bottom: 15px; animation: pulseIcon 2s infinite; }
+        .inv-title { font-family: var(--font-head); font-size: 32px; font-weight: 900; color: #fff; line-height: 1; margin-bottom: 5px; }
+        .inv-sub { font-size: 12px; color: var(--primary); letter-spacing: 3px; font-weight: 700; margin-bottom: 20px; }
+        
+        .inv-detail { background: rgba(255,255,255,0.05); padding: 15px; border-radius: 10px; margin-bottom: 20px; text-align: left; }
+        .inv-row { display: flex; align-items: center; margin-bottom: 10px; }
+        .inv-row i { width: 25px; color: var(--primary); text-align: center; margin-right: 10px; }
+        .inv-val { color: #fff; font-weight: 700; font-family: var(--font-tech); font-size: 16px; text-transform: uppercase; }
+
+        .inv-note { font-size: 11px; color: #aaa; font-style: italic; margin-bottom: 20px; }
+        .inv-ok-btn { background: var(--primary); color: #000; width: 100%; padding: 12px; border: none; border-radius: 10px; font-weight: 900; font-family: var(--font-head); font-size: 16px; cursor: pointer; }
+
         /* --- HEADER --- */
         .header { text-align: center; margin-bottom: 30px; margin-top: 10px; cursor: pointer; position: relative; z-index: 5; } 
         .main-title { font-family: var(--font-tech); font-weight: 900; font-size: 42px; line-height: 0.9; color: #fff; text-shadow: 0 0 25px var(--primary-dim); letter-spacing: 2px; text-transform: uppercase; }
@@ -75,84 +125,21 @@
         .tb-role { font-size: 9px; font-weight: 800; text-transform: uppercase; line-height: 0.9; font-family: var(--font-tech); letter-spacing: 0.5px; }
 
         /* BADGE VARIANTS */
-        .b-platinum { border-color: #E5E4E2; }
-        .b-platinum .tb-icon { background: linear-gradient(135deg, #E5E4E2, #708090); color: #000; }
-        .b-platinum .tb-role { color: #E5E4E2; text-shadow: 0 0 5px rgba(229,228,226,0.5); }
-
-        .b-gold { border-color: #FFD700; box-shadow: 0 0 10px rgba(255, 215, 0, 0.2); }
-        .b-gold .tb-icon { background: linear-gradient(135deg, #FFD700, #B8860B); color: #000; }
-        .b-gold .tb-role { color: #FFD700; text-shadow: 0 0 5px rgba(255,215,0,0.5); }
-        .b-gold::after { content:''; position:absolute; top:-50%; left:-100%; width:20px; height:200%; background:rgba(255,255,255,0.5); transform:rotate(25deg); animation:shinePass 3s infinite; }
-
-        .b-cyan { border-color: #00F0FF; }
-        .b-cyan .tb-icon { background: linear-gradient(135deg, #00F0FF, #0088AA); color: #000; }
-        .b-cyan .tb-role { color: #00F0FF; }
-
-        .b-red { border-color: #FF003C; }
-        .b-red .tb-icon { background: repeating-linear-gradient(45deg, #FF003C, #FF003C 5px, #900 5px, #900 10px); color: #fff; }
-        .b-red .tb-role { color: #FF003C; }
-
-        .b-blue { border-color: #1E90FF; }
-        .b-blue .tb-icon { background: #1E90FF; color: #fff; }
-        .b-blue .tb-role { color: #1E90FF; }
+        .b-platinum { border-color: #E5E4E2; } .b-platinum .tb-icon { background: linear-gradient(135deg, #E5E4E2, #708090); color: #000; } .b-platinum .tb-role { color: #E5E4E2; }
+        .b-gold { border-color: #FFD700; box-shadow: 0 0 10px rgba(255, 215, 0, 0.2); } .b-gold .tb-icon { background: linear-gradient(135deg, #FFD700, #B8860B); color: #000; } .b-gold .tb-role { color: #FFD700; } .b-gold::after { content:''; position:absolute; top:-50%; left:-100%; width:20px; height:200%; background:rgba(255,255,255,0.5); transform:rotate(25deg); animation:shinePass 3s infinite; }
+        .b-cyan { border-color: #00F0FF; } .b-cyan .tb-icon { background: linear-gradient(135deg, #00F0FF, #0088AA); color: #000; } .b-cyan .tb-role { color: #00F0FF; }
+        .b-red { border-color: #FF003C; } .b-red .tb-icon { background: repeating-linear-gradient(45deg, #FF003C, #FF003C 5px, #900 5px, #900 10px); color: #fff; } .b-red .tb-role { color: #FF003C; }
+        .b-blue { border-color: #1E90FF; } .b-blue .tb-icon { background: #1E90FF; color: #fff; } .b-blue .tb-role { color: #1E90FF; }
+        .b-tech { border-color: #39FF14; } .b-tech .tb-icon { background: #39FF14; color: #000; } .b-tech .tb-role { color: #39FF14; }
+        .b-vip { border-color: #9932CC; box-shadow: 0 0 15px rgba(153, 50, 204, 0.3); } .b-vip .tb-icon { background: linear-gradient(135deg, #DA70D6, #800080); color: #fff; } .b-vip .tb-role { color: #DA70D6; }
+        .b-donatur { border-color: #00FF7F; } .b-donatur .tb-icon { background: linear-gradient(135deg, #00FF7F, #006400); color: #000; } .b-donatur .tb-role { color: #00FF7F; }
+        .b-family { border-color: #fff; box-shadow: 0 0 15px rgba(255, 255, 255, 0.3); } .b-family .tb-icon { background: linear-gradient(135deg, #ffffff 0%, #bdc3c7 100%); color: #D80027; } .b-family .tb-icon i { animation: heartBeat 1.5s infinite ease-in-out; } .b-family .tb-role { color: #fff; }
         
-        .b-tech { border-color: #39FF14; }
-        .b-tech .tb-icon { background: #39FF14; color: #000; }
-        .b-tech .tb-role { color: #39FF14; }
-
-        .b-vip { border-color: #9932CC; box-shadow: 0 0 15px rgba(153, 50, 204, 0.3); }
-        .b-vip .tb-icon { background: linear-gradient(135deg, #DA70D6, #800080); color: #fff; }
-        .b-vip .tb-role { color: #DA70D6; }
-
-        .b-donatur { border-color: #00FF7F; }
-        .b-donatur .tb-icon { background: linear-gradient(135deg, #00FF7F, #006400); color: #000; }
-        .b-donatur .tb-role { color: #00FF7F; }
-
-        /* KELUARGA MLU (PLATINUM HEARTBEAT) */
-        .b-family { border-color: #fff; box-shadow: 0 0 15px rgba(255, 255, 255, 0.3); }
-        .b-family .tb-icon { background: linear-gradient(135deg, #ffffff 0%, #bdc3c7 100%); color: #D80027; }
-        .b-family .tb-icon i { animation: heartBeat 1.5s infinite ease-in-out; }
-        .b-family .tb-role { color: #fff; text-shadow: 0 0 10px rgba(255, 255, 255, 0.8); font-weight: 900; letter-spacing: 1px; }
-
-        /* --- PASUKAN SENYAP (NINJA - FINAL JUTSU KILAT) --- */
-        /* Konsep: Background Hitam Pekat, ada Kilatan Cahaya Putih (Slash) lewat cepat, Ikon Ninja Teleport */
         .b-ninja { border-color: #333; background: #000; position: relative; overflow: hidden; box-shadow: 0 0 8px rgba(0,0,0,0.8); }
-        
-        /* 1. Sabetan Cahaya (Slash) */
-        .b-ninja::after { 
-            content: ''; position: absolute; top: 0; left: -150%; width: 20px; height: 100%; 
-            background: rgba(255,255,255,0.8); 
-            box-shadow: 0 0 15px #fff;
-            transform: skewX(-30deg); 
-            animation: slashKill 3s infinite ease-in; 
-            z-index: 5;
-        }
-        
+        .b-ninja::after { content: ''; position: absolute; top: 0; left: -150%; width: 20px; height: 100%; background: rgba(255,255,255,0.8); box-shadow: 0 0 15px #fff; transform: skewX(-30deg); animation: slashKill 3s infinite ease-in; z-index: 5; }
         .b-ninja .tb-icon { background: #111; color: #ccc; z-index: 2; border-right: 1px solid #333; }
-        
-        /* 2. Ikon Ninja Teleport (Blur Out -> Move -> Blur In) */
-        .b-ninja .tb-icon i { 
-            animation: ninjaShunpo 3s infinite linear; 
-            text-shadow: 0 0 5px #fff; 
-        }
-        
+        .b-ninja .tb-icon i { animation: ninjaShunpo 3s infinite linear; text-shadow: 0 0 5px #fff; }
         .b-ninja .tb-role { color: #aaa; font-family: var(--font-head); letter-spacing: 2px; z-index: 2; font-weight: 900; font-size: 8px; }
-
-        /* KEYFRAMES JUTSU KILAT */
-        @keyframes slashKill {
-            0%, 70% { left: -50%; opacity: 0; }
-            75% { opacity: 1; }
-            80% { left: 150%; opacity: 0; } /* Sabetan lewat cepat */
-            100% { left: 150%; opacity: 0; }
-        }
-
-        @keyframes ninjaShunpo {
-            0%, 75% { opacity: 1; transform: scale(1); filter: blur(0); }
-            78% { opacity: 0; transform: scale(1.2) translateX(20px); filter: blur(5px); } /* Menghilang pas sabetan lewat */
-            85% { opacity: 0; transform: translateX(-20px); } /* Pindah posisi saat invisible */
-            90% { opacity: 1; transform: scale(1) translateX(0); filter: blur(0); } /* Muncul lagi */
-            100% { opacity: 1; }
-        }
 
         /* --- ACTIONS --- */
         .bottom-action-area { flex: 1; min-height: 160px; display: flex; flex-direction: column; align-items: center; justify-content: center; margin-top: 20px;}
@@ -172,20 +159,7 @@
         
         /* TOMBOL CANCEL (BESAR & JELAS) */
         .btn-cancel-q { 
-            margin-top: 15px; 
-            background: rgba(255, 0, 60, 0.15); 
-            border: 2px solid var(--accent); 
-            color: var(--accent); 
-            padding: 15px 30px; 
-            font-family: var(--font-head); 
-            font-size: 14px; 
-            font-weight: 900; 
-            cursor: pointer; 
-            letter-spacing: 2px; 
-            display: none; 
-            box-shadow: 0 0 15px rgba(255, 0, 60, 0.2); 
-            clip-path: polygon(10px 0, 100% 0, 100% 100%, 0 100%, 0 10px); 
-            width: 100%;
+            margin-top: 15px; background: rgba(255, 0, 60, 0.15); border: 2px solid var(--accent); color: var(--accent); padding: 15px 30px; font-family: var(--font-head); font-size: 14px; font-weight: 900; cursor: pointer; letter-spacing: 2px; display: none; box-shadow: 0 0 15px rgba(255, 0, 60, 0.2); clip-path: polygon(10px 0, 100% 0, 100% 100%, 0 100%, 0 10px); width: 100%;
         }
         .btn-cancel-q:active { transform: scale(0.98); background: var(--accent); color: #000; }
 
@@ -215,12 +189,34 @@
         @keyframes pulseText { 0%,100% {opacity: 1;} 50% {opacity: 0.5;} }
         @keyframes blinkKudeta { 0%, 100% { opacity: 1; transform: skewX(-10deg) scale(1); box-shadow: 0 0 20px #ff0000; } 50% { opacity: 0.6; transform: skewX(-10deg) scale(0.95); box-shadow: 0 0 5px #ff0000; } }
         @keyframes heartBeat { 0% {transform:scale(1);} 14% {transform:scale(1.15);} 28% {transform:scale(1);} 42% {transform:scale(1.15);} 70% {transform:scale(1);} }
+        @keyframes slashKill { 0%, 70% { left: -50%; opacity: 0; } 75% { opacity: 1; } 80% { left: 150%; opacity: 0; } 100% { left: 150%; opacity: 0; } }
+        @keyframes ninjaShunpo { 0%, 75% { opacity: 1; transform: scale(1); filter: blur(0); } 78% { opacity: 0; transform: scale(1.2) translateX(20px); filter: blur(5px); } 85% { opacity: 0; transform: translateX(-20px); } 90% { opacity: 1; transform: scale(1) translateX(0); filter: blur(0); } 100% { opacity: 1; } }
+        @keyframes pulseIcon { 0%, 100% { opacity: 0.8; transform: scale(1); } 50% { opacity: 1; transform: scale(1.1); } }
     </style>
 </head>
 <body>
 
     <div id="gate-screen">
         <div style="font-family:'Orbitron'; color:#00F0FF; font-size:24px; animation:pulseText 1s infinite;">VERIFYING ACCESS...</div>
+    </div>
+
+    <div id="invitation-popup">
+        <div class="inv-card">
+            <div class="inv-close-btn" onclick="closeInvitation()">✕</div>
+            
+            <div class="inv-icon"><i class="fas fa-mug-hot"></i></div>
+            <div class="inv-title">UNDANGAN <br>NGOPI SANTAI</br></div>
+            <div class="inv-sub">KELUARGA BESAR MLU</div>
+
+            <div class="inv-detail">
+                <div class="inv-row"><i class="far fa-calendar-alt"></i><span class="inv-val">SELASA, 10 FEB 2026</span></div>
+                <div class="inv-row"><i class="far fa-clock"></i><span class="inv-val">PUKUL 20:00 WIB</span></div>
+                <div class="inv-row"><i class="fas fa-map-marker-alt"></i><span class="inv-val">FC KELAPA GADING</span></div>
+            </div>
+
+            <div class="inv-note"><bold>"Ngobrol Bareng Perwakilan MAKA" </bold></div>
+            <button class="inv-ok-btn" onclick="closeInvitation()">YG GA HADIR DI MARAHIN PAK AJI</button>
+        </div>
     </div>
 
     <div id="customModal" class="modal-overlay">
@@ -311,13 +307,21 @@
         if(!myPlat && !isSuperAdmin) {
             window.location.href = 'antrian.html';
         } else {
-            setTimeout(() => { const g = document.getElementById('gate-screen'); if(g) g.style.display = 'none'; }, 1000);
+            // [LOGIC POPUP UNDANGAN]
+            // Muncul sekali saat halaman dimuat (sebelum Gate hilang)
+            setTimeout(() => { 
+                const g = document.getElementById('gate-screen'); 
+                if(g) g.style.display = 'none'; 
+                
+                // MUNCULKAN UNDANGAN
+                const inv = document.getElementById('invitation-popup');
+                if(inv) inv.classList.add('active');
+
+            }, 1000);
             
-            // AUTO FIX: JIKA SUDAH DAFTAR TAPI BADGE MASIH GUEST
+            // AUTO FIX BADGE
             if(myPlat && !isSuperAdmin) {
-                setTimeout(() => {
-                    checkAndFixMyRole(myPlat);
-                }, 2000);
+                setTimeout(() => { checkAndFixMyRole(myPlat); }, 2000);
             }
 
             const AUTO_KICK_KM = 0.3;
@@ -333,53 +337,36 @@
             }
         }
 
-        // --- FUNGSI AUTO FIX BADGE (SOLUSI MASALAH BAPAK) ---
+        // --- FUNGSI CLOSE UNDANGAN ---
+        window.closeInvitation = () => {
+            const inv = document.getElementById('invitation-popup');
+            if(inv) {
+                inv.style.opacity = '0';
+                setTimeout(() => inv.classList.remove('active'), 500);
+            }
+        }
+
+        // --- FUNGSI AUTO FIX BADGE ---
         async function checkAndFixMyRole(plat) {
             try {
-                // 1. Ambil data asli dari Member
                 const cleanPlat = plat.replace(/[^A-Z0-9]/g, '');
                 const memberRef = doc(db, "members", cleanPlat);
                 const memberSnap = await getDoc(memberRef);
-                
                 if (memberSnap.exists() && memberSnap.data().role) {
                     const correctRole = memberSnap.data().role;
-                    
-                    // 2. Cek apakah di antrian/slot rolenya salah?
                     await runTransaction(db, async (t) => {
                         const d = (await t.get(mainRef)).data();
                         let updated = false;
-                        
-                        // Cek Queue
                         if (d.waitingQueue) {
-                            d.waitingQueue.forEach(q => {
-                                if (cleanStr(q.plat) === cleanStr(plat) && q.role !== correctRole) {
-                                    q.role = correctRole; // FIX IT
-                                    updated = true;
-                                }
-                            });
+                            d.waitingQueue.forEach(q => { if (cleanStr(q.plat) === cleanStr(plat) && q.role !== correctRole) { q.role = correctRole; updated = true; } });
                         }
-                        
-                        // Cek Slot
                         if (d.chargingSlots) {
-                            d.chargingSlots.forEach(s => {
-                                if (s && cleanStr(s.plat) === cleanStr(plat) && s.role !== correctRole) {
-                                    s.role = correctRole; // FIX IT
-                                    updated = true;
-                                }
-                            });
+                            d.chargingSlots.forEach(s => { if (s && cleanStr(s.plat) === cleanStr(plat) && s.role !== correctRole) { s.role = correctRole; updated = true; } });
                         }
-
-                        // 3. Update cuma kalau ada yang salah
-                        if (updated) {
-                            t.update(mainRef, { 
-                                waitingQueue: d.waitingQueue,
-                                chargingSlots: d.chargingSlots
-                            });
-                            console.log("BADGE FIXED AUTOMATICALLY!");
-                        }
+                        if (updated) { t.update(mainRef, { waitingQueue: d.waitingQueue, chargingSlots: d.chargingSlots }); console.log("BADGE FIXED"); }
                     });
                 }
-            } catch (e) { console.log("Auto-fix error (ignore):", e); }
+            } catch (e) { console.log(e); }
         }
 
         window.toggleAdmin = () => { const pass = prompt("ADMIN CODE:"); if(pass === "1131") window.location.href = "admin.html"; else if (pass) showAlert("ACCESS DENIED!", "ERROR"); };
@@ -456,119 +443,51 @@
             $('nextQDisplay').innerText = localQueue.length > 0 ? localQueue[0].userName : "--";
         }
 
-        // --- BADGE LOGIC (NINJA FIXED) ---
         function getBadgeHTML(r) {
             if (!r || r === "GUEST") return ""; 
-            
-            // 1. PASUKAN SENYAP (Ninja) - FULL GERAK KIRI KANAN
             if (r.includes("SENYAP") || r.includes("NINJA")) {
-                return `
-                <div class="badge-container">
-                    <div class="tactical-badge b-ninja">
-                        <div class="tb-icon">
-                            <i class="fas fa-user-ninja"></i> 
-                        </div>
-                        <div class="tb-text"><div class="tb-role" style="font-size:8px;">PASUKAN SENYAP</div></div>
-                    </div>
-                </div>`;
+                return `<div class="badge-container"><div class="tactical-badge b-ninja"><div class="tb-icon"><i class="fas fa-user-ninja"></i></div><div class="tb-text"><div class="tb-role" style="font-size:8px;">PASUKAN SENYAP</div></div></div></div>`;
             }
-
-            // 3. KELUARGA MLU
             if (r.includes("KELUARGA") || r === "MEMBER") {
-                return `
-                <div class="badge-container">
-                    <div class="tactical-badge b-family">
-                        <div class="tb-icon"><i class="fas fa-heart"></i></div>
-                        <div class="tb-text"><div class="tb-role">KELUARGA MLU</div></div>
-                    </div>
-                </div>`;
+                return `<div class="badge-container"><div class="tactical-badge b-family"><div class="tb-icon"><i class="fas fa-heart"></i></div><div class="tb-text"><div class="tb-role">KELUARGA MLU</div></div></div></div>`;
             }
-
-            // STANDARD BADGES
             let css = "b-platinum"; let icon = "fa-user"; let label = "MEMBER"; let roleTxt = r;
-
             if (r.includes("PEMBINA")) { css="b-platinum"; icon="fa-star"; label="SENIOR"; roleTxt="PEMBINA"; }
-            else if (r.includes("PENASEHAT")) { css="b-platinum"; icon="fa-user-tie"; label="ADVISOR"; roleTxt="PENASEHAT"; }
             else if (r.includes("WAKETUM")) { css="b-gold"; icon="fa-chess-king"; label="CO-LEAD"; roleTxt="WAKETUM"; } 
             else if (r.includes("KETUM")) { css="b-gold"; icon="fa-crown"; label="LEADER"; roleTxt="KETUM"; }
-            else if (r.includes("SEKJEN")) { css="b-cyan"; icon="fa-file-signature"; label="ADMIN"; roleTxt="SEKJEN"; }
-            else if (r.includes("HUMAS")) { css="b-cyan"; icon="fa-bullhorn"; label="PR DIV"; roleTxt="HUMAS"; }
-            else if (r.includes("KORLAP")) { css="b-red"; icon="fa-map-marked-alt"; label="FIELD"; roleTxt="KORLAP"; }
-            else if (r.includes("SATGAS")) { css="b-red"; icon="fa-shield-alt"; label="GUARD"; roleTxt="SATGAS"; }
-            else if (r.includes("OFFICE")) { css="b-blue"; icon="fa-building"; label="HQ"; roleTxt="OFFICE"; }
-            else if (r.includes("KACAB")) { css="b-blue"; icon="fa-briefcase"; label="BRANCH"; roleTxt="KACAB"; }
-            else if (r.includes("MEKANIK")) { css="b-tech"; icon="fa-wrench"; label="TECH"; roleTxt="MEKANIK"; }
             else if (r.includes("VIP")) { css="b-vip"; icon="fa-gem"; label="GUEST"; roleTxt="VIP"; }
             else if (r.includes("DONATUR")) { css="b-donatur"; icon="fa-hand-holding-usd"; label="SPONSOR"; roleTxt="DONATUR"; }
-
-            return `
-            <div class="badge-container">
-                <div class="tactical-badge ${css}">
-                    <div class="tb-icon"><i class="fas ${icon}"></i></div>
-                    <div class="tb-text">
-                        ${label ? `<div class="tb-label">${label}</div>` : ''}
-                        <div class="tb-role">${roleTxt}</div>
-                    </div>
-                </div>
-            </div>`;
+            return `<div class="badge-container"><div class="tactical-badge ${css}"><div class="tb-icon"><i class="fas ${icon}"></i></div><div class="tb-text">${label ? `<div class="tb-label">${label}</div>` : ''}<div class="tb-role">${roleTxt}</div></div></div></div>`;
         }
 
         window.selectSlot = async (i) => { showConfirm(`MASUK SLOT ${i+1}?`, () => { runTransaction(db, async(t)=>{ const d = (await t.get(mainRef)).data(); if(d.chargingSlots[i]) throw "SLOT PENUH!"; let q = d.waitingQueue; const idx = q.findIndex(x => cleanStr(x.plat) === cleanStr(myPlat)); if(idx === -1) throw "DATA ANTRIAN HILANG!"; const me = q[idx]; q.splice(idx, 1); me.startTime = Date.now(); d.chargingSlots[i] = me; t.update(mainRef, { chargingSlots: d.chargingSlots, waitingQueue: q }); }).then(() => addUserLog("START", `Slot ${i+1}`)).catch(e => showAlert(e)); }); };
         
-        window.stopCharging = (i) => { runTransaction(db, async(t)=>{ const d = (await t.get(mainRef)).data(); const u = d.chargingSlots[i]; if(u) addDoc(historyRef, {...u, finishTime: new Date(), action: "STOP"}); d.chargingSlots[i] = null; t.update(mainRef, {chargingSlots: d.chargingSlots}); }).then(() => { 
-            localStorage.removeItem('myPlat'); 
-            window.location.href = 'antrian.html'; 
-        }); };
+        window.stopCharging = (i) => { runTransaction(db, async(t)=>{ const d = (await t.get(mainRef)).data(); const u = d.chargingSlots[i]; if(u) addDoc(historyRef, {...u, finishTime: new Date(), action: "STOP"}); d.chargingSlots[i] = null; t.update(mainRef, {chargingSlots: d.chargingSlots}); }).then(() => { localStorage.removeItem('myPlat'); window.location.href = 'antrian.html'; }); };
         
-        window.kudeta = (i, targetPlat, durationMin) => { 
-            event.stopPropagation(); 
-            if(durationMin < 20) { showAlert(`BELUM BISA KUDETA!\nDURASI BARU ${durationMin} MENIT.\n(MINIMAL 20 MENIT)`, "GAGAL"); return; }
-            showConfirm(`KUDETA ${targetPlat}?`, () => { 
-                runTransaction(db, async(t)=>{ 
-                    const d = (await t.get(mainRef)).data(); const u = d.chargingSlots[i]; if(!u) throw "Slot kosong!"; 
-                    addDoc(historyRef, {...u, finishTime: new Date(), action: "KUDETA_BY_" + myPlat}); addUserLog("KUDETA", `Kudeta ${targetPlat}`); 
-                    let q = d.waitingQueue; const myIdx = q.findIndex(x => cleanStr(x.plat) === cleanStr(myPlat)); const me = q[myIdx];
-                    q.splice(myIdx, 1); me.startTime = Date.now(); d.chargingSlots[i] = me;
-                    t.update(mainRef, {chargingSlots: d.chargingSlots, waitingQueue: q}); 
-                }).catch(e => showAlert(e)); 
-            }); 
-        };
+        window.kudeta = (i, targetPlat, durationMin) => { event.stopPropagation(); if(durationMin < 20) { showAlert(`BELUM BISA KUDETA!\nDURASI BARU ${durationMin} MENIT.\n(MINIMAL 20 MENIT)`, "GAGAL"); return; } showConfirm(`KUDETA ${targetPlat}?`, () => { runTransaction(db, async(t)=>{ const d = (await t.get(mainRef)).data(); const u = d.chargingSlots[i]; if(!u) throw "Slot kosong!"; addDoc(historyRef, {...u, finishTime: new Date(), action: "KUDETA_BY_" + myPlat}); addUserLog("KUDETA", `Kudeta ${targetPlat}`); let q = d.waitingQueue; const myIdx = q.findIndex(x => cleanStr(x.plat) === cleanStr(myPlat)); const me = q[myIdx]; q.splice(myIdx, 1); me.startTime = Date.now(); d.chargingSlots[i] = me; t.update(mainRef, {chargingSlots: d.chargingSlots, waitingQueue: q}); }).catch(e => showAlert(e)); }); };
         
         window.cancelQueue = () => { showConfirm("BATAL & KELUAR DARI ANTRIAN?", () => { runTransaction(db, async(t) => { const d = (await t.get(mainRef)).data(); const newQ = d.waitingQueue.filter(q => cleanStr(q.plat) !== cleanStr(myPlat)); t.update(mainRef, { waitingQueue: newQ }); addUserLog("CANCEL", `User ${myPlat} keluar antrian`); }).then(() => { localStorage.removeItem('myPlat'); window.location.href = 'antrian.html'; }).catch(e => showAlert("GAGAL: " + e)); }); };
         
         window.openQueueList = () => { 
-            const body = $('qlBody'); 
-            body.innerHTML = ''; 
-            if(localQueue.length === 0) {
-                body.innerHTML = '<div style="text-align:center; padding:20px; color:#666;">KOSONG</div>'; 
-            } else { 
-                localQueue.forEach((q, i) => { 
-                    body.innerHTML += `
-                    <div style="background:rgba(0,240,255,0.1); margin:0 0 10px 0; padding:15px; border-left:4px solid var(--primary); display:flex; justify-content:space-between; align-items:center; border-radius:0 4px 4px 0;">
-                        <div>
-                            <div style="font-family:'Teko'; font-size:36px; color:#fff; letter-spacing:1px; line-height:1;">${q.plat}</div>
-                            <div style="font-family:'Rajdhani'; font-size:16px; color:#ccc; font-weight:bold; text-transform:uppercase;">${q.userName}</div>
-                        </div>
-                        <div style="font-family:'Rajdhani'; font-size:14px; color:#000; background:var(--primary); padding:4px 10px; font-weight:800; border-radius:4px;">ANTRIAN #${i+1}</div>
-                    </div>`; 
-                }); 
-            } 
+            const body = $('qlBody'); body.innerHTML = ''; 
+            if(localQueue.length === 0) { body.innerHTML = '<div style="text-align:center; padding:20px; color:#666;">KOSONG</div>'; } 
+            else { localQueue.forEach((q, i) => { body.innerHTML += `<div style="background:rgba(0,240,255,0.1); margin:0 0 10px 0; padding:15px; border-left:4px solid var(--primary); display:flex; justify-content:space-between; align-items:center; border-radius:0 4px 4px 0;"><div><div style="font-family:'Teko'; font-size:36px; color:#fff; letter-spacing:1px; line-height:1;">${q.plat}</div><div style="font-family:'Rajdhani'; font-size:16px; color:#ccc; font-weight:bold; text-transform:uppercase;">${q.userName}</div></div><div style="font-family:'Rajdhani'; font-size:14px; color:#000; background:var(--primary); padding:4px 10px; font-weight:800; border-radius:4px;">ANTRIAN #${i+1}</div></div>`; }); } 
             $('queueListModal').style.display = 'flex'; 
         };
         
         window.resetApp = () => showConfirm("RESET APLIKASI?", () => { localStorage.clear(); location.reload(); });
 
-        // --- SCREENSAVER LOGIC (5 MENIT IDLE) ---
+        // --- SCREENSAVER LOGIC (3 MENIT IDLE) ---
         let idleTime = 0;
-        // Reset timer kalau layar disentuh atau diklik
         window.onclick = () => { idleTime = 0; };
         window.ontouchstart = () => { idleTime = 0; };
+        window.onmousemove = () => { idleTime = 0; };
 
         // Cek setiap detik
         setInterval(() => { 
             idleTime++; 
-            // Jika diam 300 detik (5 menit), pindah halaman
-            if (idleTime > 100) { 
+            // Jika diam 180 detik (3 menit), pindah ke screensaver FOTO LAMA
+            if (idleTime > 180) { 
                 window.location.href = 'screensaver.html'; 
             } 
         }, 1000);
