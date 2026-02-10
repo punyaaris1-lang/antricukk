@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>LIVE DONASI MLU</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700;800;900&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+    <style>
+        :root {
+            --primary: #FFD700; /* Emas */
+            --cyan: #00E5FF;       
+            --bg-dark: #050505;
+            --glass-panel: rgba(20, 20, 20, 0.95); 
+            --white: #ffffff;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background-color: var(--bg-dark);
+            background-image: 
+                linear-gradient(rgba(255, 215, 0, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 215, 0, 0.05) 1px, transparent 1px);
+            background-size: 40px 40px;
+            font-family: 'Rajdhani', sans-serif;
+            color: var(--white);
+            min-height: 100vh;
+            display: flex; flex-direction: column; align-items: center;
+            padding: 20px;
+        }
+
+        .header { text-align: center; margin-bottom: 20px; width: 100%; max-width: 600px; user-select: none; cursor: pointer; }
+        .icon-top { font-size: 50px; color: var(--primary); margin-bottom: 10px; animation: bounce 2s infinite; }
+        @keyframes bounce { 0%, 20%, 50%, 80%, 100% {transform: translateY(0);} 40% {transform: translateY(-10px);} 60% {transform: translateY(-5px);} }
+
+        h1 { font-size: 42px; font-weight: 900; color: #fff; margin: 0; text-transform: uppercase; text-shadow: 0 0 20px var(--primary); line-height: 1; }
+        .sub-title { font-size: 14px; color: var(--primary); letter-spacing: 3px; font-weight: 700; margin-top: 5px; text-transform: uppercase; }
+
+        /* TOTAL BOX */
+        .total-box {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(0,0,0,0.8));
+            border: 2px solid var(--primary);
+            border-radius: 20px; padding: 30px; text-align: center;
+            width: 100%; max-width: 500px; margin-bottom: 30px;
+            box-shadow: 0 0 50px rgba(255, 215, 0, 0.2);
+            position: relative; overflow: hidden;
+        }
+        .lbl-total { font-size: 16px; color: #aaa; letter-spacing: 2px; font-weight: 700; margin-bottom: 5px; }
+        .val-total { font-size: 56px; font-weight: 900; color: #fff; text-shadow: 0 0 20px var(--primary); font-family: 'Rajdhani'; line-height: 1; }
+        .currency { font-size: 24px; color: var(--primary); vertical-align: top; margin-right: 5px; }
+
+        /* FORM */
+        .form-container { width: 100%; max-width: 500px; background: rgba(30, 30, 30, 0.8); border: 1px solid #444; border-radius: 20px; padding: 25px; margin-bottom: 30px; }
+        .inp-group { margin-bottom: 15px; text-align: left; }
+        .lbl { font-size: 12px; color: #888; font-weight: 700; margin-bottom: 5px; display: block; }
+        .inp { width: 100%; padding: 15px; background: #000; border: 1px solid #444; color: #fff; font-family: 'Rajdhani'; font-weight: 700; font-size: 18px; border-radius: 10px; }
+        .quick-amounts { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 15px; }
+        .q-btn { background: #222; border: 1px solid #444; color: #fff; padding: 8px; border-radius: 8px; cursor: pointer; font-weight: bold; font-family: 'Rajdhani'; }
+        .btn-kirim { width: 100%; padding: 15px; background: var(--primary); border: none; border-radius: 10px; color: #000; font-size: 20px; font-weight: 900; cursor: pointer; text-transform: uppercase; box-shadow: 0 5px 20px rgba(255, 215, 0, 0.3); }
+
+        /* LIST */
+        .list-container { width: 100%; max-width: 600px; background: rgba(0, 0, 0, 0.6); border-top: 2px solid var(--primary); border-radius: 0 0 20px 20px; padding: 0; margin-bottom: 50px; }
+        .list-header { background: rgba(255, 215, 0, 0.1); padding: 15px; text-align: left; font-size: 14px; font-weight: 800; color: var(--primary); display: flex; justify-content: space-between; }
+        .d-row { display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); animation: slideIn 0.5s ease; }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
+        .d-name { font-size: 18px; font-weight: 700; color: #fff; text-transform: uppercase; }
+        .d-msg { font-size: 12px; color: #888; font-style: italic; }
+        .d-amount { font-size: 20px; font-weight: 800; color: var(--primary); }
+
+        /* MODAL */
+        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 999; display: none; align-items: center; justify-content: center; flex-direction: column; }
+        
+        .modal-content { background: #fff; padding: 20px; border-radius: 15px; width: 90%; max-width: 400px; text-align: center; }
+        
+        /* TAB SWITCHER */
+        .qr-tabs { display: flex; width: 100%; margin-bottom: 20px; border-bottom: 2px solid #eee; }
+        .tab-btn { flex: 1; padding: 15px; background: none; border: none; font-weight: 800; cursor: pointer; color: #aaa; border-bottom: 3px solid transparent; }
+        .tab-btn.active { color: #000; border-bottom-color: var(--primary); }
+
+        #qrDisplayArea { display: flex; justify-content: center; align-items: center; min-height: 250px; }
+        #qrDisplayArea img { max-width: 100%; height: auto; } /* Agar gambar QRIS pas */
+
+        .close-modal { margin-top: 20px; color: #fff; border: 1px solid #fff; padding: 8px 20px; border-radius: 20px; cursor: pointer; }
+        
+        .admin-tools { margin-top: auto; display: flex; gap: 10px; }
+        .btn-tool { background: transparent; border: 1px solid #555; color: #aaa; padding: 8px 15px; border-radius: 20px; font-size: 12px; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="icon-top"><i class="fas fa-hand-holding-usd"></i></div>
+        <h1>LIVE DONASI</h1>
+        <div class="sub-title">SAWERAN KOPDAR MLU</div>
+    </div>
+
+    <div class="total-box">
+        <div class="lbl-total">TOTAL TERKUMPUL</div>
+        <div class="val-total"><span class="currency">Rp</span><span id="displayTotal">0</span></div>
+    </div>
+
+    <div class="form-container">
+        <div class="inp-group">
+            <span class="lbl">NAMA DONATUR</span>
+            <input type="text" id="inpNama" class="inp" placeholder="Nama Anda...">
+        </div>
+        <div class="inp-group">
+            <span class="lbl">NOMINAL (Rp)</span>
+            <input type="number" id="inpNominal" class="inp" placeholder="0">
+            <div class="quick-amounts">
+                <div class="q-btn" onclick="setAmount(20000)">20K</div>
+                <div class="q-btn" onclick="setAmount(50000)">50K</div>
+                <div class="q-btn" onclick="setAmount(100000)">100K</div>
+            </div>
+        </div>
+        <div class="inp-group">
+            <span class="lbl">PESAN (Opsional)</span>
+            <input type="text" id="inpPesan" class="inp" placeholder="Pesan semangat...">
+        </div>
+        <button class="btn-kirim" onclick="submitDonasi()">KIRIM DONASI <i class="fas fa-paper-plane"></i></button>
+    </div>
+
+    <div class="list-container">
+        <div class="list-header">
+            <span>RIWAYAT DONASI</span>
+            <span>LIVE <i class="fas fa-circle" style="color:red; font-size:8px;"></i></span>
+        </div>
+        <div id="donasiList"><div style="text-align:center; padding:20px; color:#444;">Belum ada donasi.</div></div>
+    </div>
+
+    <div class="admin-tools">
+        <button class="btn-tool" onclick="openQRModal()"><i class="fas fa-qrcode"></i> TAMPILKAN QR</button>
+        <button class="btn-tool" onclick="window.location.href='system.html'"><i class="fas fa-arrow-left"></i> KEMBALI</button>
+    </div>
+
+    <div id="qrModal" class="modal">
+        <div class="modal-content">
+            <div class="qr-tabs">
+                <button class="tab-btn active" onclick="switchTab('link')">QR WEBSITE</button>
+                <button class="tab-btn" onclick="switchTab('qris')">QRIS BAYAR</button>
+            </div>
+            
+            <div id="qrDisplayArea">
+                </div>
+            
+            <div id="qrHint" style="font-size:12px; color:#666; margin-top:10px;">Scan untuk buka Formulir</div>
+        </div>
+        <button class="close-modal" onclick="document.getElementById('qrModal').style.display='none'">TUTUP</button>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, Timestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = { apiKey: "AIzaSyB666i9lYWIpxOdkwpoX9EvFvHLmHczeq8", authDomain: "fcgadingnew22.firebaseapp.com", projectId: "fcgadingnew22", storageBucket: "fcgadingnew22.firebasestorage.app", messagingSenderId: "537736846678", appId: "1:537736846678:web:53788d71a196423ac08af7" };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const donasiRef = collection(db, "donasi_kopdar");
+
+        const formatRupiah = (num) => num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+
+        window.submitDonasi = async () => {
+            const nama = document.getElementById('inpNama').value.toUpperCase().trim() || "HAMBA ALLAH";
+            const nominal = parseInt(document.getElementById('inpNominal').value);
+            const pesan = document.getElementById('inpPesan').value.trim();
+
+            if(!nominal || nominal <= 0) return alert("Isi nominal yang benar!");
+
+            const btn = document.querySelector('.btn-kirim');
+            btn.innerHTML = "PROSES..."; btn.disabled = true;
+
+            try {
+                await addDoc(donasiRef, { nama: nama, nominal: nominal, pesan: pesan, timestamp: Timestamp.now() });
+                alert(`TERIMA KASIH! Rp ${formatRupiah(nominal)} tercatat.`);
+                document.getElementById('inpNominal').value = ''; document.getElementById('inpPesan').value = '';
+                btn.innerHTML = "KIRIM DONASI <i class='fas fa-paper-plane'></i>"; btn.disabled = false;
+                localStorage.setItem('donaturName', nama);
+            } catch (e) { alert("Gagal: " + e.message); btn.disabled = false; }
+        };
+
+        window.setAmount = (val) => { document.getElementById('inpNominal').value = val; };
+
+        const q = query(donasiRef, orderBy("timestamp", "desc"));
+        onSnapshot(q, (snapshot) => {
+            const listDiv = document.getElementById('donasiList');
+            const totalDisplay = document.getElementById('displayTotal');
+            let html = ""; let grandTotal = 0;
+
+            if(snapshot.empty) { listDiv.innerHTML = '<div style="text-align:center; padding:20px; color:#444;">Belum ada donasi.</div>'; totalDisplay.innerText = "0"; return; }
+
+            snapshot.forEach((doc) => {
+                const data = doc.data();
+                grandTotal += parseInt(data.nominal);
+                const pesanHtml = data.pesan ? `<div class="d-msg">"${data.pesan}"</div>` : '';
+                html += `<div class="d-row"><div class="d-left"><div class="d-name">${data.nama}</div>${pesanHtml}</div><div class="d-amount">Rp ${formatRupiah(data.nominal)}</div></div>`;
+            });
+            listDiv.innerHTML = html;
+            animateValue("displayTotal", parseInt(totalDisplay.innerText.replace(/\./g,'') || 0), grandTotal, 1000);
+        });
+
+        function animateValue(id, start, end, duration) {
+            if (start === end) return;
+            const range = end - start;
+            let current = start;
+            const increment = end > start ? Math.ceil(range / 20) : -Math.ceil(range / 20);
+            const obj = document.getElementById(id);
+            const timer = setInterval(function() {
+                current += increment;
+                if ((increment > 0 && current >= end) || (increment < 0 && current <= end)) { current = end; clearInterval(timer); }
+                obj.innerHTML = formatRupiah(current);
+            }, 50);
+        }
+
+        // --- DUAL QR LOGIC ---
+        window.openQRModal = () => {
+            document.getElementById('qrModal').style.display = 'flex';
+            switchTab('link'); // Default tab
+        }
+
+        window.switchTab = (type) => {
+            const area = document.getElementById('qrDisplayArea');
+            const hint = document.getElementById('qrHint');
+            const btns = document.querySelectorAll('.tab-btn');
+            
+            btns.forEach(b => b.classList.remove('active'));
+            area.innerHTML = "";
+
+            if(type === 'link') {
+                // QR LINK WEBSITE
+                btns[0].classList.add('active');
+                hint.innerText = "Scan untuk buka Formulir di HP";
+                new QRCode(area, { text: window.location.href, width: 250, height: 250 });
+            } else {
+                // QRIS IMAGE
+                btns[1].classList.add('active');
+                hint.innerText = "Scan untuk Transfer Dana";
+                // Tampilkan gambar QRIS
+                area.innerHTML = `<img src="qris.jpg" alt="QRIS NOT FOUND" onerror="this.parentNode.innerHTML='<div style=\'color:red;padding:20px;\'>FILE qris.jpg BELUM DIUPLOAD!</div>'">`;
+            }
+        }
+
+        const savedDonatur = localStorage.getItem('donaturName');
+        if(savedDonatur) document.getElementById('inpNama').value = savedDonatur;
+
+    </script>
+</body>
+</html>
