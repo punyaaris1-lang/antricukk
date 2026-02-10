@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>COMMUNITY ENGAGEMENT</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700;800;900&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+    <style>
+        :root {
+            --primary: #00E5FF;       
+            --bg-dark: #050505;
+            --glass-panel: rgba(15, 20, 25, 0.9); 
+            --white: #ffffff;
+            --warning: #FFD700;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background-color: var(--bg-dark);
+            background-image: 
+                linear-gradient(rgba(0, 229, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 229, 255, 0.05) 1px, transparent 1px);
+            background-size: 30px 30px;
+            font-family: 'Rajdhani', sans-serif;
+            color: var(--white);
+            min-height: 100vh;
+            display: flex; flex-direction: column; align-items: center;
+            padding: 20px;
+        }
+
+        /* HEADER */
+        .header { 
+            text-align: center; margin-bottom: 30px; width: 100%; max-width: 600px; 
+            user-select: none; cursor: pointer;
+        }
+        
+        /* LOGO ANIMASI */
+        .logo-wrapper {
+            position: relative;
+            width: 100px; height: 100px; margin: 0 auto 15px auto;
+            border-radius: 50%; overflow: hidden;
+            border: 3px solid #333;
+            background: #000;
+            box-shadow: 0 0 20px rgba(0,0,0,0.8);
+            transition: all 0.5s;
+        }
+        
+        .logo-img { 
+            width: 100%; height: 100%; object-fit: contain; 
+            filter: grayscale(100%); 
+            transition: filter 1s ease;
+            padding: 5px;
+        }
+
+        .logo-wrapper.success { border-color: var(--primary); box-shadow: 0 0 30px var(--primary); }
+        .logo-wrapper.success .logo-img { filter: grayscale(0%); }
+
+        .scan-line {
+            position: absolute; top: -100%; left: 0; width: 100%; height: 5px;
+            background: var(--primary);
+            box-shadow: 0 0 10px var(--primary), 0 0 20px var(--primary);
+            opacity: 0; z-index: 10;
+        }
+        
+        .logo-wrapper.scanning .scan-line { opacity: 1; animation: scanMove 1.5s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite; }
+        .logo-wrapper.scanning .logo-img { animation: flicker 0.2s infinite; }
+
+        @keyframes scanMove { 0% { top: -10%; } 100% { top: 110%; } }
+        @keyframes flicker { 0% { opacity: 1; } 50% { opacity: 0.8; } 100% { opacity: 1; } }
+
+        /* JUDUL BARU */
+        h1 { font-size: 38px; font-weight: 900; color: #fff; margin: 0; text-transform: uppercase; text-shadow: 0 0 15px var(--primary); line-height: 1; }
+        .location-tag { font-size: 16px; color: var(--primary); letter-spacing: 2px; font-weight: 700; margin-top: 5px; text-transform: uppercase; }
+        .date-badge { display: inline-block; background: var(--warning); color: #000; padding: 5px 15px; border-radius: 20px; font-weight: 800; font-size: 14px; margin-top: 10px; }
+
+        /* FORMULIR */
+        .form-container {
+            width: 100%; max-width: 500px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--primary);
+            border-radius: 20px; padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
+        }
+        
+        .inp-group { margin-bottom: 15px; text-align: left; }
+        .lbl { font-size: 12px; color: #aaa; font-weight: 700; margin-bottom: 5px; display: block; }
+        .inp { 
+            width: 100%; padding: 15px; background: #000; border: 1px solid #444; 
+            color: #fff; font-family: 'Rajdhani'; font-weight: 700; font-size: 18px; 
+            border-radius: 10px; text-transform: uppercase;
+        }
+        .inp:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 10px rgba(0,229,255,0.2); }
+
+        .btn-absen {
+            width: 100%; padding: 15px; background: linear-gradient(90deg, var(--primary), #0099aa);
+            border: none; border-radius: 10px; color: #000; font-size: 20px; font-weight: 900;
+            cursor: pointer; text-transform: uppercase; box-shadow: 0 5px 15px rgba(0,229,255,0.2);
+            transition: 0.3s;
+        }
+        .btn-absen:disabled { background: #333; color: #666; cursor: not-allowed; box-shadow: none; }
+        .btn-absen:active { transform: scale(0.98); }
+
+        /* LIVE LIST */
+        .list-container {
+            width: 100%; max-width: 800px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid #333; border-radius: 20px;
+            padding: 20px; min-height: 300px;
+        }
+        .list-title { text-align: left; font-size: 20px; font-weight: 800; color: var(--primary); border-bottom: 1px solid #333; padding-bottom: 10px; margin-bottom: 15px; display: flex; justify-content: space-between; }
+        
+        .attendee-row {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 10px 15px; margin-bottom: 8px;
+            background: rgba(255,255,255,0.03); border-radius: 8px;
+            border-left: 3px solid #444;
+            animation: slideIn 0.5s ease;
+        }
+        .attendee-row.new { border-left-color: var(--primary); background: rgba(0, 229, 255, 0.1); }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
+
+        .att-name { font-size: 18px; font-weight: 700; color: #fff; }
+        .att-plate { font-size: 14px; color: #aaa; background: #111; padding: 2px 8px; border-radius: 4px; margin-left: 10px; }
+        .att-time { font-size: 12px; color: var(--primary); font-weight: 600; }
+
+        /* ADMIN TOOLS */
+        .admin-tools { margin-top: 30px; display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+        .btn-tool { background: transparent; border: 1px solid #555; color: #aaa; padding: 8px 15px; border-radius: 20px; font-size: 12px; cursor: pointer; font-weight: 600; }
+        .btn-tool:hover { border-color: var(--white); color: #fff; }
+        #btnSuperCopy { display: none; border-color: var(--warning); color: var(--warning); }
+
+        /* MODAL */
+        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 999; display: none; align-items: center; justify-content: center; flex-direction: column; }
+        #qrcode { background: #fff; padding: 20px; border-radius: 15px; margin-bottom: 20px; }
+        .close-modal { color: #fff; border: 1px solid #fff; padding: 8px 20px; border-radius: 20px; cursor: pointer; }
+
+        .nav-back { position: fixed; bottom: 20px; width: 100%; text-align: center; font-size: 12px; color: #555; text-decoration: none; font-weight: 600; }
+    </style>
+</head>
+<body>
+
+    <div class="header" ondblclick="loginSuperAdmin()">
+        <div class="logo-wrapper" id="logoWrap">
+            <div class="scan-line"></div>
+            <img src="logo.png" alt="MLU" class="logo-img">
+        </div>
+        
+        <h1>COMMUNITY ENGAGEMENT</h1>
+        <div class="location-tag">@RUMAH MAKA LINTAS UTARA</div>
+        <div class="date-badge">SELASA, 10 FEB 2026</div>
+    </div>
+
+    <div class="form-container">
+        <div style="text-align:center; margin-bottom:15px; color:#888; font-size:12px;">ISI DATA UNTUK KONFIRMASI KEHADIRAN</div>
+        
+        <div class="inp-group">
+            <span class="lbl">NAMA LENGKAP</span>
+            <input type="text" id="inpNama" class="inp" placeholder="Nama Anda...">
+        </div>
+        
+        <div class="inp-group">
+            <span class="lbl">NOMOR PLAT</span>
+            <input type="text" id="inpPlat" class="inp" placeholder="B 1234 XYZ...">
+        </div>
+
+        <button class="btn-absen" id="btnSubmit" onclick="checkLocationAndSubmit()">SAYA HADIR <i class="fas fa-map-marker-alt"></i></button>
+    </div>
+
+    <div class="list-container">
+        <div class="list-title">
+            <span>PESERTA HADIR</span>
+            <span id="totalCount" style="color:#fff;">0</span>
+        </div>
+        <div id="attendanceList">
+            <div style="text-align:center; padding:20px; color:#444;">Belum ada data masuk...</div>
+        </div>
+    </div>
+
+    <div class="admin-tools">
+        <button class="btn-tool" onclick="showQR()"><i class="fas fa-qrcode"></i> TAMPILKAN QR</button>
+        <button class="btn-tool" id="btnSuperCopy" onclick="copyDataForSheet()"><i class="fas fa-copy"></i> SALIN DATA (UTK SHEET)</button>
+        <button class="btn-tool" onclick="window.location.href='system.html'"><i class="fas fa-arrow-left"></i> KEMBALI KE SYSTEM</button>
+    </div>
+
+    <div style="height:50px;"></div>
+
+    <div id="qrModal" class="modal">
+        <h2 style="color:var(--primary); margin-bottom:20px;">SCAN UNTUK ABSEN</h2>
+        <div id="qrcode"></div>
+        <div class="close-modal" onclick="document.getElementById('qrModal').style.display='none'">TUTUP</div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, Timestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // FIREBASE CONFIG
+        const firebaseConfig = { apiKey: "AIzaSyB666i9lYWIpxOdkwpoX9EvFvHLmHczeq8", authDomain: "fcgadingnew22.firebaseapp.com", projectId: "fcgadingnew22", storageBucket: "fcgadingnew22.firebasestorage.app", messagingSenderId: "537736846678", appId: "1:537736846678:web:53788d71a196423ac08af7" };
+        
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const kopdarRef = collection(db, "kopdar_10feb2026");
+
+        // KOORDINAT KELAPA GADING 
+        const STATION_LAT = -6.171583; 
+        const STATION_LNG = 106.899844; 
+        const MAX_DIST_KM = 0.3; // Radius 300 Meter
+
+        // --- FUNGSI CEK LOKASI & ANIMASI ---
+        window.checkLocationAndSubmit = () => {
+            const nama = document.getElementById('inpNama').value.toUpperCase().trim();
+            const plat = document.getElementById('inpPlat').value.toUpperCase().trim();
+            const btn = document.getElementById('btnSubmit');
+
+            if(!nama || !plat) return alert("MOHON LENGKAPI DATA!");
+
+            if (!navigator.geolocation) return alert("Browser tidak support GPS.");
+
+            btn.innerHTML = "CEK LOKASI...";
+            btn.disabled = true;
+
+            navigator.geolocation.getCurrentPosition((pos) => {
+                const dist = calculateDist(STATION_LAT, STATION_LNG, pos.coords.latitude, pos.coords.longitude);
+                
+                if (dist <= MAX_DIST_KM) {
+                    btn.innerHTML = "VERIFIKASI...";
+                    
+                    // JALANKAN ANIMASI LOGO NAIK TURUN DULU
+                    startScanningAnimation(() => {
+                        submitToFirebase(nama, plat);
+                    });
+
+                } else {
+                    btn.innerHTML = "SAYA HADIR <i class='fas fa-map-marker-alt'></i>";
+                    btn.disabled = false;
+                    alert(`ANDA DI LUAR LOKASI!\nJarak: ${(dist).toFixed(2)} KM.\nHarus di lokasi KOPDAR.`);
+                }
+            }, (err) => {
+                btn.innerHTML = "SAYA HADIR";
+                btn.disabled = false;
+                alert("GAGAL AKSES GPS! Pastikan GPS aktif.");
+            }, {enableHighAccuracy: true});
+        };
+
+        // --- ANIMASI SCANNING LOGO ---
+        function startScanningAnimation(callback) {
+            const logoWrap = document.getElementById('logoWrap');
+            const btn = document.getElementById('btnSubmit');
+            
+            logoWrap.classList.add('scanning');
+            btn.innerHTML = "SCANNING ID...";
+            
+            // Tahan 3 detik biar efeknya kelihatan
+            setTimeout(() => {
+                logoWrap.classList.remove('scanning');
+                callback(); 
+            }, 3000);
+        }
+
+        // --- KIRIM KE FIREBASE ---
+        async function submitToFirebase(nama, plat) {
+            const btn = document.getElementById('btnSubmit');
+            const logoWrap = document.getElementById('logoWrap');
+
+            try {
+                btn.innerHTML = "MENYIMPAN...";
+                await addDoc(kopdarRef, { nama: nama, plat: plat, timestamp: Timestamp.now() });
+                
+                logoWrap.classList.add('success'); // Jadi Berwarna
+                btn.innerHTML = "SUKSES! <i class='fas fa-check-double'></i>";
+                btn.style.background = "#00ff00"; 
+                
+                alert(`SELAMAT DATANG, ${nama}!\nKehadiran tercatat.`);
+                
+                localStorage.setItem('myName', nama);
+                localStorage.setItem('myPlat', plat);
+                
+                setTimeout(() => {
+                    document.getElementById('inpNama').value = '';
+                    document.getElementById('inpPlat').value = '';
+                    btn.disabled = false;
+                    btn.innerHTML = "SAYA HADIR <i class='fas fa-map-marker-alt'></i>";
+                    btn.style.background = "linear-gradient(90deg, var(--primary), #0099aa)";
+                    logoWrap.classList.remove('success'); 
+                }, 3000);
+
+            } catch (e) {
+                alert("Gagal Database: " + e.message);
+                btn.disabled = false;
+                btn.innerHTML = "COBA LAGI";
+            }
+        }
+
+        function calculateDist(lat1, lon1, lat2, lon2) { 
+            const R = 6371; const dLat = (lat2-lat1)*Math.PI/180; const dLon = (lon2-lon1)*Math.PI/180; 
+            const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2; 
+            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+        }
+
+        // --- LIVE DATA ---
+        let allData = [];
+        const q = query(kopdarRef, orderBy("timestamp", "desc"));
+        onSnapshot(q, (snapshot) => {
+            const listDiv = document.getElementById('attendanceList');
+            const counter = document.getElementById('totalCount');
+            allData = []; let html = "";
+            
+            if(snapshot.empty) { listDiv.innerHTML = '<div style="text-align:center; padding:20px; color:#444;">Belum ada data masuk...</div>'; counter.innerText = "0"; return; }
+
+            snapshot.forEach((doc) => {
+                const data = doc.data();
+                const time = data.timestamp.toDate().toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'});
+                allData.push({ time: data.timestamp.toDate().toLocaleString(), nama: data.nama, plat: data.plat });
+                html += `<div class="attendee-row new"><div><div class="att-name">${data.nama} <span class="att-plate">${data.plat}</span></div></div><div class="att-time">${time}</div></div>`;
+            });
+            listDiv.innerHTML = html; counter.innerText = snapshot.size;
+        });
+
+        // --- ADMIN & TOOLS ---
+        window.loginSuperAdmin = () => { if(prompt("MASUKKAN KODE SUPER ADMIN:") === "090815") { document.getElementById('btnSuperCopy').style.display = 'block'; alert("AKSES DIBUKA."); } else alert("KODE SALAH!"); }
+        
+        window.showQR = () => {
+            const qrDiv = document.getElementById('qrcode'); qrDiv.innerHTML = "";
+            new QRCode(qrDiv, { text: window.location.href, width: 250, height: 250 });
+            document.getElementById('qrModal').style.display = 'flex';
+        }
+
+        window.copyDataForSheet = () => {
+            if(allData.length === 0) return alert("Belum ada data!");
+            let text = "TIMESTAMP\tNAMA LENGKAP\tPLAT NOMOR\n";
+            allData.forEach(d => { text += `${d.time}\t${d.nama}\t${d.plat}\n`; });
+            navigator.clipboard.writeText(text).then(() => alert("DATA DISALIN! Paste ke Sheet.")).catch(err => alert("Gagal: " + err));
+        }
+
+        const myName = localStorage.getItem('myName'); const myPlat = localStorage.getItem('myPlat');
+        if(myName) document.getElementById('inpNama').value = myName;
+        if(myPlat) document.getElementById('inpPlat').value = myPlat;
+
+    </script>
+</body>
+</html>
