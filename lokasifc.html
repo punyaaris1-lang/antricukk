@@ -6,194 +6,220 @@
     <title>PETA LOKASI</title>
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link href="https://fonts.googleapis.com/css2?family=Teko:wght@300;500;700&family=Rajdhani:wght@500;600;700;800;900&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Outfit:wght@500;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
         :root { 
-            --bg: #050505; 
-            --primary: #00F0FF;       
-            --primary-dim: rgba(0, 240, 255, 0.15);
-            --accent: #FF003C;
-            --gray-dark: #222;
-            --gray-light: #555;
+            --bg: #0f1115; 
+            --primary: #00E5FF;       
+            --primary-glow: rgba(0, 229, 255, 0.4);
+            --card-bg: #1a1d24;
+            --text-main: #ffffff;
+            --text-sub: #a0a5b0;
             
-            --font-tech: 'Rajdhani', sans-serif;
-            --font-num: 'Teko', sans-serif;
-            --font-head: 'Orbitron', sans-serif;
+            /* Font Baru yang "Biasa tapi Bagus" */
+            --font-head: 'Outfit', sans-serif;
+            --font-body: 'Inter', sans-serif;
         }
         
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { margin: 0; padding: 0; background: var(--bg); overflow: hidden; font-family: var(--font-tech); color: #fff; }
+        body { margin: 0; padding: 0; background: var(--bg); overflow: hidden; font-family: var(--font-body); color: var(--text-main); }
 
-        /* HEADER (RAJDHANI BOLD) */
+        /* HEADER MODERN */
         .header-fixed {
             position: fixed; top: 0; left: 0; width: 100%; z-index: 1000;
-            background: linear-gradient(180deg, #000 0%, rgba(0,15,20,0.95) 70%, transparent 100%);
-            padding: 20px; text-align: center; pointer-events: none;
-            border-bottom: 1px solid rgba(0, 240, 255, 0.1);
+            background: linear-gradient(180deg, rgba(15,17,21,0.95) 0%, rgba(15,17,21,0) 100%);
+            padding: 24px 20px; text-align: center; pointer-events: none;
         }
         .main-title { 
-            font-family: var(--font-tech); font-weight: 800; font-size: 32px; color: #fff; 
-            line-height: 1; text-shadow: 0 0 20px var(--primary); letter-spacing: 2px;
-            text-transform: uppercase;
+            font-family: var(--font-head); font-weight: 800; font-size: 24px; color: #fff; 
+            letter-spacing: 0.5px; text-transform: uppercase;
+            text-shadow: 0 4px 12px rgba(0,0,0,0.5);
         }
         .sub-title { 
-            font-family: var(--font-tech); font-size: 11px; color: var(--primary); 
-            letter-spacing: 4px; font-weight: 700; text-transform: uppercase; margin-top: 5px;
-            display: inline-block; border-bottom: 2px solid var(--primary); padding-bottom: 3px;
+            font-family: var(--font-body); font-size: 12px; color: var(--primary); 
+            font-weight: 600; text-transform: uppercase; letter-spacing: 1px;
+            margin-top: 4px; display: inline-block;
+            background: rgba(0, 229, 255, 0.1); padding: 2px 8px; border-radius: 12px;
         }
 
         /* MAP */
-        #map { width: 100%; height: 100vh; z-index: 1; background: #020205; }
+        #map { width: 100%; height: 100vh; z-index: 1; background: #0f1115; }
         .leaflet-control-attribution { display: none; }
 
-        /* --- MARKER DESIGN --- */
+        /* --- NEW MARKER DESIGN (Modern Pin) --- */
         .marker-wrapper {
             display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
             width: 150px !important; height: auto !important;
-            transform: translate(-50%, -100%);
+            transform: translate(-50%, -100%); /* Supaya ujung bawah pin pas di koordinat */
         }
 
-        /* LABEL NAMA (Kotak Hitam + Border Cyan) */
+        /* LABEL NAMA */
         .pin-label-box {
-            background: rgba(0, 0, 0, 0.9);
-            border: 1px solid var(--primary);
-            color: var(--primary);
-            font-family: 'Teko', sans-serif;
-            font-weight: 600; font-size: 16px; /* Font lebih besar */
-            text-transform: uppercase; letter-spacing: 0.5px;
-            padding: 2px 8px; border-radius: 4px;
-            margin-bottom: 2px;
+            background: #fff;
+            color: #000;
+            font-family: var(--font-head);
+            font-weight: 700; font-size: 13px;
+            padding: 4px 10px; border-radius: 8px;
+            margin-bottom: 8px;
             white-space: nowrap;
-            box-shadow: 0 0 15px rgba(0, 240, 255, 0.3);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
             text-align: center;
-            z-index: 100;
+            opacity: 0.95;
+            transform: translateY(5px);
+            transition: all 0.3s ease;
         }
-
-        /* PIN BASIC */
+        
+        /* PIN BODY (Tetesan Air Modern) */
         .pin-body {
-            width: 24px; height: 38px;
-            background: linear-gradient(180deg, var(--primary) 0%, #000 90%);
-            border: 1px solid #fff;
-            clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-            box-shadow: 0 0 20px var(--primary);
+            width: 36px; height: 36px;
+            background: linear-gradient(135deg, var(--primary) 0%, #0099aa 100%);
+            border: 3px solid #fff;
+            border-radius: 50% 50% 50% 0; /* Bentuk Teardrop */
+            transform: rotate(-45deg); /* Putar supaya lancip di bawah */
+            box-shadow: 0 10px 20px rgba(0, 229, 255, 0.4);
+            position: relative;
             display: flex; align-items: center; justify-content: center;
         }
+        /* Titik tengah pin (supaya icon tetap tegak, kita putar balik rotasinya) */
         .pin-body::after {
-            content: ''; width: 6px; height: 6px; background: #fff;
-            box-shadow: 0 0 5px #fff;
+            content: ''; 
+            width: 10px; height: 10px; 
+            background: #fff; border-radius: 50%;
         }
 
         /* USER MARKER */
         .user-wrap { position: relative; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; }
         .user-pulse {
             position: absolute; width: 100%; height: 100%;
-            border-radius: 50%; border: 2px solid var(--primary);
-            opacity: 0; animation: pulse 1.5s infinite;
+            border-radius: 50%; background: rgba(0, 229, 255, 0.3);
+            opacity: 0; animation: pulse 2s infinite;
         }
         .user-img {
-            width: 40px; height: 40px; border-radius: 50%;
-            border: 2px solid #fff; box-shadow: 0 0 20px var(--primary);
-            object-fit: cover; background: #000; position: relative; z-index: 2;
+            width: 44px; height: 44px; border-radius: 50%;
+            border: 3px solid #fff; box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            object-fit: cover; background: #333; position: relative; z-index: 2;
         }
-        @keyframes pulse { 0% {transform: scale(0.5); opacity: 1;} 100% {transform: scale(1.5); opacity: 0;} }
+        @keyframes pulse { 0% {transform: scale(0.8); opacity: 1;} 100% {transform: scale(2); opacity: 0;} }
 
-        /* INFO CARD */
+        /* INFO CARD (CLEAN STYLE) */
         .info-card {
-            position: fixed; bottom: 100px; left: 15px; right: 15px; 
-            background: #0a0a0a; border: 1px solid var(--primary); 
-            padding: 20px; z-index: 1500; 
-            clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px);
-            transform: translateY(150%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 0 50px rgba(0, 240, 255, 0.1);
+            position: fixed; bottom: 100px; left: 16px; right: 16px; 
+            background: var(--card-bg); 
+            border-radius: 20px;
+            padding: 24px; z-index: 1500; 
+            transform: translateY(150%); transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.05);
         }
         .info-card.active { transform: translateY(0); }
-        .close-btn { position: absolute; top: 10px; right: 15px; color: #555; font-size: 24px; cursor: pointer; }
+        .close-btn { 
+            position: absolute; top: 16px; right: 20px; 
+            background: rgba(255,255,255,0.1); width: 24px; height: 24px;
+            border-radius: 50%; text-align: center; line-height: 24px;
+            color: #fff; font-size: 16px; cursor: pointer; 
+        }
         
-        .card-label { font-size: 10px; color: var(--primary); font-weight: 800; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 5px; font-family: var(--font-head); }
-        .card-title { font-family: var(--font-tech); font-weight: 800; font-size: 26px; line-height: 1; margin-bottom: 5px; color: #fff; text-transform: uppercase; }
-        .card-sub { font-size: 14px; color: #aaa; margin-bottom: 15px; font-family: var(--font-tech); padding-bottom: 10px; border-bottom: 1px solid #333; }
+        .card-label { 
+            font-size: 11px; color: var(--primary); font-weight: 700; 
+            letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px; 
+            font-family: var(--font-head);
+        }
+        .card-title { 
+            font-family: var(--font-head); font-weight: 700; font-size: 22px; 
+            line-height: 1.2; margin-bottom: 6px; color: #fff; 
+        }
+        .card-sub { 
+            font-size: 14px; color: var(--text-sub); margin-bottom: 20px; 
+            line-height: 1.5; font-weight: 400;
+        }
         
         .btn-nav {
-            display: block; width: 100%; padding: 12px; background: var(--primary); color: #000;
-            text-align: center; font-family: var(--font-head); font-weight: 800; font-size: 16px;
-            text-decoration: none; text-transform: uppercase; letter-spacing: 1px;
-            clip-path: polygon(10px 0, 100% 0, 100% 100%, 0 100%, 0 10px);
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            width: 100%; padding: 14px; border-radius: 12px;
+            background: var(--primary); color: #000;
+            font-family: var(--font-head); font-weight: 700; font-size: 15px;
+            text-decoration: none; transition: 0.2s;
         }
+        .btn-nav:active { transform: scale(0.98); }
 
         /* DOCK NAV */
         .dock-container {
             position: fixed; bottom: 0; left: 0; width: 100%; height: 80px;
-            background: rgba(2, 5, 8, 0.98); border-top: 2px solid var(--primary);
+            background: #15171c; 
             display: grid; grid-template-columns: 1fr 1fr 1fr; align-items: center;
             z-index: 2000;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            padding-bottom: 10px; /* Safe area for modern phones */
         }
-        .nav-item { text-decoration: none; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--gray-light); transition: 0.3s; height: 100%; }
+        .nav-item { text-decoration: none; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-sub); transition: 0.3s; height: 100%; }
         
-        /* MENU TENGAH (ANTRIAN) - MATI/GREY */
         .nav-item.center-btn { transform: translateY(-30px); }
         .center-icon-box { 
-            width: 65px; height: 65px; background: #000; 
-            border: 2px solid var(--gray-light); /* Grey Border */
+            width: 56px; height: 56px; background: #22252b; 
+            border: 4px solid #15171c;
             border-radius: 50%; display: flex; align-items: center; justify-content: center; 
-            box-shadow: 0 0 10px rgba(0,0,0,0.5); /* No Glow */
-            font-size: 26px; color: var(--gray-light); /* Grey Icon */
+            font-size: 22px; color: var(--text-sub);
             position: relative; z-index: 10;
         }
         
-        /* MENU KIRI (PETA) - AKTIF/CYAN */
-        .nav-item.active { color: var(--primary); text-shadow: 0 0 15px var(--primary); }
-        .nav-icon { font-size: 22px; margin-bottom: 4px; }
-        .nav-text { font-family: var(--font-head); font-size: 10px; letter-spacing: 2px; font-weight: 700; margin-top: 5px; }
+        .nav-item.active { color: var(--primary); }
+        .nav-item.active .nav-icon { transform: translateY(-2px); }
+        .nav-icon { font-size: 20px; margin-bottom: 6px; transition: 0.3s; }
+        .nav-text { font-family: var(--font-head); font-size: 10px; font-weight: 600; letter-spacing: 0.5px; }
 
     </style>
 </head>
 <body>
 
     <div class="header-fixed">
-        <div class="main-title">TACTICAL MAP</div>
-        <div class="sub-title">LIVE TRACKING SYSTEM</div>
+        <div class="main-title">Peta Lokasi</div>
+        <div class="sub-title">Live Tracking</div>
     </div>
 
     <div id="map"></div>
 
     <div id="infoCard" class="info-card">
         <div class="close-btn" onclick="closeCard()">×</div>
-        <div class="card-label">LOKASI TERPILIH</div>
+        <div class="card-label">Lokasi Terpilih</div>
         <div class="card-title" id="fcName">...</div>
         <div class="card-sub" id="fcAddr">...</div>
-        <a href="#" id="btnMaps" target="_blank" class="btn-nav">BUKA GOOGLE MAPS</a>
+        <a href="#" id="btnMaps" target="_blank" class="btn-nav">
+            <i class="fas fa-location-arrow"></i> Buka Google Maps
+        </a>
     </div>
 
     <div class="dock-container">
         <div class="nav-item active">
-            <i class="fas fa-map-marked-alt nav-icon"></i><span class="nav-text">PETA FC</span>
+            <i class="fas fa-map-marked-alt nav-icon"></i><span class="nav-text">PETA</span>
         </div>
         
         <a href="system.html" class="nav-item center-btn">
-            <div class="center-icon-box"><i class="fas fa-charging-station"></i></div>
+            <div class="center-icon-box"><i class="fas fa-list-ul"></i></div>
             <span class="nav-text" style="margin-top:8px;">ANTRIAN</span>
         </a>
         
         <a href="plan.html" class="nav-item">
-            <i class="fas fa-route nav-icon"></i><span class="nav-text">TRIP PLAN</span>
+            <i class="fas fa-route nav-icon"></i><span class="nav-text">RUTE</span>
         </a>
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
     <script>
-        // 1. INIT MAP
+        // 1. INIT MAP (Dark Mode CartoDB)
         const map = L.map('map', {zoomControl: false}).setView([-6.2, 106.8], 11);
         L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { 
-            maxZoom: 19, opacity: 0.9 
+            maxZoom: 19, opacity: 1 
         }).addTo(map);
 
         // 2. ICON USER
         const userIcon = L.divIcon({
             className: 'custom-user',
-            html: `<div class="user-wrap"><div class="user-pulse"></div><img src="logo.png" class="user-img"></div>`,
+            html: `<div class="user-wrap"><div class="user-pulse"></div><img src="logo.png" class="user-img" onerror="this.src='https://ui-avatars.com/api/?name=User&background=00E5FF&color=fff'"></div>`,
             iconSize: [60, 60], iconAnchor: [30, 30]
         });
         
@@ -209,43 +235,61 @@
                 userLat = pos.coords.latitude;
                 userLng = pos.coords.longitude;
                 L.marker([userLat, userLng], {icon: userIcon, zIndexOffset: 1000}).addTo(map);
-                map.setView([userLat, userLng], 14); 
+                map.setView([userLat, userLng], 13); 
                 loadFCData(true);
             }, () => { loadFCData(false); });
         } else { loadFCData(false); }
 
         function loadFCData(hasUserLoc) {
             Papa.parse(CSV_URL, {
-                download: true, header: true,
+                download: true, header: true, skipEmptyLines: true,
                 complete: function(results) {
-                    let nearestDist = Infinity;
-                    let nearestFC = null;
-
+                    
                     results.data.forEach(row => {
-                        let lat=null, lng=null, name="FC"; // Default FC
+                        let lat = null, lng = null, name = "FC";
 
-                        // --- FIX PENCARIAN NAMA (Cari kolom Nama/Lokasi/Station secara case-insensitive) ---
+                        // A. CARI NAMA (Prioritas kolom Nama/Station/Lokasi)
                         const keys = Object.keys(row);
                         for(let k of keys) {
                             let cleanKey = k.toLowerCase().trim();
-                            if(cleanKey.includes('nama') || cleanKey.includes('lokasi') || cleanKey.includes('station')) {
-                                if(row[k] && row[k].trim() !== "") {
-                                    name = row[k]; // KETEMU! Update nama
-                                    break;
-                                }
+                            if(cleanKey.includes('nama') || cleanKey.includes('station') || cleanKey.includes('lokasi')) {
+                                if(row[k] && row[k].trim() !== "") { name = row[k]; break; }
                             }
                         }
 
-                        // Parse Koordinat
-                        Object.values(row).forEach(val => { if(val){ let v=String(val).replace(',','.'); if(!isNaN(parseFloat(v)) && parseFloat(v)<-5) lat=parseFloat(v); if(!isNaN(parseFloat(v)) && parseFloat(v)>95) lng=parseFloat(v); }});
-                        
-                        if (lat && lng) {
-                            if(hasUserLoc) {
-                                const dist = Math.sqrt(Math.pow(lat-userLat, 2) + Math.pow(lng-userLng, 2));
-                                if(dist < nearestDist) { nearestDist = dist; nearestFC = { name, addr: row['Alamat'], lat, lng }; }
-                            }
+                        // B. CARI KOORDINAT (LOGIC LEBIH PINTAR & AMAN)
+                        // 1. Coba cari kolom yang spesifik dulu (supaya tidak ketimpa angka lain)
+                        for(let k of keys) {
+                            let val = String(row[k]).replace(',', '.').trim();
+                            let num = parseFloat(val);
+                            if(isNaN(num)) continue;
 
-                            // GENERATE MARKER + LABEL
+                            let cleanKey = k.toLowerCase();
+                            
+                            // Deteksi Latitude
+                            if (cleanKey.includes('lat') && num < -5 && num > -11) { lat = num; }
+                            
+                            // Deteksi Longitude
+                            if ((cleanKey.includes('long') || cleanKey.includes('lng')) && num > 95 && num < 141) { lng = num; }
+                        }
+
+                        // 2. Jika kolom tidak bernama 'lat'/'long', baru kita scan semua isi baris (FALLBACK)
+                        //    Tapi hanya jika lat/lng masih kosong.
+                        if (lat === null || lng === null) {
+                            Object.values(row).forEach(val => {
+                                let v = String(val).replace(',', '.').trim();
+                                let num = parseFloat(v);
+                                if (!isNaN(num)) {
+                                    // Range Indonesia: Lat -11 s/d 6, Long 95 s/d 141
+                                    if (lat === null && num < 6 && num > -11) lat = num;
+                                    else if (lng === null && num > 95 && num < 141) lng = num;
+                                }
+                            });
+                        }
+
+                        // C. RENDER MARKER
+                        if (lat && lng) {
+                            // GENERATE PIN YANG LEBIH MODERN
                             const fcIcon = L.divIcon({ 
                                 className: 'custom-pin', 
                                 html: `
@@ -254,18 +298,14 @@
                                         <div class="pin-body"></div>
                                     </div>
                                 `, 
-                                iconSize: [150, 80], 
-                                iconAnchor: [75, 80] 
+                                iconSize: [150, 60], // Size container
+                                iconAnchor: [75, 60] // Anchor point (tengah horizontal, bawah vertical)
                             });
 
                             const m = L.marker([lat, lng], {icon: fcIcon}).addTo(map);
-                            m.on('click', () => showInfo(name, row['Alamat'] || "Detail lokasi belum tersedia", lat, lng));
+                            m.on('click', () => showInfo(name, row['Alamat'] || "Klik navigasi untuk detail", lat, lng));
                         }
                     });
-
-                    if(nearestFC) {
-                        showInfo(nearestFC.name, nearestFC.addr, nearestFC.lat, nearestFC.lng);
-                    }
                 }
             });
         }
@@ -273,7 +313,8 @@
         function showInfo(name, addr, lat, lng) {
             document.getElementById('fcName').innerText = name;
             document.getElementById('fcAddr').innerText = addr || "Alamat tidak tersedia";
-            document.getElementById('btnMaps').href = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+            // Link Google Maps Universal (Android/iOS/Desktop)
+            document.getElementById('btnMaps').href = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
             document.getElementById('infoCard').classList.add('active');
         }
         function closeCard() { document.getElementById('infoCard').classList.remove('active'); }
