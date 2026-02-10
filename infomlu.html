@@ -137,8 +137,22 @@
 
         /* MODAL */
         .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 999; display: none; align-items: center; justify-content: center; flex-direction: column; }
-        #qrcode { background: #fff; padding: 20px; border-radius: 15px; margin-bottom: 20px; }
-        .close-modal { color: #fff; border: 1px solid #fff; padding: 8px 20px; border-radius: 20px; cursor: pointer; }
+        
+        /* QR Code Container High Res Styling */
+        #qrcode { 
+            background: #fff; padding: 20px; border-radius: 15px; margin-bottom: 20px; 
+            /* Agar gambar besar tidak merusak layout */
+            max-width: 90%; 
+            display: flex; justify-content: center;
+        }
+        #qrcode img {
+            width: auto !important; /* Reset width library */
+            max-width: 100%; /* Fit screen */
+            height: auto !important;
+        }
+
+        .close-modal { color: #fff; border: 1px solid #fff; padding: 8px 20px; border-radius: 20px; cursor: pointer; margin-top: 10px;}
+        .save-qr-btn { background: var(--primary); color: #000; border: none; padding: 10px 20px; border-radius: 20px; font-weight: bold; cursor: pointer; margin-bottom: 10px; }
 
         .nav-back { position: fixed; bottom: 20px; width: 100%; text-align: center; font-size: 12px; color: #555; text-decoration: none; font-weight: 600; }
     </style>
@@ -183,7 +197,7 @@
     </div>
 
     <div class="admin-tools">
-        <button class="btn-tool" onclick="showQR()"><i class="fas fa-qrcode"></i> TAMPILKAN QR</button>
+        <button class="btn-tool" onclick="showQR()"><i class="fas fa-qrcode"></i> TAMPILKAN QR (PRINTABLE)</button>
         <button class="btn-tool" id="btnSuperCopy" onclick="copyDataForSheet()"><i class="fas fa-copy"></i> SALIN DATA (UTK SHEET)</button>
         <button class="btn-tool" onclick="window.location.href='system.html'"><i class="fas fa-arrow-left"></i> KEMBALI KE SYSTEM</button>
     </div>
@@ -191,28 +205,29 @@
     <div style="height:50px;"></div>
 
     <div id="qrModal" class="modal">
-        <h2 style="color:var(--primary); margin-bottom:20px;">SCAN UNTUK ABSEN</h2>
+        <h2 style="color:var(--primary); margin-bottom:10px;">SCAN UNTUK ABSEN</h2>
+        <div style="color:#aaa; font-size:12px; margin-bottom:20px;">Klik kanan / Tahan gambar untuk Save</div>
+        
         <div id="qrcode"></div>
-        <div class="close-modal" onclick="document.getElementById('qrModal').style.display='none'">TUTUP</div>
+        
+        <button class="close-modal" onclick="document.getElementById('qrModal').style.display='none'">TUTUP</button>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, Timestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // FIREBASE CONFIG
         const firebaseConfig = { apiKey: "AIzaSyB666i9lYWIpxOdkwpoX9EvFvHLmHczeq8", authDomain: "fcgadingnew22.firebaseapp.com", projectId: "fcgadingnew22", storageBucket: "fcgadingnew22.firebasestorage.app", messagingSenderId: "537736846678", appId: "1:537736846678:web:53788d71a196423ac08af7" };
         
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const kopdarRef = collection(db, "kopdar_10feb2026");
 
-        // KOORDINAT KELAPA GADING 
         const STATION_LAT = -6.171583; 
         const STATION_LNG = 106.899844; 
-        const MAX_DIST_KM = 0.3; // Radius 300 Meter
+        const MAX_DIST_KM = 0.3; 
 
-        // --- FUNGSI CEK LOKASI & ANIMASI ---
+        // --- FUNGSI UTAMA: CEK LOKASI -> ANIMASI -> SUBMIT ---
         window.checkLocationAndSubmit = () => {
             const nama = document.getElementById('inpNama').value.toUpperCase().trim();
             const plat = document.getElementById('inpPlat').value.toUpperCase().trim();
@@ -231,7 +246,6 @@
                 if (dist <= MAX_DIST_KM) {
                     btn.innerHTML = "VERIFIKASI...";
                     
-                    // JALANKAN ANIMASI LOGO NAIK TURUN DULU
                     startScanningAnimation(() => {
                         submitToFirebase(nama, plat);
                     });
@@ -248,7 +262,6 @@
             }, {enableHighAccuracy: true});
         };
 
-        // --- ANIMASI SCANNING LOGO ---
         function startScanningAnimation(callback) {
             const logoWrap = document.getElementById('logoWrap');
             const btn = document.getElementById('btnSubmit');
@@ -256,14 +269,12 @@
             logoWrap.classList.add('scanning');
             btn.innerHTML = "SCANNING ID...";
             
-            // Tahan 3 detik biar efeknya kelihatan
             setTimeout(() => {
                 logoWrap.classList.remove('scanning');
                 callback(); 
             }, 3000);
         }
 
-        // --- KIRIM KE FIREBASE ---
         async function submitToFirebase(nama, plat) {
             const btn = document.getElementById('btnSubmit');
             const logoWrap = document.getElementById('logoWrap');
@@ -272,7 +283,7 @@
                 btn.innerHTML = "MENYIMPAN...";
                 await addDoc(kopdarRef, { nama: nama, plat: plat, timestamp: Timestamp.now() });
                 
-                logoWrap.classList.add('success'); // Jadi Berwarna
+                logoWrap.classList.add('success'); 
                 btn.innerHTML = "SUKSES! <i class='fas fa-check-double'></i>";
                 btn.style.background = "#00ff00"; 
                 
@@ -303,7 +314,6 @@
             return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
         }
 
-        // --- LIVE DATA ---
         let allData = [];
         const q = query(kopdarRef, orderBy("timestamp", "desc"));
         onSnapshot(q, (snapshot) => {
@@ -322,12 +332,20 @@
             listDiv.innerHTML = html; counter.innerText = snapshot.size;
         });
 
-        // --- ADMIN & TOOLS ---
         window.loginSuperAdmin = () => { if(prompt("MASUKKAN KODE SUPER ADMIN:") === "090815") { document.getElementById('btnSuperCopy').style.display = 'block'; alert("AKSES DIBUKA."); } else alert("KODE SALAH!"); }
         
+        // --- QR CODE HIGH RESOLUTION ---
         window.showQR = () => {
-            const qrDiv = document.getElementById('qrcode'); qrDiv.innerHTML = "";
-            new QRCode(qrDiv, { text: window.location.href, width: 250, height: 250 });
+            const qrDiv = document.getElementById('qrcode'); 
+            qrDiv.innerHTML = "";
+            
+            // GENERATE 1000px AGAR TAJAM SAAT DIPRINT
+            new QRCode(qrDiv, { 
+                text: window.location.href, 
+                width: 1000, 
+                height: 1000 
+            });
+            
             document.getElementById('qrModal').style.display = 'flex';
         }
 
