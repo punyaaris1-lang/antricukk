@@ -138,7 +138,7 @@
         </div>
     </div>
 
-    <button class="btn-register-glow" onclick="goToRegistration()">
+    <button class="btn-register-glow" id="btnMainAction" onclick="goToRegistration()">
         DAFTAR SEKARANG
     </button>
 
@@ -183,9 +183,24 @@
             }
         });
 
-        // REVISI: Mengarah ke antrian.html
+        // --- SISTEM RECOVERY (PEMULIHAN SESI) ---
+        const myPlat = localStorage.getItem('myPlat');
+        const isSuperAdmin = localStorage.getItem('sa_sess');
+        const btnAction = document.getElementById('btnMainAction');
+
+        // Ubah teks tombol jika mendeteksi adanya sesi aktif
+        if (myPlat || isSuperAdmin) {
+            btnAction.innerText = "KEMBALI KE SYSTEM";
+        }
+
         window.goToRegistration = () => {
-            window.location.href = "antrian.html?action=register"; 
+            // Jika ada sesi, arahkan langsung ke system.html (Recovery)
+            if (localStorage.getItem('myPlat') || localStorage.getItem('sa_sess')) {
+                window.location.href = "system.html";
+            } else {
+                // Jika belum daftar, arahkan ke antrian.html
+                window.location.href = "antrian.html?action=register"; 
+            }
         };
     </script>
 
