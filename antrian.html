@@ -407,9 +407,10 @@
             if(parseInt(batre) > 100) return alert("BATERAI MAKSIMAL 100%!");
             
             const btn = document.querySelector('.btn-kirim');
-            btn.innerText = "PROSES...";
+            if(btn) btn.innerText = "PROSES...";
+            
             try {
-                // MODIFIKASI: Ambil Role dari Database Members sebelum update antrian
+                // Ambil Role dari Database Members
                 const memberRef = doc(db, "members", plat.replace(/[^A-Z0-9]/g, ''));
                 const memberSnap = await getDoc(memberRef);
                 let role = "GUEST";
@@ -419,19 +420,55 @@
 
                 const snap = await getDoc(mainRef);
                 if(snap.exists()) {
-                    let queue = snap.data().waitingQueue || [];
-                    if(queue.find(q => q.plat === plat)) { alert("SUDAH ANTRI!"); location.reload(); return; }
+                    let d = snap.data();
+                    let queue = d.waitingQueue || [];
+                    let slots = d.chargingSlots || [];
                     
-                    // Simpan data dengan Role yang sudah didapat
-                    queue.push({ userName: nama, plat: plat, batreSisa: batre, role: role, timestamp: Date.now(), qNo: (snap.data().lastTicket || 0) + 1 });
-                    await updateDoc(mainRef, { waitingQueue: queue, lastTicket: (snap.data().lastTicket || 0) + 1 });
+                    // ==========================================
+                    // --- LOGIKA RECOVERY TINGKAT DEWA ---
+                    // ==========================================
                     
-                    localStorage.setItem('myPlat', plat);
+                    // 1. Cek apakah plat sudah ada di ANTRIAN
+                    if(queue.find(q => q.plat === plat)) { 
+                        alert("TIKET DITEMUKAN! Memulihkan sesi Anda..."); 
+                        localStorage.setItem('myPlat', plat); 
+                        window.location.href = 'system.html'; 
+                        return; 
+                    }
+                    
+                    // 2. Cek apakah plat sedang di DALAM SLOT CHARGING
+                    if(slots.find(s => s && s.plat === plat)) { 
+                        alert("ANDA SEDANG CHARGING! Memulihkan sesi..."); 
+                        localStorage.setItem('myPlat', plat); 
+                        window.location.href = 'system.html'; 
+                        return; 
+                    }
+                    // ==========================================
+                    
+                    // Jika belum ada di antrian & slot, proses daftar baru
+                    queue.push({ 
+                        userName: nama, 
+                        plat: plat, 
+                        batreSisa: batre, 
+                        role: role, 
+                        timestamp: Date.now(), 
+                        qNo: (d.lastTicket || 0) + 1 
+                    });
+                    
+                    await updateDoc(mainRef, { 
+                        waitingQueue: queue, 
+                        lastTicket: (d.lastTicket || 0) + 1 
+                    });
+                    
+                    localStorage.setItem('myPlat', plat); // Simpan tiket baru
                     
                     alert("BERHASIL! MASUK KE SYSTEM..."); 
                     window.location.href = 'system.html'; // REDIRECT TO SYSTEM
                 }
-            } catch(e) { alert("ERROR: " + e); btn.innerText = "AMBIL TIKET"; }
+            } catch(e) { 
+                alert("ERROR: " + e); 
+                if(btn) btn.innerText = "AMBIL TIKET"; 
+            }
         };
 
         // PILIH SLOT HANYA VISUAL DI SINI KARENA REDIRECT KE SYSTEM
