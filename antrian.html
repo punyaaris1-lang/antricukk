@@ -448,6 +448,7 @@
         // 2. HELPER FUNCTIONS
         function calculateDistance(lat1, lon1, lat2, lon2) { const p = 0.017453292519943295; const c = Math.cos; const a = 0.5 - c((lat2 - lat1) * p)/2 + c(lat1 * p) * c(lat2 * p) * (1 - c((lon2 - lon1) * p))/2; return 12742 * Math.asin(Math.sqrt(a)); }
 
+        // Murni mengecek storage untuk mengubah tombol jadi Redirect ke System
         function checkMyTicketState() {
             const myPlat = localStorage.getItem('myPlat');
             const btn = document.getElementById('btnDaftar');
@@ -480,17 +481,7 @@
             globalSlots = d.chargingSlots || [null, null, null];
             globalQueue = d.waitingQueue || [];
             
-            // --- VALIDASI HANTU (Validasi Sesi) ---
-            const myPlat = localStorage.getItem('myPlat');
-            if (myPlat) {
-                const inSlot = globalSlots.some(s => s && s.plat === myPlat);
-                const inQueue = globalQueue.some(q => q.plat === myPlat);
-                
-                if (!inSlot && !inQueue) {
-                    localStorage.removeItem('myPlat');
-                    checkMyTicketState();
-                }
-            }
+            // VALIDASI HANTU DIHAPUS, SUPAYA SESI AWET.
 
             const usedCount = globalSlots.filter(s => s !== null).length;
             document.getElementById('slotVal').innerHTML = `${usedCount}<span style="font-size:24px;opacity:0.8;margin-left:5px">/${TOTAL_SLOTS}</span>`;

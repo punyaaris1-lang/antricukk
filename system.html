@@ -39,55 +39,6 @@
 
         /* --- LOADING & BLOCKER --- */
         #gate-screen { position: fixed; inset: 0; background: #000; z-index: 99999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        
-        /* --- UNDANGAN POPUP (WELCOME) --- */
-        #invitation-popup {
-            position: fixed; inset: 0; 
-            background: rgba(5, 5, 5, 0.95); 
-            backdrop-filter: blur(10px);
-            z-index: 80000; /* Di bawah loading, di atas konten */
-            display: none; /* Default Hidden, akan di-trigger JS */
-            flex-direction: column; align-items: center; justify-content: center;
-            opacity: 0; transition: opacity 0.5s ease;
-        }
-        #invitation-popup.active { display: flex; opacity: 1; }
-
-        .inv-card {
-            background: rgba(20, 25, 30, 0.9);
-            border: 1px solid rgba(0, 229, 255, 0.3);
-            border-top: 4px solid var(--primary);
-            border-bottom: 4px solid var(--gold);
-            border-radius: 20px;
-            padding: 30px 20px;
-            text-align: center;
-            box-shadow: 0 0 60px rgba(0, 229, 255, 0.15);
-            width: 90%; max-width: 380px;
-            animation: zoomInInv 0.5s cubic-bezier(0.18, 0.89, 0.32, 1.28);
-            position: relative;
-        }
-        @keyframes zoomInInv { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-
-        .inv-close-btn {
-            position: absolute; top: -15px; right: -15px;
-            width: 40px; height: 40px; border-radius: 50%;
-            background: var(--accent); color: #fff;
-            border: 2px solid #fff; font-weight: bold; font-size: 18px;
-            display: flex; align-items: center; justify-content: center;
-            cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.5);
-            z-index: 10;
-        }
-
-        .inv-icon { font-size: 40px; color: var(--gold); margin-bottom: 15px; animation: pulseIcon 2s infinite; }
-        .inv-title { font-family: var(--font-head); font-size: 32px; font-weight: 900; color: #fff; line-height: 1; margin-bottom: 5px; }
-        .inv-sub { font-size: 12px; color: var(--primary); letter-spacing: 3px; font-weight: 700; margin-bottom: 20px; }
-        
-        .inv-detail { background: rgba(255,255,255,0.05); padding: 15px; border-radius: 10px; margin-bottom: 20px; text-align: left; }
-        .inv-row { display: flex; align-items: center; margin-bottom: 10px; }
-        .inv-row i { width: 25px; color: var(--primary); text-align: center; margin-right: 10px; }
-        .inv-val { color: #fff; font-weight: 700; font-family: var(--font-tech); font-size: 16px; text-transform: uppercase; }
-
-        .inv-note { font-size: 11px; color: #aaa; font-style: italic; margin-bottom: 20px; }
-        .inv-ok-btn { background: var(--primary); color: #000; width: 100%; padding: 12px; border: none; border-radius: 10px; font-weight: 900; font-family: var(--font-head); font-size: 16px; cursor: pointer; }
 
         /* --- HEADER --- */
         .header { text-align: center; margin-bottom: 30px; margin-top: 10px; cursor: pointer; position: relative; z-index: 5; } 
@@ -200,25 +151,6 @@
         <div style="font-family:'Orbitron'; color:#00F0FF; font-size:24px; animation:pulseText 1s infinite;">VERIFYING ACCESS...</div>
     </div>
 
-    <div id="invitation-popup">
-        <div class="inv-card">
-            <div class="inv-close-btn" onclick="closeInvitation()">✕</div>
-            
-            <div class="inv-icon"><i class="fas fa-mug-hot"></i></div>
-            <div class="inv-title">UNDANGAN <br>NGOPI SANTAI</br></div>
-            <div class="inv-sub">KELUARGA BESAR MLU</div>
-
-            <div class="inv-detail">
-                <div class="inv-row"><i class="far fa-calendar-alt"></i><span class="inv-val">SELASA, 10 FEB 2026</span></div>
-                <div class="inv-row"><i class="far fa-clock"></i><span class="inv-val">PUKUL 20:00 WIB</span></div>
-                <div class="inv-row"><i class="fas fa-map-marker-alt"></i><span class="inv-val">FC KELAPA GADING</span></div>
-            </div>
-
-            <div class="inv-note"><bold>"Ngobrol Bareng Perwakilan MAKA" </bold></div>
-            <button class="inv-ok-btn" onclick="closeInvitation()">YG GA HADIR DI MARAHIN PAK AJI</button>
-        </div>
-    </div>
-
     <div id="customModal" class="modal-overlay">
         <div class="modal-box">
             <div id="modalTitle" class="modal-title">TITLE</div>
@@ -307,16 +239,9 @@
         if(!myPlat && !isSuperAdmin) {
             window.location.href = 'antrian.html';
         } else {
-            // [LOGIC POPUP UNDANGAN]
-            // Muncul sekali saat halaman dimuat (sebelum Gate hilang)
             setTimeout(() => { 
                 const g = document.getElementById('gate-screen'); 
                 if(g) g.style.display = 'none'; 
-                
-                // MUNCULKAN UNDANGAN
-                const inv = document.getElementById('invitation-popup');
-                if(inv) inv.classList.add('active');
-
             }, 1000);
             
             // AUTO FIX BADGE
@@ -334,15 +259,6 @@
                         window.location.href = 'antrian.html';
                     }
                 }, (err) => console.log(err), {enableHighAccuracy: true, maximumAge: 10000});
-            }
-        }
-
-        // --- FUNGSI CLOSE UNDANGAN ---
-        window.closeInvitation = () => {
-            const inv = document.getElementById('invitation-popup');
-            if(inv) {
-                inv.style.opacity = '0';
-                setTimeout(() => inv.classList.remove('active'), 500);
             }
         }
 
@@ -377,12 +293,10 @@
 
         onSnapshot(mainRef, (snap) => {
             if (!snap.exists()) return; const d = snap.data(); localSlots = d.chargingSlots || [null, null, null]; localQueue = d.waitingQueue || []; 
-            if(myPlat) {
-                const cleanPlat = cleanStr(myPlat);
-                const inSlot = localSlots.some(s => s && cleanStr(s.plat) === cleanPlat);
-                const inQueue = localQueue.some(q => cleanStr(q.plat) === cleanPlat);
-                if(!inSlot && !inQueue) { localStorage.removeItem('myPlat'); alert("SESI BERAKHIR."); window.location.href = 'antrian.html'; }
-            }
+            
+            // LOGIKA RECOVERY DIPERBAIKI:
+            // Logika auto-kick saat user tidak ada di slot/antrean DIBUANG agar user tidak kelempar keluar (bisa recovery).
+            
             updateUI();
         });
 
