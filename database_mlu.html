@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>DATABASE MEMBER MLU</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700;800;900&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --primary: #00E5FF;       
+            --bg-dark: #050505;
+            --white: #ffffff;
+            --warning: #FFD700;
+            --danger: #FF003C;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background-color: var(--bg-dark);
+            background-image: 
+                linear-gradient(rgba(0, 229, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 229, 255, 0.05) 1px, transparent 1px);
+            background-size: 30px 30px;
+            font-family: 'Rajdhani', sans-serif;
+            color: var(--white);
+            min-height: 100vh;
+            display: flex; flex-direction: column; align-items: center;
+            padding: 20px;
+        }
+
+        /* HEADER */
+        .header { text-align: center; margin-bottom: 20px; width: 100%; max-width: 600px; user-select: none; cursor: pointer; }
+        .logo-box { width: 80px; height: 80px; margin: 0 auto 10px auto; border-radius: 50%; border: 2px solid var(--primary); display: flex; align-items: center; justify-content: center; background: #000; box-shadow: 0 0 20px rgba(0,229,255,0.3); }
+        .logo-box img { width: 90%; }
+        h1 { font-size: 32px; font-weight: 900; color: #fff; margin: 0; text-transform: uppercase; text-shadow: 0 0 15px var(--primary); line-height: 1; }
+        .sub-title { font-size: 12px; color: var(--warning); letter-spacing: 3px; font-weight: 700; margin-top: 5px; }
+
+        /* FORMULIR LENGKAPI DATA */
+        .form-container {
+            width: 100%; max-width: 500px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--primary);
+            border-radius: 20px; padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
+        }
+        
+        .form-title { text-align: center; color: var(--primary); font-size: 18px; font-weight: 800; margin-bottom: 15px; border-bottom: 1px dashed #444; padding-bottom: 10px; }
+        .inp-group { margin-bottom: 15px; text-align: left; }
+        .lbl { font-size: 12px; color: #aaa; font-weight: 700; margin-bottom: 5px; display: block; }
+        .inp { 
+            width: 100%; padding: 12px; background: #000; border: 1px solid #444; 
+            color: #fff; font-family: 'Rajdhani'; font-weight: 700; font-size: 18px; 
+            border-radius: 10px; text-transform: uppercase;
+        }
+        .inp:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 10px rgba(0,229,255,0.2); }
+
+        .btn-submit {
+            width: 100%; padding: 15px; background: linear-gradient(90deg, var(--primary), #0099aa);
+            border: none; border-radius: 10px; color: #000; font-size: 18px; font-weight: 900;
+            cursor: pointer; text-transform: uppercase; box-shadow: 0 5px 15px rgba(0,229,255,0.2);
+        }
+        .btn-submit:active { transform: scale(0.98); }
+
+        /* LIST DATABASE */
+        .list-container {
+            width: 100%; max-width: 800px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid #333; border-radius: 20px;
+            padding: 20px; min-height: 300px; margin-bottom: 50px;
+        }
+        .list-header { font-size: 16px; font-weight: 800; color: var(--warning); border-bottom: 1px solid #333; padding-bottom: 10px; margin-bottom: 15px; display: flex; justify-content: space-between; }
+        
+        .db-row {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 12px 15px; margin-bottom: 8px;
+            background: rgba(255,255,255,0.02); border-radius: 8px;
+            border-left: 3px solid #444;
+        }
+        .db-row.lengkap { border-left-color: var(--primary); }
+        .db-row.kosong { border-left-color: var(--danger); background: rgba(255, 0, 60, 0.05); }
+
+        .db-name { font-size: 18px; font-weight: 700; color: #fff; }
+        .db-plat { font-size: 14px; color: var(--primary); font-family: 'Teko', sans-serif; letter-spacing: 1px; font-weight: normal;}
+        
+        .wa-badge { font-size: 12px; padding: 4px 8px; border-radius: 6px; font-weight: 700; font-family: 'Inter'; }
+        .wa-ada { background: rgba(0, 229, 255, 0.1); color: var(--primary); border: 1px solid var(--primary); }
+        .wa-kosong { background: var(--danger); color: #fff; animation: pulseRed 1.5s infinite; }
+        
+        @keyframes pulseRed { 0%,100%{opacity:1;} 50%{opacity:0.5;} }
+
+        /* TOMBOL RAHASIA ADMIN */
+        .admin-controls { display: none; width: 100%; max-width: 500px; gap: 10px; margin-bottom: 20px; flex-direction: column; }
+        .btn-admin { font-family: 'Rajdhani'; font-weight: bold; border: none; padding: 12px 20px; border-radius: 10px; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        #btnSyncData { background: var(--warning); color: #000; }
+        #btnDownload { background: #28a745; color: #fff; } /* Warna Hijau Excel */
+    </style>
+</head>
+<body>
+
+    <div class="header" ondblclick="loginAdmin()">
+        <div class="logo-box"><img src="logo.png" alt="MLU"></div>
+        <h1>DATABASE MEMBER MLU</h1>
+        <div class="sub-title">UPDATE DATA ANGGOTA</div>
+    </div>
+
+    <div class="admin-controls" id="adminControls">
+        <button class="btn-admin" id="btnDownload" onclick="downloadExcel()"><i class="fas fa-file-excel"></i> DOWNLOAD EXCEL (.CSV)</button>
+        <button class="btn-admin" id="btnSyncData" onclick="syncDataAwal()"><i class="fas fa-cloud-upload-alt"></i> UPLOAD DATA 36 MEMBER AWAL</button>
+    </div>
+
+    <div class="form-container">
+        <div class="form-title">LENGKAPI DATA ANDA</div>
+        <div style="font-size:11px; color:#aaa; margin-bottom:15px; text-align:center;">
+            Cari Plat Nomor Anda di bawah. Jika status WA merah, wajib isi form ini!
+        </div>
+        
+        <div class="inp-group">
+            <span class="lbl">NAMA LENGKAP PANGGILAN</span>
+            <input type="text" id="inpNama" class="inp" placeholder="Contoh: RENO">
+        </div>
+        
+        <div class="inp-group">
+            <span class="lbl">PLAT NOMOR (SESUAIKAN DGN LIST DI BAWAH)</span>
+            <input type="text" id="inpPlat" class="inp" placeholder="Contoh: B 4454 SWF">
+        </div>
+
+        <div class="inp-group">
+            <span class="lbl">NOMOR WHATSAPP AKTIF</span>
+            <input type="number" id="inpWa" class="inp" placeholder="Contoh: 08123456789">
+        </div>
+
+        <button class="btn-submit" id="btnKirim" onclick="updateData()">UPDATE DATA SAYA <i class="fas fa-save"></i></button>
+    </div>
+
+    <div class="list-container">
+        <div class="list-header">
+            <span>DAFTAR MEMBER (KOPDAR 10 FEB)</span>
+            <span id="totalMember">0</span>
+        </div>
+        <div id="memberList">
+            <div style="text-align:center; padding:20px; color:#666;">Memuat data...</div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, doc, setDoc, onSnapshot, collection, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = { apiKey: "AIzaSyB666i9lYWIpxOdkwpoX9EvFvHLmHczeq8", authDomain: "fcgadingnew22.firebaseapp.com", projectId: "fcgadingnew22", storageBucket: "fcgadingnew22.firebasestorage.app", messagingSenderId: "537736846678", appId: "1:537736846678:web:53788d71a196423ac08af7" };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const dbRef = collection(db, "database_member_mlu");
+
+        const cleanPlat = (str) => { return str.replace(/[^A-Z0-9]/gi, '').toUpperCase(); };
+
+        // --- DATA AWAL (KOPDAR SEMALAM) ---
+        const dataSemalam = [
+            {nama: "RENO", plat: "B 4454 SWF", wa: "085711164860"}, {nama: "UBAY", plat: "B 4484 SWF", wa: "085771739616"},
+            {nama: "PURNOMO", plat: "B 4773 SWF", wa: "087888720198"}, {nama: "CRIS", plat: "B 4933 SWG", wa: ""},
+            {nama: "ABDULLAH FAQIH", plat: "B 4699 SWG", wa: ""}, {nama: "MAT", plat: "B 4673 SWE", wa: ""},
+            {nama: "REHAN", plat: "B 4229 SWF", wa: ""}, {nama: "OBYZWNSKY", plat: "B 4457 SWF", wa: "088211503243"},
+            {nama: "MALIK", plat: "B 4922 SWG", wa: "081398006148"}, {nama: "AWANG THEA", plat: "B 4146 SWH", wa: "085714306460"},
+            {nama: "SARIP", plat: "B 4804 SWJ", wa: ""}, {nama: "FERY", plat: "B 4674 SWE", wa: ""},
+            {nama: "IVAN", plat: "B 4105 SWI", wa: "085717433722"}, {nama: "ENDRO", plat: "B 4437 SWF", wa: "081386517328"},
+            {nama: "NANANG", plat: "B 4248 SWJ", wa: ""}, {nama: "IW4N", plat: "B 4650 SWE", wa: "081398669543"},
+            {nama: "YUDIF", plat: "B 4720 SWI", wa: ""}, {nama: "RIO", plat: "B 4683 SWE", wa: ""},
+            {nama: "AGS", plat: "B 4497 SWF", wa: ""}, {nama: "DZILAN", plat: "B 4961 SWF", wa: ""},
+            {nama: "JISTER", plat: "B 4713 SWG", wa: ""}, {nama: "AJI", plat: "B 4381 SWD", wa: "082128835198"},
+            {nama: "CAPUNG", plat: "B 3687 PWG", wa: ""}, {nama: "PAPADILO", plat: "B 4236 SWG", wa: ""},
+            {nama: "BW", plat: "B 4697 SWG", wa: ""}, {nama: "EGA", plat: "B 4769 SWE", wa: ""},
+            {nama: "DAYYAN", plat: "B 4236 SWJ", wa: "085885579179"}, {nama: "JET LEE", plat: "B 4876 SWE", wa: "085711546320"}, 
+            {nama: "AHMAD", plat: "B 4453 SWF", wa: "081290159443"}, {nama: "ENDANG SAHARA", plat: "B 4793 SWJ", wa: ""},
+            {nama: "DONI", plat: "B 4944 SWH", wa: ""}, {nama: "RIZKY", plat: "B 4248 SWF", wa: ""},
+            {nama: "ANDRI JR", plat: "B 4231 SWF", wa: "087875875068"}, {nama: "VIZAR", plat: "B 4810 SWJ", wa: "085810304638"},
+            {nama: "NANDANG", plat: "B 4958 SWT", wa: "081297370884"}, {nama: "WINDIYONO", plat: "B 4237 SWF", wa: "081213669925"}
+        ];
+
+        let allMemberData = []; // Array untuk menampung data live yg akan di-download
+
+        // --- FITUR ADMIN ---
+        window.loginAdmin = () => {
+            if(prompt("KODE ADMIN:") === "090815") {
+                document.getElementById('adminControls').style.display = 'flex';
+                alert("AKSES ADMIN: Fitur Download Excel Terbuka.");
+            }
+        }
+
+        window.syncDataAwal = async () => {
+            if(!confirm("Yakin upload 36 data awal? (Hanya dilakukan 1x di awal)")) return;
+            document.getElementById('btnSyncData').innerText = "PROSES UPLOAD...";
+            for (let i = 0; i < dataSemalam.length; i++) {
+                let d = dataSemalam[i];
+                let pid = cleanPlat(d.plat);
+                await setDoc(doc(db, "database_member_mlu", pid), {
+                    nama: d.nama, plat: d.plat, wa: d.wa, urut: i + 1 
+                }, { merge: true });
+            }
+            alert("UPLOAD SELESAI!");
+            document.getElementById('btnSyncData').style.display = 'none';
+        }
+
+        // --- FITUR DOWNLOAD EXCEL (CSV) ---
+        window.downloadExcel = () => {
+            if(allMemberData.length === 0) return alert("Belum ada data untuk didownload!");
+
+            // Header File Excel
+            let csvContent = "data:text/csv;charset=utf-8,NO,NAMA LENGKAP,PLAT NOMOR,NO WHATSAPP\n";
+
+            allMemberData.forEach((member, index) => {
+                let nama = member.nama;
+                let plat = member.plat;
+                
+                // Trik agar angka 0 di depan nomor WA tidak hilang di Excel (Pakai ="08xxx")
+                let wa = member.wa ? `="${member.wa}"` : "KOSONG"; 
+                
+                csvContent += `${index + 1},"${nama}","${plat}",${wa}\n`;
+            });
+
+            // Proses Download File
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "Database_Member_MLU.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // --- FITUR USER: UPDATE DATA ---
+        window.updateData = async () => {
+            const nama = document.getElementById('inpNama').value.toUpperCase().trim();
+            const platOri = document.getElementById('inpPlat').value.toUpperCase().trim();
+            const wa = document.getElementById('inpWa').value.trim();
+
+            if(!nama || !platOri || !wa) return alert("MOHON ISI SEMUA KOLOM!");
+            if(wa.length < 10) return alert("NOMOR WA TIDAK VALID!");
+
+            const pid = cleanPlat(platOri); 
+            const btn = document.getElementById('btnKirim');
+            
+            btn.innerHTML = "MENYIMPAN..."; btn.disabled = true;
+
+            try {
+                // Cari apakah plat ini sudah ada di urutan berapa (biar urutannya ga berantakan)
+                let existingUrut = 999; // Default kalau member baru
+                const memberLama = allMemberData.find(m => cleanPlat(m.plat) === pid);
+                if (memberLama && memberLama.urut) {
+                    existingUrut = memberLama.urut;
+                }
+
+                await setDoc(doc(db, "database_member_mlu", pid), {
+                    nama: nama,
+                    plat: platOri, 
+                    wa: wa,
+                    urut: existingUrut // Tetap simpan urutannya
+                }, { merge: true });
+
+                alert(`TERIMA KASIH ${nama}!\nData nomor WA Anda berhasil diupdate.`);
+                localStorage.setItem('myName', nama); localStorage.setItem('myPlat', platOri);
+                document.getElementById('inpWa').value = '';
+                btn.innerHTML = "UPDATE DATA SAYA <i class='fas fa-save'></i>"; btn.disabled = false;
+
+            } catch (error) {
+                alert("Gagal menyimpan: " + error);
+                btn.innerHTML = "COBA LAGI"; btn.disabled = false;
+            }
+        }
+
+        // --- BACA DATA LIVE ---
+        const q = query(collection(db, "database_member_mlu"), orderBy("urut"));
+        onSnapshot(q, (snapshot) => {
+            const listDiv = document.getElementById('memberList');
+            const total = document.getElementById('totalMember');
+            
+            let html = ""; let count = 0;
+            allMemberData = []; // Kosongkan array untuk download sebelum diisi ulang
+
+            if(snapshot.empty) {
+                listDiv.innerHTML = '<div style="text-align:center; padding:20px; color:#444;">Admin belum men-sync data.</div>';
+                total.innerText = "0";
+                return;
+            }
+
+            snapshot.forEach((doc) => {
+                count++;
+                const data = doc.data();
+                
+                // Masukkan ke array global untuk fitur download Excel
+                allMemberData.push(data);
+
+                let isKosong = !data.wa || data.wa === "";
+                let rowClass = isKosong ? "kosong" : "lengkap";
+                let badge = isKosong 
+                    ? `<div class="wa-badge wa-kosong">WA KOSONG !</div>`
+                    : `<div class="wa-badge wa-ada"><i class="fab fa-whatsapp"></i> ${data.wa}</div>`;
+
+                html += `
+                <div class="db-row ${rowClass}">
+                    <div>
+                        <div class="db-name">${data.nama}</div>
+                        <div class="db-plat">${data.plat}</div>
+                    </div>
+                    <div>${badge}</div>
+                </div>`;
+            });
+
+            listDiv.innerHTML = html;
+            total.innerText = count + " ORANG";
+        });
+
+        // AUTO FILL
+        const myName = localStorage.getItem('myName');
+        const myPlat = localStorage.getItem('myPlat');
+        if(myName) document.getElementById('inpNama').value = myName;
+        if(myPlat) document.getElementById('inpPlat').value = myPlat;
+
+    </script>
+</body>
+</html>
