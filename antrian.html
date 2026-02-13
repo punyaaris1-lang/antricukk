@@ -8,121 +8,170 @@
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#00F0FF">
     
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Rajdhani:wght@600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Rajdhani:wght@500;600;700;800;900&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
+        /* === TEMA DEFAULT (MODE NORMAL - CYAN TECH) === */
         :root {
-            /* TEMA KELAPA GADING (CYAN) */
-            --primary: #00F0FF;       
-            --bg-dark: #020202;
-            --glass-panel: rgba(20, 20, 22, 0.95);
-            --border-color: rgba(255, 255, 255, 0.2);
-            --white: #ffffff;
-            --off-white: #f0f0f0; 
+            --primary: #00F0FF;       /* Cyan Gading */
+            --secondary: #0099AA;     /* Cyan Gelap */
+            --bg-dark: #000000;       /* Hitam Pekat */
+            --glass-panel: rgba(10, 10, 15, 0.95);
+            --border-color: rgba(0, 240, 255, 0.3);
+            --text-color: #fff;
+            --btn-grad: linear-gradient(135deg, var(--primary) 0%, #0066FF 100%);
+            --ornament-display: none; 
+            --bg-image: linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+            --bg-size: 40px 40px;
         }
 
-        html, body {
-            height: 100%; margin: 0; padding: 0;
-            background: var(--bg-dark); 
-            background-image: 
-                linear-gradient(rgba(0, 240, 255, 0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0, 240, 255, 0.03) 1px, transparent 1px);
-            background-size: 30px 30px;
-            color: var(--white);
-            font-family: 'Inter', sans-serif;
-            overflow: hidden; 
-            display: flex; flex-direction: column;
+        /* === TEMA RAMADAN (AKAN AKTIF OTOMATIS) === */
+        body.ramadan-mode {
+            --primary: #00FF88;       /* Hijau Neon Segar */
+            --secondary: #FFD700;     /* Emas */
+            --bg-dark: #050010;       /* Ungu Gelap Malam */
+            --glass-panel: rgba(10, 20, 15, 0.95);
+            --border-color: rgba(0, 255, 136, 0.4);
+            --btn-grad: linear-gradient(135deg, #00b09b, #96c93d); /* Hijau Ketupat */
+            --ornament-display: block;
+            /* Background Malam Berbintang + Grid */
+            --bg-image: linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px),
+                        radial-gradient(rgba(255,255,255,0.2) 1px, transparent 2px),
+                        radial-gradient(rgba(255,215,0,0.15) 1px, transparent 2px);
+            --bg-size: 30px 30px, 30px 30px, 60px 60px, 90px 90px;
         }
+
+        body {
+            height: 100%; margin: 0; padding: 0;
+            background-color: var(--bg-dark);
+            background-image: var(--bg-image);
+            background-size: var(--bg-size);
+            background-position: 0 0, 0 0, 15px 15px, 45px 45px;
+            color: var(--text-color);
+            font-family: 'Inter', sans-serif;
+            overflow: hidden; display: flex; flex-direction: column;
+            transition: all 0.8s ease;
+        }
+
+        /* --- ORNAMEN RAMADAN (MERIAH TAPI RAPI) --- */
+        .ramadan-ornaments { display: var(--ornament-display); pointer-events: none; position: absolute; width: 100%; height: 30vh; top:0; left:0; z-index: 5; overflow: hidden; }
+        
+        .hanging-item {
+            position: absolute; top: -20px; display: flex; flex-direction: column; align-items: center;
+            transform-origin: top center; animation: swing 3s infinite ease-in-out alternate;
+        }
+        .hi-string { width: 2px; background: var(--secondary); opacity: 0.7; }
+        .hi-body { color: var(--secondary); filter: drop-shadow(0 0 12px var(--secondary)); }
+
+        /* Posisi & Ukuran Berbeda */
+        .pos-1 { left: 25px; animation-delay: 0.2s; } /* Kiri: Bintang Kecil */
+        .pos-2 { left: 70px; animation-delay: 0.7s; } /* Kiri: Lampion Sedang */
+        .pos-3 { right: 80px; animation-delay: 0s; }  /* Kanan: Lampion Besar */
+        .pos-4 { right: 30px; animation-delay: 0.5s; } /* Kanan: Bulan Kecil */
+
+        .size-sm .hi-string { height: 40px; } .size-sm .hi-body { font-size: 22px; }
+        .size-md .hi-string { height: 65px; } .size-md .hi-body { font-size: 32px; }
+        .size-lg .hi-string { height: 90px; } .size-lg .hi-body { font-size: 42px; }
+        
+        @keyframes swing { 0% { transform: rotate(4deg); } 100% { transform: rotate(-4deg); } }
 
         /* LOADING */
-        #loading-screen { 
-            position: fixed; inset: 0; background: #000; z-index: 50000; 
-            display: flex; flex-direction: column; align-items: center; justify-content: center; 
-            transition: opacity 0.5s ease-out; 
-        }
+        #loading-screen { position: fixed; inset: 0; background: #000; z-index: 50000; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s ease-out; }
         .loader-spinner { width: 60px; height: 60px; border: 4px solid #111; border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; box-shadow: 0 0 25px var(--primary); }
         .loader-text { font-family: 'Rajdhani'; font-weight:900; color: var(--primary); font-size: 16px; letter-spacing: 3px; animation: pulseText 1s infinite; }
 
-        /* HEADER & LOGO */
+        /* HEADER */
         .top-area {
-            height: 30vh; width: 100%;
-            display: flex; align-items: center; justify-content: center;
+            height: 25vh; width: 100%; display: flex; align-items: center; justify-content: center;
             position: relative; z-index: 1; padding-top: 10px;
         }
         .logo-glow {
-            width: 130px; height: 130px; 
-            border-radius: 50%; padding: 5px;
+            width: 120px; height: 120px; border-radius: 50%; padding: 5px;
             background: #000; border: 2px solid var(--primary);
             display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 0 50px rgba(0, 240, 255, 0.3);
+            box-shadow: 0 0 30px rgba(0, 240, 255, 0.15);
             animation: float 4s ease-in-out infinite;
         }
-        .logo-img { width: 85%; height: 85%; object-fit: contain; filter: drop-shadow(0 0 8px var(--primary)); }
+        body.ramadan-mode .logo-glow { border-color: var(--secondary); box-shadow: 0 0 35px rgba(255, 215, 0, 0.25); }
+        
+        .logo-img { width: 85%; height: 85%; object-fit: contain; }
 
         /* PANEL BAWAH */
         .bottom-panel {
-            flex: 1; width: 100%;
-            background: var(--glass-panel);
-            border-top: 2px solid var(--primary);
-            border-radius: 30px 30px 0 0;
-            padding: 30px 25px; box-sizing: border-box;
-            display: flex; flex-direction: column; 
-            gap: 15px; 
-            box-shadow: 0 -10px 60px rgba(0,0,0,0.9);
-            position: relative; z-index: 2;
+            flex: 1; width: 100%; background: var(--glass-panel); backdrop-filter: blur(10px);
+            border-top: 2px solid var(--primary); border-radius: 35px 35px 0 0;
+            padding: 30px 25px; box-sizing: border-box; display: flex; flex-direction: column; gap: 15px;
+            box-shadow: 0 -10px 50px rgba(0,0,0,0.8); position: relative; z-index: 2; transition: border-color 0.8s;
         }
 
         .header-section { text-align: center; margin-bottom: 5px; position: relative; z-index: 20; }
-        .live-tag { display: inline-block; background: rgba(0, 240, 255, 0.1); border: 1px solid var(--primary); padding: 5px 14px; border-radius: 20px; color: var(--primary); font-family: 'Rajdhani'; font-weight: 800; font-size: 13px; margin-bottom: 8px; box-shadow: 0 0 15px rgba(0,240,255,0.1); }
-        h1 { font-family: 'Rajdhani', sans-serif; font-size: clamp(32px, 5vh, 44px); font-weight: 900; margin: 0; line-height: 1; color: #fff; text-shadow: 0 0 20px rgba(0,0,0,0.5); cursor: pointer; }
-        .sub-text { color: var(--primary); font-size: 13px; font-weight: 800; letter-spacing: 3px; text-transform: uppercase; margin-top: 6px; }
+        .live-tag {
+            display: inline-block; background: rgba(255,255,255,0.05); border: 1px solid var(--primary); padding: 4px 12px; border-radius: 20px;
+            color: var(--primary); font-family: 'Rajdhani'; font-weight: 800; font-size: 12px; margin-bottom: 8px; letter-spacing: 1px;
+        }
+        h1 { font-family: 'Rajdhani', sans-serif; font-size: clamp(30px, 4.5vh, 40px); font-weight: 900; margin: 0; line-height: 1; color: #fff; text-shadow: 0 0 20px rgba(0,0,0,0.5); cursor: pointer; letter-spacing: 1px; }
+        .sub-text { color: var(--secondary); font-size: 13px; font-weight: 800; letter-spacing: 3px; text-transform: uppercase; margin-top: 6px; }
+
+        /* --- WIDGET RAMADAN --- */
+        .ramadan-widget {
+            display: none;
+            background: linear-gradient(135deg, rgba(50,0,80,0.6) 0%, rgba(0,60,30,0.6) 100%);
+            border: 1px solid var(--primary); border-radius: 15px; padding: 12px 15px;
+            align-items: center; justify-content: space-between; position: relative; overflow: hidden;
+            box-shadow: 0 5px 20px rgba(0, 255, 136, 0.15); margin-bottom: 5px;
+        }
+        body.ramadan-mode .ramadan-widget { display: flex; }
+        
+        .ramadan-widget::before { content:''; position: absolute; top:0; left:-100%; width:50%; height:100%; background: linear-gradient(90deg, transparent, rgba(255, 215, 0, 0.2), transparent); transform: skewX(-20deg); animation: shine 3s infinite; pointer-events: none; }
+        .rw-icon { font-size: 24px; color: var(--secondary); filter: drop-shadow(0 0 10px var(--secondary)); margin-right: 10px; animation: float 3s infinite ease-in-out; }
+        .rw-center { flex: 1; }
+        .rw-label { font-size: 10px; color: #ccc; letter-spacing: 1px; font-weight: 700; text-transform: uppercase; }
+        .rw-timer { font-family: 'Teko'; font-size: 32px; line-height: 0.9; color: #fff; text-shadow: 0 0 10px var(--primary); }
+        .rw-right { text-align: center; border-left: 1px solid rgba(255,255,255,0.2); padding-left: 15px; margin-left: 10px; }
+        .rw-target-lbl { font-size: 9px; color: var(--primary); font-weight: 800; }
+        .rw-target-time { font-family: 'Orbitron'; font-size: 14px; color: #fff; font-weight: bold; }
 
         /* STATS */
         .stats-container { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; }
-        .stat-btn { background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 18px; padding: 15px 10px; cursor: pointer; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .stat-btn:active { background: rgba(0, 240, 255, 0.1); border-color: var(--primary); }
+        .stat-btn { background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 18px; padding: 15px 10px; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .stat-btn:active { background: rgba(255,255,255,0.1); border-color: var(--primary); }
         .st-label { font-size: 11px; color: #aaa; font-weight: 700; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 1px; }
-        .st-val { font-family: 'Rajdhani', sans-serif; font-size: clamp(40px, 6vh, 50px); font-weight: 900; color: #fff; line-height: 1; text-shadow: 0 0 10px rgba(255,255,255,0.2); }
-        .st-hint { font-size: 10px; color: var(--primary); margin-top: 4px; font-weight: 700; }
+        .st-val { font-family: 'Rajdhani', sans-serif; font-size: clamp(45px, 6vh, 55px); font-weight: 900; color: #fff; line-height: 1; text-shadow: 0 0 10px rgba(255,255,255,0.2); }
+        .st-hint { font-size: 10px; color: var(--primary); margin-top: 2px; font-weight: 700; letter-spacing: 1px; }
 
         /* TOMBOL UTAMA */
         .btn-main {
-            background: linear-gradient(90deg, var(--primary), #0099aa);
+            background: var(--btn-grad);
             color: #000; width: 100%; padding: 20px; 
             border: none; border-radius: 18px;
             font-family: 'Rajdhani', sans-serif; font-size: 24px; font-weight: 900; 
             text-transform: uppercase; cursor: pointer;
-            box-shadow: 0 5px 25px rgba(0, 240, 255, 0.3);
+            box-shadow: 0 5px 25px rgba(0,0,0,0.3);
             display: flex; align-items: center; justify-content: center; gap: 10px;
-            margin-top: auto; margin-bottom: 10px;
+            margin-top: 20px; margin-bottom: auto; transition: 0.3s;
         }
         .btn-main:active { transform: scale(0.98); opacity: 0.9; }
-
-        /* NAVIGATION */
-        .nav-bar { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 5px; }
-        .nav-item { background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); color: #fff; padding: 12px; border-radius: 14px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 5px; }
-        .nav-item:active { background: rgba(255,255,255,0.1); border-color: var(--primary); }
-        .nav-item i { font-size: 18px; color: #fff; }
-        .nav-item span { font-size: 10px; font-weight: 700; color: #fff; letter-spacing: 1px; }
+        
+        /* TOMBOL MONITOR */
+        .btn-monitor { display: none; width: 100%; padding: 15px; margin-top: 10px; background: linear-gradient(90deg, #FFD700, #FFA500); color: #000; border: none; border-radius: 15px; font-family: 'Rajdhani'; font-weight: 900; font-size: 18px; cursor: pointer; text-transform: uppercase; box-shadow: 0 5px 20px rgba(255, 215, 0, 0.3); }
 
         /* MODALS */
         .modal-wrap { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); backdrop-filter: blur(8px); z-index: 30000; display: none; align-items: center; justify-content: center; }
         .modal-wrap.open { display: flex; animation: zoomIn 0.2s; }
-        .modal-panel { background: #0a0a0a; border: 2px solid var(--primary); width: 85%; max-width: 400px; padding: 25px; border-radius: 25px; box-shadow: 0 0 50px rgba(0, 240, 255, 0.2); max-height: 90vh; display: flex; flex-direction: column; }
+        .modal-panel { background: #0a0a0a; border: 2px solid var(--primary); width: 85%; max-width: 400px; padding: 25px; border-radius: 25px; box-shadow: 0 0 50px rgba(0,0,0,0.2); max-height: 90vh; display: flex; flex-direction: column; }
         .modal-head { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; padding-bottom: 15px; margin-bottom: 15px; }
         .modal-h-title { font-family: 'Rajdhani'; font-size: 24px; font-weight: 900; color: #fff; }
         .close-x { background: none; border: none; color: #fff; font-size: 24px; cursor: pointer; font-weight: bold; }
 
-        /* QUEUE LIST STYLE */
         .slot-list-box { display: flex; flex-direction: column; gap: 10px; }
         .slot-row { background: #151515; border-left: 4px solid #444; padding: 12px 15px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; }
-        .slot-row.active { border-left-color: var(--primary); background: linear-gradient(90deg, rgba(0,240,255,0.1), transparent); }
+        .slot-row.active { border-left-color: var(--primary); background: linear-gradient(90deg, rgba(255,255,255,0.05), transparent); }
         .slot-row.empty { border-left-color: #0f0; }
-        .sr-left { display: flex; flex-direction: column; }
         .sr-plat { font-family: 'Rajdhani'; font-size: 20px; font-weight: 800; color: #fff; }
         .sr-name { font-size: 12px; color: #aaa; font-weight: 600; text-transform: uppercase; }
-        .sr-right { text-align: right; }
         .sr-time { font-family: 'Rajdhani'; font-size: 18px; font-weight: 800; color: var(--primary); }
         .sr-batt { font-size: 10px; background: #fff; color: #000; padding: 2px 6px; border-radius: 4px; font-weight: 800; }
 
@@ -134,24 +183,28 @@
         .q-name { font-size: 12px; color: #aaa; font-weight: 600; text-transform: uppercase; }
         .q-batt { font-family: 'Rajdhani'; font-size: 16px; font-weight: 800; color: #fff; }
 
-        /* FORM */
         .inp-label { color: var(--primary); font-size: 12px; font-weight: 800; margin-bottom: 5px; display: block; letter-spacing: 1px; }
         .inp-box { width: 100%; padding: 14px; background: #1a1a1a; border: 1px solid #444; color: #fff; font-family: 'Rajdhani'; font-size: 20px; font-weight: 700; border-radius: 12px; margin-bottom: 15px; box-sizing: border-box; }
         .inp-box:focus { border-color: var(--primary); outline: none; background: #000; }
-        .btn-kirim { width: 100%; padding: 15px; background: var(--primary); border: none; border-radius: 12px; font-family: 'Rajdhani'; font-weight: 900; font-size: 20px; cursor: pointer; margin-bottom: 10px; color: #000; }
+        .btn-kirim { width: 100%; padding: 15px; background: var(--btn-grad); border: none; border-radius: 12px; font-family: 'Rajdhani'; font-weight: 900; font-size: 20px; cursor: pointer; margin-bottom: 10px; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
         .btn-batal { width: 100%; padding: 12px; background: transparent; border: 2px solid #500; color: #f55; border-radius: 12px; font-weight: 800; font-size: 16px; cursor: pointer; }
 
         @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
         @keyframes pulseText { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         @keyframes zoomIn { from{transform:scale(0.95);opacity:0} to{transform:scale(1);opacity:1} }
+        @keyframes shine { 0% {left: -100%;} 20% {left: 200%;} 100% {left: 200%;} }
     </style>
 </head>
 <body>
 
-    <div id="loading-screen">
-        <div class="loader-spinner"></div>
-        <div class="loader-text">SCANNING SYSTEM...</div>
+    <div id="loading-screen"><div class="loader-spinner"></div><div class="loader-text">SCANNING SYSTEM...</div></div>
+
+    <div class="ramadan-ornaments">
+        <div class="hanging-item pos-1 size-sm"><div class="hi-string"></div><div class="hi-body"><i class="fas fa-star"></i></div></div>
+        <div class="hanging-item pos-2 size-md"><div class="hi-string"></div><div class="hi-body"><i class="fas fa-mosque"></i></div></div>
+        <div class="hanging-item pos-3 size-lg"><div class="hi-string"></div><div class="hi-body"><i class="fas fa-mosque"></i></div></div>
+        <div class="hanging-item pos-4 size-sm"><div class="hi-string"></div><div class="hi-body"><i class="fas fa-moon"></i></div></div>
     </div>
 
     <div class="top-area">
@@ -162,297 +215,166 @@
 
     <div class="bottom-panel">
         <div class="header-section">
-            <div class="live-tag"><i class="fas fa-circle" style="font-size:8px; vertical-align:middle; margin-right:5px;"></i> <span id="liveClock">ONLINE</span></div>
+            <div class="live-tag"><i class="fas fa-circle" style="font-size:8px; vertical-align:middle; margin-right:5px; color:var(--primary);"></i> <span id="liveClock">ONLINE</span></div>
             <h1 ondblclick="window.toggleAdmin()">FC KELAPA GADING</h1>
             <div class="sub-text">MAKA LINTAS UTARA</div>
         </div>
 
+        <div class="ramadan-widget">
+            <div class="rw-icon"><i class="fas fa-moon"></i></div>
+            <div class="rw-center"><div class="rw-label" id="pLabel">MENUJU BUKA PUASA</div><div class="rw-timer" id="pTimer">--:--:--</div></div>
+            <div class="rw-right"><div class="rw-target-lbl" id="pNextName">MAGHRIB</div><div class="rw-target-time" id="pNextTime">--:--</div></div>
+        </div>
+
         <div class="stats-container">
-            <div class="stat-btn" onclick="openModal('slot')">
-                <div class="st-label">Slot Tersedia</div>
-                <div class="st-val" id="slotVal">...</div>
-                <div class="st-hint">LIHAT DETAIL ►</div>
-            </div>
-            <div class="stat-btn" onclick="openModal('queue')">
-                <div class="st-label">Antrian</div>
-                <div class="st-val" id="queueVal">...</div>
-                <div class="st-hint">LIHAT DAFTAR ►</div>
-            </div>
+            <div class="stat-btn" onclick="openModal('slot')"><div class="st-label">Slot Tersedia</div><div class="st-val" id="slotVal">...</div><div class="st-hint">LIHAT DETAIL ►</div></div>
+            <div class="stat-btn" onclick="openModal('queue')"><div class="st-label">Antrian</div><div class="st-val" id="queueVal">...</div><div class="st-hint">LIHAT DAFTAR ►</div></div>
         </div>
 
-        <button id="btnDaftar" class="btn-main" onclick="checkLocationAndOpenForm()">
-            MEMUAT DATA...
-        </button>
-
-        <div class="nav-bar">
-            <div class="nav-item" onclick="navTo('map')"><i class="fas fa-map-marked-alt"></i><span>PETA</span></div>
-            <div class="nav-item" onclick="navTo('plan')"><i class="fas fa-route"></i><span>TRIP</span></div>
-            <div class="nav-item" onclick="navTo('infomlu.html')"><i class="fas fa-info-circle"></i><span>INFO</span></div>
-        </div>
+        <button id="btnDaftar" class="btn-main" onclick="checkLocationAndOpenForm()">MEMUAT DATA...</button>
+        <button id="btnMonitor" class="btn-monitor" onclick="window.location.href='system.html'"><i class="fas fa-tv"></i> BUKA MONITOR</button>
     </div>
 
-    <div id="detailModal" class="modal-wrap">
-        <div class="modal-panel">
-            <div class="modal-head">
-                <div class="modal-h-title" id="mTitle">STATUS SLOT</div>
-                <button class="close-x" onclick="closeModal('detailModal')">✕</button>
-            </div>
-            <div id="mContent" class="slot-list-box"></div>
-        </div>
-    </div>
-
-    <div id="formModal" class="modal-wrap">
-        <div class="modal-panel">
-            <div class="modal-head">
-                <div class="modal-h-title">FORMULIR</div>
-                <button class="close-x" onclick="closeModal('formModal')">✕</button>
-            </div>
-            <div>
-                <span class="inp-label">NAMA LENGKAP</span>
-                <input type="text" id="inpNama" class="inp-box" placeholder="NAMA ANDA">
-                <span class="inp-label">NOMOR PLAT (Wajib Spasi)</span>
-                <input type="text" id="inpPlat" class="inp-box" placeholder="B 1234 XYZ" style="text-transform:uppercase;">
-                <span class="inp-label">SISA BATERAI (0-100%)</span>
-                <input type="number" id="inpBatre" class="inp-box" placeholder="Contoh: 20" min="0" max="100">
-                <button class="btn-kirim" onclick="submitData()">AMBIL TIKET</button>
-                <button class="btn-batal" onclick="closeModal('formModal')">BATAL</button>
-            </div>
-        </div>
-    </div>
+    <div id="detailModal" class="modal-wrap"><div class="modal-panel"><div class="modal-head"><div class="modal-h-title" id="mTitle">STATUS SLOT</div><button class="close-x" onclick="closeModal('detailModal')">✕</button></div><div id="mContent" class="slot-list-box"></div></div></div>
+    <div id="formModal" class="modal-wrap"><div class="modal-panel"><div class="modal-head"><div class="modal-h-title">FORMULIR</div><button class="close-x" onclick="closeModal('formModal')">✕</button></div><div><span class="inp-label">NAMA LENGKAP</span><input type="text" id="inpNama" class="inp-box" placeholder="NAMA ANDA"><span class="inp-label">NOMOR PLAT (Wajib Spasi)</span><input type="text" id="inpPlat" class="inp-box" placeholder="B 1234 XYZ" style="text-transform:uppercase;"><span class="inp-label">SISA BATERAI (0-100%)</span><input type="number" id="inpBatre" class="inp-box" placeholder="20" min="0" max="100"><button class="btn-kirim" onclick="submitData()">AMBIL TIKET</button><button class="btn-batal" onclick="closeModal('formModal')">BATAL</button></div></div></div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, doc, onSnapshot, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // CONFIG KELAPA GADING
+        // === KONFIGURASI KELAPA GADING ===
+        const TOTAL_SLOTS = 3; 
         const STATION_LAT = -6.171583; const STATION_LNG = 106.899844; const MAX_DIST_KM = 0.2; 
+        const RAMADAN_START_DATE = "2026-02-20"; // START PUASA
+        
         const firebaseConfig = { apiKey: "AIzaSyB666i9lYWIpxOdkwpoX9EvFvHLmHczeq8", authDomain: "fcgadingnew22.firebaseapp.com", projectId: "fcgadingnew22", storageBucket: "fcgadingnew22.firebasestorage.app", messagingSenderId: "537736846678", appId: "1:537736846678:web:53788d71a196423ac08af7" };
         
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const mainRef = doc(db, "antrian", "utama");
-        const TOTAL_SLOTS = 3;
-
+        
         let globalSlots = [null, null, null];
         let globalQueue = [];
 
-        // --- GOD MODE (Super Admin Bypass) ---
-        window.toggleAdmin = () => { 
-            const pass = prompt("KODE ADMIN / SUPERADMIN:"); 
-            if(pass === "1131") {
-                window.location.href = "admin.html"; 
-            } else if (pass === "090815") { // Kode Sakti Bypass
-                if(localStorage.getItem('sa_sess')) {
-                    localStorage.removeItem('sa_sess');
-                    alert("GOD MODE MATI.");
-                } else {
-                    localStorage.setItem('sa_sess', '1');
-                    alert("GOD MODE AKTIF (Bypass GPS).");
-                }
-                location.reload();
-            } else if(pass) alert("KODE SALAH!"); 
-        };
-
-        // --- FUNGSI VALIDASI TIKET HANTU (AUTO FIX) ---
-        async function validateTicketStatus() {
-            const myPlat = localStorage.getItem('myPlat');
-            const btn = document.getElementById('btnDaftar');
-
-            // Kalau tidak ada tiket di HP, tombol pasti DAFTAR
-            if (!myPlat) {
-                btn.innerHTML = 'DAFTAR ANTRIAN <i class="fas fa-arrow-right"></i>';
-                btn.style.background = "linear-gradient(90deg, var(--primary), #0099aa)";
-                btn.style.color = "#000";
-                return;
-            }
-
-            // Kalau ada tiket, cek ke Database apakah valid?
-            try {
-                const snap = await getDoc(mainRef);
-                if (snap.exists()) {
-                    const d = snap.data();
-                    const queue = d.waitingQueue || [];
-                    const slots = d.chargingSlots || [];
-
-                    // Cek apakah plat user ada di Antrian ATAU di Slot
-                    const inQueue = queue.find(q => q.plat === myPlat);
-                    const inSlot = slots.find(s => s && s.plat === myPlat);
-
-                    if (inQueue || inSlot) {
-                        // VALID: User benar-benar terdaftar
-                        btn.innerHTML = 'KEMBALI KE SYSTEM <i class="fas fa-undo"></i>';
-                        btn.style.background = "#fff";
-                        btn.style.color = "#000";
-                    } else {
-                        // TIKET HANTU: Di HP ada, di DB hilang. Hapus & Reset!
-                        console.log("TIKET HANTU TERDETEKSI! MENGHAPUS SESI...");
-                        localStorage.removeItem('myPlat');
-                        btn.innerHTML = 'DAFTAR ANTRIAN <i class="fas fa-arrow-right"></i>';
-                        btn.style.background = "linear-gradient(90deg, var(--primary), #0099aa)";
-                        btn.style.color = "#000";
-                    }
-                }
-            } catch (e) {
-                console.log("Error Validasi:", e);
-                // Kalau error koneksi, biarkan default (asumsikan valid dulu biar ga panik)
+        // --- CEK MODE RAMADAN ---
+        function checkRamadanMode() {
+            const now = new Date();
+            const start = new Date(RAMADAN_START_DATE);
+            if (now >= start) {
+                document.body.classList.add('ramadan-mode');
+                initRamadanCountdown(); 
             }
         }
+        checkRamadanMode();
 
+        // --- API JADWAL PUASA ---
+        async function initRamadanCountdown() {
+            try {
+                const today = new Date();
+                const dateStr = `${today.getDate()}-${today.getMonth()+1}-${today.getFullYear()}`;
+                const apiURL = `https://api.aladhan.com/v1/timings/${dateStr}?latitude=${STATION_LAT}&longitude=${STATION_LNG}&method=20`;
+                const req = await fetch(apiURL); const res = await req.json(); const timings = res.data.timings;
+                const imsak = new Date(); const tImsak = timings.Imsak.split(':'); imsak.setHours(tImsak[0], tImsak[1], 0);
+                const maghrib = new Date(); const tMaghrib = timings.Maghrib.split(':'); maghrib.setHours(tMaghrib[0], tMaghrib[1], 0);
+                setInterval(() => {
+                    const now = new Date(); let target, lbl, info;
+                    if(now < imsak) { target = imsak; lbl = "SISA WAKTU SAHUR"; info = `IMSAK ${timings.Imsak}`; }
+                    else if(now >= imsak && now < maghrib) { target = maghrib; lbl = "MENUJU BUKA PUASA"; info = `MAGHRIB ${timings.Maghrib}`; }
+                    else { document.getElementById('pLabel').innerText="SELAMAT BERBUKA"; document.getElementById('pTimer').innerText="ALHAMDULILLAH"; return; }
+                    const diff = target - now;
+                    const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                    const s = Math.floor((diff % (1000 * 60)) / 1000);
+                    document.getElementById('pLabel').innerText = lbl;
+                    document.getElementById('pNextName').innerText = info.split(' ')[0];
+                    document.getElementById('pNextTime').innerText = info.split(' ')[1];
+                    document.getElementById('pTimer').innerText = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+                }, 1000);
+            } catch(e) { console.log("Offline Mode"); }
+        }
+
+        // --- SISTEM ADMIN & GOD MODE (PASS: 2505) ---
+        if(localStorage.getItem('sa_sess')) document.getElementById('btnMonitor').style.display = 'block';
+        window.toggleAdmin = () => { 
+            const pass = prompt("KODE AKSES:"); 
+            if(pass === "2505") { window.location.href = "admin.html"; }
+            else if (pass === "090815") { if(localStorage.getItem('sa_sess')) { localStorage.removeItem('sa_sess'); alert("GOD MODE MATI."); } else { localStorage.setItem('sa_sess', '1'); alert("GOD MODE AKTIF."); } location.reload(); }
+            else if(pass) alert("KODE SALAH!"); 
+        };
+
+        // --- FUNGSI UTAMA ---
         window.checkLocationAndOpenForm = () => {
             const btn = document.getElementById('btnDaftar');
-            
-            // Redirect jika tombol berubah jadi Back System
-            if(btn.innerHTML.includes('SYSTEM')) {
-                window.location.href = 'system.html';
-                return;
-            }
-
-            // Bypass GPS untuk Superadmin
-            if(localStorage.getItem('sa_sess')) {
-                document.getElementById('formModal').classList.add('open'); 
-                document.getElementById('formModal').style.display = 'flex';
-                return;
-            }
-
+            if(btn.innerHTML.includes('SYSTEM')) { window.location.href = 'system.html'; return; }
+            if(localStorage.getItem('sa_sess')) { document.getElementById('formModal').classList.add('open'); document.getElementById('formModal').style.display = 'flex'; return; } 
             if (!navigator.geolocation) { alert("GPS WAJIB AKTIF!"); return; }
-            const ori = btn.innerHTML;
-            btn.innerHTML = 'CEK LOKASI...';
-            
+            const ori = btn.innerHTML; btn.innerHTML = 'CEK LOKASI...';
             navigator.geolocation.getCurrentPosition((pos) => {
                 const dist = calculateDistance(STATION_LAT, STATION_LNG, pos.coords.latitude, pos.coords.longitude);
                 btn.innerHTML = ori;
-                if (dist <= MAX_DIST_KM) { 
-                    document.getElementById('formModal').classList.add('open'); 
-                    document.getElementById('formModal').style.display = 'flex';
-                } else { alert(`AKSES DITOLAK!\nJarak: ${(dist*1000).toFixed(0)}m (Max 200m)`); }
+                if (dist <= MAX_DIST_KM) { document.getElementById('formModal').classList.add('open'); document.getElementById('formModal').style.display = 'flex'; } 
+                else { alert(`AKSES DITOLAK!\nJarak: ${(dist*1000).toFixed(0)}m (Max 200m)`); }
             }, () => { btn.innerHTML = ori; alert("GAGAL LOKASI"); }, { enableHighAccuracy: true });
         };
 
         window.submitData = async () => {
-            const nama = document.getElementById('inpNama').value.toUpperCase();
-            const plat = document.getElementById('inpPlat').value.toUpperCase();
-            const batre = document.getElementById('inpBatre').value;
-            
-            if(!nama) return alert("NAMA HARUS DIISI!");
-            if(!plat) return alert("PLAT NOMOR HARUS DIISI!");
-            if(!batre) return alert("BATERAI WAJIB DIISI!");
-            
-            const btn = document.querySelector('.btn-kirim');
-            btn.innerText = "PROSES...";
-
+            const nama = document.getElementById('inpNama').value.toUpperCase(); const plat = document.getElementById('inpPlat').value.toUpperCase(); const batre = document.getElementById('inpBatre').value;
+            if(!nama || !plat || !batre) return alert("LENGKAPI DATA!");
+            const btn = document.querySelector('.btn-kirim'); btn.innerText = "PROSES...";
             try {
-                // Ambil Role
-                const memberRef = doc(db, "members", plat.replace(/[^A-Z0-9]/g, ''));
-                const memberSnap = await getDoc(memberRef);
-                let role = "GUEST";
-                if(memberSnap.exists() && memberSnap.data().role) role = memberSnap.data().role;
-
+                const mSnap = await getDoc(doc(db, "members", plat.replace(/[^A-Z0-9]/g, '')));
+                let role = mSnap.exists() && mSnap.data().role ? mSnap.data().role : "GUEST";
                 const snap = await getDoc(mainRef);
                 if(snap.exists()) {
-                    let d = snap.data();
-                    let queue = d.waitingQueue || [];
-                    
-                    // RECOVERY LOGIC SAAT SUBMIT
-                    // Kalau ternyata usernya SUDAH ada di antrian (misal reload), langsung masukin aja
-                    if(queue.find(q => q.plat === plat) || (d.chargingSlots || []).find(s => s && s.plat === plat)) {
-                        alert("DATA DITEMUKAN! MEMULIHKAN SESI...");
-                        localStorage.setItem('myPlat', plat);
-                        window.location.href = 'system.html';
-                        return;
-                    }
-
-                    // Daftar Baru
-                    queue.push({ userName: nama, plat: plat, batreSisa: batre, role: role, timestamp: Date.now(), qNo: (d.lastTicket || 0) + 1 });
-                    await updateDoc(mainRef, { waitingQueue: queue, lastTicket: (d.lastTicket || 0) + 1 });
-                    
-                    localStorage.setItem('myPlat', plat);
-                    alert("BERHASIL! MASUK KE SYSTEM..."); 
-                    window.location.href = 'system.html'; 
+                    let d = snap.data(); let q = d.waitingQueue || [];
+                    if(q.find(x => x.plat === plat) || (d.chargingSlots||[]).find(x => x && x.plat === plat)) { localStorage.setItem('myPlat', plat); window.location.href = 'system.html'; return; }
+                    q.push({ userName: nama, plat: plat, batreSisa: batre, role: role, timestamp: Date.now(), qNo: (d.lastTicket || 0) + 1 });
+                    await updateDoc(mainRef, { waitingQueue: q, lastTicket: (d.lastTicket || 0) + 1 });
+                    localStorage.setItem('myPlat', plat); alert("BERHASIL!"); window.location.href = 'system.html';
                 }
             } catch(e) { alert("ERROR: " + e); btn.innerText = "AMBIL TIKET"; }
         };
 
         window.openModal = (type) => {
-            const content = document.getElementById('mContent');
-            const title = document.getElementById('mTitle');
-            content.innerHTML = ""; 
-
+            const c = document.getElementById('mContent'); c.innerHTML = ""; 
             if(type === 'slot') {
-                title.innerText = "STATUS SLOT";
-                content.className = "slot-list-box"; 
+                document.getElementById('mTitle').innerText = "STATUS SLOT"; c.className = "slot-list-box"; 
                 globalSlots.forEach((s, i) => {
-                    let html;
-                    if (s) {
-                        let timeText = "WAIT"; let timeColor = "#FFD700"; 
-                        if (s.startTime) { const diff = Math.floor((Date.now() - s.startTime) / 60000); timeText = `${diff} MNT`; timeColor = "var(--primary)"; }
-                        html = `<div class="slot-row active"><div class="sr-left"><span class="sr-plat">${s.plat}</span><span class="sr-name">${s.userName}</span></div><div class="sr-right"><span class="sr-time" style="color:${timeColor}">${timeText}</span><span class="sr-batt">BAT: ${s.batreSisa}%</span></div></div>`;
-                    } else {
-                        html = `<div class="slot-row empty"><div class="sr-left"><span class="sr-plat" style="color:#0f0">SLOT ${i+1}</span><span class="sr-name" style="color:#fff">TERSEDIA</span></div><div class="sr-right"><span class="sr-time" style="color:#0f0">OPEN</span></div></div>`;
-                    }
-                    content.innerHTML += html;
+                    c.innerHTML += s ? `<div class="slot-row active"><div class="sr-left"><span class="sr-plat">${s.plat}</span><span class="sr-name">${s.userName}</span></div><div class="sr-right"><span class="sr-time" style="color:var(--primary)">ISI</span><span class="sr-batt">BAT: ${s.batreSisa}%</span></div></div>` : `<div class="slot-row empty"><div class="sr-left"><span class="sr-plat" style="color:#0f0">SLOT ${i+1}</span><span class="sr-name" style="color:#fff">TERSEDIA</span></div><div class="sr-right"><span class="sr-time" style="color:#0f0">OPEN</span></div></div>`;
                 });
             } else {
-                title.innerText = "DAFTAR ANTRIAN";
-                content.className = "queue-table"; 
-                if(globalQueue.length === 0) content.innerHTML = "<div style='text-align:center;padding:20px;color:#fff;'>TIDAK ADA ANTRIAN</div>";
-                else {
-                    globalQueue.forEach((q, i) => {
-                        content.innerHTML += `<div class="q-row"><div class="q-num">#${i+1}</div><div class="q-data"><span class="q-plat">${q.plat}</span><span class="q-name">${q.userName}</span></div><div class="q-batt">${q.batreSisa}%</div></div>`;
-                    });
-                }
+                document.getElementById('mTitle').innerText = "DAFTAR ANTRIAN"; c.className = "queue-table"; 
+                if(globalQueue.length === 0) c.innerHTML = "<div style='text-align:center;padding:20px;color:#fff;'>TIDAK ADA ANTRIAN</div>";
+                else globalQueue.forEach((q, i) => { c.innerHTML += `<div class="q-row"><div class="q-num">#${i+1}</div><div class="q-data"><span class="q-plat">${q.plat}</span><span class="q-name">${q.userName}</span></div><div class="q-batt">${q.batreSisa}%</div></div>`; });
             }
-            document.getElementById('detailModal').classList.add('open');
-            document.getElementById('detailModal').style.display = 'flex';
+            document.getElementById('detailModal').classList.add('open'); document.getElementById('detailModal').style.display = 'flex';
         };
 
         window.closeModal = (id) => { document.getElementById(id).classList.remove('open'); setTimeout(() => document.getElementById(id).style.display = 'none', 200); };
-        window.navTo = (id) => { if(id==='map') window.location.href='lokasifc.html'; if(id==='plan') window.location.href='plan.html'; if(id==='infomlu.html') window.location.href='infomlu.html'; };
         function calculateDistance(lat1, lon1, lat2, lon2) { const p = 0.017453292519943295; const c = Math.cos; const a = 0.5 - c((lat2 - lat1) * p)/2 + c(lat1 * p) * c(lat2 * p) * (1 - c((lon2 - lon1) * p))/2; return 12742 * Math.asin(Math.sqrt(a)); }
-
-        // --- MAIN LISTENER ---
+        
         onSnapshot(mainRef, (snap) => {
-            const l = document.getElementById('loading-screen'); 
-            if(l) { l.style.opacity = '0'; setTimeout(() => { l.style.display = 'none'; }, 500); }
-
+            const l = document.getElementById('loading-screen'); if(l) { l.style.opacity = '0'; setTimeout(() => { l.style.display = 'none'; }, 500); }
             if (!snap.exists()) return;
             const d = snap.data();
-            globalSlots = d.chargingSlots || [null, null, null];
+            globalSlots = d.chargingSlots || [null, null, null]; 
             globalQueue = d.waitingQueue || [];
-
-            const usedCount = globalSlots.filter(s => s !== null).length;
-            document.getElementById('slotVal').innerHTML = `${usedCount}<span style="font-size:24px;opacity:0.8;margin-left:5px">/${TOTAL_SLOTS}</span>`;
+            document.getElementById('slotVal').innerHTML = `${globalSlots.filter(s => s !== null).length}<span style="font-size:24px;opacity:0.8;margin-left:5px">/${TOTAL_SLOTS}</span>`;
             document.getElementById('queueVal').innerText = globalQueue.length;
-
-            // JALANKAN VALIDASI TIKET SETIAP ADA UPDATE DATA
-            validateTicketStatus();
+            const myPlat = localStorage.getItem('myPlat'); const btn = document.getElementById('btnDaftar');
+            if(!myPlat) { btn.innerHTML = 'DAFTAR ANTRIAN <i class="fas fa-arrow-right"></i>'; btn.style.background="var(--btn-grad)"; btn.style.color="#000"; }
+            else if((d.waitingQueue||[]).find(q=>q.plat===myPlat) || (d.chargingSlots||[]).find(s=>s&&s.plat===myPlat)) { btn.innerHTML = 'KEMBALI KE SYSTEM <i class="fas fa-undo"></i>'; btn.style.background="#fff"; btn.style.color="#000"; }
+            else { localStorage.removeItem('myPlat'); btn.innerHTML = 'DAFTAR ANTRIAN <i class="fas fa-arrow-right"></i>'; btn.style.background="var(--btn-grad)"; btn.style.color="#000"; }
         });
 
-        // CLOCK & FORMATTER
         setInterval(() => {
             const d = new Date(); const days = ['MINGGU','SENIN','SELASA','RABU','KAMIS','JUMAT','SABTU']; const months = ['JAN','FEB','MAR','APR','MEI','JUN','JUL','AGU','SEP','OKT','NOV','DES'];
-            const time = `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
-            document.getElementById('liveClock').innerText = `LIVE | ${days[d.getDay()]}, ${d.getDate()} ${months[d.getMonth()]} ${time}`;
+            document.getElementById('liveClock').innerText = `LIVE | ${days[d.getDay()]}, ${d.getDate()} ${months[d.getMonth()]} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
         }, 1000);
 
-        const platInput = document.getElementById('inpPlat');
-        if(platInput) {
-            platInput.addEventListener('input', function(e) {
-                let v = this.value.toUpperCase().replace(/[^A-Z0-9]/g, ''); let formatted = "";
-                if (v.length > 0) {
-                    let match = v.match(/^([A-Z]{1,2})(\d{0,4})([A-Z]*)$/);
-                    if (match) { formatted = match[1]; if (match[2]) formatted += " " + match[2]; if (match[3]) formatted += " " + match[3]; } else { formatted = v; } 
-                }
-                this.value = formatted;
-            });
-        }
-        const batInput = document.getElementById('inpBatre');
-        if(batInput) batInput.addEventListener('input', function(e) { let v = this.value.replace(/[^0-9]/g, ''); if(parseInt(v) > 100) v = "100"; this.value = v; });
+        const platInput = document.getElementById('inpPlat'); if(platInput) { platInput.addEventListener('input', function(e) { let v = this.value.toUpperCase().replace(/[^A-Z0-9]/g, ''); let f = ""; if (v.length > 0) { let m = v.match(/^([A-Z]{1,2})(\d{0,4})([A-Z]*)$/); if (m) { f = m[1]; if (m[2]) f += " " + m[2]; if (m[3]) f += " " + m[3]; } else { f = v; } } this.value = f; }); }
+        const batInput = document.getElementById('inpBatre'); if(batInput) batInput.addEventListener('input', function(e) { let v = this.value.replace(/[^0-9]/g, ''); if(parseInt(v) > 100) v = "100"; this.value = v; });
     </script>
-    
-    <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js'); });
-        }
-    </script>
+    <script>if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js'); }); }</script>
 </body>
 </html>
