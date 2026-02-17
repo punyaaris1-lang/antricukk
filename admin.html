@@ -5,8 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ADMIN TITANIUM - FC KG</title>
     <link href="https://fonts.googleapis.com/css2?family=Teko:wght@300;500;700&family=Rajdhani:wght@500;700&family=Orbitron:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* === STYLE TITANIUM ORIGINAL (TIDAK DIUBAH) === */
+        /* === STYLE TITANIUM ORIGINAL === */
         :root { 
             --bg: #050505; --panel: #111; --border: #333; 
             --gold: #FFD700; --cyan: #00F0FF; --red: #FF003C; 
@@ -63,72 +64,96 @@
         .mb-yes { flex:1; background: var(--gold); color: #000; }
         .mb-no { flex:1; background: #333; color: #fff; border: 1px solid #555; }
 
+        /* --- LOGIN SCREEN BARU --- */
+        #loginScreen { position: fixed; inset: 0; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 99999; }
+        .login-box { background: #0a0a0a; border: 2px solid var(--gold); padding: 40px; border-radius: 15px; text-align: center; box-shadow: 0 0 40px rgba(255, 215, 0, 0.2); width: 90%; max-width: 350px; }
+        .inp-login-name { width: 100%; padding: 15px; font-size: 20px; font-family: 'Rajdhani', sans-serif; font-weight: bold; text-align: center; letter-spacing: 2px; background: #000; color: #fff; border: 1px solid #333; border-radius: 8px; margin-bottom: 10px; text-transform: uppercase; }
+        .inp-login-pin { width: 100%; padding: 15px; font-size: 32px; font-family: 'Teko', sans-serif; text-align: center; letter-spacing: 15px; background: #000; color: var(--gold); border: 1px solid #333; border-radius: 8px; margin-bottom: 20px; }
+        .btn-login { width: 100%; padding: 15px; background: var(--gold); color: #000; font-family: 'Rajdhani'; font-size: 20px; font-weight: 900; border: none; border-radius: 8px; cursor: pointer; text-transform: uppercase; }
+
+        #adminDashboard { display: none; flex-direction: column; }
     </style>
 </head>
 <body>
 
-    <div class="adm-header">
-        <div>
-            <div style="font-family:'Black Ops One'; font-size:20px; color:#fff;">ADMIN PANEL</div>
-            <div style="font-size:10px; color:#666;">TITANIUM VERSION</div>
-        </div>
-        <button onclick="window.location.href='system.html'" class="btn-blue" style="font-size:12px;">KE LAYAR DEPAN</button>
-    </div>
-
-    <div class="box" style="border-top: 2px solid var(--cyan);">
-        <h3>LIVE MONITORING (SLOT)</h3>
-        <div class="slot-grid">
-            <div id="slot1" class="slot-item">...</div>
-            <div id="slot2" class="slot-item">...</div>
-            <div id="slot3" class="slot-item">...</div>
-        </div>
-        
-        <div style="margin-top:15px; background:#111; padding:10px; border-radius:5px; display:flex; align-items:center; gap:5px;">
-            <span style="font-size:10px; color:#666;">SWAP:</span>
-            <select id="moveSrc" style="padding:5px; width:auto;"><option value="0">SLOT 1</option><option value="1">SLOT 2</option><option value="2">SLOT 3</option></select>
-            <span style="color:#666;">➡</span>
-            <select id="moveDest" style="padding:5px; width:auto;"><option value="1">SLOT 2</option><option value="2">SLOT 3</option><option value="0">SLOT 1</option></select>
-            <button onclick="askConfirm('Tukar Posisi User?', moveSlotUser)" class="btn-blue btn-mini">GO</button>
+    <div id="loginScreen">
+        <div class="login-box">
+            <i class="fas fa-shield-alt" style="font-size: 50px; color: var(--gold); margin-bottom: 20px;"></i>
+            <h2 style="font-family:'Orbitron'; margin-top:0; color:#fff;">SYSTEM LOGIN</h2>
+            <input type="text" id="adminNameInput" class="inp-login-name" placeholder="NAMA ADMIN">
+            <input type="password" id="adminPinInput" class="inp-login-pin" placeholder="••••" maxlength="4">
+            <button class="btn-login" onclick="verifyLogin()">AUTHORIZE</button>
         </div>
     </div>
 
-    <div class="box" style="border-top: 2px solid var(--gold);">
-        <h3>
-            DAFTAR ANTRIAN
-            <button onclick="askConfirm('RESET URUTAN NOMOR JADI 1? (ORANG TETAP ADA)', resetTicketNumbers)" class="btn-red btn-mini" style="font-size:10px;">♻ RESET NOMOR</button>
-        </h3>
-        
-        <div id="queueTable" style="max-height:300px; overflow-y:auto; margin-bottom:15px; border:1px solid #222;"></div>
-        
-        <div style="background:#111; padding:10px; border-radius:5px;">
-            <div style="font-size:10px; color:var(--gold); margin-bottom:5px;">FORCE INPUT (VIP/MANUAL)</div>
+    <div id="adminDashboard">
+        <div class="adm-header">
+            <div>
+                <div style="font-family:'Black Ops One'; font-size:20px; color:#fff;">ADMIN PANEL</div>
+                <div style="font-size:10px; color:#666;">TITANIUM VERSION <span id="admNameDisplay" style="color:var(--gold); margin-left:5px; font-weight:bold;"></span></div>
+            </div>
             <div style="display:flex; gap:5px;">
-                <input id="newPlat" placeholder="PLAT (CONTOH: B 7777 PEA)" style="flex:2;">
-                <input id="newNama" placeholder="NAMA" style="flex:2;">
-            </div>
-            <div style="display:flex; gap:5px; margin-top:5px;">
-                <button onclick="manualAdd('queue')" class="btn-green" style="flex:2;">+ ANTRIAN</button>
-                <button onclick="manualAdd(0)" class="btn-gold" style="flex:1;">S1</button>
-                <button onclick="manualAdd(1)" class="btn-gold" style="flex:1;">S2</button>
-                <button onclick="manualAdd(2)" class="btn-gold" style="flex:1;">S3</button>
+                <button onclick="window.location.href='system.html'" class="btn-blue" style="font-size:12px;">SYSTEM</button>
+                <button onclick="logoutAdmin()" class="btn-red" style="font-size:12px;"><i class="fas fa-power-off"></i></button>
             </div>
         </div>
-    </div>
 
-    <div class="box" style="border: 1px dashed var(--red);">
-        <h3 style="color:var(--red);">EMERGENCY ZONE</h3>
-        <div style="display:flex; gap:10px;">
-            <button onclick="checkRecovery()" class="btn-blue" style="flex:1;">📂 CEK SNAPSHOT</button>
-            <button onclick="askConfirm('RESET SEMUA DATA (HAPUS SEMUA)?', hardReset)" class="btn-red" style="flex:1;">💀 KOSONGKAN SISTEM</button>
+        <div class="box" style="border-top: 2px solid var(--cyan);">
+            <h3>LIVE MONITORING (SLOT)</h3>
+            <div class="slot-grid">
+                <div id="slot1" class="slot-item">...</div>
+                <div id="slot2" class="slot-item">...</div>
+                <div id="slot3" class="slot-item">...</div>
+            </div>
+            
+            <div style="margin-top:15px; background:#111; padding:10px; border-radius:5px; display:flex; align-items:center; gap:5px;">
+                <span style="font-size:10px; color:#666;">SWAP:</span>
+                <select id="moveSrc" style="padding:5px; width:auto;"><option value="0">SLOT 1</option><option value="1">SLOT 2</option><option value="2">SLOT 3</option></select>
+                <span style="color:#666;">➡</span>
+                <select id="moveDest" style="padding:5px; width:auto;"><option value="1">SLOT 2</option><option value="2">SLOT 3</option><option value="0">SLOT 1</option></select>
+                <button onclick="askConfirm('Tukar Posisi User?', moveSlotUser)" class="btn-blue btn-mini">GO</button>
+            </div>
         </div>
-        <div id="recoveryPanel" style="display:none; margin-top:10px; background:#220000; padding:10px; border:1px solid var(--red);">
-            <div id="recList" style="font-size:10px; margin-bottom:10px; color:#fff;"></div>
-            <button onclick="executeRestore()" class="btn-green" style="width:100%;">PULIHKAN DATA</button>
-        </div>
-    </div>
 
-    <div style="font-size:10px; color:#444; margin-bottom:5px;">SYSTEM LOGS:</div>
-    <div class="term-container" id="termLog"></div>
+        <div class="box" style="border-top: 2px solid var(--gold);">
+            <h3>
+                DAFTAR ANTRIAN
+                <button onclick="askConfirm('RESET URUTAN NOMOR JADI 1? (ORANG TETAP ADA)', resetTicketNumbers)" class="btn-red btn-mini" style="font-size:10px;">♻ RESET NOMOR</button>
+            </h3>
+            
+            <div id="queueTable" style="max-height:300px; overflow-y:auto; margin-bottom:15px; border:1px solid #222;"></div>
+            
+            <div style="background:#111; padding:10px; border-radius:5px;">
+                <div style="font-size:10px; color:var(--gold); margin-bottom:5px;">FORCE INPUT (VIP/MANUAL)</div>
+                <div style="display:flex; gap:5px; margin-bottom:5px;">
+                    <input id="newPlat" placeholder="PLAT (Cth: B 7777 PEA)" style="flex:2;">
+                    <input id="newNama" placeholder="NAMA" style="flex:2;">
+                    <input id="newBatre" type="number" placeholder="BATRE (%)" style="flex:1;" max="100">
+                </div>
+                <div style="display:flex; gap:5px;">
+                    <button onclick="manualAdd('queue')" class="btn-green" style="flex:2;">+ ANTRIAN</button>
+                    <button onclick="manualAdd(0)" class="btn-gold" style="flex:1;">S1</button>
+                    <button onclick="manualAdd(1)" class="btn-gold" style="flex:1;">S2</button>
+                    <button onclick="manualAdd(2)" class="btn-gold" style="flex:1;">S3</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="box" style="border: 1px dashed var(--red);">
+            <h3 style="color:var(--red);">EMERGENCY ZONE</h3>
+            <div style="display:flex; gap:10px;">
+                <button onclick="checkRecovery()" class="btn-blue" style="flex:1;">📂 CEK SNAPSHOT</button>
+                <button onclick="askConfirm('RESET SEMUA DATA (HAPUS SEMUA)?', hardReset)" class="btn-red" style="flex:1;">💀 KOSONGKAN SISTEM</button>
+            </div>
+            <div id="recoveryPanel" style="display:none; margin-top:10px; background:#220000; padding:10px; border:1px solid var(--red);">
+                <div id="recList" style="font-size:10px; margin-bottom:10px; color:#fff;"></div>
+                <button onclick="executeRestore()" class="btn-green" style="width:100%;">PULIHKAN DATA</button>
+            </div>
+        </div>
+
+        <div style="font-size:10px; color:#444; margin-bottom:5px;">SYSTEM LOGS:</div>
+        <div class="term-container" id="termLog"></div>
+    </div>
 
     <div id="customModal">
         <div class="modal-box">
@@ -154,7 +179,8 @@
             <label style="display:block; text-align:left; color:#888; font-size:10px; margin-bottom:2px;">SISA BATRE (%)</label>
             <input id="editBatt" type="number" max="100">
 
-            <input type="hidden" id="editIndex"> <div class="modal-btns">
+            <input type="hidden" id="editIndex"> 
+            <div class="modal-btns">
                 <button onclick="saveEdit()" class="mb-yes">SIMPAN PERUBAHAN</button>
                 <button onclick="closeEditModal()" class="mb-no">BATAL</button>
             </div>
@@ -163,9 +189,8 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, doc, onSnapshot, runTransaction, collection, addDoc, query, orderBy, limit, getDocs, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, doc, onSnapshot, runTransaction, collection, addDoc, query, orderBy, limit, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // FIREBASE CONFIG KELAPA GADING
         const firebaseConfig = { apiKey: "AIzaSyB666i9lYWIpxOdkwpoX9EvFvHLmHczeq8", authDomain: "fcgadingnew22.firebaseapp.com", projectId: "fcgadingnew22", storageBucket: "fcgadingnew22.firebasestorage.app", messagingSenderId: "537736846678", appId: "1:537736846678:web:53788d71a196423ac08af7" };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
@@ -177,13 +202,36 @@
         let cachedQueue = [];
         let snapshotData = null;
 
-        // --- PASSWORD ADMIN UPDATE ---
-        if(localStorage.getItem('adm_sess')) {} 
-        else { 
-            let p = prompt("PIN ADMIN:"); 
-            if(p==="2505") localStorage.setItem('adm_sess','1'); // PASSWORD BARU
-            else { alert("Salah!"); location.reload(); } 
+        // --- SISTEM LOGIN BARU (PAKSA LOGOUT SEMUA ADMIN LAMA) ---
+        // Kita gunakan 'adm_sess_v2' agar session yang lama 'adm_sess' tidak berlaku lagi
+        if(localStorage.getItem('adm_sess_v2')) {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('adminDashboard').style.display = 'block';
+            document.getElementById('admNameDisplay').innerText = `| [ ${localStorage.getItem('adm_name_v2')} ]`;
         }
+
+        window.verifyLogin = () => {
+            const nama = document.getElementById('adminNameInput').value.trim().toUpperCase();
+            const pin = document.getElementById('adminPinInput').value;
+
+            if(!nama) return alert("NAMA ADMIN WAJIB DIISI!");
+            if(pin === "2505") { // PASSWORD ADMIN KG
+                localStorage.setItem('adm_sess_v2', '1');
+                localStorage.setItem('adm_name_v2', nama);
+                addLog(nama, "LOGIN_SYSTEM", "Akses berhasil");
+                location.reload();
+            } else {
+                alert("PIN SALAH!");
+            }
+        };
+
+        window.logoutAdmin = () => {
+            const nama = localStorage.getItem('adm_name_v2') || "ADMIN";
+            addLog(nama, "LOGOUT_SYSTEM", "Keluar aplikasi");
+            localStorage.removeItem('adm_sess_v2');
+            localStorage.removeItem('adm_name_v2');
+            location.reload();
+        };
 
         // --- MODAL LOGIC ---
         let currentCallback = null;
@@ -195,14 +243,14 @@
         document.getElementById('btnYes').onclick = () => { if(currentCallback) currentCallback(); closeModal(); };
         window.closeModal = () => { document.getElementById('customModal').style.display = 'none'; currentCallback = null; };
 
-        // --- EDIT MODAL LOGIC (BARU) ---
+        // --- EDIT MODAL LOGIC ---
         window.openEdit = (idx) => {
             const user = cachedQueue[idx];
             if(!user) return;
             document.getElementById('editIndex').value = idx;
             document.getElementById('editPlat').value = user.plat;
             document.getElementById('editName').value = user.userName;
-            document.getElementById('editBatt').value = user.batreSisa || ""; // Load Batre
+            document.getElementById('editBatt').value = user.batreSisa || ""; 
             document.getElementById('editModal').style.display = 'flex';
         };
 
@@ -213,6 +261,7 @@
             const p = document.getElementById('editPlat').value.toUpperCase();
             const n = document.getElementById('editName').value.toUpperCase();
             const b = document.getElementById('editBatt').value;
+            const admName = localStorage.getItem('adm_name_v2') || "ADMIN";
 
             if(!p || !n) return alert("Plat & Nama tidak boleh kosong!");
 
@@ -223,9 +272,9 @@
                 if(q[idx]) {
                     q[idx].plat = p;
                     q[idx].userName = n;
-                    q[idx].batreSisa = b; // Update Batre
+                    q[idx].batreSisa = b; 
                     t.update(mainRef, { waitingQueue: q });
-                    addLog("ADMIN", "EDIT_USER", `Updated: ${p}`);
+                    addLog(admName, "EDIT_USER", `Update data: ${p}`);
                 }
             }).then(() => {
                 closeEditModal();
@@ -239,7 +288,7 @@
             const d = snap.data();
             cachedSlots = d.chargingSlots || [null,null,null];
             cachedQueue = d.waitingQueue || [];
-            updateMonitor();
+            if(document.getElementById('adminDashboard').style.display !== 'none') updateMonitor();
         });
 
         function updateMonitor() {
@@ -273,7 +322,7 @@
                 }
             });
 
-            // UPDATE QUEUE TABLE (DITAMBAH TOMBOL EDIT)
+            // UPDATE QUEUE TABLE
             let h = `<table><tr><th width="20">#</th><th>PLAT / NAMA / BAT</th><th width="100">PINDAH KE</th><th width="60">AKSI</th></tr>`;
             if(cachedQueue.length === 0) h += `<tr><td colspan="4" style="text-align:center; padding:10px; color:#444;">TIDAK ADA ANTRIAN</td></tr>`;
             
@@ -309,19 +358,25 @@
         }
 
         window.resetTicketNumbers = () => {
+            const admName = localStorage.getItem('adm_name_v2') || "ADMIN";
             runTransaction(db, async(t) => {
                 const d = (await t.get(mainRef)).data();
                 let queue = d.waitingQueue || [];
                 queue.forEach((q, index) => { q.qNo = index + 1; });
                 t.update(mainRef, { waitingQueue: queue, lastTicket: queue.length });
-                addLog("ADMIN", "RESET_NUMBER", `Re-indexed ${queue.length} users`);
+                addLog(admName, "RESET_NUMBER", `Re-indexed ${queue.length} users`);
             }).then(() => alert("Nomor berhasil diurutkan ulang dari 1!")).catch(e => alert("Gagal: " + e));
         };
 
+        // --- UPDATE MANUAL ADD (WAJIB BATRE) ---
         window.manualAdd = async (target) => {
             const p = document.getElementById('newPlat').value.trim().toUpperCase();
             const n = document.getElementById('newNama').value.trim().toUpperCase();
+            const b = document.getElementById('newBatre').value;
+            const admName = localStorage.getItem('adm_name_v2') || "ADMIN";
+
             if(!p) return alert("Plat Nomor Wajib Diisi!");
+            if(!b) return alert("SISA BATERAI WAJIB DIISI!"); // <-- Kunci WAJIB Batre
 
             let userRole = "GUEST";
             const cleanID = p.replace(/[^A-Z0-9]/g, '');
@@ -336,7 +391,7 @@
                 if([...(d.chargingSlots||[]), ...d.waitingQueue].some(u => u && u.plat === p)) throw "User sudah ada!";
 
                 const newNo = (d.lastTicket||0)+1;
-                const u = { plat:p, userName:n||"MANUAL", qNo:newNo, entryTime:Date.now(), role: userRole, batreSisa: "-" }; // Default Batre strip
+                const u = { plat:p, userName:n||"MANUAL", qNo:newNo, entryTime:Date.now(), role: userRole, batreSisa: b };
 
                 if(target === 'queue') d.waitingQueue.push(u); 
                 else { 
@@ -346,14 +401,16 @@
 
                 t.set(snapshotRef, { ...d, backupTime: new Date() });
                 t.update(mainRef, { waitingQueue:d.waitingQueue, chargingSlots:d.chargingSlots, lastTicket:newNo });
-                addLog("ADMIN", "MANUAL_INPUT", `Add ${p} (${userRole})`);
+                addLog(admName, "MANUAL_INPUT", `Add ${p} (Batre: ${b}%)`);
             }).then(() => {
                 document.getElementById('newPlat').value = '';
                 document.getElementById('newNama').value = '';
+                document.getElementById('newBatre').value = '';
             }).catch(e => alert("GAGAL: " + e));
         };
 
         window.forceToSlot = (plat, slotIdx) => {
+            const admName = localStorage.getItem('adm_name_v2') || "ADMIN";
             runTransaction(db, async(t) => {
                 const d = (await t.get(mainRef)).data();
                 if(d.chargingSlots[slotIdx]) throw "SLOT TERISI!";
@@ -363,20 +420,22 @@
                 user.startTime = Date.now();
                 d.chargingSlots[slotIdx] = user;
                 t.update(mainRef, { chargingSlots: d.chargingSlots, waitingQueue: d.waitingQueue });
-                addLog("ADMIN", "FORCE_SLOT", `${plat} -> S${slotIdx+1}`);
+                addLog(admName, "FORCE_SLOT", `${plat} -> S${slotIdx+1}`);
             }).catch(e => alert(e));
         };
 
         window.forceStop = (i) => {
+            const admName = localStorage.getItem('adm_name_v2') || "ADMIN";
             runTransaction(db, async(t) => {
                 const d = (await t.get(mainRef)).data();
                 d.chargingSlots[i] = null;
                 t.update(mainRef, { chargingSlots: d.chargingSlots });
-                addLog("ADMIN", "STOP", `Slot ${i+1}`);
+                addLog(admName, "STOP_SLOT", `Kick User dari Slot ${i+1}`);
             });
         };
 
         window.kickToQueue = (i) => {
+            const admName = localStorage.getItem('adm_name_v2') || "ADMIN";
             runTransaction(db, async(t) => {
                 const d = (await t.get(mainRef)).data();
                 const u = d.chargingSlots[i];
@@ -384,6 +443,7 @@
                     d.chargingSlots[i] = null; delete u.startTime; 
                     d.waitingQueue.unshift(u);
                     t.update(mainRef, { chargingSlots: d.chargingSlots, waitingQueue: d.waitingQueue });
+                    addLog(admName, "KICK_TO_QUEUE", `Pindah Slot ${i+1} ke Antrian`);
                 }
             });
         };
@@ -391,6 +451,7 @@
         window.moveSlotUser = () => {
             const s1 = document.getElementById('moveSrc').value;
             const s2 = document.getElementById('moveDest').value;
+            const admName = localStorage.getItem('adm_name_v2') || "ADMIN";
             if(s1 == s2) return alert("Pilih slot beda!");
             runTransaction(db, async(t) => {
                 const d = (await t.get(mainRef)).data();
@@ -398,10 +459,12 @@
                 d.chargingSlots[s1] = d.chargingSlots[s2];
                 d.chargingSlots[s2] = temp;
                 t.update(mainRef, { chargingSlots: d.chargingSlots });
+                addLog(admName, "SWAP_SLOT", `S${parseInt(s1)+1} <=> S${parseInt(s2)+1}`);
             });
         };
 
         window.switchQueue = (idx, dir) => {
+            const admName = localStorage.getItem('adm_name_v2') || "ADMIN";
             runTransaction(db, async(t) => {
                 const d = (await t.get(mainRef)).data();
                 let q = d.waitingQueue;
@@ -409,15 +472,18 @@
                 if(target >= 0 && target < q.length) {
                     [q[idx], q[target]] = [q[target], q[idx]];
                     t.update(mainRef, { waitingQueue: q });
+                    addLog(admName, "MOVE_QUEUE", `Pindah Urutan (Index ${idx})`);
                 }
             });
         };
 
         window.delQueue = (p) => {
+            const admName = localStorage.getItem('adm_name_v2') || "ADMIN";
             runTransaction(db, async(t) => {
                 const d = (await t.get(mainRef)).data();
                 const newQ = d.waitingQueue.filter(x => x.plat !== p);
                 t.update(mainRef, { waitingQueue: newQ });
+                addLog(admName, "DELETE_QUEUE", `Hapus Plat: ${p}`);
             });
         };
 
@@ -430,27 +496,30 @@
         };
 
         window.executeRestore = () => {
+            const admName = localStorage.getItem('adm_name_v2') || "ADMIN";
             if(!snapshotData) return;
             runTransaction(db, async(t) => {
                 t.set(mainRef, { chargingSlots: snapshotData.chargingSlots || [null,null,null], waitingQueue: snapshotData.waitingQueue || [], lastTicket: snapshotData.lastTicket || 0 });
-                addLog("ADMIN", "RESTORE", "Restored Snapshot");
+                addLog(admName, "RESTORE", "Restored Snapshot System");
             });
             document.getElementById('recoveryPanel').style.display = 'none';
             alert("Data Pulih!");
         };
 
         window.hardReset = () => {
+            const admName = localStorage.getItem('adm_name_v2') || "ADMIN";
             runTransaction(db, async(t) => {
                 t.set(mainRef, { chargingSlots: [null,null,null], waitingQueue: [], lastTicket: 0 });
-                addLog("ADMIN", "HARD_RESET", "Wiped All Data");
+                addLog(admName, "HARD_RESET", "Wiped All Data");
             });
         };
 
+        // --- SISTEM LOGGING BARU ---
         onSnapshot(query(logRef, orderBy("timestamp", "desc"), limit(20)), (snap) => {
             let h = '';
             snap.forEach(d => {
                 const x = d.data();
-                h += `<div class="log-line">[${x.timestamp ? x.timestamp.toDate().toLocaleTimeString() : '-'}] <span style="color:var(--cyan)">${x.actor}</span>: ${x.action} - ${x.details}</div>`;
+                h += `<div class="log-line">[${x.timestamp ? x.timestamp.toDate().toLocaleTimeString() : '-'}] <span style="color:var(--gold)">${x.actor}</span>: <span style="color:var(--cyan)">${x.action}</span> - ${x.details}</div>`;
             });
             document.getElementById('termLog').innerHTML = h;
         });
