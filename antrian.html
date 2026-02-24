@@ -282,7 +282,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, doc, onSnapshot, getDoc, updateDoc, runTransaction } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, doc, onSnapshot, getDoc, updateDoc, runTransaction, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const STATION_LAT = -6.171583; const STATION_LNG = 106.899844; const MAX_DIST_KM = 0.2; 
         const firebaseConfig = { apiKey: "AIzaSyB666i9lYWIpxOdkwpoX9EvFvHLmHczeq8", authDomain: "fcgadingnew22.firebaseapp.com", projectId: "fcgadingnew22", storageBucket: "fcgadingnew22.firebasestorage.app", messagingSenderId: "537736846678", appId: "1:537736846678:web:53788d71a196423ac08af7" };
@@ -295,11 +295,26 @@
         let globalSlots = [null, null, null];
         let globalQueue = [];
 
+        // Hapus Spasi pada Plat untuk perbandingan database
+        const cleanStr = (s) => s ? s.replace(/[^A-Z0-9]/gi, '').toUpperCase() : '';
+
         // 1. DEFINISI FUNGSI GLOBAL DULU (AGAR TIDAK ERROR SAAT KLIK)
         window.toggleAdmin = () => { 
             const pass = prompt("MASUKKAN KODE ADMIN:"); 
-            if(pass === "1131") window.location.href = "admin.html"; 
-            else if(pass) alert("KODE SALAH!"); 
+            if (pass === "2505") {
+                window.location.href = "admin.html"; 
+            } else if (pass === "090815") {
+                if(localStorage.getItem('sa_sess')) { 
+                    localStorage.removeItem('sa_sess'); 
+                    alert("GOD MODE MATI."); 
+                } else { 
+                    localStorage.setItem('sa_sess', '1'); 
+                    alert("GOD MODE AKTIF (Bypass GPS)."); 
+                }
+                location.reload();
+            } else if(pass) {
+                alert("KODE SALAH!"); 
+            }
         };
 
         window.openModal = (type) => {
@@ -376,24 +391,39 @@
 
         window.checkLocationAndOpenForm = () => {
             const btn = document.getElementById('btnDaftar');
+            
             // Jika tombol berfungsi sebagai redirect (Ticket Recovery)
             if(btn.innerHTML.includes('SYSTEM')) {
                 window.location.href = 'system.html';
                 return;
             }
 
+            // BYPASS JIKA GOD MODE AKTIF (Bisa mendaftar dari rumah)
+            if(localStorage.getItem('sa_sess')) {
+                document.getElementById('formModal').classList.add('open'); 
+                document.getElementById('formModal').style.display = 'flex';
+                return;
+            }
+
             if (!navigator.geolocation) { alert("GPS WAJIB AKTIF!"); return; }
+            
             const ori = btn.innerHTML;
             btn.innerHTML = 'CEK LOKASI...';
             
             navigator.geolocation.getCurrentPosition((pos) => {
                 const dist = calculateDistance(STATION_LAT, STATION_LNG, pos.coords.latitude, pos.coords.longitude);
                 btn.innerHTML = ori;
+                
                 if (dist <= MAX_DIST_KM) { 
                     document.getElementById('formModal').classList.add('open'); 
                     document.getElementById('formModal').style.display = 'flex';
-                } else { alert(`AKSES DITOLAK!\nJarak: ${(dist*1000).toFixed(0)}m (Max 200m)`); }
-            }, () => { btn.innerHTML = ori; alert("GAGAL LOKASI"); }, { enableHighAccuracy: true });
+                } else { 
+                    alert(`AKSES DITOLAK!\nJarak Anda: ${(dist*1000).toFixed(0)}m (Maksimal 200m).\n\nAnda harus berada di Area FC Gading untuk mendaftar.`); 
+                }
+            }, () => { 
+                btn.innerHTML = ori; 
+                alert("GAGAL MENDETEKSI LOKASI.\nPastikan izin GPS/Lokasi aktif di pengaturan browser Anda."); 
+            }, { enableHighAccuracy: true });
         };
 
         window.submitData = async () => {
@@ -408,30 +438,55 @@
             
             const btn = document.querySelector('.btn-kirim');
             btn.innerText = "PROSES...";
+            
             try {
-                // MODIFIKASI: Ambil Role dari Database Members sebelum update antrian
-                const memberRef = doc(db, "members", plat.replace(/[^A-Z0-9]/g, ''));
-                const memberSnap = await getDoc(memberRef);
+                // MODIFIKASI: Cari Role dari mlu_members (agar lebih aman)
                 let role = "GUEST";
-                if(memberSnap.exists() && memberSnap.data().role) {
-                    role = memberSnap.data().role;
-                }
+                try {
+                    const qMem = query(collection(db, "mlu_members"), where("plat", "==", plat));
+                    const qs = await getDocs(qMem);
+                    if(!qs.empty) {
+                        role = qs.docs[0].data().role || "MEMBER";
+                    }
+                } catch(e) { console.log("Gagal cek role, set default ke GUEST"); }
 
                 const snap = await getDoc(mainRef);
                 if(snap.exists()) {
-                    let queue = snap.data().waitingQueue || [];
-                    if(queue.find(q => q.plat === plat)) { alert("SUDAH ANTRI!"); location.reload(); return; }
+                    let d = snap.data();
+                    let queue = d.waitingQueue || [];
+                    let slots = d.chargingSlots || [];
                     
-                    // Simpan data dengan Role yang sudah didapat
-                    queue.push({ userName: nama, plat: plat, batreSisa: batre, role: role, timestamp: Date.now(), qNo: (snap.data().lastTicket || 0) + 1 });
-                    await updateDoc(mainRef, { waitingQueue: queue, lastTicket: (snap.data().lastTicket || 0) + 1 });
+                    // Cek apakah sudah di antrian atau slot (anti double-entry)
+                    if(queue.find(q => cleanStr(q.plat) === cleanStr(plat)) || slots.find(s => s && cleanStr(s.plat) === cleanStr(plat))) { 
+                        alert("KENDARAAN ANDA SUDAH ADA DI ANTRIAN / SLOT!"); 
+                        localStorage.setItem('myPlat', plat);
+                        window.location.href = 'system.html'; 
+                        return; 
+                    }
+                    
+                    // SINKRONISASI VARIABEL BATERAI DENGAN APLIKASI PUTIH
+                    queue.push({ 
+                        userName: nama, 
+                        plat: plat, 
+                        batre: batre + "%",       // Digunakan untuk view aplikasi putih
+                        battery: batre + "%",     // Digunakan untuk view aplikasi putih
+                        batreSisa: batre,         // Digunakan untuk view aplikasi hitam
+                        role: role, 
+                        timestamp: Date.now(), 
+                        qNo: (d.lastTicket || 0) + 1 
+                    });
+                    
+                    await updateDoc(mainRef, { waitingQueue: queue, lastTicket: (d.lastTicket || 0) + 1 });
                     
                     localStorage.setItem('myPlat', plat);
                     
                     alert("BERHASIL! MASUK KE SYSTEM..."); 
                     window.location.href = 'system.html'; // REDIRECT TO SYSTEM
                 }
-            } catch(e) { alert("ERROR: " + e); btn.innerText = "AMBIL TIKET"; }
+            } catch(e) { 
+                alert("ERROR: " + e.message); 
+                btn.innerText = "AMBIL TIKET"; 
+            }
         };
 
         // PILIH SLOT HANYA VISUAL DI SINI KARENA REDIRECT KE SYSTEM
@@ -481,8 +536,6 @@
             globalSlots = d.chargingSlots || [null, null, null];
             globalQueue = d.waitingQueue || [];
             
-            // VALIDASI HANTU DIHAPUS, SUPAYA SESI AWET.
-
             const usedCount = globalSlots.filter(s => s !== null).length;
             document.getElementById('slotVal').innerHTML = `${usedCount}<span style="font-size:24px;opacity:0.8;margin-left:5px">/${TOTAL_SLOTS}</span>`;
             document.getElementById('queueVal').innerText = globalQueue.length;
