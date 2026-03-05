@@ -49,16 +49,16 @@
         .logo-projection-area { 
             position: relative; text-align: center; margin-top: 15px; margin-bottom: 0px; 
             display: flex; flex-direction: column; align-items: center; 
-            z-index: 15; /* Logo ada di bawah layer navigasi stat */
+            z-index: 15;
             min-height: 130px; 
-            pointer-events: none; /* Mencegah area kosong di sekitar logo menghalangi klik */
+            pointer-events: none; 
         }
         
         .clean-logo-wrap { 
             position: relative; width: 140px; height: 140px; 
             transition: all 0.8s cubic-bezier(0.25, 1, 0.15, 1); 
             cursor: pointer; opacity: 1;
-            pointer-events: auto; /* Memastikan hanya logonya saja yang clickable */
+            pointer-events: auto; 
         }
         
         .logo-img { 
@@ -74,14 +74,13 @@
             opacity: 0; pointer-events: none; z-index: 1;
         }
 
-        /* EFEK PETIR BERULANG (Total 8 Detik: Blank -> Petir -> Nyala -> Blank) */
         @keyframes thunderRevealCSS {
-            0%, 14%  { opacity: 0; filter: brightness(0); } /* Blank Gelap */
-            15%, 17% { opacity: 1; filter: brightness(6) drop-shadow(0 0 30px #fff); } /* Petir 1 */
-            18%, 23% { opacity: 1; filter: brightness(0); } /* Siluet Hitam */
-            24%, 26% { opacity: 1; filter: brightness(6) drop-shadow(0 0 30px #fff); } /* Petir 2 */
-            27%, 85% { opacity: 1; filter: brightness(1) drop-shadow(0 0 20px var(--gold-glow)); } /* Menyala Stabil */
-            86%, 100%{ opacity: 0; filter: brightness(0); } /* Memudar untuk loop */
+            0%, 14%  { opacity: 0; filter: brightness(0); } 
+            15%, 17% { opacity: 1; filter: brightness(6) drop-shadow(0 0 30px #fff); } 
+            18%, 23% { opacity: 1; filter: brightness(0); } 
+            24%, 26% { opacity: 1; filter: brightness(6) drop-shadow(0 0 30px #fff); } 
+            27%, 85% { opacity: 1; filter: brightness(1) drop-shadow(0 0 20px var(--gold-glow)); } 
+            86%, 100%{ opacity: 0; filter: brightness(0); } 
         }
         
         @keyframes bgLightningCSS {
@@ -95,7 +94,6 @@
         body.state-idle .logo-img { animation: thunderRevealCSS 8s infinite ease-out; }
         body.state-idle .clean-logo-wrap::before { animation: bgLightningCSS 8s infinite ease-out; }
 
-        /* FLOATING SAAT ACTIVE (Logo di Atas) */
         @keyframes floatHolo {
             0%, 100% { transform: translateY(0); filter: drop-shadow(0 0 10px var(--gold-glow)); }
             50%      { transform: translateY(-8px); filter: drop-shadow(0 0 20px var(--gold)); }
@@ -103,18 +101,20 @@
         body.state-active .clean-logo-wrap { animation: floatHolo 3.5s ease-in-out infinite; }
         body.state-active .logo-img { animation: none; opacity: 1; filter: brightness(1) drop-shadow(0 0 15px var(--gold-glow)); }
 
-        /* --- LAYOUT: DATA SLOT/ANTRIAN --- */
+        /* --- SKETCH LAYOUT: DATA SLOT & ANTRIAN --- */
         .hud-stats-wrapper {
             display: flex; justify-content: center; align-items: center; 
-            gap: 70px; margin: -15px 20px 0; position: relative; 
-            /* Z-INDEX SANGAT TINGGI AGAR TIDAK TERTUTUP OLEH LOGO SAAT IDLE */
-            z-index: 50; 
+            gap: 70px; 
+            /* Margin diturunkan agar posisi slot dan antrian tidak terlalu mepet atas */
+            margin: 5px 20px 0; 
+            position: relative; 
+            z-index: 30; 
         }
 
         .stat-module {
             flex: 1; max-width: 130px; display: flex; flex-direction: column; 
             align-items: center; cursor: pointer; transition: all 0.3s;
-            pointer-events: auto; /* Memastikan div ini menangkap klik */
+            pointer-events: auto;
         }
 
         .s-val {
@@ -123,15 +123,20 @@
             text-shadow: 0 0 10px rgba(255,255,255,0.2);
         }
 
-        .s-line { width: 100%; height: 2px; background: var(--silver-dim); position: relative; transition: all 0.3s; }
-        .s-lbl { font-size: 15px; font-weight: 800; color: var(--silver-text); letter-spacing: 2px; text-transform: uppercase; margin-top: 6px; transition: all 0.3s; }
+        .s-line {
+            width: 100%; height: 2px; background: var(--silver-dim);
+            position: relative; transition: all 0.3s;
+        }
+        
+        .s-lbl {
+            font-size: 15px; font-weight: 800; color: var(--silver-text); 
+            letter-spacing: 2px; text-transform: uppercase; margin-top: 6px; transition: all 0.3s;
+        }
 
-        /* Saat modul ditekan / Aktif */
         .stat-module.selected .s-val { color: var(--gold); text-shadow: 0 0 15px var(--gold-glow); transform: scale(1.05); }
         .stat-module.selected .s-line { background: var(--gold); box-shadow: 0 0 15px var(--gold-glow), 0 0 5px var(--gold); height: 3px; }
         .stat-module.selected .s-lbl { color: var(--white); text-shadow: 0 0 5px rgba(255,255,255,0.5); }
         
-        /* Indikator Pasif saat ada data */
         .stat-module.has-data:not(.selected) .s-line { background: rgba(216, 162, 46, 0.4); }
 
         /* --- CIRCUIT DATA CONTAINER --- */
@@ -178,17 +183,22 @@
         .tech-line-wrap:nth-child(3) .tech-line, .tech-line-wrap:nth-child(3)::before { transition-delay: 0.3s; }
         .tech-line-wrap:nth-child(3) .tech-data { transition-delay: 0.4s; }
 
-        /* --- STATE IDLE & ACTIVE --- */
-        body.state-idle .logo-projection-area { transform: translateY(12vh) scale(2.6); margin-bottom: 40px; }
-        body.state-idle .hud-stats-wrapper { transform: translateY(32vh); opacity: 0.9; }
+        /* --- STATE IDLE & ACTIVE (PENYESUAIAN JARAK) --- */
+        body.state-idle .logo-projection-area { transform: translateY(12vh) scale(2.4); margin-bottom: 0px; }
+        /* Posisi Idle diturunkan agar pas di tengah antara logo dan tombol bawah */
+        body.state-idle .hud-stats-wrapper { transform: translateY(24vh); opacity: 0.9; }
         body.state-idle .circuit-container { opacity: 0; max-height: 0; overflow: hidden; margin-top: 0; padding: 0; pointer-events: none; }
         
-        body.state-active .logo-projection-area { transform: translateY(0) scale(1); margin-bottom: 20px; }
+        body.state-active .logo-projection-area { transform: translateY(0) scale(1); margin-bottom: 10px; }
         body.state-active .hud-stats-wrapper { transform: translateY(0); opacity: 1; }
         body.state-active .circuit-container { opacity: 1; max-height: 1000px; padding-bottom: 100px; }
 
-        /* --- BOTTOM ACTION BUTTON (DIKEMBALIKAN KE GOLD) --- */
-        .bottom-action { position: fixed; bottom: 0; left: 0; width: 100%; padding: 20px; box-sizing: border-box; background: linear-gradient(to top, var(--bg-dark) 80%, transparent); z-index: 50; }
+        /* --- BOTTOM ACTION BUTTON (Dinaikkan agar tidak terlalu mepet bawah) --- */
+        .bottom-action { 
+            position: fixed; bottom: 0; left: 0; width: 100%; 
+            padding: 20px 20px 35px; /* Padding bawah ditambah agar tombol terdorong naik */
+            box-sizing: border-box; background: linear-gradient(to top, var(--bg-dark) 90%, transparent); z-index: 50; 
+        }
         .btn-main { width: 100%; padding: 18px; background: var(--gold); color: #000; border: none; border-radius: 4px; font-family: 'Rajdhani'; font-size: 24px; font-weight: 900; text-transform: uppercase; cursor: pointer; box-shadow: 0 0 15px var(--gold-glow); transition: all 0.2s; position: relative; overflow: hidden; clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px); }
         .btn-main::before { content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent); transform: skewX(-20deg); animation: shineBtn 3s infinite; }
         @keyframes shineBtn { 0% { left: -100%; } 20% { left: 200%; } 100% { left: 200%; } }
