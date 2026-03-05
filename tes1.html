@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MLU AWAKENING HUD - LIGHT ARRIVAL</title>
+    <title>MLU THUNDER HUD</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700;900&family=Inter:wght@500;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -14,7 +14,6 @@
             --cyan: #00E5FF;
             --cyan-glow: rgba(0, 229, 255, 0.7);
             --cyan-dim: rgba(0, 229, 255, 0.15);
-            --danger: #ff003c;
             --silver: #ffffff;
             --silver-dim: #94A3B8;
         }
@@ -29,14 +28,11 @@
             background-size: 25px 25px;
         }
 
-        /* Kelas Transisi Animasi Mesin untuk semua elemen layout */
-        .anim-mech {
-            transition: all 0.8s cubic-bezier(0.25, 1, 0.15, 1);
-        }
+        .anim-mech { transition: all 0.8s cubic-bezier(0.25, 1, 0.15, 1); }
 
         /* --- HEADER & TIMERS --- */
         .top-section { text-align: center; padding: 15px 10px 0; position: relative; z-index: 20;}
-        .sys-title { font-family: 'Rajdhani'; font-size: 26px; font-weight: 900; color: #fff; letter-spacing: 2px; margin: 0; line-height: 1; text-shadow: 0 0 10px var(--cyan-glow);}
+        .sys-title { font-family: 'Rajdhani'; font-size: 28px; font-weight: 900; color: #fff; letter-spacing: 2px; margin: 0; line-height: 1; text-shadow: 0 0 10px var(--cyan-glow);}
         .sys-sub { font-size: 11px; color: var(--cyan); font-weight: 700; letter-spacing: 3px; margin-bottom: 12px; }
 
         .timers { display: flex; justify-content: center; gap: 8px; max-width: 350px; margin: 0 auto; }
@@ -44,77 +40,93 @@
         .t-lbl { font-size: 9px; color: var(--silver-dim); font-weight: 700; margin-bottom: 2px; }
         .t-val { font-family: 'Rajdhani'; font-size: 16px; font-weight: 900; color: #fff; }
 
-        /* --- THE CLEAN LOGO AREA (NO GLITCH, NO SCANLINE) --- */
-        .logo-projection-area { position: relative; text-align: center; margin-top: 15px; margin-bottom: 20px; display: flex; flex-direction: column; align-items: center; z-index: 15;}
+        /* --- THE BIG LOGO & THUNDER REVEAL EFFECT --- */
+        .logo-projection-area { 
+            position: relative; text-align: center; margin-top: 15px; margin-bottom: 20px; 
+            display: flex; flex-direction: column; align-items: center; z-index: 15;
+        }
         
+        /* Base logo wrap diperbesar */
         .clean-logo-wrap { 
-            position: relative; width: 90px; height: 90px; 
+            position: relative; width: 120px; height: 120px; 
             transition: all 0.8s cubic-bezier(0.25, 1, 0.15, 1); cursor: pointer;
-            opacity: 1; /* Default visible */
         }
         
         .logo-img { 
             width: 100%; height: 100%; object-fit: contain; 
-            /* Mengubah logo asli menjadi Cyan menyala sempurna */
-            filter: hue-rotate(180deg) brightness(1.3) drop-shadow(0 0 10px var(--cyan-glow)); 
-            animation: pulseHolo 4s infinite ease-in-out;
+            filter: hue-rotate(180deg) brightness(1.3) drop-shadow(0 0 15px var(--cyan-glow)); 
         }
 
-        /* Efek denyut redup pelan saat standby */
-        @keyframes pulseHolo { 0%, 100% { opacity: 0.7; } 50% { opacity: 1; } }
-
-        /* --- BARU: KILATAN CAHAYA MELINTAS (FLARE) --- */
-        .logo-projection-area::after {
-            content:''; position: absolute; left: 50%; top: 50%;
-            transform: translate(-50%, -50%) scaleX(0); /* Awalnya tidak terlihat */
-            width: 500px; /* Sangat lebar */ height: 100px;
-            background: radial-gradient(circle, #fff 0%, rgba(0,229,255,0.9) 30%, transparent 70%);
-            box-shadow: 0 0 100px 20px var(--cyan-glow);
-            border-radius: 50%; /* Menjadi bentuk flare oval horizontal */
-            z-index: 16; /* Di depan logo */
-            opacity: 0; transition: none; pointer-events: none;
+        /* 1. EFEK THUNDER REVEAL (Hanya Jalan saat Mode Idle / Siaga) */
+        @keyframes thunderReveal {
+            0%   { opacity: 0; filter: brightness(0); }
+            5%   { opacity: 1; filter: brightness(5) drop-shadow(0 0 50px var(--cyan)); } /* KILATAN CEPAT! */
+            10%  { opacity: 0.1; filter: brightness(0.2); } /* MATI LAGI */
+            30%  { opacity: 0.1; filter: brightness(0.2); } /* TAHAN GELAP */
+            100% { opacity: 1; filter: hue-rotate(180deg) brightness(1.3) drop-shadow(0 0 15px var(--cyan-glow)); } /* MENYALA PENUH */
         }
 
-        /* Class untuk memicu kilatan cahaya */
-        .trigger-flare::after {
-            animation: lightFlare 0.6s forwards cubic-bezier(0.19, 1, 0.22, 1);
-        }
-        
-        /* Class untuk menyembunyikan logo sementara saat cahaya lewat */
-        .hide-logo {
-            opacity: 0 !important;
-            transition: opacity 0.1s !important;
+        /* Terapkan ke logo SAAT idle */
+        body.state-idle .logo-img {
+            animation: thunderReveal 2.5s ease-out forwards;
         }
 
-        @keyframes lightFlare {
-            0% { transform: translate(-50%, -50%) scaleX(0); opacity: 1; }
-            40% { transform: translate(-50%, -50%) scaleX(1); opacity: 1; }
-            100% { transform: translate(-50%, -50%) scaleX(1.5); opacity: 0; }
+        /* 2. EFEK FLOATING (Saat Active/Kecil di Atas) */
+        @keyframes floatHolo {
+            0%, 100% { transform: translateY(0); filter: hue-rotate(180deg) brightness(1.3) drop-shadow(0 0 10px var(--cyan)); }
+            50%      { transform: translateY(-8px); filter: hue-rotate(180deg) brightness(1.5) drop-shadow(0 0 20px var(--cyan-glow)); }
+        }
+        body.state-active .clean-logo-wrap {
+            animation: floatHolo 3.5s ease-in-out infinite;
         }
 
-        /* --- TACTICAL DATA MODULES --- */
+        /* --- TACTICAL DATA MODULES (TOMBOL) --- */
         .hud-tabs { display: flex; justify-content: center; gap: 15px; margin: 0 20px; position: relative; z-index: 10; }
         .tech-tab {
             flex: 1; max-width: 170px;
             background: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(0,0,0,0.8) 100%);
-            border: 1px solid #333; border-top: 3px solid #444;
+            border: 1px solid #333; border-top: 3px solid var(--cyan-dim);
             clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px);
             padding: 15px 20px; display: flex; flex-direction: column; align-items: flex-start;
             cursor: pointer; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-            position: relative;
+            position: relative; overflow: hidden; /* Wajib untuk efek kilau melintas */
+            /* Pendaran pelan untuk mengundang klik */
+            animation: tabBreathe 3s infinite alternate;
         }
+
+        @keyframes tabBreathe {
+            0% { box-shadow: inset 0 0 5px rgba(0,229,255,0); }
+            100% { box-shadow: inset 0 0 15px rgba(0,229,255,0.2); }
+        }
+
+        /* EFEK KILAU CAHAYA MELINTAS DI DALAM TOMBOL */
+        .tech-tab::before {
+            content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 229, 255, 0.4), transparent);
+            transform: skewX(-25deg); animation: sweepShine 4s infinite;
+        }
+        /* Bedakan delay animasi tiap tombol agar tidak barengan */
+        #wrapQueue::before { animation-delay: 2s; }
+
+        @keyframes sweepShine {
+            0% { left: -100%; }
+            15% { left: 200%; }
+            100% { left: 200%; }
+        }
+
         .tech-tab::after { content: ''; position: absolute; bottom: 5px; right: 15px; width: 20px; height: 4px; background: #333; display: flex; gap: 2px; }
 
         .tech-tab:active { transform: scale(0.97); }
         .tech-tab.selected {
             background: linear-gradient(135deg, rgba(0,229,255,0.15) 0%, rgba(0,0,0,0.9) 100%);
             border-color: var(--cyan); border-top-color: var(--cyan);
-            box-shadow: inset 0 0 20px rgba(0, 229, 255, 0.2);
+            box-shadow: inset 0 0 25px rgba(0, 229, 255, 0.3);
+            animation: none; /* Matikan napas jika sedang terpilih */
         }
+        .tech-tab.selected::before { display: none; } /* Matikan sweep jika terpilih */
         .tech-tab.selected::after { background: var(--cyan); box-shadow: 0 0 10px var(--cyan); }
-        .tech-tab.has-data:not(.selected) { border-top-color: rgba(0, 229, 255, 0.5); }
 
-        .tab-label { font-size: 11px; color: var(--silver-dim); letter-spacing: 2px; font-weight: 800; margin-bottom: 5px; text-transform: uppercase; transition: color 0.3s;}
+        .tab-label { font-size: 14px; color: var(--silver-dim); letter-spacing: 2px; font-weight: 800; margin-bottom: 5px; text-transform: uppercase; transition: color 0.3s;}
         .tech-tab.selected .tab-label { color: var(--cyan); text-shadow: 0 0 8px var(--cyan-glow); }
         
         .tab-val { font-family: 'Rajdhani'; font-size: 42px; font-weight: 900; color: #fff; line-height: 1; transition: all 0.3s;}
@@ -141,16 +153,10 @@
             transform: scaleY(0); transform-origin: top; transition: transform 0.3s ease-out;
         }
         
-        .tech-data {
-            display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 5px; padding-left: 10px;
-            opacity: 0; transform: translateX(-20px); transition: all 0.4s ease;
-        }
+        .tech-data { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 5px; padding-left: 10px; opacity: 0; transform: translateX(-20px); transition: all 0.4s ease; }
         .td-left { display: flex; flex-direction: column; }
-        
-        /* Font Monospace untuk efek Scramble yang rapi */
         .td-plat { font-family: 'Rajdhani', monospace; font-size: 28px; font-weight: 900; color: #fff; line-height: 1; letter-spacing: 1px;}
         .td-name { font-family: 'Rajdhani', monospace; font-size: 14px; color: var(--silver-dim); font-weight: 700; text-transform: uppercase; margin-top: 4px; letter-spacing: 1px;}
-        
         .td-right { text-align: right; display: flex; flex-direction: column; align-items: flex-end; }
         .td-val1 { font-family: 'Rajdhani'; font-size: 24px; font-weight: 900; color: #fff; line-height: 1; }
         .selected .td-val1 { color: var(--cyan); text-shadow: 0 0 10px var(--cyan-glow); }
@@ -163,7 +169,6 @@
         .circuit-container.show-data .tech-line { width: 100%; }
         .circuit-container.show-data .tech-line::after { opacity: 1; }
         .circuit-container.show-data .tech-data { opacity: 1; transform: translateX(0); }
-        
         .tech-line-wrap:nth-child(1) .tech-line, .tech-line-wrap:nth-child(1)::before { transition-delay: 0.1s; }
         .tech-line-wrap:nth-child(1) .tech-data { transition-delay: 0.2s; }
         .tech-line-wrap:nth-child(2) .tech-line, .tech-line-wrap:nth-child(2)::before { transition-delay: 0.2s; }
@@ -173,19 +178,14 @@
 
         /* --- STATE IDLE (SAAT PERTAMA DIBUKA / DIRESET) --- */
         body.state-idle .logo-projection-area {
-            transform: translateY(12vh) scale(2.8);
+            /* LOGO SANGAT BESAR DI TENGAH */
+            transform: translateY(12vh) scale(2.6);
             margin-bottom: 40px;
         }
-        body.state-idle .hud-tabs {
-            transform: translateY(28vh);
-            opacity: 0.7;
-        }
-        body.state-idle .circuit-container {
-            opacity: 0; max-height: 0; overflow: hidden; margin-top: 0; padding: 0;
-            pointer-events: none;
-        }
+        body.state-idle .hud-tabs { transform: translateY(28vh); opacity: 0.9; }
+        body.state-idle .circuit-container { opacity: 0; max-height: 0; overflow: hidden; margin-top: 0; padding: 0; pointer-events: none; }
         
-        /* STATE ACTIVE (SETELAH DIKLIK) */
+        /* STATE ACTIVE (SETELAH DIKLIK, LOGO NAIK MENGECIL) */
         body.state-active .logo-projection-area { transform: translateY(0) scale(1); margin-bottom: 20px; }
         body.state-active .hud-tabs { transform: translateY(0); opacity: 1; }
         body.state-active .circuit-container { opacity: 1; max-height: 1000px; padding-bottom: 100px; }
@@ -213,7 +213,7 @@
 <body class="state-idle">
 
     <div class="top-section">
-        <h1 class="sys-title" ondblclick="window.toggleAdmin()">SYSTEM CORE</h1>
+        <h1 class="sys-title" ondblclick="window.toggleAdmin()">FC KELAPA GADING</h1>
         <div class="sys-sub">MAKA LINTAS UTARA</div>
         
         <div class="timers">
@@ -223,28 +223,27 @@
         </div>
     </div>
 
-    <div class="logo-projection-area anim-mech" id="logoProjectionArea" title="Klik untuk kembali ke mode awal">
+    <div class="logo-projection-area anim-mech" id="logoProjectionArea" title="Klik untuk reset kembali">
         <div class="clean-logo-wrap" id="mainLogoWrap" onclick="resetToHome()">
-            <img src="logo.png" alt="MLU" class="logo-img" onerror="this.style.display='none'">
+            <img src="logo.png" alt="MLU" class="logo-img" id="theLogo" onerror="this.style.display='none'">
         </div>
     </div>
 
     <div class="hud-tabs anim-mech">
         <div class="tech-tab" id="wrapSlot" onclick="switchTab('slot')">
-            <div class="tab-label">MODUL SLOT</div>
+            <div class="tab-label">SLOT</div>
             <div class="tab-val" id="valSlot">0<span style="font-size: 20px; opacity: 0.5;">/3</span></div>
         </div>
 
         <div class="tech-tab" id="wrapQueue" onclick="switchTab('queue')">
-            <div class="tab-label">DATA ANTRIAN</div>
+            <div class="tab-label">ANTRIAN</div>
             <div class="tab-val" id="valQueue">0</div>
         </div>
     </div>
 
     <div class="circuit-container anim-mech" id="circuitArea" data-active="slot">
         <div class="trunk-line"></div>
-        <div id="renderArea">
-            </div>
+        <div id="renderArea"></div>
     </div>
 
     <div class="bottom-action">
@@ -274,23 +273,18 @@
         
         const app = initializeApp(firebaseConfig); const db = getFirestore(app); const mainRef = doc(db, "antrian", "utama");
         
-        let globalSlots = [null, null, null];
-        let globalQueue = [];
-        let currentTab = null; 
-        let isIdleMode = true; 
+        let globalSlots = [null, null, null]; let globalQueue = []; let currentTab = null; let isIdleMode = true; 
 
-        // --- THE HACKER DECRYPT EFFECT (SCRAMBLE TEXT) ---
+        // --- HACKER DECRYPT SCRAMBLE TEXT ---
         function scrambleText(element, finalStr) {
             const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
             let iterations = 0;
             const interval = setInterval(() => {
                 element.innerText = finalStr.split('').map((c, i) => {
-                    if (c === ' ') return ' ';
-                    if (i < iterations) return finalStr[i];
+                    if (c === ' ') return ' '; if (i < iterations) return finalStr[i];
                     return chars[Math.floor(Math.random() * chars.length)];
                 }).join('');
-                if (iterations >= finalStr.length) clearInterval(interval);
-                iterations += 1/2; 
+                if (iterations >= finalStr.length) clearInterval(interval); iterations += 1/2; 
             }, 30);
         }
 
@@ -303,76 +297,40 @@
             document.getElementById('t-imsak').innerText = fDiff(tImsak); document.getElementById('t-buka').innerText = fDiff(tBuka);
         } setInterval(updateTimers, 60000); updateTimers();
 
-        // --- RESET KE MODE AWAL (STANDBY) DENGAN EFEK CAHAYA ---
+        // --- RESET LOGO KE TENGAH + RE-TRIGGER EFEK PETIR ---
         window.resetToHome = () => {
             if (isIdleMode) return; 
             
-            isIdleMode = true;
-            currentTab = null;
-
-            const logoProjection = document.getElementById('logoProjectionArea');
-            const logoWrap = document.getElementById('mainLogoWrap');
+            isIdleMode = true; currentTab = null;
             const circuit = document.getElementById('circuitArea');
-
-            // 1. Matikan sirkuit data & tab
             circuit.classList.remove('show-data');
             document.getElementById('wrapSlot').classList.remove('selected');
             document.getElementById('wrapQueue').classList.remove('selected');
+            
+            document.body.classList.remove('state-active');
+            document.body.classList.add('state-idle');
 
-            // 2. JALANKAN EFEK CAHAYA MELINTAS (RESET SEQUENCE)
-            // Hilangkan logo seketika
-            logoWrap.classList.add('hide-logo');
-            // Memicu flare cahaya
-            logoProjection.classList.add('trigger-flare');
-
-            // Set posisi body kembali ke idle saat transisi cahaya
-            setTimeout(() => {
-                document.body.classList.remove('state-active');
-                document.body.classList.add('state-idle');
-            }, 100);
-
-            // Munculkan logo kembali sempurna di tengah setelah cahaya lewat
-            setTimeout(() => {
-                logoProjection.classList.remove('trigger-flare');
-                logoWrap.classList.remove('hide-logo');
-            }, 600);
+            // Force reflow logo to restart thunder reveal animation
+            const logo = document.getElementById('theLogo');
+            logo.style.animation = 'none';
+            void logo.offsetWidth; // trigger DOM reflow
+            logo.style.animation = null; // Biarkan class CSS yg ambil alih ulang
         };
 
-        // --- SWITCH TAB DENGAN EFEK CAHAYA ---
+        // --- SWITCH TAB ---
         window.switchTab = (tab) => {
             currentTab = tab;
             const wrapSlot = document.getElementById('wrapSlot');
             const wrapQueue = document.getElementById('wrapQueue');
             const circuit = document.getElementById('circuitArea');
-            const logoProjection = document.getElementById('logoProjectionArea');
-            const logoWrap = document.getElementById('mainLogoWrap');
 
             if (isIdleMode) {
-                // JIKA AWAL BUKA (DARI IDLE KE ACTIVE)
                 isIdleMode = false;
-                
-                // JALANKAN EFEK CAHAYA MELINTAS (AWAKENING SEQUENCE)
-                logoWrap.classList.add('hide-logo');
-                logoProjection.classList.add('trigger-flare');
+                document.body.classList.remove('state-idle');
+                document.body.classList.add('state-active');
 
-                // Ubah status Body
-                setTimeout(() => {
-                    document.body.classList.remove('state-idle');
-                    document.body.classList.add('state-active');
-                }, 100);
-
-                // Munculkan logo kecil sempurna di atas setelah cahaya lewat
-                setTimeout(() => {
-                    logoProjection.classList.remove('trigger-flare');
-                    logoWrap.classList.remove('hide-logo');
-                }, 600);
-
-                // Beri jeda render data sampai transisi cahaya selesai
-                setTimeout(() => {
-                    executeTabSwitch(tab, wrapSlot, wrapQueue, circuit);
-                }, 700);
+                setTimeout(() => { executeTabSwitch(tab, wrapSlot, wrapQueue, circuit); }, 600);
             } else {
-                // JIKA SUDAH ACTIVE (HANYA GANTI TAB SEPERTI BIASA)
                 executeTabSwitch(tab, wrapSlot, wrapQueue, circuit);
             }
         };
@@ -381,21 +339,14 @@
             circuit.classList.remove('show-data');
             
             if(tab === 'slot') {
-                wrapSlot.classList.add('selected'); wrapQueue.classList.remove('selected');
-                circuit.setAttribute('data-active', 'slot');
+                wrapSlot.classList.add('selected'); wrapQueue.classList.remove('selected'); circuit.setAttribute('data-active', 'slot');
             } else {
-                wrapQueue.classList.add('selected'); wrapSlot.classList.remove('selected');
-                circuit.setAttribute('data-active', 'queue');
+                wrapQueue.classList.add('selected'); wrapSlot.classList.remove('selected'); circuit.setAttribute('data-active', 'queue');
             }
 
             setTimeout(() => {
-                renderData();
-                void circuit.offsetWidth; 
-                circuit.classList.add('show-data');
-                
-                document.querySelectorAll('.scramble-target').forEach(el => {
-                    scrambleText(el, el.getAttribute('data-text'));
-                });
+                renderData(); void circuit.offsetWidth; circuit.classList.add('show-data');
+                document.querySelectorAll('.scramble-target').forEach(el => { scrambleText(el, el.getAttribute('data-text')); });
             }, 100);
         }
 
@@ -410,7 +361,7 @@
                 });
             } else {
                 if(globalQueue.length === 0) {
-                    area.innerHTML = `<div style="text-align:center; color:#444; font-size:16px; font-weight:700; margin-top:50px; font-family:'Rajdhani'; letter-spacing:2px;" class="scramble-target" data-text="-- TIDAK ADA TARGET ANTRIAN --">-- TIDAK ADA TARGET ANTRIAN --</div>`;
+                    area.innerHTML = `<div style="text-align:center; color:#444; font-size:16px; font-weight:700; margin-top:50px; font-family:'Rajdhani'; letter-spacing:2px;" class="scramble-target" data-text="-- KOSONG --">-- KOSONG --</div>`;
                 } else {
                     globalQueue.slice(0, 5).forEach((q, i) => {
                         let nameFormat = `#0${i+1} // ${q.userName}`;
