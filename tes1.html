@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MLU AWAKENING HUD</title>
+    <title>MLU AWAKENING HUD - LIGHT ARRIVAL</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700;900&family=Inter:wght@500;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -44,39 +44,53 @@
         .t-lbl { font-size: 9px; color: var(--silver-dim); font-weight: 700; margin-bottom: 2px; }
         .t-val { font-family: 'Rajdhani'; font-size: 16px; font-weight: 900; color: #fff; }
 
-        /* --- THE GLITCH LOGO EFFECT --- */
+        /* --- THE CLEAN LOGO AREA (NO GLITCH, NO SCANLINE) --- */
         .logo-projection-area { position: relative; text-align: center; margin-top: 15px; margin-bottom: 20px; display: flex; flex-direction: column; align-items: center; z-index: 15;}
         
-        /* Tambahan cursor pointer agar user tahu ini bisa diklik */
-        .glitch-logo-wrap { 
-            position: relative; width: 90px; height: 90px; animation: glitch-anim 5s infinite; 
+        .clean-logo-wrap { 
+            position: relative; width: 90px; height: 90px; 
             transition: all 0.8s cubic-bezier(0.25, 1, 0.15, 1); cursor: pointer;
+            opacity: 1; /* Default visible */
         }
         
-        .logo-img { width: 100%; height: 100%; object-fit: contain; filter: hue-rotate(180deg) brightness(1.5) drop-shadow(0 0 10px var(--cyan-glow)); }
-
-        @keyframes glitch-anim {
-            0%, 90%, 100% { transform: translate(0); filter: drop-shadow(0 0 10px var(--cyan)); }
-            91% { transform: translate(-3px, 2px); filter: drop-shadow(-5px 0 0 var(--danger)) drop-shadow(5px 0 0 blue); }
-            93% { transform: translate(3px, -2px); filter: drop-shadow(5px 0 0 var(--danger)) drop-shadow(-5px 0 0 blue); }
-            95% { transform: translate(-2px, -1px); filter: drop-shadow(0 0 15px var(--cyan)); }
+        .logo-img { 
+            width: 100%; height: 100%; object-fit: contain; 
+            /* Mengubah logo asli menjadi Cyan menyala sempurna */
+            filter: hue-rotate(180deg) brightness(1.3) drop-shadow(0 0 10px var(--cyan-glow)); 
+            animation: pulseHolo 4s infinite ease-in-out;
         }
 
-        /* Saat Logo berpindah dengan cepat, beri efek blur kecepatan tinggi */
-        .hyper-warp {
-            animation: hyperWarp 0.8s forwards !important;
-        }
-        @keyframes hyperWarp {
-            0% { filter: drop-shadow(0 0 20px var(--cyan)) blur(0px); }
-            50% { filter: drop-shadow(0 0 50px var(--cyan)) blur(4px); transform: scale(1.2) rotate(5deg); }
-            100% { filter: drop-shadow(0 0 10px var(--cyan)) blur(0px); transform: scale(1) rotate(0deg); }
+        /* Efek denyut redup pelan saat standby */
+        @keyframes pulseHolo { 0%, 100% { opacity: 0.7; } 50% { opacity: 1; } }
+
+        /* --- BARU: KILATAN CAHAYA MELINTAS (FLARE) --- */
+        .logo-projection-area::after {
+            content:''; position: absolute; left: 50%; top: 50%;
+            transform: translate(-50%, -50%) scaleX(0); /* Awalnya tidak terlihat */
+            width: 500px; /* Sangat lebar */ height: 100px;
+            background: radial-gradient(circle, #fff 0%, rgba(0,229,255,0.9) 30%, transparent 70%);
+            box-shadow: 0 0 100px 20px var(--cyan-glow);
+            border-radius: 50%; /* Menjadi bentuk flare oval horizontal */
+            z-index: 16; /* Di depan logo */
+            opacity: 0; transition: none; pointer-events: none;
         }
 
-        .glitch-logo-wrap::after {
-            content:''; position: absolute; left: -10%; top: -10%; width: 120%; height: 2px; background: rgba(255,255,255,0.8);
-            box-shadow: 0 0 10px #fff, 0 0 15px var(--cyan); animation: scanLine 2.5s infinite linear; opacity: 0;
+        /* Class untuk memicu kilatan cahaya */
+        .trigger-flare::after {
+            animation: lightFlare 0.6s forwards cubic-bezier(0.19, 1, 0.22, 1);
         }
-        @keyframes scanLine { 0% { top: -20%; opacity: 0;} 10% { opacity: 1;} 90% { opacity: 1;} 100% { top: 120%; opacity: 0;} }
+        
+        /* Class untuk menyembunyikan logo sementara saat cahaya lewat */
+        .hide-logo {
+            opacity: 0 !important;
+            transition: opacity 0.1s !important;
+        }
+
+        @keyframes lightFlare {
+            0% { transform: translate(-50%, -50%) scaleX(0); opacity: 1; }
+            40% { transform: translate(-50%, -50%) scaleX(1); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scaleX(1.5); opacity: 0; }
+        }
 
         /* --- TACTICAL DATA MODULES --- */
         .hud-tabs { display: flex; justify-content: center; gap: 15px; margin: 0 20px; position: relative; z-index: 10; }
@@ -132,11 +146,14 @@
             opacity: 0; transform: translateX(-20px); transition: all 0.4s ease;
         }
         .td-left { display: flex; flex-direction: column; }
+        
+        /* Font Monospace untuk efek Scramble yang rapi */
         .td-plat { font-family: 'Rajdhani', monospace; font-size: 28px; font-weight: 900; color: #fff; line-height: 1; letter-spacing: 1px;}
         .td-name { font-family: 'Rajdhani', monospace; font-size: 14px; color: var(--silver-dim); font-weight: 700; text-transform: uppercase; margin-top: 4px; letter-spacing: 1px;}
         
         .td-right { text-align: right; display: flex; flex-direction: column; align-items: flex-end; }
-        .td-val1 { font-family: 'Rajdhani'; font-size: 24px; font-weight: 900; color: var(--cyan); line-height: 1; }
+        .td-val1 { font-family: 'Rajdhani'; font-size: 24px; font-weight: 900; color: #fff; line-height: 1; }
+        .selected .td-val1 { color: var(--cyan); text-shadow: 0 0 10px var(--cyan-glow); }
         .td-val2 { font-size: 11px; font-weight: 800; color: #000; background: var(--cyan); padding: 3px 6px; border-radius: 2px; margin-top: 4px; }
 
         .tech-line { height: 2px; width: 0; background: var(--cyan); box-shadow: 0 0 10px var(--cyan-glow); transition: width 0.5s cubic-bezier(0.22, 1, 0.36, 1); position: relative; }
@@ -206,8 +223,8 @@
         </div>
     </div>
 
-    <div class="logo-projection-area anim-mech" title="Klik untuk kembali ke mode awal">
-        <div class="glitch-logo-wrap" id="mainLogoWrap" onclick="resetToHome()">
+    <div class="logo-projection-area anim-mech" id="logoProjectionArea" title="Klik untuk kembali ke mode awal">
+        <div class="clean-logo-wrap" id="mainLogoWrap" onclick="resetToHome()">
             <img src="logo.png" alt="MLU" class="logo-img" onerror="this.style.display='none'">
         </div>
     </div>
@@ -262,7 +279,7 @@
         let currentTab = null; 
         let isIdleMode = true; 
 
-        // --- THE HACKER DECRYPT EFFECT ---
+        // --- THE HACKER DECRYPT EFFECT (SCRAMBLE TEXT) ---
         function scrambleText(element, finalStr) {
             const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
             let iterations = 0;
@@ -286,54 +303,76 @@
             document.getElementById('t-imsak').innerText = fDiff(tImsak); document.getElementById('t-buka').innerText = fDiff(tBuka);
         } setInterval(updateTimers, 60000); updateTimers();
 
-        // --- RESET KE MODE AWAL (STANDBY) ---
+        // --- RESET KE MODE AWAL (STANDBY) DENGAN EFEK CAHAYA ---
         window.resetToHome = () => {
-            if (isIdleMode) return; // Kalau sudah idle, jangan lakukan apa-apa
+            if (isIdleMode) return; 
             
             isIdleMode = true;
             currentTab = null;
 
-            // Tutup sirkuit data
+            const logoProjection = document.getElementById('logoProjectionArea');
+            const logoWrap = document.getElementById('mainLogoWrap');
             const circuit = document.getElementById('circuitArea');
-            circuit.classList.remove('show-data');
 
-            // Matikan lampu di panel (hapus 'selected')
+            // 1. Matikan sirkuit data & tab
+            circuit.classList.remove('show-data');
             document.getElementById('wrapSlot').classList.remove('selected');
             document.getElementById('wrapQueue').classList.remove('selected');
 
-            // Kembalikan status body ke idle
-            document.body.classList.remove('state-active');
-            document.body.classList.add('state-idle');
+            // 2. JALANKAN EFEK CAHAYA MELINTAS (RESET SEQUENCE)
+            // Hilangkan logo seketika
+            logoWrap.classList.add('hide-logo');
+            // Memicu flare cahaya
+            logoProjection.classList.add('trigger-flare');
 
-            // Beri efek Warp Speed saat logo turun kembali ke tengah
-            const logoWrap = document.getElementById('mainLogoWrap');
-            logoWrap.classList.add('hyper-warp');
-            setTimeout(() => logoWrap.classList.remove('hyper-warp'), 800);
+            // Set posisi body kembali ke idle saat transisi cahaya
+            setTimeout(() => {
+                document.body.classList.remove('state-active');
+                document.body.classList.add('state-idle');
+            }, 100);
+
+            // Munculkan logo kembali sempurna di tengah setelah cahaya lewat
+            setTimeout(() => {
+                logoProjection.classList.remove('trigger-flare');
+                logoWrap.classList.remove('hide-logo');
+            }, 600);
         };
 
-        // --- LOGIC PERPINDAHAN MODE & TAB ---
+        // --- SWITCH TAB DENGAN EFEK CAHAYA ---
         window.switchTab = (tab) => {
             currentTab = tab;
             const wrapSlot = document.getElementById('wrapSlot');
             const wrapQueue = document.getElementById('wrapQueue');
             const circuit = document.getElementById('circuitArea');
+            const logoProjection = document.getElementById('logoProjectionArea');
+            const logoWrap = document.getElementById('mainLogoWrap');
 
-            // 1. JIKA MASIH MODE IDLE (PERTAMA KALI KLIK)
             if (isIdleMode) {
+                // JIKA AWAL BUKA (DARI IDLE KE ACTIVE)
                 isIdleMode = false;
                 
-                const logoWrap = document.getElementById('mainLogoWrap');
-                logoWrap.classList.add('hyper-warp');
-                setTimeout(() => logoWrap.classList.remove('hyper-warp'), 800);
+                // JALANKAN EFEK CAHAYA MELINTAS (AWAKENING SEQUENCE)
+                logoWrap.classList.add('hide-logo');
+                logoProjection.classList.add('trigger-flare');
 
-                document.body.classList.remove('state-idle');
-                document.body.classList.add('state-active');
+                // Ubah status Body
+                setTimeout(() => {
+                    document.body.classList.remove('state-idle');
+                    document.body.classList.add('state-active');
+                }, 100);
 
+                // Munculkan logo kecil sempurna di atas setelah cahaya lewat
+                setTimeout(() => {
+                    logoProjection.classList.remove('trigger-flare');
+                    logoWrap.classList.remove('hide-logo');
+                }, 600);
+
+                // Beri jeda render data sampai transisi cahaya selesai
                 setTimeout(() => {
                     executeTabSwitch(tab, wrapSlot, wrapQueue, circuit);
-                }, 500);
+                }, 700);
             } else {
-                // 2. JIKA SUDAH ACTIVE MODE
+                // JIKA SUDAH ACTIVE (HANYA GANTI TAB SEPERTI BIASA)
                 executeTabSwitch(tab, wrapSlot, wrapQueue, circuit);
             }
         };
@@ -361,21 +400,13 @@
         }
 
         function renderData() {
-            const area = document.getElementById('renderArea');
-            area.innerHTML = '';
-
+            const area = document.getElementById('renderArea'); area.innerHTML = '';
             if (currentTab === 'slot') {
                 globalSlots.forEach((s, i) => {
                     let lineColor = s ? "var(--cyan)" : "#222"; let glow = s ? "0 0 10px var(--cyan-glow)" : "none";
                     let platTxt = s ? s.plat : "SLOT 0" + (i+1); let nameTxt = s ? s.userName : "TERSEDIA";
                     let val1 = s ? (s.startTime ? Math.floor((Date.now() - s.startTime)/60000) + " M" : "BARU") : "--"; let val2 = s ? `BAT: ${s.batreSisa}%` : "STANDBY";
-                    area.innerHTML += `
-                    <div class="tech-line-wrap"><div class="tech-data"><div class="td-left">
-                    <span class="td-plat scramble-target" data-text="${platTxt}" style="${!s ? 'color:#555' : ''}">${platTxt}</span>
-                    <span class="td-name scramble-target" data-text="${nameTxt}">${nameTxt}</span></div>
-                    <div class="td-right" style="${!s ? 'opacity:0.3' : ''}"><span class="td-val1">${val1}</span>
-                    <span class="td-val2" style="${!s ? 'background:#333; color:#888' : ''}">${val2}</span></div></div>
-                    <div class="tech-line" style="background:${lineColor}; box-shadow:${glow};"></div></div>`;
+                    area.innerHTML += `<div class="tech-line-wrap"><div class="tech-data"><div class="td-left"><span class="td-plat scramble-target" data-text="${platTxt}" style="${!s ? 'color:#555' : ''}">${platTxt}</span><span class="td-name scramble-target" data-text="${nameTxt}">${nameTxt}</span></div><div class="td-right" style="${!s ? 'opacity:0.3' : ''}"><span class="td-val1">${val1}</span><span class="td-val2" style="${!s ? 'background:#333; color:#888' : ''}">${val2}</span></div></div><div class="tech-line" style="background:${lineColor}; box-shadow:${glow};"></div></div>`;
                 });
             } else {
                 if(globalQueue.length === 0) {
@@ -383,12 +414,7 @@
                 } else {
                     globalQueue.slice(0, 5).forEach((q, i) => {
                         let nameFormat = `#0${i+1} // ${q.userName}`;
-                        area.innerHTML += `
-                        <div class="tech-line-wrap"><div class="tech-data"><div class="td-left">
-                        <span class="td-plat scramble-target" data-text="${q.plat}" style="font-size:24px;">${q.plat}</span>
-                        <span class="td-name scramble-target" data-text="${nameFormat}">${nameFormat}</span></div>
-                        <div class="td-right"><span class="td-val1" style="font-size:20px; color:#fff;">${q.batreSisa}%</span></div></div>
-                        <div class="tech-line" style="background:#555; box-shadow:none;"></div></div>`;
+                        area.innerHTML += `<div class="tech-line-wrap"><div class="tech-data"><div class="td-left"><span class="td-plat scramble-target" data-text="${q.plat}" style="font-size:24px;">${q.plat}</span><span class="td-name scramble-target" data-text="${nameFormat}">${nameFormat}</span></div><div class="td-right"><span class="td-val1" style="font-size:20px; color:#fff;">${q.batreSisa}%</span></div></div><div class="tech-line" style="background:#555; box-shadow:none;"></div></div>`;
                     });
                     if(globalQueue.length > 5) area.innerHTML += `<div style="text-align:center; color:var(--cyan); font-size:12px; margin-top:20px;">+ ${globalQueue.length - 5} ENTITAS LAINNYA</div>`;
                 }
@@ -397,54 +423,20 @@
 
         // --- SISTEM MODAL & DAFTAR ---
         window.closeModal = (id) => { document.getElementById(id).style.display = 'none'; };
-        window.toggleAdmin = () => { 
-            const p = prompt("ACCESS CODE:"); if (p === "2505") window.location.href = "admin.html"; 
-            else if (p === "090815") { if(localStorage.getItem('sa_sess')) { localStorage.removeItem('sa_sess'); alert("GOD MODE OFFLINE."); } else { localStorage.setItem('sa_sess', '1'); alert("GOD MODE ONLINE."); } location.reload(); } else if(p) alert("ACCESS DENIED."); 
-        };
-        window.checkLocationAndOpenForm = () => {
-            const btn = document.getElementById('btnDaftar'); if(btn.innerHTML.includes('SYSTEM')) { window.location.href = 'system.html'; return; }
-            if(localStorage.getItem('sa_sess')) { document.getElementById('formModal').style.display = 'flex'; return; }
-            if (!navigator.geolocation) return alert("GPS REQUIRED!"); 
-            const ori = btn.innerHTML; btn.innerHTML = '[ MENCARI LOKASI... ]';
-            navigator.geolocation.getCurrentPosition((pos) => {
-                const p = 0.017453292519943295; const c = Math.cos; const a = 0.5 - c((pos.coords.latitude - STATION_LAT) * p)/2 + c(STATION_LAT * p) * c(pos.coords.latitude * p) * (1 - c((pos.coords.longitude - STATION_LNG) * p))/2; const dist = 12742 * Math.asin(Math.sqrt(a)); btn.innerHTML = ori;
-                if (dist <= MAX_DIST_KM) { document.getElementById('formModal').style.display = 'flex'; } else { alert(`AKSES DITOLAK!\nJarak Anda Kejauhan.`); }
-            }, () => { btn.innerHTML = ori; alert("SIGNAL GPS HILANG."); }, { enableHighAccuracy: true });
-        };
-        window.submitData = async () => {
-            const n = document.getElementById('inpNama').value.toUpperCase(); const p = document.getElementById('inpPlat').value.toUpperCase(); const b = document.getElementById('inpBatre').value;
-            if(!n || !p || !b) return alert("DATA TIDAK LENGKAP!"); if(parseInt(b) > 100) return alert("BATERAI MAX 100%");
-            const btn = document.querySelector('.btn-kirim'); btn.innerText = "TRANSMITTING...";
-            try {
-                let role = "GUEST"; try { const qs = await getDocs(query(collection(db, "mlu_members"), where("plat", "==", p))); if(!qs.empty) role = qs.docs[0].data().role || "MEMBER"; } catch(e) {}
-                const snap = await getDoc(mainRef);
-                if(snap.exists()) {
-                    let d = snap.data(); let q = d.waitingQueue || []; let s = d.chargingSlots || []; const clean = (s) => s ? s.replace(/[^A-Z0-9]/gi, '').toUpperCase() : '';
-                    if(q.find(x => clean(x.plat) === clean(p)) || s.find(y => y && clean(y.plat) === clean(p))) { alert("KENDARAAN SUDAH TERDAFTAR!"); localStorage.setItem('myPlat', p); window.location.href = 'system.html'; return; }
-                    q.push({ userName: n, plat: p, batre: b + "%", battery: b + "%", batreSisa: b, role: role, timestamp: Date.now(), qNo: (d.lastTicket || 0) + 1 });
-                    await updateDoc(mainRef, { waitingQueue: q, lastTicket: (d.lastTicket || 0) + 1 });
-                    localStorage.setItem('myPlat', p); alert("SUKSES!"); window.location.href = 'system.html';
-                }
-            } catch(e) { alert("ERROR: " + e.message); btn.innerText = "INISIASI SISTEM"; }
-        };
+        window.toggleAdmin = () => { const p = prompt("ACCESS CODE:"); if (p === "2505") window.location.href = "admin.html"; else if (p === "090815") { if(localStorage.getItem('sa_sess')) { localStorage.removeItem('sa_sess'); alert("GOD MODE OFFLINE."); } else { localStorage.setItem('sa_sess', '1'); alert("GOD MODE ONLINE."); } location.reload(); } else if(p) alert("ACCESS DENIED."); };
+        window.checkLocationAndOpenForm = () => { const btn = document.getElementById('btnDaftar'); if(btn.innerHTML.includes('SYSTEM')) { window.location.href = 'system.html'; return; } if(localStorage.getItem('sa_sess')) { document.getElementById('formModal').style.display = 'flex'; return; } if (!navigator.geolocation) return alert("GPS REQUIRED!"); const ori = btn.innerHTML; btn.innerHTML = '[ MENCARI LOKASI... ]'; navigator.geolocation.getCurrentPosition((pos) => { const p = 0.017453292519943295; const c = Math.cos; const a = 0.5 - c((pos.coords.latitude - STATION_LAT) * p)/2 + c(STATION_LAT * p) * c(pos.coords.latitude * p) * (1 - c((pos.coords.longitude - STATION_LNG) * p))/2; const dist = 12742 * Math.asin(Math.sqrt(a)); btn.innerHTML = ori; if (dist <= MAX_DIST_KM) { document.getElementById('formModal').style.display = 'flex'; } else { alert(`AKSES DITOLAK!\nJarak Anda Kejauhan.`); } }, () => { btn.innerHTML = ori; alert("SIGNAL GPS HILANG."); }, { enableHighAccuracy: true }); };
+        window.submitData = async () => { const n = document.getElementById('inpNama').value.toUpperCase(); const p = document.getElementById('inpPlat').value.toUpperCase(); const b = document.getElementById('inpBatre').value; if(!n || !p || !b) return alert("DATA TIDAK LENGKAP!"); if(parseInt(b) > 100) return alert("BATERAI MAX 100%"); const btn = document.querySelector('.btn-kirim'); btn.innerText = "TRANSMITTING..."; try { let role = "GUEST"; try { const qs = await getDocs(query(collection(db, "mlu_members"), where("plat", "==", p))); if(!qs.empty) role = qs.docs[0].data().role || "MEMBER"; } catch(e) {} const snap = await getDoc(mainRef); if(snap.exists()) { let d = snap.data(); let q = d.waitingQueue || []; let s = d.chargingSlots || []; const clean = (s) => s ? s.replace(/[^A-Z0-9]/gi, '').toUpperCase() : ''; if(q.find(x => clean(x.plat) === clean(p)) || s.find(y => y && clean(y.plat) === clean(p))) { alert("KENDARAAN SUDAH TERDAFTAR!"); localStorage.setItem('myPlat', p); window.location.href = 'system.html'; return; } q.push({ userName: n, plat: p, batre: b + "%", battery: b + "%", batreSisa: b, role: role, timestamp: Date.now(), qNo: (d.lastTicket || 0) + 1 }); await updateDoc(mainRef, { waitingQueue: q, lastTicket: (d.lastTicket || 0) + 1 }); localStorage.setItem('myPlat', p); alert("SUKSES!"); window.location.href = 'system.html'; } } catch(e) { alert("ERROR: " + e.message); btn.innerText = "INISIASI SISTEM"; } };
         function checkMyTicketState() { if(localStorage.getItem('myPlat')) { const btn = document.getElementById('btnDaftar'); btn.innerHTML = '[ MASUK KE SYSTEM ]'; btn.style.background = "#fff"; btn.style.color = "#000"; btn.style.boxShadow = "none"; } } checkMyTicketState();
 
         // --- REALTIME LISTENER ---
         onSnapshot(mainRef, (snap) => {
             if (!snap.exists()) return; const d = snap.data(); globalSlots = d.chargingSlots || [null, null, null]; globalQueue = d.waitingQueue || [];
-            
             let usedCount = globalSlots.filter(s => s !== null).length;
-            document.getElementById('valSlot').innerHTML = `${usedCount}<span style="font-size: 20px; opacity: 0.5;">/3</span>`;
-            document.getElementById('valQueue').innerText = globalQueue.length;
-
+            document.getElementById('valSlot').innerHTML = `${usedCount}<span style="font-size: 20px; opacity: 0.5;">/3</span>`; document.getElementById('valQueue').innerText = globalQueue.length;
             const wSlot = document.getElementById('wrapSlot'); const wQueue = document.getElementById('wrapQueue');
             if(usedCount > 0) wSlot.classList.add('has-data'); else wSlot.classList.remove('has-data');
             if(globalQueue.length > 0) wQueue.classList.add('has-data'); else wQueue.classList.remove('has-data');
-
-            if (!isIdleMode) {
-                renderData();
-                document.querySelectorAll('.scramble-target').forEach(el => { scrambleText(el, el.getAttribute('data-text')); });
-            }
+            if (!isIdleMode) { renderData(); document.querySelectorAll('.scramble-target').forEach(el => { scrambleText(el, el.getAttribute('data-text')); }); }
         });
 
         document.getElementById('inpPlat').addEventListener('input', function() { let v=this.value.toUpperCase().replace(/[^A-Z0-9]/g, ''); let m=v.match(/^([A-Z]{1,2})(\d{0,4})([A-Z]*)$/); this.value=m?`${m[1]}${m[2]?' '+m[2]:''}${m[3]?' '+m[3]:''}`:v; });
