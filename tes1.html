@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MLU THUNDER HUD</title>
+    <title>MLU THUNDER REVEAL</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700;900&family=Inter:wght@500;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -14,6 +14,7 @@
             --cyan: #00E5FF;
             --cyan-glow: rgba(0, 229, 255, 0.7);
             --cyan-dim: rgba(0, 229, 255, 0.15);
+            --gold-glow: rgba(212, 175, 55, 0.6); /* Warna Glow Asli Logo */
             --silver: #ffffff;
             --silver-dim: #94A3B8;
         }
@@ -40,41 +41,60 @@
         .t-lbl { font-size: 9px; color: var(--silver-dim); font-weight: 700; margin-bottom: 2px; }
         .t-val { font-family: 'Rajdhani'; font-size: 16px; font-weight: 900; color: #fff; }
 
-        /* --- THE BIG LOGO & THUNDER REVEAL EFFECT --- */
+        /* --- THE BIG LOGO & REAL THUNDER REVEAL EFFECT --- */
         .logo-projection-area { 
             position: relative; text-align: center; margin-top: 15px; margin-bottom: 20px; 
             display: flex; flex-direction: column; align-items: center; z-index: 15;
         }
         
-        /* Base logo wrap diperbesar */
         .clean-logo-wrap { 
-            position: relative; width: 120px; height: 120px; 
+            position: relative; width: 130px; height: 130px; 
             transition: all 0.8s cubic-bezier(0.25, 1, 0.15, 1); cursor: pointer;
         }
         
+        /* Gambar logo dipertahankan warna aslinya */
         .logo-img { 
             width: 100%; height: 100%; object-fit: contain; 
-            filter: hue-rotate(180deg) brightness(1.3) drop-shadow(0 0 15px var(--cyan-glow)); 
+            filter: drop-shadow(0 0 15px var(--gold-glow)); 
+            position: relative; z-index: 2;
         }
 
-        /* 1. EFEK THUNDER REVEAL (Hanya Jalan saat Mode Idle / Siaga) */
+        /* 1. EFEK KILATAN CAHAYA DARI BELAKANG LOGO (Petir Putih) */
+        .clean-logo-wrap::before {
+            content: ''; position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 180px; height: 180px; border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(255,255,255,0.2) 50%, transparent 70%);
+            opacity: 0; pointer-events: none; z-index: 1;
+        }
+
+        /* Animasi Latar Petir (Nyala - Mati - Nyala - Mati) */
+        @keyframes bgLightning {
+            0%, 8%   { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+            10%, 12% { opacity: 1; transform: translate(-50%, -50%) scale(1.5); } /* Kilat 1 */
+            14%, 22% { opacity: 0; transform: translate(-50%, -50%) scale(1); }
+            24%, 26% { opacity: 1; transform: translate(-50%, -50%) scale(1.8); } /* Kilat 2 (Lebih besar) */
+            28%, 100%{ opacity: 0; transform: translate(-50%, -50%) scale(1); }
+        }
+
+        /* Animasi Siluet Logo (Hitam -> Menyala Putih -> Hitam -> Warna Asli) */
         @keyframes thunderReveal {
-            0%   { opacity: 0; filter: brightness(0); }
-            5%   { opacity: 1; filter: brightness(5) drop-shadow(0 0 50px var(--cyan)); } /* KILATAN CEPAT! */
-            10%  { opacity: 0.1; filter: brightness(0.2); } /* MATI LAGI */
-            30%  { opacity: 0.1; filter: brightness(0.2); } /* TAHAN GELAP */
-            100% { opacity: 1; filter: hue-rotate(180deg) brightness(1.3) drop-shadow(0 0 15px var(--cyan-glow)); } /* MENYALA PENUH */
+            0%, 9%   { opacity: 1; filter: brightness(0); } /* Siluet Hitam */
+            10%, 12% { filter: brightness(5) drop-shadow(0 0 20px #fff); } /* Terang benderang */
+            13%, 23% { filter: brightness(0); } /* Balik Siluet */
+            24%, 26% { filter: brightness(6) drop-shadow(0 0 30px #fff); } /* Terang benderang 2 */
+            27%, 40% { filter: brightness(0.2); } /* Remang-remang */
+            100%     { opacity: 1; filter: brightness(1) drop-shadow(0 0 20px var(--gold-glow)); } /* Muncul Sempurna */
         }
 
-        /* Terapkan ke logo SAAT idle */
-        body.state-idle .logo-img {
-            animation: thunderReveal 2.5s ease-out forwards;
-        }
+        /* Terapkan efek hanya saat Mode Idle (Layar Besar) */
+        body.state-idle .logo-img { animation: thunderReveal 2.8s ease-out forwards; }
+        body.state-idle .clean-logo-wrap::before { animation: bgLightning 2.8s ease-out forwards; }
 
-        /* 2. EFEK FLOATING (Saat Active/Kecil di Atas) */
+        /* 2. EFEK FLOATING (Saat Active/Kecil di Atas, Pakai Glow Asli) */
         @keyframes floatHolo {
-            0%, 100% { transform: translateY(0); filter: hue-rotate(180deg) brightness(1.3) drop-shadow(0 0 10px var(--cyan)); }
-            50%      { transform: translateY(-8px); filter: hue-rotate(180deg) brightness(1.5) drop-shadow(0 0 20px var(--cyan-glow)); }
+            0%, 100% { transform: translateY(0); filter: drop-shadow(0 0 10px var(--gold-glow)); }
+            50%      { transform: translateY(-8px); filter: drop-shadow(0 0 20px var(--gold-glow)); }
         }
         body.state-active .clean-logo-wrap {
             animation: floatHolo 3.5s ease-in-out infinite;
@@ -89,8 +109,8 @@
             clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px);
             padding: 15px 20px; display: flex; flex-direction: column; align-items: flex-start;
             cursor: pointer; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-            position: relative; overflow: hidden; /* Wajib untuk efek kilau melintas */
-            /* Pendaran pelan untuk mengundang klik */
+            position: relative; overflow: hidden; 
+            /* Pendaran pelan (Breathing Glow) */
             animation: tabBreathe 3s infinite alternate;
         }
 
@@ -99,14 +119,13 @@
             100% { box-shadow: inset 0 0 15px rgba(0,229,255,0.2); }
         }
 
-        /* EFEK KILAU CAHAYA MELINTAS DI DALAM TOMBOL */
+        /* EFEK KILAU CAHAYA MELINTAS DI DALAM TOMBOL (SWEEP SHINE) */
         .tech-tab::before {
             content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(0, 229, 255, 0.4), transparent);
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
             transform: skewX(-25deg); animation: sweepShine 4s infinite;
         }
-        /* Bedakan delay animasi tiap tombol agar tidak barengan */
-        #wrapQueue::before { animation-delay: 2s; }
+        #wrapQueue::before { animation-delay: 2s; } /* Beda timing agar tidak barengan */
 
         @keyframes sweepShine {
             0% { left: -100%; }
@@ -121,9 +140,9 @@
             background: linear-gradient(135deg, rgba(0,229,255,0.15) 0%, rgba(0,0,0,0.9) 100%);
             border-color: var(--cyan); border-top-color: var(--cyan);
             box-shadow: inset 0 0 25px rgba(0, 229, 255, 0.3);
-            animation: none; /* Matikan napas jika sedang terpilih */
+            animation: none; /* Matikan napas jika terpilih */
         }
-        .tech-tab.selected::before { display: none; } /* Matikan sweep jika terpilih */
+        .tech-tab.selected::before { display: none; } /* Matikan kilau jika terpilih */
         .tech-tab.selected::after { background: var(--cyan); box-shadow: 0 0 10px var(--cyan); }
 
         .tab-label { font-size: 14px; color: var(--silver-dim); letter-spacing: 2px; font-weight: 800; margin-bottom: 5px; text-transform: uppercase; transition: color 0.3s;}
@@ -178,8 +197,7 @@
 
         /* --- STATE IDLE (SAAT PERTAMA DIBUKA / DIRESET) --- */
         body.state-idle .logo-projection-area {
-            /* LOGO SANGAT BESAR DI TENGAH */
-            transform: translateY(12vh) scale(2.6);
+            transform: translateY(12vh) scale(2.6); /* Logo sangat besar */
             margin-bottom: 40px;
         }
         body.state-idle .hud-tabs { transform: translateY(28vh); opacity: 0.9; }
@@ -223,7 +241,7 @@
         </div>
     </div>
 
-    <div class="logo-projection-area anim-mech" id="logoProjectionArea" title="Klik untuk reset kembali">
+    <div class="logo-projection-area anim-mech" id="logoProjectionArea" title="Klik untuk mereset tampilan">
         <div class="clean-logo-wrap" id="mainLogoWrap" onclick="resetToHome()">
             <img src="logo.png" alt="MLU" class="logo-img" id="theLogo" onerror="this.style.display='none'">
         </div>
@@ -310,11 +328,15 @@
             document.body.classList.remove('state-active');
             document.body.classList.add('state-idle');
 
-            // Force reflow logo to restart thunder reveal animation
+            // Force reflow animasi petir pada logo & background
             const logo = document.getElementById('theLogo');
+            const logoWrap = document.getElementById('mainLogoWrap');
             logo.style.animation = 'none';
+            // Reset pseudo element animation via class toggle
+            logoWrap.classList.remove('clean-logo-wrap');
             void logo.offsetWidth; // trigger DOM reflow
-            logo.style.animation = null; // Biarkan class CSS yg ambil alih ulang
+            logoWrap.classList.add('clean-logo-wrap');
+            logo.style.animation = null; 
         };
 
         // --- SWITCH TAB ---
@@ -329,6 +351,7 @@
                 document.body.classList.remove('state-idle');
                 document.body.classList.add('state-active');
 
+                // Jeda 600ms membiarkan logo melesat naik sebelum buka data
                 setTimeout(() => { executeTabSwitch(tab, wrapSlot, wrapQueue, circuit); }, 600);
             } else {
                 executeTabSwitch(tab, wrapSlot, wrapQueue, circuit);
