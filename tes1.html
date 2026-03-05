@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MLU THUNDER REVEAL GOLD V3</title>
+    <title>MLU GOLDEN THUNDER HUD</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700;900&family=Inter:wght@500;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -11,11 +11,11 @@
     <style>
         :root {
             --bg-dark: #020202;
-            /* Emas Pekat (Menyesuaikan warna asli Logo MLU) */
+            /* Emas Pekat */
             --gold: #D8A22E;
             --gold-glow: rgba(216, 162, 46, 0.7);
             --gold-dim: rgba(216, 162, 46, 0.15);
-            /* Silver Elegan */
+            /* Silver */
             --silver: #E2E8F0;
             --silver-glow: rgba(226, 232, 240, 0.5);
             --silver-dim: rgba(226, 232, 240, 0.2);
@@ -45,17 +45,20 @@
         .t-lbl { font-size: 9px; color: var(--silver-text); font-weight: 700; margin-bottom: 2px; }
         .t-val { font-family: 'Rajdhani'; font-size: 16px; font-weight: 900; color: #fff; }
 
-        /* --- THE BIG LOGO & THUNDER REVEAL --- */
+        /* --- THE BIG LOGO & 100% CSS THUNDER REVEAL --- */
         .logo-projection-area { 
             position: relative; text-align: center; margin-top: 15px; margin-bottom: 0px; 
-            display: flex; flex-direction: column; align-items: center; z-index: 15;
-            min-height: 130px; pointer-events: none; /* Cegah wrapper menutupi klik di bawahnya */
+            display: flex; flex-direction: column; align-items: center; 
+            z-index: 15; /* Logo ada di bawah layer navigasi stat */
+            min-height: 130px; 
+            pointer-events: none; /* Mencegah area kosong di sekitar logo menghalangi klik */
         }
         
         .clean-logo-wrap { 
             position: relative; width: 140px; height: 140px; 
             transition: all 0.8s cubic-bezier(0.25, 1, 0.15, 1); 
-            cursor: pointer; opacity: 1; pointer-events: auto; /* Hanya logonya yang bisa diklik */
+            cursor: pointer; opacity: 1;
+            pointer-events: auto; /* Memastikan hanya logonya saja yang clickable */
         }
         
         .logo-img { 
@@ -64,7 +67,6 @@
             position: relative; z-index: 2; opacity: 1;
         }
 
-        /* EFEK KILATAN CAHAYA (PETIR) DARI BELAKANG LOGO */
         .clean-logo-wrap::before {
             content: ''; position: absolute; top: 50%; left: 50%;
             transform: translate(-50%, -50%); width: 180px; height: 180px; border-radius: 50%;
@@ -72,8 +74,17 @@
             opacity: 0; pointer-events: none; z-index: 1;
         }
 
-        /* LOOPING ANIMASI PETIR (TANPA JEDA JS) */
-        @keyframes bgLightning {
+        /* EFEK PETIR BERULANG (Total 8 Detik: Blank -> Petir -> Nyala -> Blank) */
+        @keyframes thunderRevealCSS {
+            0%, 14%  { opacity: 0; filter: brightness(0); } /* Blank Gelap */
+            15%, 17% { opacity: 1; filter: brightness(6) drop-shadow(0 0 30px #fff); } /* Petir 1 */
+            18%, 23% { opacity: 1; filter: brightness(0); } /* Siluet Hitam */
+            24%, 26% { opacity: 1; filter: brightness(6) drop-shadow(0 0 30px #fff); } /* Petir 2 */
+            27%, 85% { opacity: 1; filter: brightness(1) drop-shadow(0 0 20px var(--gold-glow)); } /* Menyala Stabil */
+            86%, 100%{ opacity: 0; filter: brightness(0); } /* Memudar untuk loop */
+        }
+        
+        @keyframes bgLightningCSS {
             0%, 14%  { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
             15%, 17% { opacity: 1; transform: translate(-50%, -50%) scale(1.5); }
             18%, 23% { opacity: 0; transform: translate(-50%, -50%) scale(1); }
@@ -81,38 +92,29 @@
             27%, 100%{ opacity: 0; transform: translate(-50%, -50%) scale(1); }
         }
 
-        @keyframes thunderReveal {
-            0%, 14%  { opacity: 0; filter: brightness(0); } /* Blank / Gelap total di awal */
-            15%, 17% { opacity: 1; filter: brightness(6) drop-shadow(0 0 30px #fff); } /* Petir 1 */
-            18%, 23% { opacity: 1; filter: brightness(0); } /* Siluet Hitam */
-            24%, 26% { opacity: 1; filter: brightness(6) drop-shadow(0 0 30px #fff); } /* Petir 2 */
-            27%, 85% { opacity: 1; filter: brightness(1) drop-shadow(0 0 20px var(--gold-glow)); } /* Menyala stabil */
-            86%, 100%{ opacity: 0; filter: brightness(0); } /* Memudar ke gelap */
-        }
+        body.state-idle .logo-img { animation: thunderRevealCSS 8s infinite ease-out; }
+        body.state-idle .clean-logo-wrap::before { animation: bgLightningCSS 8s infinite ease-out; }
 
-        /* Terapkan animasi loop terus-menerus 8 detik saat standby */
-        body.state-idle .logo-img { animation: thunderReveal 8s infinite; }
-        body.state-idle .clean-logo-wrap::before { animation: bgLightning 8s infinite; }
-
-        /* FLOATING SAAT ACTIVE (Logo di atas) */
+        /* FLOATING SAAT ACTIVE (Logo di Atas) */
         @keyframes floatHolo {
             0%, 100% { transform: translateY(0); filter: drop-shadow(0 0 10px var(--gold-glow)); }
             50%      { transform: translateY(-8px); filter: drop-shadow(0 0 20px var(--gold)); }
         }
         body.state-active .clean-logo-wrap { animation: floatHolo 3.5s ease-in-out infinite; }
+        body.state-active .logo-img { animation: none; opacity: 1; filter: brightness(1) drop-shadow(0 0 15px var(--gold-glow)); }
 
-        /* --- SKETCH LAYOUT: VALUE TOP, LINE MIDDLE, LABEL BOTTOM --- */
+        /* --- LAYOUT: DATA SLOT/ANTRIAN --- */
         .hud-stats-wrapper {
             display: flex; justify-content: center; align-items: center; 
-            gap: 70px; 
-            margin: -15px 20px 0; 
-            position: relative; 
-            z-index: 30; /* Z-INDEX DIPERBESAR AGAR DI ATAS LOGO & BISA DIKLIK */
+            gap: 70px; margin: -15px 20px 0; position: relative; 
+            /* Z-INDEX SANGAT TINGGI AGAR TIDAK TERTUTUP OLEH LOGO SAAT IDLE */
+            z-index: 50; 
         }
 
         .stat-module {
             flex: 1; max-width: 130px; display: flex; flex-direction: column; 
             align-items: center; cursor: pointer; transition: all 0.3s;
+            pointer-events: auto; /* Memastikan div ini menangkap klik */
         }
 
         .s-val {
@@ -121,15 +123,8 @@
             text-shadow: 0 0 10px rgba(255,255,255,0.2);
         }
 
-        .s-line {
-            width: 100%; height: 2px; background: var(--silver-dim);
-            position: relative; transition: all 0.3s;
-        }
-        
-        .s-lbl {
-            font-size: 15px; font-weight: 800; color: var(--silver-text); 
-            letter-spacing: 2px; text-transform: uppercase; margin-top: 6px; transition: all 0.3s;
-        }
+        .s-line { width: 100%; height: 2px; background: var(--silver-dim); position: relative; transition: all 0.3s; }
+        .s-lbl { font-size: 15px; font-weight: 800; color: var(--silver-text); letter-spacing: 2px; text-transform: uppercase; margin-top: 6px; transition: all 0.3s; }
 
         /* Saat modul ditekan / Aktif */
         .stat-module.selected .s-val { color: var(--gold); text-shadow: 0 0 15px var(--gold-glow); transform: scale(1.05); }
@@ -192,7 +187,7 @@
         body.state-active .hud-stats-wrapper { transform: translateY(0); opacity: 1; }
         body.state-active .circuit-container { opacity: 1; max-height: 1000px; padding-bottom: 100px; }
 
-        /* --- BOTTOM ACTION BUTTON --- */
+        /* --- BOTTOM ACTION BUTTON (DIKEMBALIKAN KE GOLD) --- */
         .bottom-action { position: fixed; bottom: 0; left: 0; width: 100%; padding: 20px; box-sizing: border-box; background: linear-gradient(to top, var(--bg-dark) 80%, transparent); z-index: 50; }
         .btn-main { width: 100%; padding: 18px; background: var(--gold); color: #000; border: none; border-radius: 4px; font-family: 'Rajdhani'; font-size: 24px; font-weight: 900; text-transform: uppercase; cursor: pointer; box-shadow: 0 0 15px var(--gold-glow); transition: all 0.2s; position: relative; overflow: hidden; clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px); }
         .btn-main::before { content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent); transform: skewX(-20deg); animation: shineBtn 3s infinite; }
