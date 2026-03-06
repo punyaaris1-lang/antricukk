@@ -3,726 +3,521 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>DASHBOARD MLU FINAL FIXED</title>
+    <title>MLU GOLDEN THUNDER HUD - NO CROWN</title>
     
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Rajdhani:wght@600;700;800;900&family=Outfit:wght@500;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700;900&family=Inter:wght@500;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
-        /* --- CSS DASHBOARD HITAM (ORIGINAL) --- */
         :root {
-            --primary: #00E5FF;       
             --bg-dark: #020202;
-            --glass-panel: rgba(20, 20, 22, 0.95);
-            --border-color: rgba(255, 255, 255, 0.2);
+            --gold: #D8A22E;
+            --gold-glow: rgba(216, 162, 46, 0.7);
+            --gold-dim: rgba(216, 162, 46, 0.15);
+            --silver: #E2E8F0;
+            --silver-glow: rgba(226, 232, 240, 0.5);
+            --silver-dim: rgba(226, 232, 240, 0.2);
+            --silver-text: #94A3B8;
             --white: #ffffff;
-            --off-white: #f0f0f0; 
-            --gold: #FCD34D; /* Warna Emas Lebaran */
+            --danger: #ff003c;
         }
 
         html, body {
             height: 100%; margin: 0; padding: 0;
-            background: var(--bg-dark); 
+            background-color: var(--bg-dark); color: var(--white);
+            font-family: 'Inter', sans-serif; overflow-x: hidden; overflow-y: hidden;
             background-image: 
-                linear-gradient(rgba(0, 229, 255, 0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0, 229, 255, 0.03) 1px, transparent 1px);
-            background-size: 30px 30px;
-            color: var(--white);
-            font-family: 'Inter', sans-serif;
-            overflow: hidden; 
-            display: flex; flex-direction: column;
+                linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 25px 25px;
         }
 
-        /* --- POPUP PENGUMUMAN (STYLE LEBARAN PREMIUM) --- */
-        .anno-overlay { 
-            position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 99999; 
-            display: none; /* Default Hidden */
-            align-items: center; justify-content: center; backdrop-filter: blur(5px);
-            animation: fadeIn 0.3s ease-out;
-        }
-        .anno-card {
-            background: linear-gradient(160deg, #022c22 0%, #064e3b 100%); /* Hijau Botol Gelap */
-            width: 85%; max-width: 380px; border-radius: 25px; padding: 0;
-            border: 2px solid rgba(252, 211, 77, 0.6); /* Border Emas */
-            box-shadow: 0 0 50px rgba(6, 78, 59, 0.8);
-            text-align: center; position: relative; overflow: visible;
-            animation: popUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        .anim-mech { transition: all 0.8s cubic-bezier(0.25, 1, 0.15, 1); }
+
+        /* --- HEADER & TIMERS --- */
+        .top-section { text-align: center; padding: 15px 10px 0; position: relative; z-index: 20;}
+        .sys-title { font-family: 'Rajdhani'; font-size: 34px; font-weight: 900; color: var(--silver); letter-spacing: 2px; margin: 0; line-height: 1; text-shadow: 0 0 10px var(--silver-dim);}
+        .sys-sub { font-size: 14px; color: var(--gold); font-weight: 700; letter-spacing: 3px; margin-bottom: 12px; }
+
+        .timers { display: flex; justify-content: center; gap: 8px; max-width: 350px; margin: 0 auto; }
+        .t-box { background: rgba(216, 162, 46, 0.05); border: 1px solid var(--gold-dim); padding: 4px 10px; border-radius: 2px; border-left: 3px solid var(--gold); }
+        .t-lbl { font-size: 9px; color: var(--silver-text); font-weight: 700; margin-bottom: 2px; text-transform: uppercase;}
+        .t-val { font-family: 'Rajdhani'; font-size: 16px; font-weight: 900; color: #fff; }
+
+        /* --- THE BIG LOGO & THUNDER REVEAL --- */
+        .logo-projection-area { 
+            position: relative; text-align: center; margin-top: 15px; margin-bottom: 0px; 
+            display: flex; flex-direction: column; align-items: center; z-index: 15;
+            min-height: 130px; pointer-events: none; 
         }
         
-        /* Gantungan Ketupat */
-        .decoration-hang {
-            position: absolute; top: -10px; width: 100%; display: flex; justify-content: center; gap: 60px; z-index: 10; pointer-events: none;
-        }
-        .ketupat-box { position: relative; animation: sway 3s infinite ease-in-out; }
-        .ketupat-box:nth-child(2) { animation-delay: 1s; top: 20px; }
-        
-        .ketupat-shape {
-            width: 25px; height: 25px; background: var(--gold);
-            transform: rotate(45deg); border: 2px solid #B45309;
-            box-shadow: 0 0 15px rgba(252, 211, 77, 0.8);
-        }
-        .ketupat-tali {
-            position: absolute; top: -50px; left: 50%; width: 2px; height: 50px; 
-            background: rgba(252, 211, 77, 0.5); transform: translateX(-50%);
-        }
-
-        /* Icon Speaker */
-        .anno-header-art {
-            padding: 50px 20px 10px; /* Padding atas besar biar icon turun */
-            background: radial-gradient(circle at 50% 0%, rgba(252, 211, 77, 0.1), transparent 60%);
-        }
-        .icon-speaker {
-            font-size: 45px;
-            color: var(--gold);
-            filter: drop-shadow(0 0 10px rgba(252, 211, 77, 0.6));
-            animation: pulseIcon 2s infinite;
-        }
-
-        .anno-content { padding: 5px 25px 30px; position: relative; z-index: 2; color: white; font-family: 'Outfit', sans-serif; }
-        
-        .anno-title { 
-            font-size: 22px; font-weight: 900; letter-spacing: 1px; color: white; 
-            margin-bottom: 5px; text-transform: uppercase; 
-        }
-        .anno-date { 
-            font-size: 14px; color: var(--gold); font-weight: 700; margin-bottom: 20px; 
-            display: inline-block; border-bottom: 1px solid rgba(252, 211, 77, 0.3); padding-bottom: 3px; 
-        }
-
-        /* Box Peringatan Merah */
-        .warning-box {
-            background: rgba(220, 38, 38, 0.15); 
-            border: 2px solid rgba(220, 38, 38, 0.5);
-            border-radius: 16px; padding: 15px; margin-bottom: 15px;
-        }
-        .warning-text { font-size: 13px; color: #FCA5A5; line-height: 1.4; margin-bottom: 8px;}
-        
-        .big-warning {
-            display: block; font-size: 20px; font-weight: 900; color: #EF4444; margin: 5px 0;
-            text-transform: uppercase; text-shadow: 0 0 20px rgba(239, 68, 68, 0.4); letter-spacing: 0.5px;
+        .clean-logo-wrap { 
+            position: relative; width: 140px; height: 140px; 
+            transition: all 0.8s cubic-bezier(0.25, 1, 0.15, 1); cursor: pointer; opacity: 1;
+            pointer-events: auto; 
         }
         
-        .sub-warning { 
-            font-size: 11px; color: #fff; font-weight: 600; line-height: 1.4; 
-            margin-top: 10px; border-top: 1px dashed rgba(255,255,255,0.2); padding-top: 8px; text-transform: uppercase;
+        .logo-img { 
+            width: 100%; height: 100%; object-fit: contain; 
+            filter: drop-shadow(0 0 15px var(--gold-glow)); 
+            position: relative; z-index: 2; opacity: 1;
         }
 
-        .anno-note { font-size: 10px; color: #fff; line-height: 1.4; font-style: italic; margin-top: 10px; opacity: 0.8;}
-        
-        .anno-footer {
-            margin-top: 20px; font-size: 10px; font-weight: 800; color: var(--gold); letter-spacing: 2px;
-            display: flex; align-items: center; justify-content: center; gap: 8px;
-        }
-        .anno-footer::before, .anno-footer::after { content:''; display: block; height: 1px; width: 30px; background: rgba(252, 211, 77, 0.3); }
-
-        .btn-anno-close { 
-            position: absolute; top: 15px; right: 15px; width: 30px; height: 30px; 
-            background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); 
-            color: white; border-radius: 50%; font-size: 14px; cursor: pointer; 
-            display: flex; align-items: center; justify-content: center; z-index: 100;
+        .clean-logo-wrap::before {
+            content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); 
+            width: 180px; height: 180px; border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(255,255,255,0.2) 50%, transparent 70%);
+            opacity: 0; pointer-events: none; z-index: 1;
         }
 
-        @keyframes popUp { 0%{transform:scale(0.8);opacity:0;} 100%{transform:scale(1);opacity:1;} }
-        @keyframes fadeIn { from{opacity:0;} to{opacity:1;} }
-        @keyframes sway { 0%,100%{transform:rotate(-5deg);} 50%{transform:rotate(5deg);} }
-        @keyframes pulseIcon { 0%{transform:scale(1);} 50%{transform:scale(1.1);} 100%{transform:scale(1);} }
-
-        /* --- DASHBOARD ELEMENTS (ORIGINAL) --- */
-        .top-area {
-            height: 25vh; width: 100%;
-            display: flex; align-items: center; justify-content: center;
-            position: relative; z-index: 1;
-        }
-
-        .logo-glow {
-            width: 120px; height: 120px; 
-            border-radius: 50%; padding: 5px;
-            background: #000; border: 2px solid var(--primary);
-            display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 0 50px rgba(0, 229, 255, 0.4);
-            animation: float 4s ease-in-out infinite;
-        }
-        .logo-img { width: 85%; height: 85%; object-fit: contain; filter: drop-shadow(0 0 8px var(--primary)); }
-        @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
-
-        .bottom-panel {
-            height: 75vh; width: 100%;
-            background: var(--glass-panel);
-            border-top: 2px solid var(--primary);
-            border-radius: 30px 30px 0 0;
-            padding: 25px; box-sizing: border-box;
-            display: flex; flex-direction: column; 
-            gap: 15px; 
-            box-shadow: 0 -10px 50px rgba(0,0,0,0.8);
-            position: relative; z-index: 2;
-        }
-
-        .header-section { text-align: center; margin-bottom: 5px; position: relative; z-index: 20; }
-        
-        .live-tag {
-            display: inline-block; background: rgba(0, 255, 0, 0.15); 
-            border: 1px solid #00ff00; padding: 6px 14px; border-radius: 20px;
-            color: #00ff00; font-family: 'Rajdhani'; font-weight: 800; font-size: 14px; margin-bottom: 8px;
-        }
-
-        h1 {
-            font-family: 'Rajdhani', sans-serif; 
-            font-size: clamp(34px, 5vh, 46px); 
-            font-weight: 900; margin: 0; line-height: 1;
-            color: #fff; text-shadow: 0 0 20px rgba(0,0,0,0.5);
-            cursor: pointer; pointer-events: auto; user-select: none;
-        }
-        .sub-text {
-            color: var(--primary); font-size: 14px; font-weight: 800; letter-spacing: 2px;
-            text-transform: uppercase; margin-top: 6px; opacity: 1; 
-        }
-
-        .stats-container { 
-            display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%;
+        @keyframes thunderRevealCSS {
+            0%, 14%  { opacity: 0; filter: brightness(0); } 
+            15%, 17% { opacity: 1; filter: brightness(6) drop-shadow(0 0 30px #fff); } 
+            18%, 23% { opacity: 1; filter: brightness(0); } 
+            24%, 26% { opacity: 1; filter: brightness(6) drop-shadow(0 0 30px #fff); } 
+            27%, 85% { opacity: 1; filter: brightness(1) drop-shadow(0 0 20px var(--gold-glow)); } 
+            86%, 100%{ opacity: 0; filter: brightness(0); } 
         }
         
-        .stat-btn {
-            background: rgba(255,255,255,0.05); 
-            border: 1px solid var(--border-color); border-radius: 18px;
-            padding: 15px; cursor: pointer; position: relative;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        @keyframes bgLightningCSS {
+            0%, 14%  { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+            15%, 17% { opacity: 1; transform: translate(-50%, -50%) scale(1.5); }
+            18%, 23% { opacity: 0; transform: translate(-50%, -50%) scale(1); }
+            24%, 26% { opacity: 1; transform: translate(-50%, -50%) scale(1.8); }
+            27%, 100%{ opacity: 0; transform: translate(-50%, -50%) scale(1); }
         }
-        .stat-btn:active { background: rgba(0, 229, 255, 0.1); border-color: var(--primary); }
-        
-        .st-label { font-size: 14px; color: var(--off-white); font-weight: 700; text-transform: uppercase; margin-bottom: 2px; }
-        
-        .st-val {
-            font-family: 'Rajdhani', sans-serif; 
-            font-size: clamp(50px, 8vh, 65px); 
-            font-weight: 900; 
-            color: #fff; line-height: 1; text-shadow: 0 0 10px rgba(255,255,255,0.2);
-        }
-        .st-hint { font-size: 12px; color: var(--primary); margin-top: 4px; font-weight: 600; }
 
-        .btn-main {
-            background: linear-gradient(90deg, var(--primary), #0099aa);
-            color: #000; width: 100%; padding: 22px; 
-            border: none; border-radius: 18px;
-            font-family: 'Rajdhani', sans-serif; font-size: 26px; font-weight: 900; 
-            text-transform: uppercase; cursor: pointer;
-            box-shadow: 0 5px 20px rgba(0, 229, 255, 0.3);
-            display: flex; align-items: center; justify-content: center; gap: 10px;
-        }
-        .btn-main:active { transform: scale(0.98); opacity: 0.9; }
+        body.state-idle .logo-img { animation: thunderRevealCSS 8s infinite ease-out; }
+        body.state-idle .clean-logo-wrap::before { animation: bgLightningCSS 8s infinite ease-out; }
 
-        /* NAVIGASI BAWAH DIHAPUS TOTAL */
-        
-        /* MODAL */
-        .modal-wrap {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.95); backdrop-filter: blur(8px);
-            z-index: 30000; 
-            display: none; align-items: center; justify-content: center;
+        @keyframes floatHolo {
+            0%, 100% { transform: translateY(0); filter: drop-shadow(0 0 10px var(--gold-glow)); }
+            50%      { transform: translateY(-8px); filter: drop-shadow(0 0 20px var(--gold)); }
         }
-        .modal-wrap.open { display: flex; animation: zoomIn 0.2s; }
-        @keyframes zoomIn { from{transform:scale(0.95);opacity:0} to{transform:scale(1);opacity:1} }
-        
-        .modal-panel {
-            background: #0a0a0a; border: 2px solid var(--primary);
-            width: 85%; max-width: 400px; padding: 25px; border-radius: 25px;
-            box-shadow: 0 0 60px rgba(0, 229, 255, 0.15);
-            max-height: 90vh; display: flex; flex-direction: column;
-        }
-        .modal-head { 
-            display: flex; justify-content: space-between; align-items: center;
-            border-bottom: 2px solid #333; padding-bottom: 15px; margin-bottom: 15px;
-        }
-        .modal-h-title { font-family: 'Rajdhani'; font-size: 28px; font-weight: 900; color: #fff; }
-        .close-x { background: none; border: none; color: #fff; font-size: 28px; cursor: pointer; font-weight: bold; }
+        body.state-active .clean-logo-wrap { animation: floatHolo 3.5s ease-in-out infinite; }
+        body.state-active .logo-img { animation: none; opacity: 1; filter: brightness(1) drop-shadow(0 0 15px var(--gold-glow)); }
 
-        .slot-list-box { display: flex; flex-direction: column; gap: 12px; }
-        
-        .slot-row {
-            background: #151515; border-left: 5px solid #444;
-            padding: 15px 20px; border-radius: 12px;
-            display: flex; justify-content: space-between; align-items: center;
+        /* --- STATS LAYOUT --- */
+        .hud-stats-wrapper {
+            display: flex; justify-content: center; align-items: center; 
+            gap: 70px; margin: 0 20px; position: relative; z-index: 30; 
         }
-        .slot-row.active { border-left-color: var(--primary); background: linear-gradient(90deg, rgba(0,229,255,0.15), transparent); }
-        .slot-row.empty { border-left-color: #00ff00; cursor: pointer; }
-        
-        .sr-left { display: flex; flex-direction: column; gap: 4px; }
-        .sr-plat { font-family: 'Rajdhani'; font-size: 24px; font-weight: 900; color: #fff; }
-        .sr-name { font-size: 14px; color: var(--off-white); font-weight: 600; text-transform: uppercase; } 
-        
-        .sr-right { text-align: right; display: flex; flex-direction: column; gap: 4px;}
-        .sr-time { font-family: 'Rajdhani'; font-size: 22px; font-weight: 800; color: var(--primary); }
-        .sr-batt { font-size: 12px; color: #000; background: #fff; padding: 3px 8px; border-radius: 4px; display: inline-block; font-weight: 800;}
 
-        .queue-table { display: flex; flex-direction: column; gap: 5px; }
-        .q-row {
-            display: flex; align-items: center; padding: 12px 0;
-            border-bottom: 1px solid #333;
+        .stat-module {
+            flex: 1; max-width: 130px; display: flex; flex-direction: column; 
+            align-items: center; cursor: pointer; transition: all 0.3s; pointer-events: auto;
         }
-        .q-num { width: 40px; font-family: 'Rajdhani'; font-size: 24px; font-weight: 800; color: var(--primary); text-align: center; }
-        .q-data { flex: 1; padding-left: 15px; display: flex; flex-direction: column; gap: 2px; }
-        .q-plat { font-family: 'Rajdhani'; font-size: 22px; font-weight: 800; color: #fff; display: block; }
-        .q-name { font-size: 14px; color: var(--off-white); font-weight: 600; text-transform: uppercase; } 
-        .q-batt { font-family: 'Rajdhani'; font-size: 20px; font-weight: 800; color: #fff; }
 
-        .inp-label { color: var(--primary); font-size: 14px; font-weight: 800; margin-bottom: 8px; display: block; }
-        .inp-box { 
-            width: 100%; padding: 16px; background: #222; border: 2px solid #444; 
-            color: #fff; font-family: 'Rajdhani'; font-size: 24px; font-weight: 700; 
-            border-radius: 12px; margin-bottom: 20px; box-sizing: border-box;
+        .s-val {
+            font-family: 'Rajdhani'; font-size: 42px; font-weight: 900; 
+            color: var(--white); line-height: 1; margin-bottom: 6px; transition: all 0.3s;
+            text-shadow: 0 0 10px rgba(255,255,255,0.2);
         }
-        .inp-box:focus { border-color: var(--primary); outline: none; background: #000; }
 
-        .btn-kirim { width: 100%; padding: 18px; background: var(--primary); border: none; border-radius: 12px; font-family: 'Rajdhani'; font-weight: 900; font-size: 22px; cursor: pointer; margin-bottom: 12px; color: #000;}
-        .btn-batal { width: 100%; padding: 15px; background: transparent; border: 2px solid #500; color: #f55; border-radius: 12px; font-weight: 800; font-size: 18px; cursor: pointer; }
+        .s-line { width: 100%; height: 2px; background: var(--silver-dim); position: relative; transition: all 0.3s; }
+        .s-lbl { font-size: 15px; font-weight: 800; color: var(--silver-text); letter-spacing: 2px; text-transform: uppercase; margin-top: 6px; transition: all 0.3s; }
+
+        .stat-module.selected .s-val { color: var(--gold); text-shadow: 0 0 15px var(--gold-glow); transform: scale(1.05); }
+        .stat-module.selected .s-line { background: var(--gold); box-shadow: 0 0 15px var(--gold-glow), 0 0 5px var(--gold); height: 3px; }
+        .stat-module.selected .s-lbl { color: var(--white); text-shadow: 0 0 5px rgba(255,255,255,0.5); }
+        .stat-module.has-data:not(.selected) .s-line { background: rgba(216, 162, 46, 0.4); }
+
+        /* --- CIRCUIT DATA CONTAINER (SCROLLABLE) --- */
+        .circuit-container {
+            position: relative; width: 100%; padding: 0 20px; box-sizing: border-box;
+            margin-top: 15px; min-height: 0; opacity: 1; overflow: hidden;
+        }
+        
+        .trunk-line {
+            position: absolute; top: -15px; width: 2px; height: 0; background: var(--gold);
+            box-shadow: 0 0 10px var(--gold-glow); transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            left: 50%; transform: translateX(-50%);
+        }
+        .circuit-container[data-active="slot"] .trunk-line { left: calc(50% - 90px); height: 15px; }
+        .circuit-container[data-active="queue"] .trunk-line { left: calc(50% + 90px); height: 15px; }
+
+        #renderArea {
+            max-height: 35vh; overflow-y: auto; overflow-x: hidden;
+            padding-right: 5px; padding-bottom: 20px; 
+        }
+        #renderArea::-webkit-scrollbar { width: 3px; }
+        #renderArea::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.05); border-radius: 4px;}
+        #renderArea::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 4px; }
+
+        .tech-line-wrap { margin-bottom: 20px; position: relative; padding-left: 15px; }
+        .tech-line-wrap::before {
+            content: ''; position: absolute; left: 0; top: 0; width: 2px; height: 100%; background: var(--gold); box-shadow: 0 0 8px var(--gold-glow);
+            transform: scaleY(0); transform-origin: top; transition: transform 0.3s ease-out;
+        }
+        
+        .tech-data { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 5px; padding-left: 10px; opacity: 0; transform: translateX(-20px); transition: all 0.4s ease; }
+        .td-left { display: flex; flex-direction: column; }
+        .td-plat { font-family: 'Rajdhani', monospace; font-size: 26px; font-weight: 900; color: #fff; line-height: 1; letter-spacing: 1px;}
+        .td-name { font-family: 'Rajdhani', monospace; font-size: 13px; color: var(--silver-text); font-weight: 700; text-transform: uppercase; margin-top: 4px; letter-spacing: 1px;}
+        .td-right { text-align: right; display: flex; flex-direction: column; align-items: flex-end; }
+        .td-val1 { font-family: 'Rajdhani'; font-size: 22px; font-weight: 900; color: var(--white); line-height: 1; }
+        .selected .td-val1 { color: var(--gold); text-shadow: 0 0 10px var(--gold-glow); }
+        .td-val2 { font-size: 11px; font-weight: 800; color: #000; background: var(--gold); padding: 3px 6px; border-radius: 2px; margin-top: 4px; }
+
+        .tech-line { height: 2px; width: 0; background: var(--gold); box-shadow: 0 0 10px var(--gold-glow); transition: width 0.5s cubic-bezier(0.22, 1, 0.36, 1); position: relative; }
+        .tech-line::after { content: ''; position: absolute; right: 0; top: -2px; width: 6px; height: 6px; background: #fff; box-shadow: 0 0 10px #fff, 0 0 15px var(--gold); opacity: 0; transition: opacity 0.3s; transform: rotate(45deg); }
+
+        .circuit-container.show-data .tech-line-wrap::before { transform: scaleY(1); }
+        .circuit-container.show-data .tech-line { width: 100%; }
+        .circuit-container.show-data .tech-line::after { opacity: 1; }
+        .circuit-container.show-data .tech-data { opacity: 1; transform: translateX(0); }
+        .tech-line-wrap:nth-child(1) .tech-line, .tech-line-wrap:nth-child(1)::before { transition-delay: 0.1s; }
+        .tech-line-wrap:nth-child(1) .tech-data { transition-delay: 0.2s; }
+        .tech-line-wrap:nth-child(n+2) .tech-line, .tech-line-wrap:nth-child(n+2)::before { transition-delay: 0.2s; }
+        .tech-line-wrap:nth-child(n+2) .tech-data { transition-delay: 0.3s; }
+
+        /* --- STATE IDLE & ACTIVE --- */
+        body.state-idle .logo-projection-area { transform: translateY(12vh) scale(2.4); margin-bottom: 0px; }
+        body.state-idle .hud-stats-wrapper { transform: translateY(22vh); opacity: 0.9; }
+        body.state-idle .circuit-container { opacity: 0; max-height: 0; overflow: hidden; margin-top: 0; padding: 0; pointer-events: none; }
+        
+        body.state-active .logo-projection-area { transform: translateY(0) scale(1); margin-bottom: 10px; }
+        body.state-active .hud-stats-wrapper { transform: translateY(0); opacity: 1; }
+        body.state-active .circuit-container { opacity: 1; max-height: 1000px; }
+
+        /* --- BOTTOM ACTION BUTTON & RESET TEXT --- */
+        .bottom-action { 
+            position: fixed; bottom: 0; left: 0; width: 100%; 
+            padding: 15px 20px 20px; box-sizing: border-box; 
+            background: linear-gradient(to top, rgba(2,2,2,1) 85%, transparent); z-index: 50; 
+            display: flex; flex-direction: column; align-items: center;
+        }
+        .btn-main { 
+            width: 100%; padding: 18px; background: var(--gold); color: #000; border: none; border-radius: 4px; 
+            font-family: 'Rajdhani'; font-size: 24px; font-weight: 900; text-transform: uppercase; cursor: pointer; 
+            box-shadow: 0 0 15px var(--gold-glow); transition: all 0.2s; position: relative; overflow: hidden; 
+            clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px); 
+        }
+        .btn-main::before { content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent); transform: skewX(-20deg); animation: shineBtn 3s infinite; }
+        @keyframes shineBtn { 0% { left: -100%; } 20% { left: 200%; } 100% { left: 200%; } }
+        .btn-main:active { transform: scale(0.98); background: #fff; }
+
+        /* TEKS RESET APLIKASI */
+        .reset-text {
+            font-family: 'Inter', sans-serif; font-size: 11px; color: var(--silver-text);
+            margin-top: 12px; cursor: pointer; text-decoration: underline; letter-spacing: 1px;
+            transition: color 0.2s; padding: 5px;
+        }
+        .reset-text:active { color: var(--danger); }
+
+        /* --- BULLETPROOF FORM MODAL --- */
+        #formModal {
+            position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
+            width: 100vw !important; height: 100vh !important;
+            background: rgba(0,0,0,0.95) !important;
+            z-index: 999999 !important; 
+            display: none; 
+            align-items: center; justify-content: center;
+        }
+        .form-panel { 
+            background: #0a0a0a; border: 1px solid var(--gold); width: 85%; max-width: 400px; 
+            padding: 25px; box-shadow: 0 0 40px rgba(216, 162, 46, 0.3); position: relative;
+        }
+        .form-panel::before, .form-panel::after { content:''; position: absolute; width: 15px; height: 15px; border: 2px solid var(--gold); }
+        .form-panel::before { top: -5px; left: -5px; border-right: none; border-bottom: none; }
+        .form-panel::after { bottom: -5px; right: -5px; border-left: none; border-top: none; }
+        
+        .modal-head-wrap { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed #333; padding-bottom: 10px; margin-bottom: 20px;}
+        .modal-head-wrap h2 { font-family: 'Rajdhani'; color: var(--gold); margin: 0; font-size: 24px; letter-spacing: 2px; }
+        .btn-close-modal { background: none; border: none; color: #fff; font-size: 24px; cursor: pointer; padding: 0;}
+
+        .inp-label { font-size: 11px; font-weight: 700; color: var(--gold); margin-bottom: 5px; display: block; text-transform: uppercase; letter-spacing: 2px;}
+        .inp-box { width: 100%; padding: 15px; background: rgba(255,255,255,0.03); border: 1px solid #333; border-radius: 0; color: #fff; font-family: 'Rajdhani'; font-size: 22px; font-weight: 800; margin-bottom: 15px; box-sizing: border-box; }
+        .inp-box:focus { border-color: var(--gold); outline: none; background: rgba(216, 162, 46, 0.05);}
+        .btn-kirim { width: 100%; padding: 15px; background: var(--gold); border: none; font-family: 'Rajdhani'; font-weight: 900; font-size: 20px; cursor: pointer; color: #000; margin-bottom: 10px; letter-spacing: 1px; clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);}
+        .btn-batal { width: 100%; padding: 12px; background: transparent; border: 1px solid #444; color: var(--silver-text); font-weight: 800; font-size: 16px; cursor: pointer; }
 
         /* LOADING */
-        #loading-screen { 
-            position: fixed; inset: 0; background: #000; z-index: 50000; 
-            display: flex; flex-direction: column; align-items: center; justify-content: center; 
-            transition: opacity 0.5s ease-out;
-        }
-        .loader-spinner { width: 50px; height: 50px; border: 3px solid #111; border-top: 3px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; box-shadow: 0 0 20px var(--primary); }
-        .loader-text { font-family: 'Rajdhani'; font-weight:900; color: var(--primary); font-size: 16px; letter-spacing: 3px; animation: pulseText 1s infinite; }
-        
+        #loading-screen { position: fixed; inset: 0; background: #000; z-index: 500000; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s ease-out; }
+        .loader-spinner { width: 50px; height: 50px; border: 3px solid #111; border-top: 3px solid var(--gold); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; box-shadow: 0 0 20px var(--gold); }
+        .loader-text { font-family: 'Rajdhani'; font-weight:900; color: var(--gold); font-size: 16px; letter-spacing: 3px; animation: pulseText 1s infinite; }
         @keyframes pulseText { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
-<body>
-
-    <div id="annoPopup" class="anno-overlay">
-        <div class="anno-card">
-            
-            <div class="decoration-hang">
-                <div class="ketupat-box">
-                    <div class="ketupat-tali"></div>
-                    <div class="ketupat-shape"></div>
-                </div>
-                <div class="ketupat-box">
-                    <div class="ketupat-tali" style="height:70px; top:-70px;"></div>
-                    <div class="ketupat-shape"></div>
-                </div>
-                <div class="ketupat-box">
-                    <div class="ketupat-tali"></div>
-                    <div class="ketupat-shape"></div>
-                </div>
-            </div>
-
-            <button class="btn-anno-close" onclick="closeAnno()"><i class="fas fa-times"></i></button>
-            
-            <div class="anno-header-art">
-                <i class="fas fa-bullhorn icon-speaker"></i>
-            </div>
-
-            <div class="anno-content">
-                <div class="anno-title">HARAP DIPERHATIKAN</div>
-                <div class="anno-date">14 Mar - 24 Mar</div>
-
-                <div class="warning-box">
-                    <div class="warning-text">
-                        Mohon kerja samanya:
-                        <span class="big-warning">🚫 STOP CAS SAAT 95%</span>
-                        JANGAN TUNGGU BIRU
-                    </div>
-                    <div class="sub-warning">
-                        UNTUK YG NGECAS MALAM HARAP TIDUR BERGANTIAN, HARUS ADA YG STANDBY MENJAGA CASAN
-                    </div>
-                </div>
-
-                <div class="anno-note">
-                    "KARENA SHOWROOM TUTUP. TIDAK ADA YANG BISA RESET FC JIKA ERROR."
-                </div>
-                
-                <div class="anno-footer">PENGURUS MLU</div>
-            </div>
-        </div>
-    </div>
+<body class="state-idle">
 
     <div id="loading-screen">
         <div class="loader-spinner"></div>
-        <div class="loader-text">SCANNING SYSTEM...</div>
+        <div class="loader-text">SINKRONISASI DATA...</div>
     </div>
 
-    <div class="top-area">
-        <div class="logo-glow">
-            <img src="logo.png" alt="Logo" class="logo-img" onerror="this.style.display='none'; this.parentNode.innerHTML='<i class=\'fas fa-bolt\' style=\'font-size:50px; color:var(--primary)\'></i>'">
-        </div>
-    </div>
-
-    <div class="bottom-panel">
+    <div class="top-section">
+        <h1 class="sys-title" ondblclick="window.toggleAdmin()">FC KELAPA GADING</h1>
+        <div class="sys-sub"> RUMAH MAKA LINTAS UTARA</div>
         
-        <div class="header-section">
-            <div class="live-tag"><i class="fas fa-circle" style="font-size:8px; vertical-align:middle; margin-right:5px;"></i> <span id="liveClock">ONLINE</span></div>
-            <h1 ondblclick="window.toggleAdmin()">FC KELAPA GADING</h1>
-            <div class="sub-text">SELAMAT DATANG DI RUMAH MLU</div>
-        </div>
-
-        <div class="stats-container">
-            <div class="stat-btn" onclick="openModal('slot')">
-                <div class="st-label">Slot Tersedia</div>
-                <div class="st-val" id="slotVal">...</div>
-                <div class="st-hint">LIHAT DETAIL ►</div>
-            </div>
-            <div class="stat-btn" onclick="openModal('queue')">
-                <div class="st-label">Antrian</div>
-                <div class="st-val" id="queueVal">...</div>
-                <div class="st-hint">LIHAT DAFTAR ►</div>
-            </div>
-        </div>
-
-        <button id="btnDaftar" class="btn-main" onclick="checkLocationAndOpenForm()">
-            DAFTAR ANTRIAN <i class="fas fa-arrow-right"></i>
-        </button>
-
-        </div>
-
-    <div id="detailModal" class="modal-wrap">
-        <div class="modal-panel">
-            <div class="modal-head">
-                <div class="modal-h-title" id="mTitle">STATUS SLOT</div>
-                <button class="close-x" onclick="closeModal('detailModal')">✕</button>
-            </div>
-            <div id="mContent" class="slot-list-box"></div>
+        <div class="timers">
+            <div class="t-box"><div class="t-lbl">IMSAK</div><div class="t-val" id="t-imsak">--:--</div></div>
+            <div class="t-box"><div class="t-lbl">LEBARAN</div><div class="t-val" id="t-lebaran" style="color:var(--gold)">-- HR</div></div>
+            <div class="t-box"><div class="t-lbl">BUKA</div><div class="t-val" id="t-buka">--:--</div></div>
         </div>
     </div>
 
-    <div id="formModal" class="modal-wrap">
-        <div class="modal-panel">
-            <div class="modal-head">
-                <div class="modal-h-title">FORMULIR</div>
-                <button class="close-x" onclick="closeModal('formModal')">✕</button>
+    <div class="logo-projection-area anim-mech" id="logoProjectionArea" title="Klik untuk Reset Tampilan">
+        <div class="clean-logo-wrap" id="mainLogoWrap" onclick="resetToHome()">
+            <img src="logo.png" alt="MLU" class="logo-img" id="theLogo" onerror="this.style.display='none'">
+        </div>
+    </div>
+
+    <div class="hud-stats-wrapper anim-mech">
+        <div class="stat-module" id="wrapSlot" onclick="switchTab('slot')">
+            <div class="s-val" id="valSlot">0<span style="font-size: 24px; opacity: 0.5;">/3</span></div>
+            <div class="s-line line-left-split"></div>
+            <div class="s-lbl">SLOT</div>
+        </div>
+
+        <div class="stat-module" id="wrapQueue" onclick="switchTab('queue')">
+            <div class="s-val" id="valQueue">0</div>
+            <div class="s-line line-right-split"></div>
+            <div class="s-lbl">ANTRIAN</div>
+        </div>
+    </div>
+
+    <div class="circuit-container anim-mech" id="circuitArea" data-active="slot">
+        <div class="trunk-line"></div>
+        <div id="renderArea"></div>
+    </div>
+
+    <div class="bottom-action">
+        <button id="btnDaftar" class="btn-main" onclick="checkLocationAndOpenForm()">[ DAFTAR ANTRIAN ]</button>
+        <div class="reset-text" onclick="resetAplikasi()">Hapus Sesi / Reset Aplikasi</div>
+    </div>
+
+    <div id="formModal">
+        <div class="form-panel">
+            <div class="modal-head-wrap">
+                <h2>TRANSMISI DATA</h2>
+                <button class="btn-close-modal" onclick="closeModal('formModal')">✕</button>
             </div>
-            <div>
-                <span class="inp-label">NAMA LENGKAP</span>
-                <input type="text" id="inpNama" class="inp-box" placeholder="NAMA ANDA">
-                
-                <span class="inp-label">NOMOR PLAT (Wajib Spasi)</span>
-                <input type="text" id="inpPlat" class="inp-box" placeholder="B 1234 XYZ" style="text-transform:uppercase;">
-                
-                <span class="inp-label">SISA BATERAI (0-100%)</span>
-                <input type="number" id="inpBatre" class="inp-box" placeholder="Contoh: 20" min="0" max="100">
-                
-                <button class="btn-kirim" onclick="submitData()">AMBIL TIKET</button>
-                <button class="btn-batal" onclick="closeModal('formModal')">BATAL</button>
-            </div>
+            
+            <span class="inp-label">IDENTITAS PILOT</span>
+            <input type="text" id="inpNama" class="inp-box" placeholder="Ketik Nama">
+            
+            <span class="inp-label">VEHICLE ID (Spasi)</span>
+            <input type="text" id="inpPlat" class="inp-box" placeholder="B 1234 XYZ">
+            
+            <span class="inp-label">LEVEL ENERGI SEKARANG (%)</span>
+            <input type="number" id="inpBatre" class="inp-box" placeholder="Contoh: 15" min="0" max="100">
+            
+            <button class="btn-kirim" onclick="submitData()">INISIASI SISTEM</button>
+            <button class="btn-batal" onclick="closeModal('formModal')">BATAL</button>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, doc, onSnapshot, getDoc, updateDoc, runTransaction, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, doc, onSnapshot, getDoc, updateDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const STATION_LAT = -6.171583; const STATION_LNG = 106.899844; const MAX_DIST_KM = 0.2; 
         const firebaseConfig = { apiKey: "AIzaSyB666i9lYWIpxOdkwpoX9EvFvHLmHczeq8", authDomain: "fcgadingnew22.firebaseapp.com", projectId: "fcgadingnew22", storageBucket: "fcgadingnew22.firebasestorage.app", messagingSenderId: "537736846678", appId: "1:537736846678:web:53788d71a196423ac08af7" };
         
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const mainRef = doc(db, "antrian", "utama");
+        const app = initializeApp(firebaseConfig); const db = getFirestore(app); const mainRef = doc(db, "antrian", "utama");
         const TOTAL_SLOTS = 3;
+        
+        let globalSlots = [null, null, null]; let globalQueue = []; let currentTab = null; let isIdleMode = true; 
+        let autoRevertTimeoutID = null; 
 
-        let globalSlots = [null, null, null];
-        let globalQueue = [];
-
-        // Hapus Spasi pada Plat untuk perbandingan database
+        // Fungsi Pembersih Spasi Plat
         const cleanStr = (s) => s ? s.replace(/[^A-Z0-9]/gi, '').toUpperCase() : '';
+        
+        // Fungsi Pembersih MAHKOTA (Crown Removal)
+        const cleanName = (n) => n ? n.replace(/👑/g, '').trim() : '';
 
-        // --- FUNGSI PENGUMUMAN ---
-        window.closeAnno = () => {
-            document.getElementById('annoPopup').style.display = 'none';
+        // --- HACKER DECRYPT SCRAMBLE TEXT ---
+        function scrambleText(element, finalStr) {
+            const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
+            let iterations = 0;
+            const interval = setInterval(() => {
+                element.innerText = finalStr.split('').map((c, i) => {
+                    if (c === ' ') return ' '; if (i < iterations) return finalStr[i];
+                    return chars[Math.floor(Math.random() * chars.length)];
+                }).join('');
+                if (iterations >= finalStr.length) clearInterval(interval); iterations += 1/2; 
+            }, 30);
         }
 
-        // --- PENJADWALAN PENGUMUMAN (14 Mar - 24 Mar) ---
-        function checkAnnoSchedule() {
-            const now = new Date();
-            // Agar bisa di-test sekarang, saya set start date mundur ke 1 Maret
-            const start = new Date(2026, 2, 12, 0, 0, 0); // Maret tgl 1
-            const end = new Date(2026, 2, 24, 23, 59, 0); // Maret tgl 24
+        // --- TIMERS ---
+        function updateTimers() {
+            const now = new Date(); const lDate = new Date('2026-03-20T00:00:00'); let dDays = Math.ceil((lDate - now) / 86400000); document.getElementById('t-lebaran').innerText = `${dDays > 0 ? dDays : 0} HR`;
+            let tImsak = new Date(now); tImsak.setHours(4, 30, 0); let tBuka = new Date(now); tBuka.setHours(18, 10, 0);
+            if (now > tImsak) tImsak.setDate(tImsak.getDate() + 1); if (now > tBuka) tBuka.setDate(tBuka.getDate() + 1);
+            const fDiff = (t) => { let d = t - now; let h = Math.floor(d / 3600000); let m = Math.floor((d % 3600000) / 60000); return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`; };
+            document.getElementById('t-imsak').innerText = fDiff(tImsak); document.getElementById('t-buka').innerText = fDiff(tBuka);
+        } setInterval(updateTimers, 60000); updateTimers();
 
-            if (now >= start && now <= end) {
-                document.getElementById('annoPopup').style.display = 'flex';
-            }
+        // --- SISTEM AUTO REVERT KE HOME 1 MENIT ---
+        function startAutoRevertTimer() {
+            if (autoRevertTimeoutID) clearTimeout(autoRevertTimeoutID);
+            autoRevertTimeoutID = setTimeout(() => {
+                if (document.getElementById('formModal').style.display !== 'flex') { resetToHome(); } 
+                else { startAutoRevertTimer(); }
+            }, 60000); 
+        }
+        function stopAutoRevertTimer() {
+            if (autoRevertTimeoutID) clearTimeout(autoRevertTimeoutID);
+            autoRevertTimeoutID = null;
         }
 
-        // --- FUNGSI GLOBAL LAINNYA ---
-        window.toggleAdmin = () => { 
-            const pass = prompt("MASUKKAN KODE ADMIN:"); 
-            if (pass === "2505") {
-                window.location.href = "admin.html"; 
-            } else if (pass === "090815") {
-                if(localStorage.getItem('sa_sess')) { 
-                    localStorage.removeItem('sa_sess'); 
-                    alert("GOD MODE MATI."); 
-                } else { 
-                    localStorage.setItem('sa_sess', '1'); 
-                    alert("GOD MODE AKTIF (Bypass GPS)."); 
-                }
-                location.reload();
-            } else if(pass) {
-                alert("KODE SALAH!"); 
+        window.resetToHome = () => {
+            if (isIdleMode) return; 
+            isIdleMode = true; currentTab = null; stopAutoRevertTimer();
+            const circuit = document.getElementById('circuitArea'); circuit.classList.remove('show-data');
+            document.getElementById('wrapSlot').classList.remove('selected'); document.getElementById('wrapQueue').classList.remove('selected');
+            document.body.classList.remove('state-active'); document.body.classList.add('state-idle');
+        };
+
+        window.switchTab = (tab) => {
+            currentTab = tab;
+            const wrapSlot = document.getElementById('wrapSlot'); const wrapQueue = document.getElementById('wrapQueue');
+            const circuit = document.getElementById('circuitArea');
+            startAutoRevertTimer();
+
+            if (isIdleMode) {
+                isIdleMode = false;
+                document.body.classList.remove('state-idle'); document.body.classList.add('state-active');
+                setTimeout(() => { executeTabSwitch(tab, wrapSlot, wrapQueue, circuit); }, 600);
+            } else {
+                executeTabSwitch(tab, wrapSlot, wrapQueue, circuit);
             }
         };
 
-        window.openModal = (type) => {
-            const content = document.getElementById('mContent');
-            const title = document.getElementById('mTitle');
-            content.innerHTML = ""; 
+        function executeTabSwitch(tab, wrapSlot, wrapQueue, circuit) {
+            circuit.classList.remove('show-data');
+            if(tab === 'slot') { wrapSlot.classList.add('selected'); wrapQueue.classList.remove('selected'); circuit.setAttribute('data-active', 'slot'); } 
+            else { wrapQueue.classList.add('selected'); wrapSlot.classList.remove('selected'); circuit.setAttribute('data-active', 'queue'); }
+            setTimeout(() => { renderData(); void circuit.offsetWidth; circuit.classList.add('show-data'); document.querySelectorAll('.scramble-target').forEach(el => { scrambleText(el, el.getAttribute('data-text')); }); }, 100);
+        }
 
-            if(type === 'slot') {
-                title.innerText = "STATUS SLOT";
-                content.className = "slot-list-box"; 
-                
+        function renderData() {
+            const area = document.getElementById('renderArea'); area.innerHTML = '';
+            if (currentTab === 'slot') {
                 globalSlots.forEach((s, i) => {
-                    let html;
-                    if (s) {
-                        let timeText = "WAIT";
-                        let timeColor = "#FFD700"; 
-                        if (s.startTime) {
-                            const diff = Math.floor((Date.now() - s.startTime) / 60000);
-                            timeText = `${diff} MNT`;
-                            timeColor = "var(--primary)";
-                        }
-                        html = `
-                        <div class="slot-row active">
-                            <div class="sr-left">
-                                <span class="sr-plat">${s.plat}</span>
-                                <span class="sr-name">${s.userName}</span>
-                            </div>
-                            <div class="sr-right">
-                                <span class="sr-time" style="color:${timeColor}">${timeText}</span>
-                                <span class="sr-batt">BAT: ${s.batreSisa}%</span>
-                            </div>
-                        </div>`;
-                    } else {
-                        html = `
-                        <div class="slot-row empty" onclick="window.selectSlot(${i})">
-                            <div class="sr-left">
-                                <span class="sr-plat" style="color:#0f0">SLOT ${i+1}</span>
-                                <span class="sr-name" style="color:#fff">TERSEDIA</span>
-                            </div>
-                            <div class="sr-right">
-                                <span class="sr-time" style="color:#0f0">OPEN</span>
-                            </div>
-                        </div>`;
-                    }
-                    content.innerHTML += html;
+                    let lineColor = s ? "var(--gold)" : "#333"; let glow = s ? "0 0 10px var(--gold-glow)" : "none";
+                    let platTxt = s ? s.plat : "SLOT 0" + (i+1); 
+                    
+                    // ANTI-MAHKOTA: Membersihkan nama dari mahkota kudeta
+                    let nameTxt = s ? cleanName(s.userName) : "TERSEDIA";
+                    
+                    let val1 = s ? (s.startTime ? Math.floor((Date.now() - s.startTime)/60000) + " M" : "BARU") : "--"; 
+                    
+                    // BATERAI ANTI-UNDEFINED
+                    let getBat = "0";
+                    if(s) { getBat = s.batreSisa || (s.batre ? s.batre.replace('%','') : null) || (s.battery ? s.battery.replace('%','') : "0"); }
+                    let val2 = s ? `BAT: ${getBat}%` : "STANDBY";
+                    
+                    area.innerHTML += `<div class="tech-line-wrap"><div class="tech-data"><div class="td-left"><span class="td-plat scramble-target" data-text="${platTxt}" style="${!s ? 'color:#555' : ''}">${platTxt}</span><span class="td-name scramble-target" data-text="${nameTxt}">${nameTxt}</span></div><div class="td-right" style="${!s ? 'opacity:0.3' : ''}"><span class="td-val1">${val1}</span><span class="td-val2" style="${!s ? 'background:#333; color:#888' : ''}">${val2}</span></div></div><div class="tech-line" style="background:${lineColor}; box-shadow:${glow};"></div></div>`;
                 });
             } else {
-                title.innerText = "DAFTAR ANTRIAN";
-                content.className = "queue-table"; 
-
-                if(globalQueue.length === 0) content.innerHTML = "<div style='text-align:center;padding:20px;color:#fff;font-size:18px;'>TIDAK ADA ANTRIAN</div>";
-                else {
+                if(globalQueue.length === 0) {
+                    area.innerHTML = `<div style="text-align:center; color:#555; font-size:16px; font-weight:700; margin-top:50px; font-family:'Rajdhani'; letter-spacing:2px;" class="scramble-target" data-text="-- KOSONG --">-- KOSONG --</div>`;
+                } else {
                     globalQueue.forEach((q, i) => {
-                        content.innerHTML += `
-                        <div class="q-row">
-                            <div class="q-num">#${i+1}</div>
-                            <div class="q-data">
-                                <span class="q-plat">${q.plat}</span>
-                                <span class="q-name">${q.userName}</span>
-                            </div>
-                            <div class="q-batt">${q.batreSisa}%</div>
-                        </div>`;
+                        // ANTI-MAHKOTA: Membersihkan nama dari mahkota kudeta
+                        let safeName = cleanName(q.userName);
+                        let nameFormat = `#0${i+1} // ${safeName}`;
+                        
+                        let getBat = q.batreSisa || (q.batre ? q.batre.replace('%','') : null) || (q.battery ? q.battery.replace('%','') : "0");
+                        
+                        area.innerHTML += `<div class="tech-line-wrap"><div class="tech-data"><div class="td-left"><span class="td-plat scramble-target" data-text="${q.plat}" style="font-size:24px;">${q.plat}</span><span class="td-name scramble-target" data-text="${nameFormat}">${nameFormat}</span></div><div class="td-right"><span class="td-val1" style="font-size:20px; color:#fff;">${getBat}%</span></div></div><div class="tech-line" style="background:#555; box-shadow:none;"></div></div>`;
                     });
                 }
-            }
-            document.getElementById('detailModal').classList.add('open');
-            document.getElementById('detailModal').style.display = 'flex';
-        };
-
-        window.closeModal = (id) => { 
-            document.getElementById(id).classList.remove('open'); 
-            setTimeout(() => document.getElementById(id).style.display = 'none', 200); 
-        };
-
-        window.checkLocationAndOpenForm = () => {
-            const btn = document.getElementById('btnDaftar');
-            
-            // Jika tombol berfungsi sebagai redirect (Ticket Recovery)
-            if(btn.innerHTML.includes('SYSTEM')) {
-                window.location.href = 'system.html';
-                return;
-            }
-
-            // BYPASS JIKA GOD MODE AKTIF (Bisa mendaftar dari rumah)
-            if(localStorage.getItem('sa_sess')) {
-                document.getElementById('formModal').classList.add('open'); 
-                document.getElementById('formModal').style.display = 'flex';
-                return;
-            }
-
-            if (!navigator.geolocation) { alert("GPS WAJIB AKTIF!"); return; }
-            
-            const ori = btn.innerHTML;
-            btn.innerHTML = 'CEK LOKASI...';
-            
-            navigator.geolocation.getCurrentPosition((pos) => {
-                const dist = calculateDistance(STATION_LAT, STATION_LNG, pos.coords.latitude, pos.coords.longitude);
-                btn.innerHTML = ori;
-                
-                if (dist <= MAX_DIST_KM) { 
-                    document.getElementById('formModal').classList.add('open'); 
-                    document.getElementById('formModal').style.display = 'flex';
-                } else { 
-                    alert(`AKSES DITOLAK!\nJarak Anda: ${(dist*1000).toFixed(0)}m (Maksimal 200m).\n\nAnda harus berada di Area FC Gading untuk mendaftar.`); 
-                }
-            }, () => { 
-                btn.innerHTML = ori; 
-                alert("GAGAL MENDETEKSI LOKASI.\nPastikan izin GPS/Lokasi aktif di pengaturan browser Anda."); 
-            }, { enableHighAccuracy: true });
-        };
-
-        window.submitData = async () => {
-            const nama = document.getElementById('inpNama').value.toUpperCase();
-            const plat = document.getElementById('inpPlat').value.toUpperCase();
-            const batre = document.getElementById('inpBatre').value;
-            
-            if(!nama) return alert("NAMA HARUS DIISI!");
-            if(!plat) return alert("PLAT NOMOR HARUS DIISI!");
-            if(!batre) return alert("BATERAI WAJIB DIISI!");
-            if(parseInt(batre) > 100) return alert("BATERAI MAKSIMAL 100%!");
-            
-            const btn = document.querySelector('.btn-kirim');
-            btn.innerText = "PROSES...";
-            
-            try {
-                // MODIFIKASI: Cari Role dari mlu_members (agar lebih aman)
-                let role = "GUEST";
-                try {
-                    const qMem = query(collection(db, "mlu_members"), where("plat", "==", plat));
-                    const qs = await getDocs(qMem);
-                    if(!qs.empty) {
-                        role = qs.docs[0].data().role || "MEMBER";
-                    }
-                } catch(e) { console.log("Gagal cek role, set default ke GUEST"); }
-
-                const snap = await getDoc(mainRef);
-                if(snap.exists()) {
-                    let d = snap.data();
-                    let queue = d.waitingQueue || [];
-                    let slots = d.chargingSlots || [];
-                    
-                    // Cek apakah sudah di antrian atau slot (anti double-entry)
-                    if(queue.find(q => cleanStr(q.plat) === cleanStr(plat)) || slots.find(s => s && cleanStr(s.plat) === cleanStr(plat))) { 
-                        alert("KENDARAAN ANDA SUDAH ADA DI ANTRIAN / SLOT!"); 
-                        localStorage.setItem('myPlat', plat);
-                        window.location.href = 'system.html'; 
-                        return; 
-                    }
-                    
-                    // SINKRONISASI VARIABEL BATERAI
-                    queue.push({ 
-                        userName: nama, 
-                        plat: plat, 
-                        batre: batre + "%",       // Digunakan untuk view aplikasi putih
-                        battery: batre + "%",     // Digunakan untuk view aplikasi putih
-                        batreSisa: batre,         // Digunakan untuk view aplikasi hitam
-                        role: role, 
-                        timestamp: Date.now(), 
-                        qNo: (d.lastTicket || 0) + 1 
-                    });
-                    
-                    await updateDoc(mainRef, { waitingQueue: queue, lastTicket: (d.lastTicket || 0) + 1 });
-                    
-                    localStorage.setItem('myPlat', plat);
-                    
-                    alert("BERHASIL! MASUK KE SYSTEM..."); 
-                    window.location.href = 'system.html'; // REDIRECT TO SYSTEM
-                }
-            } catch(e) { 
-                alert("ERROR: " + e.message); 
-                btn.innerText = "AMBIL TIKET"; 
-            }
-        };
-
-        // PILIH SLOT HANYA VISUAL DI SINI KARENA REDIRECT KE SYSTEM
-        window.selectSlot = async (index) => {
-           alert("SILAKAN LOGIN / DAFTAR DULU UNTUK MEMILIH SLOT.");
-        };
-
-        // 2. HELPER FUNCTIONS
-        function calculateDistance(lat1, lon1, lat2, lon2) { const p = 0.017453292519943295; const c = Math.cos; const a = 0.5 - c((lat2 - lat1) * p)/2 + c(lat1 * p) * c(lat2 * p) * (1 - c((lon2 - lon1) * p))/2; return 12742 * Math.asin(Math.sqrt(a)); }
-
-        // Murni mengecek storage untuk mengubah tombol jadi Redirect ke System
-        function checkMyTicketState() {
-            const myPlat = localStorage.getItem('myPlat');
-            const btn = document.getElementById('btnDaftar');
-            
-            if(myPlat) {
-                // MODIFIKASI: Tombol menjadi Redirect ke System
-                btn.innerHTML = 'KEMBALI KE SYSTEM <i class="fas fa-undo"></i>';
-                btn.style.background = "#fff";
-                btn.style.color = "#000";
-            } else {
-                btn.innerHTML = 'DAFTAR ANTRIAN <i class="fas fa-arrow-right"></i>';
-                btn.style.background = "linear-gradient(90deg, var(--primary), #0099aa)";
-                btn.style.color = "#000";
             }
         }
 
-        // 3. MAIN LOGIC (INIT)
+        // --- SISTEM MODAL, ADMIN, DAFTAR & RESET ---
+        window.closeModal = (id) => { document.getElementById(id).style.display = 'none'; };
+        
+        window.toggleAdmin = () => { 
+            const p = prompt("ACCESS CODE:"); 
+            if (p === "2505") window.location.href = "admin.html"; 
+            else if (p === "090815") { if(localStorage.getItem('sa_sess')) { localStorage.removeItem('sa_sess'); alert("GOD MODE OFFLINE."); } else { localStorage.setItem('sa_sess', '1'); alert("GOD MODE ONLINE."); } location.reload(); } else if(p) alert("ACCESS DENIED."); 
+        };
+
+        // FUNGSI RESET MANUAL (BARU)
+        window.resetAplikasi = () => {
+            if(confirm("Hapus data sesi aplikasi di HP ini?\nGunakan ini jika Anda tidak bisa mendaftar.")) {
+                localStorage.removeItem('myPlat');
+                localStorage.removeItem('sa_sess');
+                alert("Sistem berhasil di-reset!");
+                location.reload();
+            }
+        };
+
+        window.checkLocationAndOpenForm = () => { 
+            const btn = document.getElementById('btnDaftar'); 
+            if(btn.innerHTML.includes('SYSTEM')) { window.location.href = 'system.html'; return; } 
+            
+            if (currentTab) startAutoRevertTimer();
+            if(localStorage.getItem('sa_sess')) { document.getElementById('formModal').style.display = 'flex'; return; } 
+            
+            if (!navigator.geolocation) return alert("GPS REQUIRED!"); 
+            const ori = btn.innerHTML; btn.innerHTML = '[ MENCARI LOKASI... ]'; 
+            navigator.geolocation.getCurrentPosition((pos) => { 
+                const p = 0.017453292519943295; const c = Math.cos; const a = 0.5 - c((pos.coords.latitude - STATION_LAT) * p)/2 + c(STATION_LAT * p) * c(pos.coords.latitude * p) * (1 - c((pos.coords.longitude - STATION_LNG) * p))/2; const dist = 12742 * Math.asin(Math.sqrt(a)); btn.innerHTML = ori; 
+                if (dist <= MAX_DIST_KM) { document.getElementById('formModal').style.display = 'flex'; } else { alert(`AKSES DITOLAK!\nJarak Anda Kejauhan.`); } 
+            }, () => { btn.innerHTML = ori; alert("SIGNAL GPS HILANG."); }, { enableHighAccuracy: true }); 
+        };
+
+        window.submitData = async () => { 
+            const n = document.getElementById('inpNama').value.toUpperCase(); 
+            const p = document.getElementById('inpPlat').value.toUpperCase(); 
+            const b = document.getElementById('inpBatre').value; 
+            
+            if(!n || !p || !b) return alert("DATA TIDAK LENGKAP!"); 
+            if(parseInt(b) > 100) return alert("BATERAI MAX 100%"); 
+            const btn = document.querySelector('.btn-kirim'); btn.innerText = "TRANSMITTING..."; 
+            
+            try { 
+                let role = "GUEST"; 
+                try { const qs = await getDocs(query(collection(db, "mlu_members"), where("plat", "==", p))); if(!qs.empty) role = qs.docs[0].data().role || "MEMBER"; } catch(e) {} 
+                
+                const snap = await getDoc(mainRef); 
+                if(snap.exists()) { 
+                    let d = snap.data(); let q = d.waitingQueue || []; let s = d.chargingSlots || []; 
+                    
+                    if(q.find(x => cleanStr(x.plat) === cleanStr(p)) || s.find(y => y && cleanStr(y.plat) === cleanStr(p))) { 
+                        alert("KENDARAAN SUDAH TERDAFTAR!"); localStorage.setItem('myPlat', p); window.location.href = 'system.html'; return; 
+                    } 
+                    
+                    q.push({ userName: n, plat: p, batre: b + "%", battery: b + "%", batreSisa: b, role: role, timestamp: Date.now(), qNo: (d.lastTicket || 0) + 1 }); 
+                    await updateDoc(mainRef, { waitingQueue: q, lastTicket: (d.lastTicket || 0) + 1 }); 
+                    
+                    localStorage.setItem('myPlat', p); alert("SUKSES!"); window.location.href = 'system.html'; 
+                } 
+            } catch(e) { alert("ERROR: " + e.message); btn.innerText = "INISIASI SISTEM"; } 
+        };
+
+        function checkMyTicketState() { 
+            if(localStorage.getItem('myPlat')) { 
+                const btn = document.getElementById('btnDaftar'); btn.innerHTML = '[ MASUK KE SYSTEM ]'; btn.style.background = "#fff"; btn.style.color = "#000"; btn.style.boxShadow = "none"; 
+            } 
+        } 
         checkMyTicketState();
-        checkAnnoSchedule();
 
         onSnapshot(mainRef, (snap) => {
-            // FIX: HIDE LOADING SCREEN HARUS SET DISPLAY NONE
-            const l = document.getElementById('loading-screen'); 
-            if(l) {
-                l.style.opacity = '0';
-                setTimeout(() => { l.style.display = 'none'; }, 500); 
-            }
+            const ls = document.getElementById('loading-screen');
+            if(ls) { ls.style.opacity = '0'; setTimeout(() => { ls.style.display = 'none'; }, 500); }
 
-            if (!snap.exists()) return;
-            const d = snap.data();
-            globalSlots = d.chargingSlots || [null, null, null];
-            globalQueue = d.waitingQueue || [];
+            if (!snap.exists()) return; const d = snap.data(); globalSlots = d.chargingSlots || [null, null, null]; globalQueue = d.waitingQueue || [];
+            let usedCount = globalSlots.filter(s => s !== null).length;
             
-            const usedCount = globalSlots.filter(s => s !== null).length;
-            document.getElementById('slotVal').innerHTML = `${usedCount}<span style="font-size:24px;opacity:0.8;margin-left:5px">/${TOTAL_SLOTS}</span>`;
-            document.getElementById('queueVal').innerText = globalQueue.length;
-
-            // Refresh modal content if open
-            if(document.getElementById('detailModal').style.display === 'flex') {
-                if(document.getElementById('mTitle').innerText.includes('SLOT')) window.openModal('slot');
-                else window.openModal('queue');
-            }
+            document.getElementById('valSlot').innerHTML = `${usedCount}<span style="font-size: 24px; opacity: 0.5;">/${TOTAL_SLOTS}</span>`; 
+            document.getElementById('valQueue').innerText = globalQueue.length;
+            
+            const wSlot = document.getElementById('wrapSlot'); const wQueue = document.getElementById('wrapQueue');
+            if(usedCount > 0) wSlot.classList.add('has-data'); else wSlot.classList.remove('has-data');
+            if(globalQueue.length > 0) wQueue.classList.add('has-data'); else wQueue.classList.remove('has-data');
+            
+            if (!isIdleMode) { renderData(); document.querySelectorAll('.scramble-target').forEach(el => { scrambleText(el, el.getAttribute('data-text')); }); }
         });
 
-        // 4. CLOCK
-        setInterval(() => {
-            const d = new Date();
-            const days = ['MINGGU','SENIN','SELASA','RABU','KAMIS','JUMAT','SABTU'];
-            const months = ['JAN','FEB','MAR','APR','MEI','JUN','JUL','AGU','SEP','OKT','NOV','DES'];
-            const time = `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
-            document.getElementById('liveClock').innerText = `LIVE | ${days[d.getDay()]}, ${d.getDate()} ${months[d.getMonth()]} ${time}`;
-        }, 1000);
-
-        // 5. INPUT FORMATTING (SPASI PLAT & BATRE)
-        const platInput = document.getElementById('inpPlat');
-        if(platInput) {
-            platInput.addEventListener('input', function(e) {
-                let v = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
-                let formatted = "";
-                // Logic Spasi: B 1234 ABC
-                if (v.length > 0) {
-                    let match = v.match(/^([A-Z]{1,2})(\d{0,4})([A-Z]*)$/);
-                    if (match) {
-                        formatted = match[1];
-                        if (match[2]) formatted += " " + match[2];
-                        if (match[3]) formatted += " " + match[3];
-                    } else { formatted = v; } 
-                }
-                this.value = formatted;
-            });
-        }
-
-        const batInput = document.getElementById('inpBatre');
-        if(batInput) {
-            batInput.addEventListener('input', function(e) {
-                let v = this.value.replace(/[^0-9]/g, '');
-                if(parseInt(v) > 100) v = "100";
-                this.value = v;
-            });
-        }
+        document.getElementById('inpPlat').addEventListener('input', function() { let v=this.value.toUpperCase().replace(/[^A-Z0-9]/g, ''); let m=v.match(/^([A-Z]{1,2})(\d{0,4})([A-Z]*)$/); this.value=m?`${m[1]}${m[2]?' '+m[2]:''}${m[3]?' '+m[3]:''}`:v; });
+        document.getElementById('inpBatre').addEventListener('input', function() { let v=this.value.replace(/[^0-9]/g, ''); if(parseInt(v)>100)v="100"; this.value=v; });
     </script>
 </body>
 </html>
