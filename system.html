@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FC KELAPA GADING - SYSTEM PHANTOM</title>
+    <title>FC KELAPA GADING - SYSTEM PHANTOM FIXED</title>
     
-    <link rel="manifest" href="manifest.json?v=2">
+    <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#D8A22E">
     
     <link href="https://fonts.googleapis.com/css2?family=Teko:wght@300;500;700&family=Rajdhani:wght@500;600;700;800;900&family=Inter:wght@400;600&display=swap" rel="stylesheet">
@@ -43,13 +43,8 @@
 
         /* --- THE PHANTOM EMBLEM (LOGO SAMPING) --- */
         .watermark-logo {
-            position: fixed;
-            right: -120px; /* Digeser keluar sedikit */
-            top: 25%;
-            width: 450px; 
-            opacity: 0.45; /* Opacity kuat karena di area kosong */
-            pointer-events: none;
-            z-index: 0;
+            position: fixed; right: -120px; top: 25%; width: 450px; 
+            opacity: 0.45; pointer-events: none; z-index: 0;
             filter: drop-shadow(0 0 30px rgba(216, 162, 46, 0.6)); 
             animation: floatSide 6s ease-in-out infinite alternate;
         }
@@ -70,7 +65,7 @@
         .qb-val { font-family: var(--font-tech); font-weight:800; font-size: 24px; color: #fff; text-shadow: 0 0 10px rgba(255,255,255,0.5); text-transform: uppercase; }
         .qb-tot { font-family: var(--font-tech); font-weight: 800; font-size: 42px; line-height: 0.8; color: var(--gold); text-shadow: 0 0 15px var(--gold-glow); }
 
-        /* --- SLOT CONTAINER & CARDS (GLASS) --- */
+        /* --- SLOT CONTAINER & CARDS (GLASS FIXED LAYOUT) --- */
         .slot-container { display: flex; flex-direction: column; gap: 12px; width: 100%; position: relative; z-index: 5; }
         .armor-card { width: 100%; min-height: 95px; position: relative; background: rgba(10, 15, 30, 0.25); backdrop-filter: blur(5px); clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px); margin-bottom: 2px; cursor: pointer; }
         .armor-card::before { content: ''; position: absolute; inset: 0; box-shadow: inset 0 0 0 1px rgba(226, 232, 240, 0.3); pointer-events: none; z-index: 1; clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px); }
@@ -78,23 +73,32 @@
         .armor-card.active { background: rgba(216, 162, 46, 0.1); box-shadow: inset 0 0 20px var(--gold-dim); }
         .armor-card.active::before { box-shadow: inset 0 0 0 2px var(--gold); filter: drop-shadow(0 0 8px var(--gold-glow)); }
 
-        .armor-inner { display: flex; align-items: center; height: 100%; width: 100%; position: relative; z-index: 2; }
-        .armor-num { width: 60px; height: 95px; display: flex; align-items: center; justify-content: center; font-family: var(--font-tech); font-weight: 800; font-size: 36px; color: var(--silver-text); background: rgba(0,0,0,0.4); border-right: 1px solid rgba(226, 232, 240, 0.1); flex-shrink: 0; }
+        .armor-inner { display: flex; align-items: stretch; height: 100%; width: 100%; position: relative; z-index: 2; }
+        
+        /* Kolom Angka Kiri */
+        .armor-num { width: 50px; display: flex; align-items: center; justify-content: center; font-family: var(--font-tech); font-weight: 800; font-size: 32px; color: var(--silver-text); background: rgba(0,0,0,0.4); border-right: 1px solid rgba(226, 232, 240, 0.1); flex-shrink: 0; }
         .armor-card.active .armor-num { color: var(--gold); text-shadow: 0 0 10px var(--gold-glow); border-right: 1px solid var(--gold); background: rgba(216, 162, 46, 0.15); }
         
-        .armor-info { flex: 1; padding: 0 12px; display: flex; flex-direction: column; justify-content: center; }
-        .info-name { font-family: var(--font-tech); font-weight: 800; font-size: 13px; color: var(--silver); letter-spacing: 1px; margin-bottom: 2px; text-transform: uppercase;}
-        .armor-card.active .info-name { color: var(--gold); text-shadow: 0 0 8px var(--gold-glow); }
-        .info-plat { font-family: var(--font-num); font-size: 32px; line-height: 0.9; color: #fff; letter-spacing: 1px; text-shadow: 0 0 10px rgba(0,0,0,0.8);} 
+        /* Area Konten Kanan (Grid 2 Baris) */
+        .armor-content { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 12px 15px; min-width: 0; gap: 5px;}
         
-        .armor-badge { width: 100px; flex-shrink: 0; padding-right: 15px; display: flex; flex-direction: column; align-items: flex-end; justify-content: center; gap: 5px;}
+        /* Baris Atas (Nama & Badge) */
+        .ac-top { display: flex; justify-content: space-between; align-items: center; }
+        .info-name { font-family: var(--font-tech); font-weight: 800; font-size: 14px; color: var(--silver); text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: 1px;}
+        .armor-card.active .info-name { color: var(--gold); text-shadow: 0 0 8px var(--gold-glow); }
+        .armor-badge { display: flex; justify-content: flex-end; }
+
+        /* Baris Bawah (Plat & Timer/Aksi) */
+        .ac-bot { display: flex; justify-content: space-between; align-items: flex-end; }
+        .info-plat { font-family: var(--font-num); font-size: 34px; line-height: 0.8; color: #fff; letter-spacing: 1px; white-space: nowrap; text-shadow: 0 0 10px rgba(0,0,0,0.8); margin-top: 4px; } 
+        .armor-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
         
         /* BADGE SYSTEM */
-        .tactical-badge { display: flex; align-items: center; width: 90px; height: 34px; background: rgba(0,0,0,0.8); border: 1px solid var(--gold); clip-path: polygon(10px 0, 100% 0, 100% 100%, 0 100%, 0 10px); }
-        .tb-icon { width: 30px; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #000; clip-path: polygon(0 0, 100% 0, 75% 100%, 0 100%); }
-        .tb-text { flex: 1; text-align: center; padding-left: 2px;}
-        .tb-label { font-size: 7px; font-weight: 700; letter-spacing: 1px; color: #aaa; text-transform: uppercase; font-family: var(--font-tech); line-height: 1;}
-        .tb-role { font-size: 10px; font-weight: 800; text-transform: uppercase; }
+        .tactical-badge { display: inline-flex; align-items: center; height: 26px; background: rgba(0,0,0,0.8); border: 1px solid var(--gold); clip-path: polygon(8px 0, 100% 0, 100% 100%, 0 100%, 0 8px); }
+        .tb-icon { width: 24px; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #000; clip-path: polygon(0 0, 100% 0, 75% 100%, 0 100%); margin-right: -2px; z-index: 2; position: relative; }
+        .tb-text { display: flex; flex-direction: column; justify-content: center; padding: 0 8px 0 4px; text-align: left; z-index: 1; }
+        .tb-label { font-size: 7px; font-weight: 700; letter-spacing: 1px; color: #aaa; text-transform: uppercase; font-family: var(--font-tech); line-height: 1; margin-bottom: 2px;}
+        .tb-role { font-size: 10px; font-weight: 800; text-transform: uppercase; line-height: 1;}
 
         /* Badge Variants */
         .b-platinum { border-color: #E5E4E2; } .b-platinum .tb-icon { background: linear-gradient(135deg, #E5E4E2, #708090); } .b-platinum .tb-role { color: #E5E4E2; }
@@ -103,17 +107,22 @@
         .b-family { border-color: #fff; } .b-family .tb-icon { background: linear-gradient(135deg, #ffffff 0%, #bdc3c7 100%); color: #D80027; } .b-family .tb-role { color: #fff; }
         .b-ninja { border-color: #333; background: #000; } .b-ninja .tb-icon { background: #111; color: #ccc; border-right: 1px solid #333; } .b-ninja .tb-role { color: #aaa; }
         
-        .mini-timer { font-size: 11px; color: #ccc; font-family: var(--font-tech); font-weight: 700; letter-spacing: 1px; background:rgba(0,0,0,0.5); padding:2px 6px; border-radius:4px;}
-        .mini-batre { color: var(--silver); font-size: 12px; font-family: var(--font-tech); font-weight:900; }
+        .mini-timer { font-size: 11px; color: #ccc; font-family: var(--font-tech); font-weight: 700; letter-spacing: 1px; background:rgba(0,0,0,0.5); padding:3px 8px; border-radius:4px; display:flex; align-items:center; gap: 6px;}
+        .mini-batre { color: var(--silver); font-size: 13px; font-family: var(--font-tech); font-weight:900; }
 
-        /* BUTTON KUDETA */
-        .btn-kudeta { background: rgba(255,0,0,0.3); border: 1px solid var(--accent); color: var(--accent); font-size: 10px; padding: 4px 8px; font-weight: 900; transform: skewX(-10deg); letter-spacing: 1px; box-shadow: var(--accent-glow); animation: blinkKudeta 0.5s infinite; cursor: pointer; z-index: 10;}
+        /* BUTTON KUDETA & LAINNYA */
+        .btn-kudeta { background: rgba(255,0,0,0.3); border: 1px solid var(--accent); color: var(--accent); font-size: 10px; padding: 4px 12px; font-weight: 900; transform: skewX(-10deg); letter-spacing: 1px; box-shadow: var(--accent-glow); animation: blinkKudeta 0.5s infinite; cursor: pointer; z-index: 10;}
         @keyframes blinkKudeta { 0%, 100% { opacity: 1; box-shadow: 0 0 20px #ff0000; } 50% { opacity: 0.6; box-shadow: 0 0 5px #ff0000; } }
 
+        .btn-pilih-slot { width: 100px; padding: 6px 0; background: var(--gold); color: #000; border: none; border-radius: 3px; font-family: var(--font-tech); font-weight: 900; font-size: 14px; cursor: pointer; box-shadow: 0 0 10px rgba(216,162,46,0.5); }
+        .badge-antrian { font-size: 10px; color: var(--silver-text); font-weight: bold; font-family: var(--font-tech); letter-spacing: 1px; background: rgba(0,0,0,0.5); padding: 4px 10px; border-radius: 4px; }
+        .badge-locked { font-size: 10px; color: #444; font-family: var(--font-tech); letter-spacing: 1px; font-weight: bold;}
+
         /* --- BUTTON BAWAH --- */
-        .bottom-action { position: fixed; bottom: 0; left: 0; width: 100%; padding: 15px 20px 20px; background: linear-gradient(to top, rgba(2,2,2,1) 85%, transparent); z-index: 50; }
+        .bottom-action { position: fixed; bottom: 0; left: 0; width: 100%; padding: 15px 20px 20px; background: linear-gradient(to top, rgba(2,2,2,1) 85%, transparent); z-index: 50; display: flex; flex-direction: column; align-items: center;}
         .btn-cancel { width: 100%; padding: 18px; background: rgba(255,0,60,0.1); border: 1px solid var(--accent); color: var(--accent); font-family: var(--font-tech); font-size: 20px; font-weight: 900; letter-spacing: 2px; clip-path: polygon(10px 0, 100% 0, 100% 100%, 0 100%, 0 10px); box-shadow: var(--accent-glow); text-align: center; cursor: pointer; display: none; transition: 0.2s;}
         .btn-cancel:active { background: var(--accent); color:#000; transform: scale(0.98); }
+        .reset-text { font-family: 'Inter', sans-serif; font-size: 11px; color: var(--silver-text); margin-top: 12px; cursor: pointer; text-decoration: underline; letter-spacing: 1px; padding: 5px; }
 
         /* --- MODAL UI CUSTOM CYBERPUNK --- */
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 99999; display: none; align-items: center; justify-content: center; backdrop-filter: blur(10px); }
@@ -184,6 +193,7 @@
 
     <div class="bottom-action">
         <button id="btnCancelQ" class="btn-cancel" onclick="cancelQueue()">❌ BATAL ANTRIAN</button>
+        <div class="reset-text" onclick="resetApp()">Hapus Sesi / Reset Aplikasi</div>
     </div>
 
     <div id="queueListModal" class="queue-list-modal">
@@ -218,7 +228,7 @@
         function calculateDist(lat1, lon1, lat2, lon2) { const R = 6371; const dLat = (lat2-lat1)*Math.PI/180; const dLon = (lon2-lon1)*Math.PI/180; const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2; return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); }
         function addUserLog(action, details) { addDoc(logRef, { actor: myPlat || "GUEST", action: action, details: details, timestamp: new Date() }).catch(e=>{}); }
 
-        // --- SISTEM UI MODAL CUSTOM (PENGGANTI ALERT, CONFIRM, PROMPT) ---
+        // --- SISTEM UI MODAL CUSTOM ---
         window.closeCustomModal = () => { $('customModal').style.display = 'none'; $('modalInput').style.display = 'none'; $('modalInput').value = ''; };
 
         window.showAlert = (msg, title="INFO", callback=null) => {
@@ -299,6 +309,7 @@
 
             localSlots.forEach((s, i) => {
                 const isActive = s !== null; const div = document.createElement('div'); div.className = `armor-card ${isActive ? 'active' : ''}`;
+                
                 if (isActive) {
                     const role = s.role ? s.role.toUpperCase() : "GUEST"; 
                     const isMe = (cleanStr(s.plat) === cleanStr(myPlat)); 
@@ -315,20 +326,44 @@
                         else if (myQIndex === 1 && durationMin >= 25) { kudetaHTML = `<button class="btn-kudeta" onclick="event.stopPropagation(); window.userTriggerKudeta(${i}, '${escapeHtml(s.plat)}')">⚡ KUDETA</button>`; }
                     }
                     
+                    // LAYOUT BARU: NAMA & BADGE DI ATAS, PLAT & TIMER DI BAWAH (Dijamin tidak wrap/turun baris)
                     div.innerHTML = `
                         <div class="armor-inner">
                             <div class="armor-num">${i+1}</div>
-                            <div class="armor-info"><div class="info-name">${escapeHtml(safeName)}</div><div class="info-plat">${s.plat}</div></div>
-                            <div class="armor-badge">${getBadgeHTML(role)}</div>
-                            ${timerHTML} ${kudetaHTML}
+                            <div class="armor-content">
+                                <div class="ac-top">
+                                    <div class="info-name">${escapeHtml(safeName)}</div>
+                                    <div class="armor-badge">${getBadgeHTML(role)}</div>
+                                </div>
+                                <div class="ac-bot">
+                                    <div class="info-plat">${s.plat}</div>
+                                    <div class="armor-actions">
+                                        ${timerHTML}
+                                        ${kudetaHTML}
+                                    </div>
+                                </div>
+                            </div>
                         </div>`;
                     if(isMe) { div.onclick = () => showConfirm("Apakah Anda sudah selesai Charging dan ingin mengosongkan slot?", () => stopCharging(i), "SELESAI CHARGING?"); }
                 } else {
                     let btnHTML = ''; 
-                    if (localQueue.length === 0 || myQIndex === 0) btnHTML = `<button style="width:100%; padding:5px 0; background:var(--gold); color:#000; border:none; border-radius:3px; font-family:'Rajdhani'; font-weight:bold; box-shadow:0 0 10px rgba(216,162,46,0.5);" onclick="window.selectSlot(${i})">PILIH SLOT</button>`; 
-                    else if (myQIndex > 0) btnHTML = `<div style="font-size:10px; color:var(--silver-text); font-weight:bold; font-family:var(--font-tech); letter-spacing:1px; background:rgba(0,0,0,0.5); padding:2px 8px; border-radius:4px;">ANTRIAN ${myQIndex + 1}</div>`; 
-                    else btnHTML = `<div style="font-size:10px; color:#444; font-family:var(--font-tech); letter-spacing:1px;">LOCKED</div>`;
-                    div.innerHTML = `<div class="armor-inner"><div class="armor-num" style="color:rgba(255,255,255,0.1); border-color:rgba(255,255,255,0.1)">${i+1}</div><div class="armor-info"><div class="info-name" style="color:#555">TERSEDIA</div><div class="info-plat" style="color:#333; letter-spacing:3px;">OPEN</div></div><div class="armor-badge">${btnHTML}</div></div>`;
+                    if (localQueue.length === 0 || myQIndex === 0) btnHTML = `<button class="btn-pilih-slot" onclick="window.selectSlot(${i})">PILIH SLOT</button>`; 
+                    else if (myQIndex > 0) btnHTML = `<div class="badge-antrian">ANTRIAN ${myQIndex + 1}</div>`; 
+                    else btnHTML = `<div class="badge-locked">LOCKED</div>`;
+                    
+                    div.innerHTML = `
+                        <div class="armor-inner">
+                            <div class="armor-num" style="color:rgba(255,255,255,0.2); border-color:rgba(255,255,255,0.2)">${i+1}</div>
+                            <div class="armor-content">
+                                <div class="ac-top">
+                                    <div class="info-name" style="color:#666;">TERSEDIA</div>
+                                </div>
+                                <div class="ac-bot">
+                                    <div class="info-plat" style="color:#444; letter-spacing:3px;">OPEN</div>
+                                    <div class="armor-actions">${btnHTML}</div>
+                                </div>
+                            </div>
+                        </div>`;
                 }
                 container.appendChild(div);
             });
@@ -338,19 +373,19 @@
 
         function getBadgeHTML(r) {
             if (!r || r === "GUEST") return ""; 
-            if (r.includes("SENYAP") || r.includes("NINJA")) return `<div class="badge-container"><div class="tactical-badge b-ninja"><div class="tb-icon"><i class="fas fa-user-ninja"></i></div><div class="tb-text"><div class="tb-role" style="font-size:8px;">PASUKAN SENYAP</div></div></div></div>`;
-            if (r.includes("KELUARGA") || r === "MEMBER") return `<div class="badge-container"><div class="tactical-badge b-family"><div class="tb-icon"><i class="fas fa-heart"></i></div><div class="tb-text"><div class="tb-role">KELUARGA MLU</div></div></div></div>`;
+            if (r.includes("SENYAP") || r.includes("NINJA")) return `<div class="tactical-badge b-ninja"><div class="tb-icon"><i class="fas fa-user-ninja"></i></div><div class="tb-text"><div class="tb-role" style="font-size:8px;">PASUKAN SENYAP</div></div></div>`;
+            if (r.includes("KELUARGA") || r === "MEMBER") return `<div class="tactical-badge b-family"><div class="tb-icon"><i class="fas fa-heart"></i></div><div class="tb-text"><div class="tb-role">KELUARGA MLU</div></div></div>`;
             let css = "b-cyan"; let icon = "fa-user"; let label = "MEMBER"; let roleTxt = r;
             if (r.includes("PEMBINA")) { css="b-platinum"; icon="fa-star"; label="SENIOR"; roleTxt="PEMBINA"; }
             else if (r.includes("WAKETUM")) { css="b-gold"; icon="fa-chess-king"; label="CO-LEAD"; roleTxt="WAKETUM"; } 
             else if (r.includes("KETUM")) { css="b-gold"; icon="fa-crown"; label="LEADER"; roleTxt="KETUM"; }
             else if (r.includes("VIP")) { css="b-vip"; icon="fa-gem"; label="GUEST"; roleTxt="VIP"; }
             else if (r.includes("DONATUR")) { css="b-gold"; icon="fa-hand-holding-usd"; label="SPONSOR"; roleTxt="DONATUR"; }
-            return `<div class="badge-container"><div class="tactical-badge ${css}"><div class="tb-icon"><i class="fas ${icon}"></i></div><div class="tb-text">${label ? `<div class="tb-label">${label}</div>` : ''}<div class="tb-role">${roleTxt}</div></div></div></div>`;
+            return `<div class="tactical-badge ${css}"><div class="tb-icon"><i class="fas ${icon}"></i></div><div class="tb-text">${label ? `<div class="tb-label">${label}</div>` : ''}<div class="tb-role">${roleTxt}</div></div></div>`;
         }
 
         window.selectSlot = async (i) => { 
-            showConfirm(`Anda yakin ingin memasuki SLOT ${i+1}?`, () => { 
+            showConfirm(`Anda yakin ingin memasuki SLOT 0${i+1}?`, () => { 
                 runTransaction(db, async(t)=>{ 
                     const d = (await t.get(mainRef)).data(); 
                     if(d.chargingSlots[i]) throw "SLOT SUDAH TERISI!"; 
@@ -380,7 +415,7 @@
                     if(myIdx === -1) throw "Anda tidak terdaftar di antrian!";
                     
                     let me = q.splice(myIdx, 1)[0]; 
-                    me.userName = cleanName(me.userName); // Bersihkan mahkota agar tidak ganda
+                    me.userName = cleanName(me.userName); 
                     me.role = "KUDETA";
                     me.startTime = Date.now();
                     
@@ -414,6 +449,8 @@
             $('queueListModal').style.display = 'flex'; 
         };
         
+        window.resetApp = () => showConfirm("Hapus sesi aplikasi dari perangkat ini?", () => { localStorage.clear(); window.location.href='antrian.html'; }, "RESET SISTEM");
+
         // --- IDLE TIMEOUT (3 MENIT) ---
         let idleTime = 0; 
         window.onclick = () => { idleTime = 0; }; window.ontouchstart = () => { idleTime = 0; }; window.onmousemove = () => { idleTime = 0; };
