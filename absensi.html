@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Absensi Kopdar MLU</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Space+Grotesk:wght@700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <style>
+        /* TEMA BIRU PUTIH ORIGINAL */
+        :root { --royal-blue: #0A2259; --electric-blue: #2D63ED; --bg-surface: #F0F4F8; --success: #10B981; --danger: #EF4444; }
+        body { margin:0; background: var(--bg-surface); font-family: 'Inter', sans-serif; color: #0F172A; overflow-x:hidden; }
+        
+        .header { 
+            padding: 40px 20px 30px; text-align: center; 
+            background: white; 
+            border-bottom-left-radius: 30px; border-bottom-right-radius: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        }
+        .title { font-family: 'Space Grotesk'; font-size: 26px; font-weight: 900; color: var(--royal-blue); margin: 0; }
+        .subtitle { font-size: 12px; color: #64748B; font-weight: 600; letter-spacing: 1px; margin-top: 5px; text-transform: uppercase; }
+
+        .content-area { padding: 20px; }
+
+        .card-flat {
+            padding: 30px 20px; border-radius: 20px;
+            background: white; 
+            border: 1px solid #E2E8F0;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.03);
+            text-align: center;
+        }
+
+        .status-icon { font-size: 50px; margin-bottom: 15px; display: inline-block; }
+        .status-text { font-weight: 800; font-size: 18px; margin-bottom: 5px; color: var(--text-main); }
+        .status-desc { font-size: 12px; color: #64748B; margin-bottom: 20px; line-height: 1.4; }
+
+        .btn-action {
+            width: 100%; padding: 16px; border: none; border-radius: 16px;
+            font-family: 'Space Grotesk'; font-size: 16px; font-weight: 800; color: white;
+            cursor: pointer; transition: 0.3s; box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+        }
+        .btn-check { background: linear-gradient(135deg, var(--royal-blue), var(--electric-blue)); }
+        .btn-success { background: var(--success); }
+        .btn-fail { background: #94A3B8; cursor: not-allowed; }
+
+        #map { height: 200px; width: 100%; border-radius: 16px; margin-bottom: 20px; background: #eee; display: none; }
+        .loader { border: 3px solid rgba(255,255,255,0.3); border-radius: 50%; border-top: 3px solid white; width: 20px; height: 20px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .back-nav { margin-top: 30px; text-align: center; }
+        .back-btn { font-weight: 700; font-size: 13px; color: var(--text-muted); text-decoration: none; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1 class="title">ABSENSI KOPDAR</h1>
+        <div class="subtitle">Sistem Verifikasi Lokasi</div>
+    </div>
+
+    <div class="content-area">
+        <div class="card-flat">
+            <div id="map"></div>
+
+            <div id="statusArea">
+                <i class="fas fa-map-marker-alt status-icon" style="color:var(--electric-blue);"></i>
+                <div class="status-text">CEK POSISI ANDA</div>
+                <div class="status-desc">Sistem akan mengecek apakah Anda berada di lokasi Kopdar.</div>
+            </div>
+
+            <button id="btnMain" class="btn-action btn-check" onclick="checkLocation()">
+                <i class="fas fa-search-location"></i> CEK LOKASI SAYA
+            </button>
+        </div>
+
+        <div class="back-nav">
+            <a href="dashboard.html" class="back-btn"><i class="fas fa-arrow-left"></i> Kembali ke Dashboard</a>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // FIREBASE CONFIG BAPAK
+        const firebaseConfig = { apiKey: "AIzaSyAk3G5aQUBVe_g7_peVu1F6xllP_RejGq0", authDomain: "rtomaka-e67b5.firebaseapp.com", projectId: "rtomaka-e67b5", storageBucket: "rtomaka-e67b5.firebasestorage.app", messagingSenderId: "472036722228", appId: "1:472036722228:web:11d520f9204db317d02c61" };
+        const app = initializeApp(firebaseConfig); const db = getFirestore(app);
+
+        // --- SETTING LOKASI KOPDAR ---
+        // (NANTI SAYA UPDATE KOORDINATNYA SETELAH BAPAK KIRIM SHARELOC)
+        // Default sementara: Monas
+        let TARGET_LAT = -6.1754; 
+        let TARGET_LNG = 106.8272; 
+        const RADIUS_METER = 200; 
+
+        let uData = JSON.parse(localStorage.getItem('maka_user'));
+        let map, userMarker, circle;
+
+        if(!uData) { alert("Silahkan login dulu."); window.location.href='index.html'; }
+
+        window.checkLocation = function() {
+            const btn = document.getElementById('btnMain');
+            const statusArea = document.getElementById('statusArea');
+            btn.innerHTML = '<div class="loader"></div> MENCARI SINYAL...';
+            
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(async (position) => {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    const dist = getDistanceFromLatLonInKm(lat, lng, TARGET_LAT, TARGET_LNG) * 1000; 
+
+                    showMap(lat, lng);
+
+                    if (dist <= RADIUS_METER) {
+                        statusArea.innerHTML = `<i class="fas fa-check-circle status-icon" style="color:var(--success);"></i><div class="status-text" style="color:var(--success);">LOKASI SESUAI!</div><div class="status-desc">Anda berada di lokasi acara (${dist.toFixed(0)}m).</div>`;
+                        
+                        // Cek Double Absen
+                        const q = query(collection(db, "absensi_kopdar"), where("plat", "==", uData.plat), where("tanggal", "==", getTodayDate()));
+                        const snap = await getDocs(q);
+
+                        if (!snap.empty) {
+                            btn.className = "btn-action btn-fail"; btn.innerHTML = "<i class='fas fa-check'></i> SUDAH ABSEN"; btn.onclick = null;
+                        } else {
+                            btn.className = "btn-action btn-success"; btn.innerHTML = "KLIK UNTUK ABSEN SEKARANG"; btn.onclick = () => submitAbsen(lat, lng);
+                        }
+                    } else {
+                        statusArea.innerHTML = `<i class="fas fa-times-circle status-icon" style="color:var(--danger);"></i><div class="status-text" style="color:var(--danger);">LOKASI JAUH</div><div class="status-desc">Anda berjarak ${dist.toFixed(0)}m dari lokasi.<br>Harap mendekat ke titik kumpul.</div>`;
+                        btn.className = "btn-action btn-fail"; btn.innerHTML = "<i class='fas fa-sync'></i> COBA LAGI"; btn.onclick = checkLocation;
+                    }
+                }, (error) => { alert("GPS Wajib Aktif!"); btn.innerHTML = "CEK LOKASI SAYA"; }, { enableHighAccuracy: true });
+            } else { alert("Browser error."); }
+        };
+
+        async function submitAbsen(lat, lng) {
+            const btn = document.getElementById('btnMain'); btn.innerHTML = "MENYIMPAN...";
+            try {
+                await addDoc(collection(db, "absensi_kopdar"), {
+                    nama: uData.namaKtp || uData.namaWa, plat: uData.plat, role: uData.role || "MEMBER",
+                    waktu: new Date().toLocaleTimeString(), tanggal: getTodayDate(), lat: lat, lng: lng, timestamp: Date.now()
+                });
+                alert("✅ BERHASIL ABSEN! Selamat mengikuti acara."); window.location.href = "dashboard.html";
+            } catch (e) { alert("Error: " + e.message); btn.innerHTML = "ULANGI ABSEN"; }
+        }
+
+        function showMap(lat, lng) {
+            document.getElementById('map').style.display = 'block';
+            if(!map) {
+                map = L.map('map', {zoomControl:false}).setView([lat, lng], 15);
+                L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(map);
+                L.circle([TARGET_LAT, TARGET_LNG], {color: '#10B981', fillColor: '#10B981', fillOpacity: 0.2, radius: RADIUS_METER}).addTo(map);
+            }
+            if(userMarker) map.removeLayer(userMarker);
+            userMarker = L.marker([lat, lng]).addTo(map).bindPopup("Anda").openPopup();
+            map.setView([lat, lng], 16);
+        }
+
+        function getDistanceFromLatLonInKm(lat1,lon1,lat2,lon2) {
+            var R = 6371; var dLat = deg2rad(lat2-lat1); var dLon = deg2rad(lon2-lon1); 
+            var a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.sin(dLon/2) * Math.sin(dLon/2); 
+            var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); return R * c;
+        }
+        function deg2rad(deg) { return deg * (Math.PI/180); }
+        function getTodayDate() { const d = new Date(); return `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`; }
+    </script>
+</body>
+</html>

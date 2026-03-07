@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rekap Absensi Kopdar</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Space+Grotesk:wght@700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* TEMA BIRU PUTIH ORIGINAL */
+        :root { 
+            --royal-blue: #0A2259; 
+            --electric-blue: #2D63ED; 
+            --bg-surface: #F0F4F8; 
+            --text-main: #0F172A; 
+            --text-muted: #64748B;
+            --gold: #FCD34D;
+        }
+        
+        body { margin:0; background: var(--bg-surface); font-family: 'Inter', sans-serif; color: var(--text-main); }
+
+        /* HEADER PUTIH BERSIH */
+        .header { 
+            padding: 30px 20px 20px; 
+            background: white; 
+            border-bottom: 1px solid #E2E8F0;
+            text-align: center; 
+            position: sticky; top: 0; z-index: 10; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+        }
+        .title { font-family: 'Space Grotesk'; font-size: 20px; font-weight: 900; color: var(--royal-blue); margin: 0; text-transform: uppercase; letter-spacing: 0.5px; }
+        .subtitle { font-size: 11px; color: var(--text-muted); font-weight: 600; margin-top: 5px; text-transform: uppercase; letter-spacing: 1px;}
+
+        /* KARTU TOTAL HADIR (GRADASI BIRU) */
+        .stat-card {
+            margin: 20px; padding: 25px 20px; border-radius: 20px;
+            background: linear-gradient(135deg, var(--royal-blue) 0%, var(--electric-blue) 100%);
+            color: white; text-align: center; 
+            box-shadow: 0 10px 25px rgba(10, 34, 89, 0.15);
+        }
+        .stat-num { font-family: 'Space Grotesk'; font-size: 48px; font-weight: 900; line-height: 1; margin-bottom: 5px;}
+        .stat-label { font-size: 11px; font-weight: 700; opacity: 0.8; letter-spacing: 1px; text-transform: uppercase; }
+
+        /* LIST PESERTA */
+        .list-container { padding: 0 20px 100px; }
+        .list-label { font-size: 12px; font-weight: 800; color: var(--text-muted); margin-bottom: 10px; display: block; }
+        
+        .attendee-card {
+            background: white; border-radius: 16px; padding: 15px; margin-bottom: 10px;
+            display: flex; align-items: center; justify-content: space-between;
+            border: 1px solid #E2E8F0; /* Border tipis rapi */
+            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+        }
+        
+        .att-left { display: flex; align-items: center; gap: 12px; }
+        
+        /* Ikon Inisial Kotak Biru Muda */
+        .att-icon { 
+            width: 42px; height: 42px; 
+            background: #E0F2FE; /* Biru sangat muda */
+            border-radius: 12px; 
+            display: flex; align-items: center; justify-content: center; 
+            font-family: 'Space Grotesk'; font-size: 18px; font-weight: 900; 
+            color: var(--electric-blue); 
+        }
+        
+        .att-info h4 { margin: 0; font-family: 'Space Grotesk'; font-size: 14px; font-weight: 800; color: var(--royal-blue); }
+        .att-info p { margin: 3px 0 0; font-size: 10px; color: var(--text-muted); font-weight: 600; text-transform: uppercase;}
+        
+        /* Waktu Hadir */
+        .att-time { 
+            font-size: 12px; font-weight: 700; color: var(--text-main); 
+            background: #F1F5F9; padding: 6px 10px; border-radius: 8px;
+        }
+
+        .empty-state { text-align: center; color: var(--text-muted); margin-top: 50px; font-size: 13px; font-weight: 600;}
+        
+        /* Tombol Kembali Floating */
+        .btn-back { 
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); 
+            background: white; padding: 12px 30px; border-radius: 50px; 
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1); text-decoration: none; 
+            color: var(--royal-blue); font-weight: 800; font-size: 12px; 
+            border: 1px solid #E2E8F0; z-index: 99; 
+            display: flex; align-items: center; gap: 8px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1 class="title">DATA KEHADIRAN</h1>
+        <div class="subtitle" id="currentDate">...</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-num" id="totalCount">0</div>
+        <div class="stat-label">TOTAL HADIR</div>
+    </div>
+
+    <div class="list-container">
+        <span class="list-label">DAFTAR PESERTA</span>
+        <div id="listArea">
+            <div class="empty-state">
+                <i class="fas fa-spinner fa-spin"></i> Mengambil data...
+            </div>
+        </div>
+    </div>
+
+    <a href="dashboard.html" class="btn-back">
+        <i class="fas fa-arrow-left"></i> KEMBALI
+    </a>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, query, where, onSnapshot, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // CONFIG FIREBASE BAPAK
+        const firebaseConfig = { apiKey: "AIzaSyAk3G5aQUBVe_g7_peVu1F6xllP_RejGq0", authDomain: "rtomaka-e67b5.firebaseapp.com", projectId: "rtomaka-e67b5", storageBucket: "rtomaka-e67b5.firebasestorage.app", messagingSenderId: "472036722228", appId: "1:472036722228:web:11d520f9204db317d02c61" };
+        const app = initializeApp(firebaseConfig); const db = getFirestore(app);
+
+        // FORMAT TANGGAL (Harus sama persis dengan absen.html)
+        function getTodayDate() { const d = new Date(); return `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`; }
+
+        document.getElementById('currentDate').innerText = new Date().toLocaleDateString('id-ID', {weekday:'long', day:'numeric', month:'long', year:'numeric'}).toUpperCase();
+
+        // LOAD DATA
+        const q = query(
+            collection(db, "absensi_kopdar"), 
+            where("tanggal", "==", getTodayDate()),
+            orderBy("timestamp", "desc")
+        );
+
+        onSnapshot(q, (snapshot) => {
+            const listArea = document.getElementById('listArea');
+            const totalEl = document.getElementById('totalCount');
+            
+            totalEl.innerText = snapshot.size; // Update angka total
+            listArea.innerHTML = ""; // Reset list
+
+            if (snapshot.empty) {
+                listArea.innerHTML = '<div class="empty-state">Belum ada data masuk.</div>';
+                return;
+            }
+
+            snapshot.forEach((doc) => {
+                const d = doc.data();
+                const inisial = d.nama ? d.nama.charAt(0).toUpperCase() : "?";
+                
+                const html = `
+                <div class="attendee-card">
+                    <div class="att-left">
+                        <div class="att-icon">${inisial}</div>
+                        <div class="att-info">
+                            <h4>${d.nama}</h4>
+                            <p>${d.plat} • <span style="color:var(--electric-blue);">${d.role}</span></p>
+                        </div>
+                    </div>
+                    <div class="att-time">${d.waktu}</div>
+                </div>`;
+                listArea.innerHTML += html;
+            });
+        });
+    </script>
+</body>
+</html>
