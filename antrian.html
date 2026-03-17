@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>MLU GOLDEN THUNDER HUD - NO CROWN</title>
-        <link rel="manifest" href="manifest.json?v=3">
+    <link rel="manifest" href="manifest.json?v=3">
     <meta name="theme-color" content="#D8A22E">
     <link rel="apple-touch-icon" href="icon-v2-192.png">
 
@@ -23,6 +23,7 @@
             --silver-text: #94A3B8;
             --white: #ffffff;
             --danger: #ff003c;
+            --danger-glow: rgba(255, 0, 60, 0.6);
         }
 
         html, body {
@@ -46,6 +47,44 @@
         .t-box { background: rgba(216, 162, 46, 0.05); border: 1px solid var(--gold-dim); padding: 4px 10px; border-radius: 2px; border-left: 3px solid var(--gold); }
         .t-lbl { font-size: 9px; color: var(--silver-text); font-weight: 700; margin-bottom: 2px; text-transform: uppercase;}
         .t-val { font-family: 'Rajdhani'; font-size: 16px; font-weight: 900; color: #fff; }
+
+        /* === SYSTEM WARNING BANNER (NEW) === */
+        .sys-warning-banner {
+            margin: 15px 20px 0;
+            background: rgba(255, 0, 60, 0.1);
+            border: 1px solid var(--danger);
+            border-left: 4px solid var(--danger);
+            padding: 12px 15px;
+            position: relative;
+            z-index: 25;
+            box-shadow: 0 0 15px var(--danger-glow);
+            animation: pulseWarning 2s infinite;
+        }
+        .sys-warn-title {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 16px;
+            font-weight: 900;
+            color: var(--danger);
+            letter-spacing: 2px;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-shadow: 0 0 8px var(--danger-glow);
+        }
+        .sys-warn-text {
+            font-family: 'Inter', sans-serif;
+            font-size: 11px;
+            font-weight: 700;
+            line-height: 1.5;
+            color: #E2E8F0;
+            text-align: center;
+        }
+        @keyframes pulseWarning {
+            0%, 100% { box-shadow: 0 0 10px rgba(255, 0, 60, 0.2); }
+            50% { box-shadow: 0 0 20px rgba(255, 0, 60, 0.6); }
+        }
 
         /* --- THE BIG LOGO & THUNDER REVEAL --- */
         .logo-projection-area { 
@@ -175,8 +214,8 @@
         .tech-line-wrap:nth-child(n+2) .tech-data { transition-delay: 0.3s; }
 
         /* --- STATE IDLE & ACTIVE --- */
-        body.state-idle .logo-projection-area { transform: translateY(12vh) scale(2.4); margin-bottom: 0px; }
-        body.state-idle .hud-stats-wrapper { transform: translateY(22vh); opacity: 0.9; }
+        body.state-idle .logo-projection-area { transform: translateY(8vh) scale(2.2); margin-bottom: 0px; }
+        body.state-idle .hud-stats-wrapper { transform: translateY(15vh); opacity: 0.9; }
         body.state-idle .circuit-container { opacity: 0; max-height: 0; overflow: hidden; margin-top: 0; padding: 0; pointer-events: none; }
         
         body.state-active .logo-projection-area { transform: translateY(0) scale(1); margin-bottom: 10px; }
@@ -255,9 +294,16 @@
         <div class="sys-sub"> RUMAH MAKA LINTAS UTARA</div>
         
         <div class="timers">
-            <div class="t-box"><div class="t-lbl">IMSAK</div><div class="t-val" id="t-imsak">--:--</div></div>
-            <div class="t-box"><div class="t-lbl">LEBARAN</div><div class="t-val" id="t-lebaran" style="color:var(--gold)">-- HR</div></div>
-            <div class="t-box"><div class="t-lbl">BUKA</div><div class="t-val" id="t-buka">--:--</div></div>
+            <div class="t-box"><div class="t-lbl">TGL SEKARANG</div><div class="t-val" id="t-now" style="color:var(--gold)">--</div></div>
+        </div>
+    </div>
+
+    <div class="sys-warning-banner">
+        <div class="sys-warn-title">
+            <i class="fa-solid fa-triangle-exclamation fa-fade"></i> SYSTEM WARNING
+        </div>
+        <div class="sys-warn-text">
+            TGL 18 - 24 BATAS CHARGING MAKSIMAL HANYA 95%. DILARANG SAMPAI 100% ATAU BIRU. BAGI YG MEMBUAT FC EROR AKAN DIKENAKAN DENDA RP. 100.000
         </div>
     </div>
 
@@ -344,14 +390,13 @@
             }, 30);
         }
 
-        // --- TIMERS ---
+        // --- TIMERS PENGGANTI (Tanggal) ---
         function updateTimers() {
-            const now = new Date(); const lDate = new Date('2026-03-20T00:00:00'); let dDays = Math.ceil((lDate - now) / 86400000); document.getElementById('t-lebaran').innerText = `${dDays > 0 ? dDays : 0} HR`;
-            let tImsak = new Date(now); tImsak.setHours(4, 30, 0); let tBuka = new Date(now); tBuka.setHours(18, 10, 0);
-            if (now > tImsak) tImsak.setDate(tImsak.getDate() + 1); if (now > tBuka) tBuka.setDate(tBuka.getDate() + 1);
-            const fDiff = (t) => { let d = t - now; let h = Math.floor(d / 3600000); let m = Math.floor((d % 3600000) / 60000); return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`; };
-            document.getElementById('t-imsak').innerText = fDiff(tImsak); document.getElementById('t-buka').innerText = fDiff(tBuka);
-        } setInterval(updateTimers, 60000); updateTimers();
+            const now = new Date(); 
+            const dStr = now.toLocaleDateString('id-ID', { day: '2-digit', month: 'short' });
+            document.getElementById('t-now').innerText = dStr.toUpperCase(); 
+        } 
+        setInterval(updateTimers, 60000); updateTimers();
 
         // --- SISTEM AUTO REVERT KE HOME 1 MENIT ---
         function startAutoRevertTimer() {
@@ -522,13 +567,5 @@
         document.getElementById('inpPlat').addEventListener('input', function() { let v=this.value.toUpperCase().replace(/[^A-Z0-9]/g, ''); let m=v.match(/^([A-Z]{1,2})(\d{0,4})([A-Z]*)$/); this.value=m?`${m[1]}${m[2]?' '+m[2]:''}${m[3]?' '+m[3]:''}`:v; });
         document.getElementById('inpBatre').addEventListener('input', function() { let v=this.value.replace(/[^0-9]/g, ''); if(parseInt(v)>100)v="100"; this.value=v; });
     </script>
-        <script>
-        if ('serviceWorker' in navigator) { 
-            window.addEventListener('load', () => { 
-                navigator.serviceWorker.register('sw.js'); 
-            }); 
-        }
-    </script>
-
 </body>
 </html>
