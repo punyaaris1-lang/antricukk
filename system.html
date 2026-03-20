@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>FC KELAPA GADING - SYSTEM PHANTOM FIXED</title>
+    
+    <link rel="manifest" href="manifest.json?v=3">
+    <meta name="theme-color" content="#D8A22E">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Teko:wght@300;500;700&family=Rajdhani:wght@500;600;700;800;900&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root { 
+            --bg-dark: #020202; 
+            --gold: #D8A22E;
+            --gold-glow: rgba(216, 162, 46, 0.7);
+            --gold-dim: rgba(216, 162, 46, 0.15);
+            --silver: #E2E8F0;
+            --silver-glow: rgba(226, 232, 240, 0.5);
+            --silver-dim: rgba(226, 232, 240, 0.2);
+            --silver-text: #94A3B8;
+            --white: #ffffff;
+            --accent: #ff003c;
+            --accent-glow: 0 0 15px rgba(255, 0, 60, 0.5);
+            --font-tech: 'Rajdhani', sans-serif;
+            --font-num: 'Teko', sans-serif;
+            --bg-pattern: linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                          linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; outline: none; }
+        
+        body { 
+            font-family: var(--font-tech); 
+            background-color: var(--bg-dark);
+            background-image: var(--bg-pattern);
+            background-size: 25px 25px;
+            color: #fff; margin: 0; padding: 15px 20px 100px 20px; 
+            min-height: 100vh; overflow-x: hidden;
+        }
+
+        /* --- ORNAMEN LEBARAN / KETUPAT --- */
+        .ramadan-ornaments {
+            position: absolute; width: 100%; height: 180px; top: 0; left: 0; 
+            z-index: 10; pointer-events: none; overflow: hidden;
+        }
+        
+        .hanging-item {
+            position: absolute; top: -10px; display: flex; flex-direction: column; 
+            align-items: center; transform-origin: top center; 
+            animation: swing 4s infinite ease-in-out alternate;
+        }
+
+        .hi-string { width: 2px; height: 40px; background: linear-gradient(180deg, transparent, var(--gold)); }
+        
+        .ketupat {
+            width: 30px; height: 30px;
+            background: rgba(216, 162, 46, 0.05);
+            border: 2px solid var(--gold);
+            transform: rotate(45deg);
+            margin-top: -5px;
+            position: relative;
+            box-shadow: 0 0 15px rgba(216, 162, 46, 0.3);
+            backdrop-filter: blur(2px);
+        }
+        
+        .ketupat::before { content: ''; position: absolute; top: 50%; left: 0; width: 100%; height: 2px; background: var(--gold); transform: translateY(-50%); }
+        .ketupat::after { content: ''; position: absolute; left: 50%; top: 0; height: 100%; width: 2px; background: var(--gold); transform: translateX(-50%); }
+
+        .pos-1 { left: 8%; animation-duration: 4.5s; } 
+        .pos-2 { right: 8%; animation-delay: -2s; animation-duration: 5s; } 
+        .pos-2 .hi-string { height: 70px; } 
+
+        @keyframes swing {
+            0% { transform: rotate(-10deg); }
+            100% { transform: rotate(10deg); }
+        }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.2; } }
+
+        /* --- THE PHANTOM EMBLEM (LOGO SAMPING) --- */
+        .watermark-logo {
+            position: fixed; right: -120px; top: 25%; width: 450px; 
+            opacity: 0.45; pointer-events: none; z-index: 0;
+            filter: drop-shadow(0 0 30px rgba(216, 162, 46, 0.6)); 
+            animation: floatSide 6s ease-in-out infinite alternate;
+        }
+        @keyframes floatSide {
+            from { transform: translateY(0) rotate(0deg); }
+            to { transform: translateY(-20px) rotate(2deg); }
+        }
+
+        /* --- HEADER --- */
+        .header { text-align: center; margin-bottom: 15px; margin-top: 15px; position: relative; z-index: 5; } 
+        .main-title { font-family: var(--font-tech); font-weight: 900; font-size: 38px; line-height: 0.9; color: var(--silver); text-shadow: 0 0 15px var(--silver-dim); letter-spacing: 2px; text-transform: uppercase; }
+        .sub-title { font-family: var(--font-tech); font-size: 14px; color: var(--gold); letter-spacing: 4px; font-weight: 800; text-transform: uppercase; margin-top: 10px; background: rgba(0,0,0,0.5); border:1px solid var(--gold); padding: 4px 15px; display: inline-block; box-shadow: 0 0 10px var(--gold-dim); backdrop-filter: blur(5px);}
+
+        /* --- INFO BAR SIMPLE (TANGGAL, JAM, STATUS) --- */
+        .simple-info-bar {
+            display: flex; justify-content: center; align-items: center; gap: 15px;
+            font-family: var(--font-tech); font-size: 16px; font-weight: 800;
+            color: var(--silver-text); letter-spacing: 1px; margin-bottom: 12px;
+            position: relative; z-index: 5;
+        }
+        .sib-item { display: flex; align-items: center; gap: 6px; }
+        .sib-val { color: #fff; }
+        .sib-status { color: #10B981; text-shadow: 0 0 8px rgba(16,185,129,0.5); }
+        .sib-status i { font-size: 8px; animation: blink 1s infinite; vertical-align: middle; margin-right: 3px;}
+
+        /* --- UCAPAN LEBARAN --- */
+        .eid-greeting { margin: 0 0 20px 0; text-align: center; position: relative; z-index: 5;}
+        .eid-title { font-family: var(--font-tech); font-size: 18px; font-weight: 900; color: var(--gold); letter-spacing: 2px; text-shadow: 0 0 10px var(--gold-glow); display: flex; align-items: center; justify-content: center; gap: 8px;}
+        .eid-sub { font-size: 10px; color: var(--white); font-weight: 600; letter-spacing: 1px; margin-top: 4px; text-transform: uppercase; opacity: 0.8; font-family: 'Inter', sans-serif;}
+
+        /* === PENGUMUMAN DARURAT DENDA (CYBERPUNK THEME) === */
+        .alert-banner-phantom {
+            background: linear-gradient(135deg, rgba(255, 0, 60, 0.2) 0%, rgba(20, 0, 5, 0.9) 100%);
+            border: 1px solid var(--accent);
+            border-left: 5px solid var(--accent);
+            padding: 15px;
+            margin-bottom: 25px;
+            box-shadow: var(--accent-glow);
+            position: relative;
+            z-index: 5;
+            animation: pulseAlertPhantom 2s infinite;
+        }
+        .abp-title {
+            font-family: var(--font-tech);
+            font-size: 18px;
+            font-weight: 900;
+            color: var(--accent);
+            letter-spacing: 2px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-transform: uppercase;
+        }
+        .abp-text {
+            font-family: 'Inter', sans-serif;
+            font-size: 12px;
+            font-weight: 700;
+            line-height: 1.5;
+            color: #E2E8F0;
+        }
+        @keyframes pulseAlertPhantom {
+            0% { box-shadow: 0 0 10px rgba(255, 0, 60, 0.3); }
+            50% { box-shadow: 0 0 25px rgba(255, 0, 60, 0.7); }
+            100% { box-shadow: 0 0 10px rgba(255, 0, 60, 0.3); }
+        }
+
+        /* --- QUEUE BAR (GLASS) --- */
+        .queue-bar-wrapper { width: 100%; margin-bottom: 20px; position: relative; z-index: 5; }
+        .queue-bar { background: rgba(10, 15, 30, 0.25); backdrop-filter: blur(5px); clip-path: polygon(0 0, 100% 0, 95% 100%, 0% 100%); border-left: 6px solid var(--gold); padding: 15px 20px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 0 15px var(--gold-dim); border-top: 1px solid rgba(226, 232, 240, 0.2); border-bottom: 1px solid rgba(226, 232, 240, 0.2); }
+        .qb-lbl { font-size: 12px; color: var(--silver-text); letter-spacing: 2px; text-transform: uppercase; font-weight: 800; font-family: var(--font-tech);}
+        .qb-val { font-family: var(--font-tech); font-weight:800; font-size: 24px; color: #fff; text-shadow: 0 0 10px rgba(255,255,255,0.5); text-transform: uppercase; }
+        .qb-tot { font-family: var(--font-tech); font-weight: 800; font-size: 42px; line-height: 0.8; color: var(--gold); text-shadow: 0 0 15px var(--gold-glow); }
+
+        /* --- SLOT CONTAINER & CARDS (GLASS FIXED LAYOUT) --- */
+        .slot-container { display: flex; flex-direction: column; gap: 12px; width: 100%; position: relative; z-index: 5; }
+        .armor-card { width: 100%; min-height: 95px; position: relative; background: rgba(10, 15, 30, 0.25); backdrop-filter: blur(5px); clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px); margin-bottom: 2px; cursor: pointer; }
+        .armor-card::before { content: ''; position: absolute; inset: 0; box-shadow: inset 0 0 0 1px rgba(226, 232, 240, 0.3); pointer-events: none; z-index: 1; clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px); }
+        
+        .armor-card.active { background: rgba(216, 162, 46, 0.1); box-shadow: inset 0 0 20px var(--gold-dim); }
+        .armor-card.active::before { box-shadow: inset 0 0 0 2px var(--gold); filter: drop-shadow(0 0 8px var(--gold-glow)); }
+
+        .armor-inner { display: flex; align-items: stretch; height: 100%; width: 100%; position: relative; z-index: 2; }
+        
+        .armor-num { width: 50px; display: flex; align-items: center; justify-content: center; font-family: var(--font-tech); font-weight: 800; font-size: 32px; color: var(--silver-text); background: rgba(0,0,0,0.4); border-right: 1px solid rgba(226, 232, 240, 0.1); flex-shrink: 0; }
+        .armor-card.active .armor-num { color: var(--gold); text-shadow: 0 0 10px var(--gold-glow); border-right: 1px solid var(--gold); background: rgba(216, 162, 46, 0.15); }
+        
+        .armor-content { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 12px 15px; min-width: 0; gap: 5px;}
+        
+        .ac-top { display: flex; justify-content: space-between; align-items: center; }
+        .info-name { font-family: var(--font-tech); font-weight: 800; font-size: 14px; color: var(--silver); text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: 1px;}
+        .armor-card.active .info-name { color: var(--gold); text-shadow: 0 0 8px var(--gold-glow); }
+        .armor-badge { display: flex; justify-content: flex-end; }
+
+        .ac-bot { display: flex; justify-content: space-between; align-items: flex-end; }
+        .info-plat { font-family: var(--font-num); font-size: 34px; line-height: 0.8; color: #fff; letter-spacing: 1px; white-space: nowrap; text-shadow: 0 0 10px rgba(0,0,0,0.8); margin-top: 4px; } 
+        .armor-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+        
+        /* BADGE SYSTEM */
+        .tactical-badge { display: inline-flex; align-items: center; height: 26px; background: rgba(0,0,0,0.8); border: 1px solid var(--gold); clip-path: polygon(8px 0, 100% 0, 100% 100%, 0 100%, 0 8px); }
+        .tb-icon { width: 24px; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #000; clip-path: polygon(0 0, 100% 0, 75% 100%, 0 100%); margin-right: -2px; z-index: 2; position: relative; }
+        .tb-text { display: flex; flex-direction: column; justify-content: center; padding: 0 8px 0 4px; text-align: left; z-index: 1; }
+        .tb-label { font-size: 7px; font-weight: 700; letter-spacing: 1px; color: #aaa; text-transform: uppercase; font-family: var(--font-tech); line-height: 1; margin-bottom: 2px;}
+        .tb-role { font-size: 10px; font-weight: 800; text-transform: uppercase; line-height: 1;}
+
+        .b-platinum { border-color: #E5E4E2; } .b-platinum .tb-icon { background: linear-gradient(135deg, #E5E4E2, #708090); } .b-platinum .tb-role { color: #E5E4E2; }
+        .b-gold { border-color: #FFD700; } .b-gold .tb-icon { background: linear-gradient(135deg, #FFD700, #B8860B); } .b-gold .tb-role { color: #FFD700; } 
+        .b-cyan { border-color: #E2E8F0; } .b-cyan .tb-icon { background: linear-gradient(135deg, #E2E8F0, #94A3B8); } .b-cyan .tb-role { color: #E2E8F0; }
+        .b-family { border-color: #fff; } .b-family .tb-icon { background: linear-gradient(135deg, #ffffff 0%, #bdc3c7 100%); color: #D80027; } .b-family .tb-role { color: #fff; }
+        .b-ninja { border-color: #333; background: #000; } .b-ninja .tb-icon { background: #111; color: #ccc; border-right: 1px solid #333; } .b-ninja .tb-role { color: #aaa; }
+        
+        .mini-timer { font-size: 11px; color: #ccc; font-family: var(--font-tech); font-weight: 700; letter-spacing: 1px; background:rgba(0,0,0,0.5); padding:3px 8px; border-radius:4px; display:flex; align-items:center; gap: 6px;}
+        .mini-batre { color: var(--silver); font-size: 13px; font-family: var(--font-tech); font-weight:900; }
+
+        .btn-kudeta { background: rgba(255,0,0,0.3); border: 1px solid var(--accent); color: var(--accent); font-size: 10px; padding: 4px 12px; font-weight: 900; transform: skewX(-10deg); letter-spacing: 1px; box-shadow: var(--accent-glow); animation: blinkKudeta 0.5s infinite; cursor: pointer; z-index: 10;}
+        @keyframes blinkKudeta { 0%, 100% { opacity: 1; box-shadow: 0 0 20px #ff0000; } 50% { opacity: 0.6; box-shadow: 0 0 5px #ff0000; } }
+
+        .btn-pilih-slot { width: 100px; padding: 6px 0; background: var(--gold); color: #000; border: none; border-radius: 3px; font-family: var(--font-tech); font-weight: 900; font-size: 14px; cursor: pointer; box-shadow: 0 0 10px rgba(216,162,46,0.5); }
+        .badge-antrian { font-size: 10px; color: var(--silver-text); font-weight: bold; font-family: var(--font-tech); letter-spacing: 1px; background: rgba(0,0,0,0.5); padding: 4px 10px; border-radius: 4px; }
+        .badge-locked { font-size: 10px; color: #444; font-family: var(--font-tech); letter-spacing: 1px; font-weight: bold;}
+
+        /* --- COPYRIGHT FOOTER (BARU) --- */
+        .copyright-wrap {
+            text-align: center; margin-top: 30px; margin-bottom: 20px;
+            display: flex; flex-direction: column; gap: 4px; text-transform: uppercase;
+            position: relative; z-index: 5;
+        }
+        .cr-1 { font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 500; color: #ffffff; letter-spacing: 3px; text-shadow: 0 0 10px rgba(255, 255, 255, 0.5); }
+        .cr-2 { font-family: var(--font-tech); font-size: 16px; font-weight: 900; color: #ffffff; letter-spacing: 5px; text-shadow: 0 0 15px rgba(255, 255, 255, 0.8); }
+
+        /* --- BUTTON BAWAH --- */
+        .bottom-action { position: fixed; bottom: 0; left: 0; width: 100%; padding: 15px 20px 20px; background: linear-gradient(to top, rgba(2,2,2,1) 85%, transparent); z-index: 50; display: flex; flex-direction: column; align-items: center;}
+        .btn-cancel { width: 100%; padding: 18px; background: rgba(255,0,60,0.1); border: 1px solid var(--accent); color: var(--accent); font-family: var(--font-tech); font-size: 20px; font-weight: 900; letter-spacing: 2px; clip-path: polygon(10px 0, 100% 0, 100% 100%, 0 100%, 0 10px); box-shadow: var(--accent-glow); text-align: center; cursor: pointer; display: none; transition: 0.2s;}
+        .btn-cancel:active { background: var(--accent); color:#000; transform: scale(0.98); }
+        .reset-text { font-family: 'Inter', sans-serif; font-size: 11px; color: var(--silver-text); margin-top: 12px; cursor: pointer; text-decoration: underline; letter-spacing: 1px; padding: 5px; }
+
+        /* --- MODAL UI CUSTOM CYBERPUNK --- */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 99999; display: none; align-items: center; justify-content: center; backdrop-filter: blur(10px); }
+        .modal-box { width: 90%; max-width: 380px; background: rgba(5,10,21,0.95); border: 1px solid var(--gold); clip-path: polygon(20px 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%, 0 20px); padding: 30px; text-align: center; position: relative; box-shadow: 0 0 20px var(--gold-dim); animation: zoomIn 0.2s ease-out;}
+        @keyframes zoomIn { from{transform:scale(0.9);opacity:0} to{transform:scale(1);opacity:1} }
+        .modal-title { font-family: var(--font-tech); font-weight: 800; color: var(--gold); font-size: 24px; margin-bottom: 15px; letter-spacing: 1px; text-shadow: 0 0 10px var(--gold-glow);}
+        .modal-msg { font-family: var(--font-tech); color: #ccc; font-size: 18px; margin-bottom: 25px; line-height: 1.4; }
+        .modal-btns { display: flex; gap: 15px; justify-content: center; }
+        .btn-modal { flex: 1; padding: 12px; font-family: var(--font-tech); font-size: 18px; border: none; cursor: pointer; font-weight: bold; letter-spacing: 1px; clip-path: polygon(10px 0, 100% 0, 100% 100%, 0 100%, 0 10px); }
+        .btn-yes { background: var(--gold); color: #000; box-shadow: 0 0 15px var(--gold-glow);}
+        .btn-no { background: transparent; color: var(--accent); border: 1px solid var(--accent); box-shadow: var(--accent-glow);}
+        .inp-prompt { width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid #444; color: #fff; font-family: var(--font-tech); font-size: 20px; font-weight: 700; margin-bottom: 20px; text-align: center;}
+        .inp-prompt:focus { border-color: var(--gold); outline: none; }
+
+        /* --- QUEUE LIST MODAL --- */
+        .queue-list-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 80000; flex-direction: column; padding: 20px; backdrop-filter: blur(10px); align-items: center; justify-content: center; animation: zoomIn 0.2s;}
+        .ql-card { background: rgba(5,10,21,0.95); border: 1px solid var(--gold); width: 100%; max-width: 400px; margin: auto; overflow: hidden; display: flex; flex-direction: column; height: 70vh; box-shadow: 0 0 20px var(--gold-dim); position: relative; clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px); }
+        .ql-body { padding: 15px; flex: 1; overflow-y: auto; }
+        .ql-body::-webkit-scrollbar { width: 3px; } .ql-body::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.05); } .ql-body::-webkit-scrollbar-thumb { background: var(--gold); }
+        .btn-close-mini { width: 100%; padding: 15px; background: rgba(255,0,60,0.1); color: var(--accent); border: none; border-top: 1px solid var(--accent); font-family: var(--font-tech); font-size: 18px; font-weight: 800; letter-spacing: 2px; cursor: pointer; transition: 0.2s; box-shadow: var(--accent-glow); }
+        .btn-close-mini:active { background: var(--accent); color: #000; }
+
+        /* LOADING */
+        #loading-screen { position: fixed; inset: 0; background: #000; z-index: 100000; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s ease-out; }
+        .loader-spinner { width: 50px; height: 50px; border: 3px solid #111; border-top: 3px solid var(--gold); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; box-shadow: 0 0 20px var(--gold); }
+        .loader-text { font-family: var(--font-tech); font-weight:900; color: var(--gold); font-size: 16px; letter-spacing: 3px; animation: pulseText 1s infinite; }
+        @keyframes pulseText { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+    </style>
+</head>
+<body>
+
+    <div id="loading-screen">
+        <div class="loader-spinner"></div>
+        <div class="loader-text">MENYAMBUNGKAN...</div>
+    </div>
+
+    <div class="ramadan-ornaments">
+        <div class="hanging-item pos-1">
+            <div class="hi-string"></div>
+            <div class="ketupat"></div>
+        </div>
+        <div class="hanging-item pos-2">
+            <div class="hi-string"></div>
+            <div class="ketupat"></div>
+        </div>
+    </div>
+
+    <img src="logo.png" class="watermark-logo" alt="Watermark" onerror="this.style.display='none'">
+
+    <div id="customModal" class="modal-overlay">
+        <div class="modal-box">
+            <div id="modalTitle" class="modal-title">TITLE</div>
+            <div id="modalMsg" class="modal-msg">Message goes here...</div>
+            <input type="text" id="modalInput" class="inp-prompt" style="display:none;" autocomplete="off">
+            <div id="modalBtns" class="modal-btns"></div>
+        </div>
+    </div>
+
+    <div class="header" ondblclick="triggerAdminPrompt()">
+        <div class="main-title">FC KELAPA GADING</div>
+        <div class="sub-title">MAKA LINTAS UTARA</div>
+    </div>
+
+    <div class="simple-info-bar">
+        <div class="sib-item">
+            <span class="sib-val" id="t-date">--</span>
+        </div>
+        <div class="sib-item">
+            <span class="sib-val" id="t-clock">--:--</span>
+        </div>
+        <div class="sib-item sib-status">
+            <i class="fas fa-circle"></i> LIVE
+        </div>
+    </div>
+
+    <div class="eid-greeting">
+        <div class="eid-title"><i class="fas fa-moon"></i> SELAMAT IDUL FITRI <i class="fas fa-star"></i></div>
+        <div class="eid-sub">Mohon Maaf Lahir & Batin dari Pengurus MLU</div>
+    </div>
+
+    <div class="alert-banner-phantom">
+        <div class="abp-title"><i class="fa-solid fa-triangle-exclamation fa-fade"></i> PERHATIAN!</div>
+        <div class="abp-text">TGL 18 - 24 BATAS CHARGING MAKSIMAL HANYA 95%. DILARANG SAMPAI 100% ATAU BIRU. BAGI YG MEMBUAT FC EROR AKAN DIKENAKAN DENDA RP. 100.000</div>
+    </div>
+
+    <div class="queue-bar-wrapper" onclick="openQueueList()">
+        <div class="queue-bar">
+            <div class="qb-left">
+                <span class="qb-lbl">ANTRIAN BERIKUTNYA</span>
+                <div class="qb-val" id="nextQDisplay">--</div>
+            </div>
+            <div class="qb-right">
+                <div class="qb-tot" id="totalQDisplay">0</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="slot-container" id="slotsContainer"></div>
+
+    <div class="copyright-wrap">
+        <div class="cr-1">© Divisi Komunikasi Digital</div>
+        <div class="cr-2">MAKA LINTAS UTARA</div>
+    </div>
+
+    <div class="bottom-action">
+        <button id="btnCancelQ" class="btn-cancel" onclick="cancelQueue()">❌ BATAL ANTRIAN</button>
+        <div class="reset-text" onclick="resetApp()">Hapus Sesi / Reset Aplikasi</div>
+    </div>
+
+    <div id="queueListModal" class="queue-list-modal">
+        <div class="ql-card">
+            <div style="padding:15px; text-align:center; border-bottom:1px dashed rgba(216,162,46,0.3); font-family:var(--font-tech); font-weight:800; font-size:24px; color:var(--gold); letter-spacing:1px; text-shadow:0 0 10px var(--gold-glow);">DAFTAR TUNGGU</div>
+            <div id="qlBody" class="ql-body"></div>
+            <button class="btn-close-mini" onclick="closeModal('queueListModal')">TUTUP</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, doc, onSnapshot, runTransaction, collection, addDoc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // === KONFIGURASI FIREBASE ===
+        const firebaseConfig = { apiKey: "AIzaSyB666i9lYWIpxOdkwpoX9EvFvHLmHczeq8", authDomain: "fcgadingnew22.firebaseapp.com", projectId: "fcgadingnew22", storageBucket: "fcgadingnew22.firebasestorage.app", messagingSenderId: "537736846678", appId: "1:537736846678:web:53788d71a196423ac08af7" };
+        const STATION_LAT = -6.171583; const STATION_LNG = 106.899844; const MAX_DIST_KM = 0.2; 
+        
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const mainRef = doc(db, "antrian", "utama");
+        const historyRef = collection(db, "riwayatCharging");
+        const logRef = collection(db, "activityLog");
+
+        const $ = (id) => document.getElementById(id);
+        let localSlots = [null, null, null]; let localQueue = []; 
+
+        // Fungsi Pembersih
+        function cleanStr(s) { return s ? s.replace(/[^A-Z0-9]/gi, '').toUpperCase() : ''; }
+        function cleanName(n) { return n ? n.replace(/👑/g, '').trim() : ''; } // Anti Mahkota
+        function escapeHtml(text) { if (!text) return ""; return text.replace(/&/g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); }
+        function calculateDist(lat1, lon1, lat2, lon2) { const R = 6371; const dLat = (lat2-lat1)*Math.PI/180; const dLon = (lon2-lon1)*Math.PI/180; const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2; return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); }
+        function addUserLog(action, details) { addDoc(logRef, { actor: myPlat || "GUEST", action: action, details: details, timestamp: new Date() }).catch(e=>{}); }
+
+        // --- SISTEM UI MODAL CUSTOM ---
+        window.closeCustomModal = () => { $('customModal').style.display = 'none'; $('modalInput').style.display = 'none'; $('modalInput').value = ''; };
+
+        window.showAlert = (msg, title="INFO", callback=null) => {
+            $('modalTitle').innerText = title; $('modalTitle').style.color = "var(--gold)"; $('modalTitle').style.textShadow = "0 0 10px var(--gold-glow)";
+            $('modalMsg').innerHTML = msg;
+            $('modalBtns').innerHTML = `<button class="btn-modal btn-yes" id="btnOkAlert">OK</button>`;
+            $('btnOkAlert').onclick = () => { closeCustomModal(); if(callback) callback(); };
+            $('customModal').style.display = 'flex';
+        };
+
+        window.showConfirm = (msg, callback, title="KONFIRMASI") => {
+            $('modalTitle').innerText = title; $('modalTitle').style.color = "var(--gold)"; $('modalTitle').style.textShadow = "0 0 10px var(--gold-glow)";
+            $('modalMsg').innerHTML = msg;
+            $('modalBtns').innerHTML = `<button class="btn-modal btn-no" onclick="closeCustomModal()">BATAL</button><button class="btn-modal btn-yes" id="btnYesConfirm">YA</button>`;
+            $('btnYesConfirm').onclick = () => { closeCustomModal(); callback(); };
+            $('customModal').style.display = 'flex';
+        };
+
+        window.showPrompt = (msg, callback, title="INPUT DIBUTUHKAN") => {
+            $('modalTitle').innerText = title; $('modalTitle').style.color = "var(--gold)"; $('modalTitle').style.textShadow = "0 0 10px var(--gold-glow)";
+            $('modalMsg').innerHTML = msg;
+            const inp = $('modalInput'); inp.style.display = 'block'; setTimeout(()=>inp.focus(), 100);
+            $('modalBtns').innerHTML = `<button class="btn-modal btn-no" onclick="closeCustomModal()">BATAL</button><button class="btn-modal btn-yes" id="btnYesPrompt">SUBMIT</button>`;
+            $('btnYesPrompt').onclick = () => { const val = inp.value; closeCustomModal(); callback(val); };
+            $('customModal').style.display = 'flex';
+        };
+
+        window.closeModal = (id) => { $(id).style.display = 'none'; };
+
+        // --- TIMERS ---
+        function updateTimers() {
+            const now = new Date(); 
+            const dStr = now.toLocaleDateString('id-ID', { day: '2-digit', month: 'short' });
+            const dateEl = document.getElementById('t-date');
+            if(dateEl) dateEl.innerText = dStr.toUpperCase(); 
+            
+            const hStr = String(now.getHours()).padStart(2, '0');
+            const mStr = String(now.getMinutes()).padStart(2, '0');
+            const clockEl = document.getElementById('t-clock');
+            if(clockEl) clockEl.innerText = `${hStr}:${mStr}`;
+        } 
+        setInterval(updateTimers, 1000); updateTimers();
+
+        // --- GATEKEEPER & GPS WATCHER ---
+        const myPlat = localStorage.getItem('myPlat');
+        const isSuperAdmin = localStorage.getItem('sa_sess');
+
+        if(!myPlat && !isSuperAdmin) {
+            window.location.href = 'antrian.html';
+        } else {
+            setTimeout(() => { const ls = $('loading-screen'); if(ls) { ls.style.opacity = '0'; setTimeout(()=> ls.style.display = 'none', 500); } }, 1000);
+            
+            const AUTO_KICK_KM = 0.3;
+            if(navigator.geolocation && !isSuperAdmin) {
+                navigator.geolocation.watchPosition((pos) => {
+                    const dist = calculateDist(STATION_LAT, STATION_LNG, pos.coords.latitude, pos.coords.longitude);
+                    if(dist > AUTO_KICK_KM) { 
+                        showAlert(`Anda telah keluar radius (${(dist).toFixed(2)} KM). Sesi diakhiri otomatis.`, "PERINGATAN GPS", () => {
+                            localStorage.removeItem('myPlat'); window.location.href = 'antrian.html';
+                        }); 
+                    }
+                }, (err) => console.log(err), {enableHighAccuracy: true, maximumAge: 10000});
+            }
+        }
+
+        // --- ADMIN BYPASS ---
+        window.triggerAdminPrompt = () => {
+            showPrompt("MASUKKAN KODE AKSES:", (pass) => {
+                if(pass === "2505") { window.location.href = "admin.html"; } 
+                else if (pass === "090815") { 
+                    if(localStorage.getItem('sa_sess')) { localStorage.removeItem('sa_sess'); showAlert("GOD MODE MATI."); } 
+                    else { localStorage.setItem('sa_sess', '1'); showAlert("GOD MODE AKTIF (Bypass GPS)."); } 
+                    setTimeout(() => location.reload(), 1500); 
+                }
+                else if (pass) { showAlert("KODE SALAH!", "AKSES DITOLAK"); }
+            }, "SYSTEM OVERRIDE");
+        };
+
+        // --- REALTIME LISTENER (UPDATE UI) ---
+        onSnapshot(mainRef, (snap) => {
+            if (!snap.exists()) return; 
+            const d = snap.data(); localSlots = d.chargingSlots || [null, null, null]; localQueue = d.waitingQueue || []; 
+            updateUI();
+        });
+
+        function updateUI() {
+            const container = $('slotsContainer'); container.innerHTML = ''; let myQIndex = -1;
+            if (myPlat && localQueue.length > 0) { myQIndex = localQueue.findIndex(q => cleanStr(q.plat) === cleanStr(myPlat)); }
+            
+            const btnCancel = $('btnCancelQ'); 
+            if(myQIndex > -1) { btnCancel.style.display = 'block'; btnCancel.innerHTML = `❌ BATAL ANTRIAN (URUTAN #${myQIndex+1})`; } else { btnCancel.style.display = 'none'; }
+
+            localSlots.forEach((s, i) => {
+                const isActive = s !== null; const div = document.createElement('div'); div.className = `armor-card ${isActive ? 'active' : ''}`;
+                
+                if (isActive) {
+                    const role = s.role ? s.role.toUpperCase() : "GUEST"; 
+                    const isMe = (cleanStr(s.plat) === cleanStr(myPlat)); 
+                    let kudetaHTML = '', timerHTML = '';
+                    const durationMs = Date.now() - (s.startTime || Date.now()); const durationMin = Math.floor(durationMs / 60000);
+                    
+                    let batVal = s.batreSisa || (s.batre ? s.batre.replace('%','') : null) || (s.battery ? s.battery.replace('%','') : "-");
+                    let safeName = cleanName(s.userName); // Pembersih Mahkota 👑
+                    
+                    if(isMe) timerHTML = `<div class="mini-timer" style="color:var(--gold)"><span class="mini-batre"><i class="fas fa-bolt"></i> ${batVal}%</span> | ${durationMin} MIN (ANDA)</div>`; 
+                    else {
+                        timerHTML = `<div class="mini-timer"><span class="mini-batre"><i class="fas fa-bolt"></i> ${batVal}%</span> | ${durationMin} MIN</div>`; 
+                        if (myQIndex === 0 && durationMin >= 20) { kudetaHTML = `<button class="btn-kudeta" onclick="event.stopPropagation(); window.userTriggerKudeta(${i}, '${escapeHtml(s.plat)}')">⚡ KUDETA</button>`; } 
+                        else if (myQIndex === 1 && durationMin >= 25) { kudetaHTML = `<button class="btn-kudeta" onclick="event.stopPropagation(); window.userTriggerKudeta(${i}, '${escapeHtml(s.plat)}')">⚡ KUDETA</button>`; }
+                    }
+                    
+                    div.innerHTML = `
+                        <div class="armor-inner">
+                            <div class="armor-num">${i+1}</div>
+                            <div class="armor-content">
+                                <div class="ac-top">
+                                    <div class="info-name">${escapeHtml(safeName)}</div>
+                                    <div class="armor-badge">${getBadgeHTML(role)}</div>
+                                </div>
+                                <div class="ac-bot">
+                                    <div class="info-plat">${s.plat}</div>
+                                    <div class="armor-actions">
+                                        ${timerHTML}
+                                        ${kudetaHTML}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>`;
+                    if(isMe) { div.onclick = () => showConfirm("Apakah Anda sudah selesai Charging dan ingin mengosongkan slot?", () => stopCharging(i), "SELESAI CHARGING?"); }
+                } else {
+                    let btnHTML = ''; 
+                    if (localQueue.length === 0 || myQIndex === 0) btnHTML = `<button class="btn-pilih-slot" onclick="window.selectSlot(${i})">PILIH SLOT</button>`; 
+                    else if (myQIndex > 0) btnHTML = `<div class="badge-antrian">ANTRIAN ${myQIndex + 1}</div>`; 
+                    else btnHTML = `<div class="badge-locked">LOCKED</div>`;
+                    
+                    div.innerHTML = `
+                        <div class="armor-inner">
+                            <div class="armor-num" style="color:rgba(255,255,255,0.2); border-color:rgba(255,255,255,0.2)">${i+1}</div>
+                            <div class="armor-content">
+                                <div class="ac-top">
+                                    <div class="info-name" style="color:#666;">TERSEDIA</div>
+                                </div>
+                                <div class="ac-bot">
+                                    <div class="info-plat" style="color:#444; letter-spacing:3px;">OPEN</div>
+                                    <div class="armor-actions">${btnHTML}</div>
+                                </div>
+                            </div>
+                        </div>`;
+                }
+                container.appendChild(div);
+            });
+            $('totalQDisplay').innerText = localQueue.length; 
+            $('nextQDisplay').innerText = localQueue.length > 0 ? escapeHtml(cleanName(localQueue[0].userName)) : "--";
+        }
+
+        function getBadgeHTML(r) {
+            if (!r || r === "GUEST") return ""; 
+            if (r.includes("SENYAP") || r.includes("NINJA")) return `<div class="tactical-badge b-ninja"><div class="tb-icon"><i class="fas fa-user-ninja"></i></div><div class="tb-text"><div class="tb-role" style="font-size:8px;">PASUKAN SENYAP</div></div></div>`;
+            if (r.includes("KELUARGA") || r === "MEMBER") return `<div class="tactical-badge b-family"><div class="tb-icon"><i class="fas fa-heart"></i></div><div class="tb-text"><div class="tb-role">KELUARGA MLU</div></div></div>`;
+            let css = "b-cyan"; let icon = "fa-user"; let label = "MEMBER"; let roleTxt = r;
+            if (r.includes("PEMBINA")) { css="b-platinum"; icon="fa-star"; label="SENIOR"; roleTxt="PEMBINA"; }
+            else if (r.includes("WAKETUM")) { css="b-gold"; icon="fa-chess-king"; label="CO-LEAD"; roleTxt="WAKETUM"; } 
+            else if (r.includes("KETUM")) { css="b-gold"; icon="fa-crown"; label="LEADER"; roleTxt="KETUM"; }
+            else if (r.includes("VIP")) { css="b-vip"; icon="fa-gem"; label="GUEST"; roleTxt="VIP"; }
+            else if (r.includes("DONATUR")) { css="b-gold"; icon="fa-hand-holding-usd"; label="SPONSOR"; roleTxt="DONATUR"; }
+            return `<div class="tactical-badge ${css}"><div class="tb-icon"><i class="fas ${icon}"></i></div><div class="tb-text">${label ? `<div class="tb-label">${label}</div>` : ''}<div class="tb-role">${roleTxt}</div></div></div>`;
+        }
+
+        window.selectSlot = async (i) => { 
+            showConfirm(`Anda yakin ingin memasuki SLOT 0${i+1}?`, () => { 
+                runTransaction(db, async(t)=>{ 
+                    const d = (await t.get(mainRef)).data(); 
+                    if(d.chargingSlots[i]) throw "SLOT SUDAH TERISI!"; 
+                    let q = d.waitingQueue; 
+                    const idx = q.findIndex(x => cleanStr(x.plat) === cleanStr(myPlat)); 
+                    if(idx === -1) throw "DATA ANTRIAN ANDA TIDAK DITEMUKAN!"; 
+                    const me = q[idx]; q.splice(idx, 1); me.startTime = Date.now(); d.chargingSlots[i] = me; 
+                    t.update(mainRef, { chargingSlots: d.chargingSlots, waitingQueue: q }); 
+                }).then(() => addUserLog("START", `Masuk Slot ${i+1}`)).catch(e => showAlert(e, "ERROR")); 
+            }, "MASUK SLOT"); 
+        };
+
+        window.stopCharging = (i) => { 
+            runTransaction(db, async(t)=>{ 
+                const d = (await t.get(mainRef)).data(); const u = d.chargingSlots[i]; 
+                if(u) addDoc(historyRef, {...u, finishTime: new Date(), action: "STOP"}); 
+                d.chargingSlots[i] = null; t.update(mainRef, {chargingSlots: d.chargingSlots}); 
+            }).then(() => { localStorage.removeItem('myPlat'); window.location.href = 'antrian.html'; }); 
+        };
+        
+        window.userTriggerKudeta = (idx, plat) => {
+            showConfirm(`Anda akan mengambil alih paksa slot milik ${plat}. Lanjutkan?`, () => {
+                runTransaction(db, async(t) => {
+                    const d = (await t.get(mainRef)).data();
+                    let q = d.waitingQueue || [];
+                    const myIdx = q.findIndex(x => cleanStr(x.plat) === cleanStr(myPlat));
+                    if(myIdx === -1) throw "Anda tidak terdaftar di antrian!";
+                    
+                    let me = q.splice(myIdx, 1)[0]; 
+                    me.userName = cleanName(me.userName); 
+                    me.role = "KUDETA";
+                    me.startTime = Date.now();
+                    
+                    d.chargingSlots[idx] = me;
+                    t.update(mainRef, {chargingSlots: d.chargingSlots, waitingQueue: q});
+                }).then(() => { 
+                    showAlert("Slot berhasil diambil alih!", "KUDETA SUKSES"); 
+                }).catch(e => showAlert("ERROR: " + e, "GAGAL KUDETA"));
+            }, "PERINGATAN KUDETA!");
+        };
+
+        window.cancelQueue = () => { 
+            showConfirm("Apakah Anda yakin ingin membatalkan antrian dan keluar dari sistem?", () => { 
+                runTransaction(db, async(t) => { 
+                    const d = (await t.get(mainRef)).data(); 
+                    const newQ = d.waitingQueue.filter(q => cleanStr(q.plat) !== cleanStr(myPlat)); 
+                    t.update(mainRef, { waitingQueue: newQ }); 
+                    addUserLog("CANCEL", `User ${myPlat} keluar antrian`); 
+                }).then(() => { localStorage.removeItem('myPlat'); window.location.href = 'antrian.html'; }).catch(e => showAlert("ERROR: " + e, "GAGAL")); 
+            }, "BATAL ANTRIAN?"); 
+        };
+        
+        window.openQueueList = () => { 
+            const body = $('qlBody'); body.innerHTML = ''; 
+            if(localQueue.length === 0) { body.innerHTML = '<div style="text-align:center; padding:20px; color:#666; font-family:var(--font-tech);">TIDAK ADA ANTRIAN</div>'; } 
+            else { localQueue.forEach((q, i) => { 
+                let bat = q.batreSisa || (q.batre ? q.batre.replace('%','') : null) || (q.battery ? q.battery.replace('%','') : "-");
+                let safeName = cleanName(q.userName);
+                body.innerHTML += `<div style="background:rgba(216,162,46,0.05); margin:0 0 10px 0; padding:15px; border-left:4px solid var(--gold); display:flex; justify-content:space-between; align-items:center; border-radius:0 4px 4px 0; border:1px solid rgba(216,162,46,0.1);"><div><div style="font-family:'Teko'; font-size:36px; color:#fff; letter-spacing:1px; line-height:1; text-shadow:0 0 10px rgba(255,255,255,0.2);">${q.plat} <span style="font-size:16px; color:var(--silver); text-shadow:0 0 5px var(--silver-glow);"><i class="fas fa-bolt"></i> ${bat}%</span></div><div style="font-family:'Rajdhani'; font-size:16px; color:var(--silver-text); font-weight:bold; text-transform:uppercase;">${safeName}</div></div><div style="font-family:'Rajdhani'; font-size:14px; color:#000; background:var(--gold); padding:4px 10px; font-weight:800; border-radius:4px; box-shadow:0 0 10px var(--gold-glow);">ANTRIAN #${i+1}</div></div>`; 
+            }); } 
+            $('queueListModal').style.display = 'flex'; 
+        };
+        
+        window.resetApp = () => showConfirm("Hapus sesi aplikasi dari perangkat ini?", () => { localStorage.clear(); window.location.href='antrian.html'; }, "RESET SISTEM");
+
+        // --- IDLE TIMEOUT (3 MENIT) ---
+        let idleTime = 0; 
+        window.onclick = () => { idleTime = 0; }; window.ontouchstart = () => { idleTime = 0; }; window.onmousemove = () => { idleTime = 0; };
+        setInterval(() => { idleTime++; if (idleTime > 180) { window.location.href = 'antrian.html'; } }, 1000);
+
+    </script>
+</body>
+</html>
