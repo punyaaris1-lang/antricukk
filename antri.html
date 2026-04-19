@@ -5,6 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>FC Kelapa Gading - Elite System</title>
     
+    <script>
+        const APP_VERSION = "6.0_ELITE_ANTRIAN"; 
+        if (localStorage.getItem('maka_antrian_v') !== APP_VERSION) {
+            if ('caches' in window) { caches.keys().then((names) => { names.forEach(name => { caches.delete(name); }); }); }
+            localStorage.setItem('maka_antrian_v', APP_VERSION); window.location.reload(true); 
+        }
+    </script>
+    
+    <link rel="manifest" href="manifest.json?v=4">
+    <meta name="theme-color" content="#0A1931">
+
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@700;800;900&family=Outfit:wght@300;600;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -27,7 +38,8 @@
         /* WATERMARK LOGO RAKSASA */
         .watermark-logo {
             position: fixed; right: -50px; top: 25%; width: 350px; 
-            opacity: 0.08; pointer-events: none; z-index: 0; transform: rotate(-15deg);
+            opacity: 0.08; pointer-events: none; z-index: 0;
+            transform: rotate(-15deg);
         }
 
         /* HEADER EKSKLUSIF */
@@ -46,7 +58,7 @@
         .split-container { display: flex; flex-direction: column; gap: 20px; padding: 0 20px 20px; flex: 1; min-height: 0; position: relative; z-index: 5;}
         .box-half { flex: 1; background: var(--white); border-radius: 30px; box-shadow: 0 15px 40px rgba(10, 25, 49, 0.05); display: flex; flex-direction: column; position: relative; overflow: hidden; }
 
-        /* --- BLOK ATAS: ANTREAN & SLOT --- */
+        /* --- BLOK ATAS: ANTRIAN & SLOT --- */
         .queue-section { justify-content: center; align-items: center; padding: 25px; background: radial-gradient(circle at center, rgba(212,175,55,0.05) 0%, transparent 70%), var(--white); }
         
         .stats-wrapper { display: flex; gap: 12px; margin-bottom: 20px; width: 100%; align-items: stretch;}
@@ -82,6 +94,7 @@
         .store-header { display: flex; justify-content: space-between; align-items: center; padding: 0 20px 15px;}
         .sh-title { font-family: 'Outfit'; font-size: 16px; font-weight: 900; color: var(--navy-main); display: flex; align-items: center; gap: 8px;}
         .flash-badge { background: var(--danger); color: white; font-size: 9px; font-family: 'Space Grotesk'; padding: 3px 8px; border-radius: 6px; letter-spacing: 1px; animation: pulseFlash 1s infinite alternate; box-shadow: 0 0 10px rgba(239,68,68,0.4); }
+        @keyframes pulseFlash { 0% { transform: scale(1); } 100% { transform: scale(1.05); } }
 
         .btn-buka-pasar { 
             background: var(--navy-main); color: var(--gold-main); padding: 8px 14px; border-radius: 20px;
@@ -90,6 +103,7 @@
         }
         .btn-buka-pasar:active { transform: scale(0.95); }
 
+        /* --- CAROUSEL DIPERKECIL (3 BARIS) --- */
         .store-carousel { display: flex; gap: 10px; overflow-x: auto; padding: 0 20px 20px; scroll-snap-type: x mandatory; scrollbar-width: none; flex: 1; align-items: center;}
         .store-carousel::-webkit-scrollbar { display: none; }
         
@@ -214,16 +228,16 @@
                     <div class="sc-val" id="valSlot">0<span class="sc-sub">/3</span></div>
                 </div>
                 <div class="stat-card card-queue" onclick="openQueueList()">
-                    <div class="sc-lbl">ANTREAN</div>
+                    <div class="sc-lbl">ANTRIAN</div>
                     <div class="sc-val" id="valQueue">0</div>
                 </div>
             </div>
 
             <button class="btn-elite" id="btnMainAction" onclick="handleMainAction()">
-                <i class="fas fa-ticket-alt"></i> AMBIL TIKET
+                <i class="fas fa-ticket-alt"></i> DAFTAR ANTRIAN
             </button>
 
-            <div class="cancel-link" id="btnCancelAlt" style="display:none;" onclick="cancelQueue()">Batalkan Tiket Saya</div>
+            <div class="cancel-link" id="btnCancelAlt" style="display:none;" onclick="cancelQueue()">Batalkan Antrian Saya</div>
         </div>
 
         <div class="box-half store-section">
@@ -305,7 +319,7 @@
         let isSuperAdmin = localStorage.getItem('sa_sess');
         let isPromoShownThisSession = false;
         
-        window.allStoreItems = []; // Simpan semua data store buat fitur Full Screen
+        window.allStoreItems = []; 
 
         let uData = null;
         let myRole = "GUEST";
@@ -324,7 +338,7 @@
 
         setTimeout(() => { document.getElementById('loader').style.opacity = '0'; setTimeout(()=> document.getElementById('loader').style.display = 'none', 300); }, 800);
 
-        // === 3. LOGIKA ANTREAN ===
+        // === 3. LOGIKA ANTRIAN ===
         onSnapshot(mainRef, (snap) => {
             if (!snap.exists()) return; 
             const d = snap.data(); 
@@ -355,12 +369,12 @@
                     btnMain.classList.add('btn-success-mode');
                     btnMain.onclick = () => openSlotSelection();
                 } else {
-                    btnMain.innerHTML = `<i class="fas fa-times-circle"></i> BATALKAN TIKET`;
+                    btnMain.innerHTML = `<i class="fas fa-times-circle"></i> BATALKAN ANTRIAN SAYA`;
                     btnMain.classList.add('btn-danger-mode');
                     btnMain.onclick = () => cancelQueue();
                 }
             } else {
-                btnMain.innerHTML = `<i class="fas fa-ticket-alt"></i> AMBIL TIKET`;
+                btnMain.innerHTML = `<i class="fas fa-ticket-alt"></i> DAFTAR ANTRIAN`;
                 btnMain.onclick = () => handleDaftar();
             }
         }
@@ -387,7 +401,7 @@
                 <div class="inp-group"><label class="inp-label">Sisa Baterai (%)</label><input type="number" id="inpBatre" class="inp-text" placeholder="Contoh: 15" min="0" max="100"></div>
                 <button class="btn-elite" style="margin-top:20px; background:var(--navy-main);" onclick="submitData()"><i class="fas fa-check"></i> DAFTAR SEKARANG</button>
             `;
-            showModal("<i class='fas fa-id-card'></i> REGISTRASI TIKET", html);
+            showModal("<i class='fas fa-id-card'></i> REGISTRASI ANTRIAN", html);
         }
 
         window.submitData = async () => { 
@@ -406,7 +420,7 @@
         };
 
         window.cancelQueue = () => { 
-            if(confirm("Yakin ingin membatalkan antrean?")) {
+            if(confirm("Yakin ingin membatalkan antrian?")) {
                 runTransaction(dbQueue, async(t) => { 
                     const d = (await t.get(mainRef)).data(); const newQ = d.waitingQueue.filter(q => cleanStr(q.plat) !== cleanStr(myPlat)); t.update(mainRef, { waitingQueue: newQ }); 
                 }).then(() => { localStorage.removeItem('myPlat'); myPlat = null; }).catch(e => alert("Gagal: " + e)); 
@@ -439,7 +453,7 @@
             }).then(() => { closeModal(); }).catch(e => alert(e)); 
         }
 
-        // Tampilan Modal Slot / Antrean
+        // Tampilan Modal Slot / Antrian
         window.openSlotList = () => {
             let html = ''; let myQIndex = localQueue.findIndex(q => cleanStr(q.plat) === cleanStr(myPlat));
             localSlots.forEach((s, i) => {
@@ -460,7 +474,7 @@
 
         window.openQueueList = () => {
             let html = '';
-            if(localQueue.length === 0) html = '<div style="text-align:center; color:var(--text-gray); padding:20px;">Antrean Kosong</div>';
+            if(localQueue.length === 0) html = '<div style="text-align:center; color:var(--text-gray); padding:20px;">Antrian Kosong</div>';
             else {
                 localQueue.forEach((q, i) => {
                     let batVal = q.batreSisa || q.batre || q.battery || "-";
@@ -555,7 +569,7 @@
             let editBtn = canEdit ? `<button class="btn-elite" style="background:#F1F5F9; color:var(--navy-main); margin-top:10px; padding:12px; font-size:12px; box-shadow:none; border:1px solid #E2E8F0;" onclick="window.location.href='https://punyaaris1-lang.github.io/memberMLU/store.html?id=${id}'"><i class="fas fa-pen"></i> EDIT DI PASAR</button>` : '';
             let cleanWa = wa; if(cleanWa && cleanWa.startsWith('0')) cleanWa = '62' + cleanWa.substring(1);
             
-            let waMsg = isKampas ? `Halo, saya mau *Booking Pemasangan ${title}* via Aplikasi MLU.\nApakah ada slot untuk besok?` : `Halo, saya lihat *${title}* di Aplikasi Antrean MLU.\nApakah masih tersedia?`;
+            let waMsg = isKampas ? `Halo, saya mau *Booking Pemasangan ${title}* via Aplikasi MLU.\nApakah ada slot untuk besok?` : `Halo, saya lihat *${title}* di Aplikasi Antrian MLU.\nApakah masih tersedia?`;
             let extraInfo = isKampas ? `<div style="background:#FFFBEB; border:1px dashed #F59E0B; color:#B45309; padding:10px; border-radius:12px; margin-bottom:15px; font-size:11px; font-weight:800; line-height:1.4;"><i class="fas fa-tools"></i> INFO: Sistem Booking. Pembelian hari ini, pemasangan paling cepat BESOK (H+1). Silakan konfirmasi jadwal via WA.</div>` : '';
             let btnLabel = isKampas ? `<i class="fab fa-whatsapp" style="font-size:20px;"></i> BOOKING PASANG` : `<i class="fab fa-whatsapp" style="font-size:20px;"></i> BELI SEKARANG`;
 
