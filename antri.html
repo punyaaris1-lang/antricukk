@@ -24,12 +24,10 @@
         }
         * { box-sizing: border-box; outline: none; }
 
-        /* WATERMARK LOGO RAKSASA (DIPERJELAS) */
+        /* WATERMARK LOGO RAKSASA */
         .watermark-logo {
             position: fixed; right: -50px; top: 25%; width: 350px; 
-            opacity: 0.08; /* Ditebelin biar muncul */
-            pointer-events: none; z-index: 0;
-            transform: rotate(-15deg);
+            opacity: 0.08; pointer-events: none; z-index: 0; transform: rotate(-15deg);
         }
 
         /* HEADER EKSKLUSIF */
@@ -84,17 +82,14 @@
         .store-header { display: flex; justify-content: space-between; align-items: center; padding: 0 20px 15px;}
         .sh-title { font-family: 'Outfit'; font-size: 16px; font-weight: 900; color: var(--navy-main); display: flex; align-items: center; gap: 8px;}
         .flash-badge { background: var(--danger); color: white; font-size: 9px; font-family: 'Space Grotesk'; padding: 3px 8px; border-radius: 6px; letter-spacing: 1px; animation: pulseFlash 1s infinite alternate; box-shadow: 0 0 10px rgba(239,68,68,0.4); }
-        @keyframes pulseFlash { 0% { transform: scale(1); } 100% { transform: scale(1.05); } }
 
-        /* Tombol Buka Pasar */
         .btn-buka-pasar { 
             background: var(--navy-main); color: var(--gold-main); padding: 8px 14px; border-radius: 20px;
-            font-family: 'Space Grotesk'; font-size: 9px; font-weight: 800; text-decoration: none; letter-spacing: 1px;
+            font-family: 'Space Grotesk'; font-size: 9px; font-weight: 800; border: none; cursor: pointer;
             display: flex; align-items: center; gap: 6px; box-shadow: 0 5px 15px rgba(10,25,49,0.2); transition: 0.2s;
         }
         .btn-buka-pasar:active { transform: scale(0.95); }
 
-        /* --- CAROUSEL DIPERKECIL BIAR MUAT 3 BARIS --- */
         .store-carousel { display: flex; gap: 10px; overflow-x: auto; padding: 0 20px 20px; scroll-snap-type: x mandatory; scrollbar-width: none; flex: 1; align-items: center;}
         .store-carousel::-webkit-scrollbar { display: none; }
         
@@ -109,18 +104,55 @@
         
         .btn-beli { width: 100%; padding: 8px; background: var(--navy-main); color: var(--gold-main); border: none; border-radius: 10px; font-family: 'Space Grotesk'; font-size: 9px; font-weight: 900; cursor: pointer; margin-top: auto; box-shadow: 0 5px 10px rgba(10,25,49,0.2); letter-spacing: 1px;}
 
-        /* --- MODAL UI --- */
+        /* --- FULL SCREEN STORE VIEW (OVERLAY) --- */
+        .full-store-view { 
+            position: fixed; inset: 0; background: var(--bg-body); z-index: 80000; 
+            display: none; flex-direction: column; overflow: hidden; 
+            animation: slideUpFull 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        @keyframes slideUpFull { from { transform: translateY(100%); opacity: 0;} to { transform: translateY(0); opacity: 1;} }
+        
+        .fs-header { 
+            padding: 20px; display: flex; align-items: center; gap: 15px; background: white; 
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05); flex-shrink: 0; z-index: 10;
+        }
+        .btn-fs-back { 
+            width: 45px; height: 45px; border-radius: 50%; background: #F8FAFC; border: 1px solid #E2E8F0; 
+            display: flex; align-items: center; justify-content: center; font-size: 18px; color: var(--navy-main); 
+            cursor: pointer; transition: 0.2s; flex-shrink: 0;
+        }
+        .btn-fs-back:active { transform: scale(0.9); }
+        .fs-search-box { 
+            flex: 1; background: #F1F5F9; border-radius: 20px; padding: 12px 15px; 
+            display: flex; align-items: center; gap: 10px; border: 1px solid #E2E8F0; 
+        }
+        .fs-search-box input { flex: 1; border: none; background: transparent; font-family: 'Inter'; font-size: 13px; font-weight: 600; outline: none; color: var(--navy-main);}
+        
+        .fs-content { 
+            flex: 1; overflow-y: auto; padding: 20px; display: grid; grid-template-columns: repeat(2, 1fr); 
+            gap: 15px; align-content: flex-start; padding-bottom: 50px;
+        }
+        .fs-card { 
+            background: white; border-radius: 20px; padding: 10px; display: flex; flex-direction: column; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.04); border: 1px solid #E2E8F0; cursor: pointer; transition: 0.2s;
+        }
+        .fs-card:active { transform: scale(0.95); }
+        .fs-card-img { width: 100%; aspect-ratio: 1; background: #F8FAFC; border-radius: 14px; margin-bottom: 10px; position: relative; overflow: hidden; }
+        .fs-card-img img { width: 100%; height: 100%; object-fit: cover; }
+        .fs-title { font-family: 'Inter'; font-size: 12px; font-weight: 800; color: var(--navy-main); line-height: 1.3; margin-bottom: 5px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;}
+        .fs-price { font-family: 'Space Grotesk'; font-size: 14px; font-weight: 900; color: var(--navy-main); margin-bottom: 10px;}
+
+        /* --- MODAL UI REGULER --- */
         .modal-overlay { position: fixed; inset: 0; background: rgba(10,25,49,0.8); z-index: 99999; display: none; align-items: center; justify-content: center; backdrop-filter: blur(10px); opacity: 0; transition: opacity 0.3s; padding: 20px;}
         .modal-overlay.show { opacity: 1; }
-        
         .modal-box { width: 100%; max-width: 400px; background: var(--white); border-radius: 30px; padding: 25px; box-shadow: 0 20px 50px rgba(0,0,0,0.3); transform: scale(0.9); transition: 0.3s; position: relative; overflow: hidden; max-height: 85vh; display: flex; flex-direction: column;}
         .modal-overlay.show .modal-box { transform: scale(1); }
-        
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #E2E8F0; padding-bottom: 15px;}
         .m-title { font-family: 'Outfit'; font-size: 20px; font-weight: 900; color: var(--navy-main); margin: 0; display: flex; align-items: center; gap: 8px;}
         .btn-close-modal { width: 35px; height: 35px; border-radius: 50%; background: #F1F5F9; color: var(--text-gray); border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 14px;}
-
         .list-area { overflow-y: auto; flex: 1; padding-right: 5px; }
+
+        /* MODAL ITEM LIST */
         .list-item { background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 16px; padding: 15px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
         .li-plat { font-family: 'Space Grotesk'; font-size: 20px; font-weight: 900; color: var(--navy-main); line-height: 1; margin-bottom: 4px;}
         .li-name { font-size: 11px; font-weight: 700; color: var(--text-gray); text-transform: uppercase;}
@@ -133,6 +165,19 @@
         .inp-label { font-size: 11px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px; display: block; letter-spacing: 0.5px;}
         .inp-text { width: 100%; padding: 15px; border-radius: 14px; border: 1px solid #E2E8F0; background: #F8FAFC; font-family: 'Inter'; font-weight: 700; font-size: 14px; color: var(--navy-main); outline: none; transition: 0.2s;}
         .inp-text:focus { border-color: var(--electric-blue); background: white; box-shadow: 0 0 0 3px rgba(45,99,237,0.1); }
+
+        /* --- PROMO POP-UP KAMPAS REM --- */
+        .promo-overlay { position: fixed; inset: 0; background: rgba(10,25,49,0.85); z-index: 999999; display: none; align-items: center; justify-content: center; backdrop-filter: blur(5px); opacity: 0; transition: 0.4s; padding: 20px;}
+        .promo-overlay.show { opacity: 1; }
+        .promo-box { background: linear-gradient(135deg, var(--navy-main), var(--navy-light)); border: 2px solid var(--gold-main); border-radius: 24px; padding: 25px 20px; width: 100%; max-width: 320px; text-align: center; color: white; box-shadow: 0 20px 50px rgba(212,175,55,0.25); transform: scale(0.8); transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);}
+        .promo-overlay.show .promo-box { transform: scale(1); }
+        .p-badge-top { background: var(--danger); color: white; font-family: 'Space Grotesk'; font-size: 10px; font-weight: 900; padding: 5px 12px; border-radius: 50px; display: inline-block; margin-bottom: 15px; letter-spacing: 2px; box-shadow: 0 0 15px rgba(239,68,68,0.5);}
+        .p-headline { font-family: 'Outfit'; font-size: 22px; font-weight: 900; color: var(--gold-main); line-height: 1.2; margin-bottom: 15px; text-transform: uppercase;}
+        .p-img-box { width: 100%; height: 160px; background: white; border-radius: 16px; overflow: hidden; margin-bottom: 15px; border: 2px solid rgba(255,255,255,0.2);}
+        .p-img-box img { width: 100%; height: 100%; object-fit: cover; }
+        .p-actions { display: flex; flex-direction: column; gap: 10px; }
+        .btn-promo-wa { background: var(--success); color: white; border: none; padding: 15px; border-radius: 14px; font-family: 'Space Grotesk'; font-size: 14px; font-weight: 900; letter-spacing: 1px; cursor: pointer; box-shadow: 0 10px 20px rgba(16,185,129,0.3); display: flex; align-items: center; justify-content: center; gap: 8px;}
+        .btn-promo-close { background: transparent; color: rgba(255,255,255,0.6); border: 1px solid rgba(255,255,255,0.2); padding: 12px; border-radius: 14px; font-family: 'Inter'; font-size: 12px; font-weight: 700; cursor: pointer; }
 
         /* LOADING */
         #loader { position: fixed; inset: 0; background: var(--bg-body); z-index: 999999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: 0.3s;}
@@ -187,16 +232,27 @@
                     <i class="fas fa-store" style="color:var(--gold-main);"></i> PASAR MLU 
                     <div class="flash-badge">🔥 LIVE</div>
                 </div>
-                <a href="https://punyaaris1-lang.github.io/memberMLU/store.html" class="btn-buka-pasar">
+                <button class="btn-buka-pasar" onclick="openFullStore()">
                     JELAJAHI <i class="fas fa-arrow-right"></i>
-                </a>
+                </button>
             </div>
             
             <div class="store-carousel" id="storeFeed">
                 <div style="text-align:center; width:100%; font-size:12px; color:var(--text-gray);">Memuat Katalog...</div>
             </div>
         </div>
+    </div>
 
+    <div class="full-store-view" id="fullStoreView">
+        <div class="fs-header">
+            <button class="btn-fs-back" onclick="closeFullStore()"><i class="fas fa-arrow-down"></i></button>
+            <div class="fs-search-box">
+                <i class="fas fa-search" style="color:var(--text-gray);"></i>
+                <input type="text" id="inpSearchStore" placeholder="Cari sparepart atau aksesoris..." onkeyup="filterFullStore()">
+            </div>
+        </div>
+        <div class="fs-content" id="fullStoreGrid">
+            </div>
     </div>
 
     <div class="modal-overlay" id="mainModal">
@@ -209,18 +265,32 @@
         </div>
     </div>
 
+    <div class="promo-overlay" id="promoKampasModal">
+        <div class="promo-box">
+            <div class="p-badge-top"><i class="fas fa-exclamation-triangle"></i> PENGINGAT RIDING</div>
+            <div class="p-headline">Waktunya Ganti Kampas Rem?</div>
+            <div class="p-img-box"><img id="promoImg" src=""></div>
+            <div style="font-family:'Space Grotesk'; font-size:24px; font-weight:900; color:var(--gold-main); margin-bottom:5px;" id="promoPrice">Rp 0</div>
+            <div style="font-size:12px; color:rgba(255,255,255,0.8); margin-bottom:20px; line-height:1.4;">
+                Pemesanan hari ini, bisa langsung <b>Booking Pemasangan untuk Besok!</b> Utamakan keselamatan di jalan.
+            </div>
+            <div class="p-actions">
+                <button class="btn-promo-wa" id="btnPromoWA"><i class="fab fa-whatsapp"></i> BOOKING SEKARANG</button>
+                <button class="btn-promo-close" onclick="closePromo()">NANTI SAJA</button>
+            </div>
+        </div>
+    </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, doc, onSnapshot, runTransaction, collection, addDoc, getDoc, updateDoc, getDocs, query, orderBy, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         // === 1. KONFIGURASI DUAL FIREBASE ===
-        // A. FIREBASE ANTREAN (fcgadingnew22)
         const fbQueueConfig = { apiKey: "AIzaSyB666i9lYWIpxOdkwpoX9EvFvHLmHczeq8", authDomain: "fcgadingnew22.firebaseapp.com", projectId: "fcgadingnew22" };
         const appQueue = initializeApp(fbQueueConfig, "AppQueue");
         const dbQueue = getFirestore(appQueue);
         const mainRef = doc(dbQueue, "antrian", "utama");
 
-        // B. FIREBASE STORE (rtomaka-e67b5)
         const fbStoreConfig = { apiKey: "AIzaSyAk3G5aQUBVe_g7_peVu1F6xllP_RejGq0", authDomain: "rtomaka-e67b5.firebaseapp.com", projectId: "rtomaka-e67b5" };
         const appStore = initializeApp(fbStoreConfig, "AppStore");
         const dbStore = getFirestore(appStore);
@@ -233,7 +303,10 @@
         let localQueue = []; 
         let myPlat = localStorage.getItem('myPlat');
         let isSuperAdmin = localStorage.getItem('sa_sess');
+        let isPromoShownThisSession = false;
         
+        window.allStoreItems = []; // Simpan semua data store buat fitur Full Screen
+
         let uData = null;
         let myRole = "GUEST";
         let isPengurus = false;
@@ -246,14 +319,12 @@
             } 
         } catch(e){}
 
-        // Utility
         const cleanStr = (s) => s ? s.replace(/[^A-Z0-9]/gi, '').toUpperCase() : '';
         const cleanName = (n) => n ? n.replace(/👑/g, '').trim() : '';
 
-        // Tutup Loading Awal
         setTimeout(() => { document.getElementById('loader').style.opacity = '0'; setTimeout(()=> document.getElementById('loader').style.display = 'none', 300); }, 800);
 
-        // === 3. LOGIKA ANTREAN & SLOT (REALTIME) ===
+        // === 3. LOGIKA ANTREAN ===
         onSnapshot(mainRef, (snap) => {
             if (!snap.exists()) return; 
             const d = snap.data(); 
@@ -269,21 +340,16 @@
 
             const btnMain = document.getElementById('btnMainAction');
             const btnCancelAlt = document.getElementById('btnCancelAlt');
-            
-            btnMain.className = 'btn-elite';
-            btnCancelAlt.style.display = 'none';
+            btnMain.className = 'btn-elite'; btnCancelAlt.style.display = 'none';
 
             let myQIndex = localQueue.findIndex(q => cleanStr(q.plat) === cleanStr(myPlat));
             let mySlotIndex = localSlots.findIndex(s => s && cleanStr(s.plat) === cleanStr(myPlat));
 
             if (mySlotIndex > -1) {
-                // STATUS: LAGI NGECAS
                 btnMain.innerHTML = `<i class="fas fa-plug"></i> SELESAI CHARGING`;
                 btnMain.classList.add('btn-success-mode');
                 btnMain.onclick = () => stopCharging(mySlotIndex);
-            } 
-            else if (myQIndex > -1) {
-                // STATUS: DALAM ANTREAN
+            } else if (myQIndex > -1) {
                 if (myQIndex === 0 && usedCount < TOTAL_SLOTS) {
                     btnMain.innerHTML = `<i class="fas fa-arrow-circle-right"></i> PILIH SLOT KOSONG`;
                     btnMain.classList.add('btn-success-mode');
@@ -293,26 +359,18 @@
                     btnMain.classList.add('btn-danger-mode');
                     btnMain.onclick = () => cancelQueue();
                 }
-            } 
-            else {
-                // STATUS: BELUM DAFTAR
+            } else {
                 btnMain.innerHTML = `<i class="fas fa-ticket-alt"></i> AMBIL TIKET`;
                 btnMain.onclick = () => handleDaftar();
             }
         }
 
-        // === 4. FUNGSI AKSI ANTREAN ===
-        window.handleMainAction = () => {
-            // Dummy trigger, dioverride oleh updateMainUI()
-        }
+        window.handleMainAction = () => { }
 
         window.handleDaftar = () => {
             if(isSuperAdmin) { openFormDaftar(); return; }
             if (!navigator.geolocation) return alert("GPS REQUIRED!"); 
-            
-            const btn = document.getElementById('btnMainAction');
-            const ori = btn.innerHTML; btn.innerHTML = '<i class="fas fa-satellite-dish fa-spin"></i> MENCARI LOKASI...'; 
-            
+            const btn = document.getElementById('btnMainAction'); const ori = btn.innerHTML; btn.innerHTML = '<i class="fas fa-satellite-dish fa-spin"></i> MENCARI LOKASI...'; 
             navigator.geolocation.getCurrentPosition((pos) => { 
                 btn.innerHTML = ori; 
                 const p = 0.017453292519943295; const c = Math.cos; const a = 0.5 - c((pos.coords.latitude - STATION_LAT) * p)/2 + c(STATION_LAT * p) * c(pos.coords.latitude * p) * (1 - c((pos.coords.longitude - STATION_LNG) * p))/2; const dist = 12742 * Math.asin(Math.sqrt(a)); 
@@ -323,43 +381,23 @@
         function openFormDaftar() {
             let defNama = uData ? (uData.namaKtp || uData.namaWa) : "";
             let defPlat = uData ? uData.plat : "";
-
             const html = `
-                <div class="inp-group">
-                    <label class="inp-label">Nama Pilot</label>
-                    <input type="text" id="inpNama" class="inp-text" value="${defNama}" placeholder="Ketik Nama" ${uData ? 'readonly' : ''}>
-                </div>
-                <div class="inp-group">
-                    <label class="inp-label">Plat Nomor (Spasi)</label>
-                    <input type="text" id="inpPlat" class="inp-text" value="${defPlat}" placeholder="B 1234 XYZ" ${uData ? 'readonly' : ''}>
-                </div>
-                <div class="inp-group">
-                    <label class="inp-label">Sisa Baterai (%)</label>
-                    <input type="number" id="inpBatre" class="inp-text" placeholder="Contoh: 15" min="0" max="100">
-                </div>
-                <button class="btn-elite" style="margin-top:20px; background:var(--navy-main);" onclick="submitData()">
-                    <i class="fas fa-check"></i> DAFTAR SEKARANG
-                </button>
+                <div class="inp-group"><label class="inp-label">Nama Pilot</label><input type="text" id="inpNama" class="inp-text" value="${defNama}" placeholder="Ketik Nama" ${uData ? 'readonly' : ''}></div>
+                <div class="inp-group"><label class="inp-label">Plat Nomor (Spasi)</label><input type="text" id="inpPlat" class="inp-text" value="${defPlat}" placeholder="B 1234 XYZ" ${uData ? 'readonly' : ''}></div>
+                <div class="inp-group"><label class="inp-label">Sisa Baterai (%)</label><input type="number" id="inpBatre" class="inp-text" placeholder="Contoh: 15" min="0" max="100"></div>
+                <button class="btn-elite" style="margin-top:20px; background:var(--navy-main);" onclick="submitData()"><i class="fas fa-check"></i> DAFTAR SEKARANG</button>
             `;
             showModal("<i class='fas fa-id-card'></i> REGISTRASI TIKET", html);
         }
 
         window.submitData = async () => { 
-            const n = document.getElementById('inpNama').value.toUpperCase(); 
-            const p = document.getElementById('inpPlat').value.toUpperCase(); 
-            const b = document.getElementById('inpBatre').value; 
-            
-            if(!n || !p || !b) return alert("DATA TIDAK LENGKAP!"); 
-            if(parseInt(b) > 100) return alert("BATERAI MAX 100%"); 
-            
+            const n = document.getElementById('inpNama').value.toUpperCase(); const p = document.getElementById('inpPlat').value.toUpperCase(); const b = document.getElementById('inpBatre').value; 
+            if(!n || !p || !b) return alert("DATA TIDAK LENGKAP!"); if(parseInt(b) > 100) return alert("BATERAI MAX 100%"); 
             try { 
                 const snap = await getDoc(mainRef); 
                 if(snap.exists()) { 
                     let d = snap.data(); let q = d.waitingQueue || []; let s = d.chargingSlots || []; 
-                    if(q.find(x => cleanStr(x.plat) === cleanStr(p)) || s.find(y => y && cleanStr(y.plat) === cleanStr(p))) { 
-                        alert("KENDARAAN SUDAH TERDAFTAR!"); localStorage.setItem('myPlat', p); closeModal(); return; 
-                    } 
-                    
+                    if(q.find(x => cleanStr(x.plat) === cleanStr(p)) || s.find(y => y && cleanStr(y.plat) === cleanStr(p))) { alert("KENDARAAN SUDAH TERDAFTAR!"); localStorage.setItem('myPlat', p); closeModal(); return; } 
                     q.push({ userName: n, plat: p, batre: b + "%", battery: b + "%", batreSisa: b, role: myRole, timestamp: Date.now(), qNo: (d.lastTicket || 0) + 1 }); 
                     await updateDoc(mainRef, { waitingQueue: q, lastTicket: (d.lastTicket || 0) + 1 }); 
                     localStorage.setItem('myPlat', p); myPlat = p; closeModal(); 
@@ -370,9 +408,7 @@
         window.cancelQueue = () => { 
             if(confirm("Yakin ingin membatalkan antrean?")) {
                 runTransaction(dbQueue, async(t) => { 
-                    const d = (await t.get(mainRef)).data(); 
-                    const newQ = d.waitingQueue.filter(q => cleanStr(q.plat) !== cleanStr(myPlat)); 
-                    t.update(mainRef, { waitingQueue: newQ }); 
+                    const d = (await t.get(mainRef)).data(); const newQ = d.waitingQueue.filter(q => cleanStr(q.plat) !== cleanStr(myPlat)); t.update(mainRef, { waitingQueue: newQ }); 
                 }).then(() => { localStorage.removeItem('myPlat'); myPlat = null; }).catch(e => alert("Gagal: " + e)); 
             }
         };
@@ -380,9 +416,7 @@
         window.stopCharging = (idx) => { 
             if(confirm("Yakin sudah selesai charging dan ingin mengosongkan slot?")) {
                 runTransaction(dbQueue, async(t)=>{ 
-                    const d = (await t.get(mainRef)).data(); 
-                    d.chargingSlots[idx] = null; 
-                    t.update(mainRef, {chargingSlots: d.chargingSlots}); 
+                    const d = (await t.get(mainRef)).data(); d.chargingSlots[idx] = null; t.update(mainRef, {chargingSlots: d.chargingSlots}); 
                 }).then(() => { localStorage.removeItem('myPlat'); myPlat = null; }); 
             }
         };
@@ -390,63 +424,35 @@
         function openSlotSelection() {
             let html = '<div style="font-size:12px; color:var(--text-gray); margin-bottom:15px;">Pilih slot kosong untuk mulai charging:</div>';
             localSlots.forEach((s, i) => {
-                if(!s) {
-                    html += `
-                    <div class="list-item" style="cursor:pointer; border-color:var(--success);" onclick="pilihSlotEks(${i})">
-                        <div>
-                            <div class="li-plat" style="color:var(--success);">SLOT 0${i+1}</div>
-                            <div class="li-name">TERSEDIA</div>
-                        </div>
-                        <i class="fas fa-chevron-right" style="color:var(--success);"></i>
-                    </div>`;
-                }
+                if(!s) { html += `<div class="list-item" style="cursor:pointer; border-color:var(--success);" onclick="pilihSlotEks(${i})"><div><div class="li-plat" style="color:var(--success);">SLOT 0${i+1}</div><div class="li-name">TERSEDIA</div></div><i class="fas fa-chevron-right" style="color:var(--success);"></i></div>`; }
             });
             showModal("<i class='fas fa-plug'></i> PILIH SLOT", html);
         }
 
         window.pilihSlotEks = (i) => {
             runTransaction(dbQueue, async(t)=>{ 
-                const d = (await t.get(mainRef)).data(); 
-                if(d.chargingSlots[i]) throw "SLOT SUDAH TERISI!"; 
-                let q = d.waitingQueue; 
-                const idx = q.findIndex(x => cleanStr(x.plat) === cleanStr(myPlat)); 
+                const d = (await t.get(mainRef)).data(); if(d.chargingSlots[i]) throw "SLOT SUDAH TERISI!"; 
+                let q = d.waitingQueue; const idx = q.findIndex(x => cleanStr(x.plat) === cleanStr(myPlat)); 
                 if(idx === -1) throw "DATA ANDA TIDAK DITEMUKAN!"; 
                 const me = q[idx]; q.splice(idx, 1); me.startTime = Date.now(); d.chargingSlots[i] = me; 
                 t.update(mainRef, { chargingSlots: d.chargingSlots, waitingQueue: q }); 
             }).then(() => { closeModal(); }).catch(e => alert(e)); 
         }
 
-        // --- 5. TAMPILAN DETAIL MODAL ---
+        // Tampilan Modal Slot / Antrean
         window.openSlotList = () => {
             let html = ''; let myQIndex = localQueue.findIndex(q => cleanStr(q.plat) === cleanStr(myPlat));
             localSlots.forEach((s, i) => {
                 if(s) {
                     let durMin = Math.floor((Date.now() - (s.startTime || Date.now())) / 60000);
-                    let batVal = s.batreSisa || s.batre || s.battery || "-";
-                    let kudetaBtn = "";
-                    
+                    let batVal = s.batreSisa || s.batre || s.battery || "-"; let kudetaBtn = "";
                     if(cleanStr(s.plat) !== cleanStr(myPlat)) {
                         if (myQIndex === 0 && durMin >= 20) kudetaBtn = `<button class="btn-kudeta" onclick="triggerKudeta(${i}, '${s.plat}')"><i class="fas fa-bolt"></i> KUDETA</button>`;
                         else if (myQIndex === 1 && durMin >= 25) kudetaBtn = `<button class="btn-kudeta" onclick="triggerKudeta(${i}, '${s.plat}')"><i class="fas fa-bolt"></i> KUDETA</button>`;
                     }
-
-                    html += `
-                    <div class="list-item">
-                        <div>
-                            <div class="li-plat">${s.plat}</div>
-                            <div class="li-name">${cleanName(s.userName)} • ${durMin} MNT</div>
-                            ${kudetaBtn}
-                        </div>
-                        <div class="li-batre"><i class="fas fa-battery-half"></i> ${batVal.replace('%','')} %</div>
-                    </div>`;
+                    html += `<div class="list-item"><div><div class="li-plat">${s.plat}</div><div class="li-name">${cleanName(s.userName)} • ${durMin} MNT</div>${kudetaBtn}</div><div class="li-batre"><i class="fas fa-battery-half"></i> ${batVal.replace('%','')} %</div></div>`;
                 } else {
-                    html += `
-                    <div class="list-item" style="opacity:0.5;">
-                        <div>
-                            <div class="li-plat" style="color:var(--text-gray);">SLOT 0${i+1}</div>
-                            <div class="li-name">KOSONG</div>
-                        </div>
-                    </div>`;
+                    html += `<div class="list-item" style="opacity:0.5;"><div><div class="li-plat" style="color:var(--text-gray);">SLOT 0${i+1}</div><div class="li-name">KOSONG</div></div></div>`;
                 }
             });
             showModal("<i class='fas fa-charging-station'></i> SLOT CHARGING", html);
@@ -459,14 +465,7 @@
                 localQueue.forEach((q, i) => {
                     let batVal = q.batreSisa || q.batre || q.battery || "-";
                     let isMeStyle = cleanStr(q.plat) === cleanStr(myPlat) ? 'border-color:var(--gold-main); background:rgba(212,175,55,0.05);' : '';
-                    html += `
-                    <div class="list-item" style="${isMeStyle}">
-                        <div>
-                            <div class="li-plat">${q.plat}</div>
-                            <div class="li-name">#${i+1} • ${cleanName(q.userName)}</div>
-                        </div>
-                        <div class="li-batre" style="color:var(--navy-main); background:rgba(10,25,49,0.1);"><i class="fas fa-battery-half"></i> ${batVal.replace('%','')} %</div>
-                    </div>`;
+                    html += `<div class="list-item" style="${isMeStyle}"><div><div class="li-plat">${q.plat}</div><div class="li-name">#${i+1} • ${cleanName(q.userName)}</div></div><div class="li-batre" style="color:var(--navy-main); background:rgba(10,25,49,0.1);"><i class="fas fa-battery-half"></i> ${batVal.replace('%','')} %</div></div>`;
                 });
             }
             showModal("<i class='fas fa-users'></i> DAFTAR TUNGGU", html);
@@ -475,18 +474,16 @@
         window.triggerKudeta = (idx, plat) => {
             if(confirm(`Ambil alih paksa slot milik ${plat}?`)) {
                 runTransaction(dbQueue, async(t) => {
-                    const d = (await t.get(mainRef)).data();
-                    let q = d.waitingQueue || [];
+                    const d = (await t.get(mainRef)).data(); let q = d.waitingQueue || [];
                     const myIdx = q.findIndex(x => cleanStr(x.plat) === cleanStr(myPlat));
                     if(myIdx === -1) throw "Anda tidak terdaftar!";
-                    let me = q.splice(myIdx, 1)[0]; me.role = "KUDETA"; me.startTime = Date.now();
-                    d.chargingSlots[idx] = me;
+                    let me = q.splice(myIdx, 1)[0]; me.role = "KUDETA"; me.startTime = Date.now(); d.chargingSlots[idx] = me;
                     t.update(mainRef, {chargingSlots: d.chargingSlots, waitingQueue: q});
                 }).then(() => { closeModal(); alert("Kudeta Sukses!"); }).catch(e => alert(e));
             }
         }
 
-        // === 6. LOGIKA PASAR MLU (STORE CAROUSEL) ===
+        // === 6. LOGIKA PASAR MLU & SEAMLESS FULL SCREEN ===
         onSnapshot(query(collection(dbStore, 'mlu_store'), orderBy('timestamp', 'desc')), (snap) => {
             const feed = document.getElementById('storeFeed');
             if (snap.empty) { feed.innerHTML = '<div style="width:100%; text-align:center; font-size:12px; color:var(--text-gray);">Pasar Kosong</div>'; return; }
@@ -494,73 +491,72 @@
             let allProducts = [];
             snap.forEach(docSnap => { allProducts.push({ id: docSnap.id, ...docSnap.data() }); });
 
-            // LOGIKA PRIORITAS MULTLAK: Kampas Rem #1, Kopi #2
-            let kampasItems = [];
-            let kopiItems = [];
-            let normalItems = [];
-
+            let kampasItems = []; let kopiItems = []; let normalItems = [];
             allProducts.forEach(p => {
-                let title = p.title.toLowerCase();
-                if(title.includes('kampas')) {
-                    kampasItems.push(p);
-                } else if(title.includes('kopi')) {
-                    kopiItems.push(p);
-                } else {
-                    normalItems.push(p);
-                }
+                let titleLow = p.title.toLowerCase();
+                if(titleLow.includes('kampas') || titleLow.includes('kanvas') || titleLow.includes('rem')) { kampasItems.push(p); } 
+                else if(titleLow.includes('kopi')) { kopiItems.push(p); } 
+                else { normalItems.push(p); }
             });
 
-            // Gabung array, pastikan Kampas paling depan, disusul Kopi
-            let finalDisplay = [...kampasItems, ...kopiItems, ...normalItems];
+            // Simpan Ke Global
+            window.allStoreItems = [...kampasItems, ...kopiItems, ...normalItems];
 
+            // Render Preview Mini (Cuma Nampilin Dikit aja di Carousel)
             feed.innerHTML = '';
-            finalDisplay.forEach(p => {
+            window.allStoreItems.forEach(p => {
                 let img = p.image || 'https://placehold.co/300x300/E2E8F0/94A3B8?text=NO+IMAGE';
                 let priceStr = Number(p.price).toLocaleString('id-ID');
                 
-                let canEdit = false;
-                let titleLow = p.title.toLowerCase();
-                if (titleLow.includes('kopi') || titleLow.includes('kampas')) {
+                let canEdit = false; let titleLow = p.title.toLowerCase();
+                if (titleLow.includes('kopi') || titleLow.includes('kampas') || titleLow.includes('kanvas') || titleLow.includes('rem')) {
                     if (isPengurus || myPlat === 'B4248SWF') canEdit = true;
-                } else {
-                    if ((cleanStr(p.sellerPlat) === cleanStr(myPlat)) || myPlat === 'B4248SWF') canEdit = true;
-                }
+                } else { if ((cleanStr(p.sellerPlat) === cleanStr(myPlat)) || myPlat === 'B4248SWF') canEdit = true; }
 
-                // Kaburkan karakter aneh biar aman di onclick
-                let safeTitle = p.title.replace(/'/g, "\\'");
-                let safeDesc = p.desc ? p.desc.replace(/'/g, "\\'").replace(/\n/g, "\\n") : '';
+                let safeTitle = p.title.replace(/'/g, "\\'"); let safeDesc = p.desc ? p.desc.replace(/'/g, "\\'").replace(/\n/g, "\\n") : '';
                 
                 feed.innerHTML += `
                 <div class="item-float" onclick="openStoreDetail('${p.id}', '${safeTitle}', '${priceStr}', '${img}', '${p.sellerWa}', '${safeDesc}', ${canEdit})">
-                    <div class="item-img-bg">
-                        <img src="${img}">
-                    </div>
+                    <div class="item-img-bg"><img src="${img}"></div>
                     <div class="item-name">${p.title}</div>
                     <div class="p-price-promo">Rp ${priceStr}</div>
                     <button class="btn-beli">LIHAT DETAIL</button>
                 </div>`;
             });
-        }, (error) => {
-            document.getElementById('storeFeed').innerHTML = '<div style="width:100%; text-align:center; font-size:12px; color:var(--danger);">Gagal memuat katalog.</div>';
+
+            // PROMO POP-UP KAMPAS
+            if(kampasItems.length > 0 && !isPromoShownThisSession) {
+                const todayStr = new Date().toDateString();
+                const lastPromoDate = localStorage.getItem('promo_kampas_seen');
+                if(lastPromoDate !== todayStr) {
+                    isPromoShownThisSession = true;
+                    setTimeout(() => {
+                        let promoItem = kampasItems[0];
+                        document.getElementById('promoImg').src = promoItem.image;
+                        document.getElementById('promoPrice').innerText = "Rp " + Number(promoItem.price).toLocaleString('id-ID');
+                        let cleanWa = promoItem.sellerWa; if(cleanWa && cleanWa.startsWith('0')) cleanWa = '62' + cleanWa.substring(1);
+                        let waMsg = `Halo, saya mau *Booking Pemasangan ${promoItem.title}* via Aplikasi MLU.\nApakah ada slot untuk besok?`;
+                        
+                        document.getElementById('btnPromoWA').onclick = () => { window.open(`https://wa.me/${cleanWa}?text=${encodeURIComponent(waMsg)}`, '_blank'); closePromo(); };
+                        
+                        let pm = document.getElementById('promoKampasModal'); pm.style.display = 'flex';
+                        setTimeout(() => pm.classList.add('show'), 10);
+                        localStorage.setItem('promo_kampas_seen', todayStr);
+                    }, 4000);
+                }
+            }
         });
 
-        // Tampilan Modal Detail Pasar & Sistem Booking Kampas Rem
+        // Tampilan Modal Detail (Kepake di Mini & Full Screen)
         window.openStoreDetail = (id, title, price, img, wa, desc, canEdit) => {
-            let isKampas = title.toLowerCase().includes('kampas');
+            let titleLow = title.toLowerCase();
+            let isKampas = titleLow.includes('kampas') || titleLow.includes('kanvas') || titleLow.includes('rem');
             
             let editBtn = canEdit ? `<button class="btn-elite" style="background:#F1F5F9; color:var(--navy-main); margin-top:10px; padding:12px; font-size:12px; box-shadow:none; border:1px solid #E2E8F0;" onclick="window.location.href='https://punyaaris1-lang.github.io/memberMLU/store.html?id=${id}'"><i class="fas fa-pen"></i> EDIT DI PASAR</button>` : '';
+            let cleanWa = wa; if(cleanWa && cleanWa.startsWith('0')) cleanWa = '62' + cleanWa.substring(1);
             
-            let cleanWa = wa;
-            if(cleanWa && cleanWa.startsWith('0')) cleanWa = '62' + cleanWa.substring(1);
-            
-            let waMsg = isKampas 
-                ? `Halo, saya mau *Booking Pemasangan ${title}* via Aplikasi MLU.\nApakah ada slot untuk besok?`
-                : `Halo, saya lihat *${title}* di Aplikasi Antrean MLU.\nApakah masih tersedia?`;
-
-            let extraInfo = isKampas 
-                ? `<div style="background:#FFFBEB; border:1px dashed #F59E0B; color:#B45309; padding:10px; border-radius:12px; margin-bottom:15px; font-size:11px; font-weight:800; line-height:1.4;"><i class="fas fa-tools"></i> INFO: Sistem Booking. Pembelian hari ini, pemasangan paling cepat BESOK (H+1). Silakan konfirmasi jadwal via WA.</div>` 
-                : '';
-
+            let waMsg = isKampas ? `Halo, saya mau *Booking Pemasangan ${title}* via Aplikasi MLU.\nApakah ada slot untuk besok?` : `Halo, saya lihat *${title}* di Aplikasi Antrean MLU.\nApakah masih tersedia?`;
+            let extraInfo = isKampas ? `<div style="background:#FFFBEB; border:1px dashed #F59E0B; color:#B45309; padding:10px; border-radius:12px; margin-bottom:15px; font-size:11px; font-weight:800; line-height:1.4;"><i class="fas fa-tools"></i> INFO: Sistem Booking. Pembelian hari ini, pemasangan paling cepat BESOK (H+1). Silakan konfirmasi jadwal via WA.</div>` : '';
             let btnLabel = isKampas ? `<i class="fab fa-whatsapp" style="font-size:20px;"></i> BOOKING PASANG` : `<i class="fab fa-whatsapp" style="font-size:20px;"></i> BELI SEKARANG`;
 
             const html = `
@@ -569,16 +565,59 @@
                 <div style="font-family:'Inter'; font-size:16px; font-weight:800; color:var(--navy-main); text-align:left; margin-bottom:10px;">${title}</div>
                 ${extraInfo}
                 <div style="font-size:12px; color:var(--text-gray); text-align:left; background:#F8FAFC; padding:10px; border-radius:12px; margin-bottom:20px; white-space:pre-wrap;">${desc || 'Tidak ada deskripsi.'}</div>
-                
-                <button class="btn-elite" style="background:var(--success); color:white; box-shadow:0 10px 20px rgba(16,185,129,0.3);" onclick="window.open('https://wa.me/${cleanWa}?text=${encodeURIComponent(waMsg)}', '_blank')">
-                    ${btnLabel}
-                </button>
+                <button class="btn-elite" style="background:var(--success); color:white; box-shadow:0 10px 20px rgba(16,185,129,0.3);" onclick="window.open('https://wa.me/${cleanWa}?text=${encodeURIComponent(waMsg)}', '_blank')">${btnLabel}</button>
                 ${editBtn}
             `;
             showModal("<i class='fas fa-shopping-bag'></i> DETAIL PRODUK", html);
         }
 
-        // --- 7. FUNGSI UTILITAS MODAL UMUM ---
+        // --- 8. LOGIKA FULL SCREEN STORE OVERLAY ---
+        window.openFullStore = () => {
+            document.getElementById('fullStoreView').style.display = 'flex';
+            renderFullStore(window.allStoreItems);
+        }
+        
+        window.closeFullStore = () => {
+            document.getElementById('fullStoreView').style.display = 'none';
+            document.getElementById('inpSearchStore').value = '';
+        }
+
+        window.filterFullStore = () => {
+            const key = document.getElementById('inpSearchStore').value.toLowerCase();
+            const filtered = window.allStoreItems.filter(p => p.title.toLowerCase().includes(key));
+            renderFullStore(filtered);
+        }
+
+        function renderFullStore(dataArray) {
+            const grid = document.getElementById('fullStoreGrid');
+            grid.innerHTML = '';
+            if(dataArray.length === 0) {
+                grid.innerHTML = '<div style="grid-column: 1 / -1; text-align:center; padding:30px; color:var(--text-gray);">Barang tidak ditemukan.</div>';
+                return;
+            }
+
+            dataArray.forEach(p => {
+                let img = p.image || 'https://placehold.co/300x300/E2E8F0/94A3B8?text=NO+IMAGE';
+                let priceStr = Number(p.price).toLocaleString('id-ID');
+                
+                let canEdit = false; let titleLow = p.title.toLowerCase();
+                if (titleLow.includes('kopi') || titleLow.includes('kampas') || titleLow.includes('kanvas') || titleLow.includes('rem')) {
+                    if (isPengurus || myPlat === 'B4248SWF') canEdit = true;
+                } else { if ((cleanStr(p.sellerPlat) === cleanStr(myPlat)) || myPlat === 'B4248SWF') canEdit = true; }
+
+                let safeTitle = p.title.replace(/'/g, "\\'"); let safeDesc = p.desc ? p.desc.replace(/'/g, "\\'").replace(/\n/g, "\\n") : '';
+
+                grid.innerHTML += `
+                <div class="fs-card" onclick="openStoreDetail('${p.id}', '${safeTitle}', '${priceStr}', '${img}', '${p.sellerWa}', '${safeDesc}', ${canEdit})">
+                    <div class="fs-card-img"><img src="${img}"></div>
+                    <div class="fs-title">${p.title}</div>
+                    <div class="fs-price">Rp ${priceStr}</div>
+                    <button class="btn-beli">BELI SEKARANG</button>
+                </div>`;
+            });
+        }
+
+        // FUNGSI UTILITAS UMUM
         function showModal(title, contentHTML) {
             const m = document.getElementById('mainModal');
             document.getElementById('modalTitle').innerHTML = title;
@@ -593,7 +632,12 @@
             setTimeout(() => m.style.display = 'none', 300);
         }
 
-        // ADMIN OVERRIDE & RESET
+        window.closePromo = () => {
+            const pm = document.getElementById('promoKampasModal');
+            pm.classList.remove('show');
+            setTimeout(() => pm.style.display = 'none', 400);
+        }
+
         window.triggerAdminPrompt = () => {
             const pass = prompt("MASUKKAN KODE AKSES:");
             if(pass === "2505") window.location.href = "https://punyaaris1-lang.github.io/antricukk/admin.html";
