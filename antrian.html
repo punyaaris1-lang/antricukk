@@ -6,7 +6,7 @@
     <title>FC Kelapa Gading - Elite Glass</title>
     
     <script>
-        const APP_VERSION = "7.3_UX_FIX_RESET"; 
+        const APP_VERSION = "7.3_LAYOUT_FIX"; 
         if (localStorage.getItem('maka_antrian_v') !== APP_VERSION) {
             if ('caches' in window) { caches.keys().then((names) => { names.forEach(name => { caches.delete(name); }); }); }
             localStorage.setItem('maka_antrian_v', APP_VERSION); window.location.reload(true); 
@@ -29,9 +29,10 @@
             --electric-blue: #2D63ED;
         }
 
+        /* FIX 1: Buka kuncian layar biar bisa di-scroll kalau kontennya panjang */
         body { 
             margin: 0; font-family: 'Inter', sans-serif; background-color: var(--bg-body);
-            height: 100vh; overflow: hidden; display: flex; flex-direction: column;
+            min-height: 100vh; overflow-x: hidden; overflow-y: auto; display: flex; flex-direction: column;
             -webkit-tap-highlight-color: transparent; position: relative;
         }
         
@@ -63,17 +64,20 @@
 
         .split-container { display: flex; flex-direction: column; gap: 15px; padding: 0 20px 20px; flex: 1; min-height: 0; position: relative; z-index: 5;}
         
+        /* FIX 2: Buang flex:1 dari box-half biar dia ngikutin isi kontennya (height dinamis) */
         .box-half { 
-            flex: 1; background: rgba(255, 255, 255, 0.45); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); 
+            background: rgba(255, 255, 255, 0.45); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); 
             border-radius: 30px; box-shadow: 0 15px 35px rgba(10, 25, 49, 0.05); border: 1px solid rgba(255, 255, 255, 0.7); 
             display: flex; flex-direction: column; position: relative; overflow: hidden; transition: 0.4s;
         }
 
-        .queue-section { justify-content: center; align-items: center; padding: 20px 25px; }
+        /* FIX 3: justify-content diganti dari center ke flex-start biar atasnya gak kepotong */
+        .queue-section { justify-content: flex-start; align-items: center; padding: 20px 25px; }
         
+        /* LOGIKA CSS SAAT NAIK SLOT (PORSI MENGECIL & PASAR NAIK) */
         .split-container.in-slot .queue-section { flex: 0 0 auto; padding: 15px 20px; min-height: fit-content; }
-        .split-container.in-slot .store-section { flex: 3; } 
-        .split-container.in-slot .stats-wrapper { display: none; } 
+        .split-container.in-slot .store-section { flex: 3; } /* Pasar jadi 3/4 halaman */
+        .split-container.in-slot .stats-wrapper { display: none; } /* Hilangin kotak stats */
 
         .active-slot-info { display: none; flex-direction: column; align-items: center; justify-content: center; width: 100%; margin-bottom: 10px; }
         .split-container.in-slot .active-slot-info { display: flex; }
@@ -93,8 +97,9 @@
         .card-queue .sc-lbl { color: var(--text-gray); font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
         .card-queue .sc-val { font-family: 'Outfit'; font-size: 45px; font-weight: 900; color: var(--navy-main); line-height: 1; }
 
+        /* FIX 4: Padding dikurangin dari 20px ke 16px biar lebih muat dan pas di layar */
         .btn-elite { 
-            width: 100%; padding: 20px; border-radius: 20px; border: none;
+            width: 100%; padding: 16px; border-radius: 20px; border: none;
             background: linear-gradient(135deg, var(--navy-dark) 0%, var(--navy-light) 100%); color: var(--gold-main);
             font-family: 'Space Grotesk'; font-size: 14px; font-weight: 900; letter-spacing: 1px;
             cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;
@@ -105,10 +110,11 @@
         .btn-danger-mode { background: linear-gradient(135deg, #DC2626 0%, #991B1B 100%); color: white; box-shadow: 0 15px 30px rgba(220,38,38,0.25); }
         .btn-success-mode { background: linear-gradient(135deg, #10B981 0%, #059669 100%); color: white; box-shadow: 0 15px 30px rgba(16,185,129,0.25); }
 
-        .store-section { padding: 25px 0 0 0; justify-content: space-between;}
+        .store-section { padding: 25px 0 0 0; justify-content: space-between; flex: 1;}
         .store-header { display: flex; justify-content: space-between; align-items: center; padding: 0 20px 15px;}
         .sh-title { font-family: 'Outfit'; font-size: 16px; font-weight: 900; color: var(--navy-main); display: flex; align-items: center; gap: 8px;}
         .flash-badge { background: var(--danger); color: white; font-size: 9px; font-family: 'Space Grotesk'; padding: 3px 8px; border-radius: 6px; letter-spacing: 1px; animation: pulseFlash 1s infinite alternate; box-shadow: 0 0 10px rgba(239,68,68,0.4); }
+        @keyframes pulseFlash { 0% { opacity: 1; } 100% { opacity: 0.5; } }
 
         .btn-buka-pasar { background: var(--navy-main); color: var(--gold-main); padding: 8px 14px; border-radius: 20px; font-family: 'Space Grotesk'; font-size: 9px; font-weight: 800; border: none; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 5px 15px rgba(10,25,49,0.2); transition: 0.2s; }
         .btn-buka-pasar:active { transform: scale(0.95); }
@@ -177,6 +183,7 @@
         .li-plat { font-family: 'Space Grotesk'; font-size: 20px; font-weight: 900; color: var(--navy-main); line-height: 1; margin-bottom: 4px;}
         .li-name { font-size: 11px; font-weight: 700; color: var(--text-gray); text-transform: uppercase;}
         .li-batre { font-family: 'Space Grotesk'; font-size: 14px; font-weight: 900; color: var(--success); background: rgba(16,185,129,0.1); padding: 4px 10px; border-radius: 8px;}
+        .btn-kudeta { background: var(--danger); color: white; border: none; padding: 6px 12px; border-radius: 8px; font-family: 'Space Grotesk'; font-size: 10px; font-weight: 900; cursor: pointer; box-shadow: 0 5px 15px rgba(239,68,68,0.3); margin-top: 8px; width: 100%;}
 
         .inp-group { margin-bottom: 15px; text-align: left;}
         .inp-label { font-size: 11px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px; display: block; letter-spacing: 0.5px;}
@@ -227,7 +234,7 @@
             <div class="h-subtitle">Rumah Maka Lintas Utara</div>
         </div>
         <div class="header-right">
-            <button class="btn-menu" onclick="resetApp()" title="Refresh Sistem"><i class="fas fa-sync-alt"></i></button>
+            <button class="btn-menu" onclick="window.location.href='dashboard.html'"><i class="fas fa-home"></i></button>
         </div>
     </div>
 
@@ -240,7 +247,7 @@
                 <div class="asi-value" id="mySlotNumberDisplay">-</div>
             </div>
 
-            <div style="background: rgba(239,68,68,0.1); border: 1px dashed var(--danger); border-radius: 16px; padding: 12px; margin-bottom: 15px; display: flex; align-items: center; gap: 12px; text-align: left; box-shadow: 0 5px 15px rgba(239,68,68,0.05);">
+            <div style="background: rgba(239,68,68,0.1); border: 1px dashed var(--danger); border-radius: 16px; padding: 12px; margin-bottom: 15px; display: flex; align-items: center; gap: 12px; text-align: left; box-shadow: 0 5px 15px rgba(239,68,68,0.05); width: 100%;">
                 <i class="fas fa-exclamation-triangle fa-fade" style="color: var(--danger); font-size: 24px;"></i>
                 <div style="font-size: 10px; color: var(--text-dark); line-height: 1.4; font-weight: 600;">
                     <b style="color: var(--danger); font-family: 'Outfit'; font-size: 12px;">INFO PENTING!</b><br>Kondisi FC tidak normal. Maksimal charging dibatasi <b style="font-size: 12px; color: var(--danger);">98%</b>. Dilarang sampai 100% atau indikator biru!
@@ -343,7 +350,7 @@
         const appStore = initializeApp(fbStoreConfig, "AppStore");
         const dbStore = getFirestore(appStore);
 
-        // === 2. VARIABEL GLOBAL & PARSING PLAT YANG KUAT ===
+        // === 2. VARIABEL GLOBAL ===
         const STATION_LAT = -6.171583; const STATION_LNG = 106.899844; const MAX_DIST_KM = 0.2; 
         const TOTAL_SLOTS = 3;
         
@@ -438,14 +445,6 @@
             }
         });
 
-        // --- RESET SISTEM BUTTON ---
-        window.resetApp = () => {
-            showEliteConfirm("RESET SISTEM", "Refresh sistem dan sinkronisasi data ulang? (Gunakan jika tombol nyangkut / error).", "danger", () => {
-                localStorage.removeItem('myPlat'); 
-                window.location.reload(true);
-            });
-        }
-
         // === 3. LOGIKA ANTRIAN ===
         onSnapshot(mainRef, (snap) => {
             if (!snap.exists()) return; 
@@ -472,10 +471,6 @@
 
             let myQIndex = localQueue.findIndex(q => cleanStr(q.plat) === cleanStr(myPlat));
             let mySlotIndex = localSlots.findIndex(s => s && cleanStr(s.plat) === cleanStr(myPlat));
-
-            const boxQueue = document.getElementById('boxQueue');
-            const boxStore = document.getElementById('boxStore');
-            const statsWrap = document.getElementById('statsWrapper');
 
             // LOGIKA DYNAMIC LAYOUT
             if (mySlotIndex > -1) {
@@ -711,19 +706,39 @@
             showModal("<i class='fas fa-shopping-bag'></i> DETAIL PRODUK", html);
         }
 
-        window.openFullStore = () => { document.getElementById('fullStoreView').style.display = 'flex'; renderFullStore(window.allStoreItems); }
-        window.closeFullStore = () => { document.getElementById('fullStoreView').style.display = 'none'; document.getElementById('inpSearchStore').value = ''; }
-        window.filterFullStore = () => { const key = document.getElementById('inpSearchStore').value.toLowerCase(); const filtered = window.allStoreItems.filter(p => p.title.toLowerCase().includes(key)); renderFullStore(filtered); }
+        window.openFullStore = () => {
+            document.getElementById('fullStoreView').style.display = 'flex';
+            renderFullStore(window.allStoreItems);
+        }
+        
+        window.closeFullStore = () => {
+            document.getElementById('fullStoreView').style.display = 'none';
+            document.getElementById('inpSearchStore').value = '';
+        }
+
+        window.filterFullStore = () => {
+            const key = document.getElementById('inpSearchStore').value.toLowerCase();
+            const filtered = window.allStoreItems.filter(p => p.title.toLowerCase().includes(key));
+            renderFullStore(filtered);
+        }
 
         function renderFullStore(dataArray) {
             const grid = document.getElementById('fullStoreGrid');
             grid.innerHTML = '';
-            if(dataArray.length === 0) { grid.innerHTML = '<div style="grid-column: 1 / -1; text-align:center; padding:30px; color:var(--text-gray);">Barang tidak ditemukan.</div>'; return; }
+            if(dataArray.length === 0) {
+                grid.innerHTML = '<div style="grid-column: 1 / -1; text-align:center; padding:30px; color:var(--text-gray);">Barang tidak ditemukan.</div>';
+                return;
+            }
 
             dataArray.forEach(p => {
-                let img = p.image || 'https://placehold.co/300x300/E2E8F0/94A3B8?text=NO+IMAGE'; let priceStr = Number(p.price).toLocaleString('id-ID');
+                let img = p.image || 'https://placehold.co/300x300/E2E8F0/94A3B8?text=NO+IMAGE';
+                let priceStr = Number(p.price).toLocaleString('id-ID');
+                
                 let canEdit = false; let titleLow = p.title.toLowerCase();
-                if (titleLow.includes('kopi') || titleLow.includes('kampas') || titleLow.includes('kanvas') || titleLow.includes('rem')) { if (isPengurus || myPlat === 'B4248SWF') canEdit = true; } else { if ((cleanStr(p.sellerPlat) === cleanStr(myPlat)) || myPlat === 'B4248SWF') canEdit = true; }
+                if (titleLow.includes('kopi') || titleLow.includes('kampas') || titleLow.includes('kanvas') || titleLow.includes('rem')) {
+                    if (isPengurus || myPlat === 'B4248SWF') canEdit = true;
+                } else { if ((cleanStr(p.sellerPlat) === cleanStr(myPlat)) || myPlat === 'B4248SWF') canEdit = true; }
+
                 let safeTitle = p.title.replace(/'/g, "\\'"); let safeDesc = p.desc ? p.desc.replace(/'/g, "\\'").replace(/\n/g, "\\n") : '';
 
                 grid.innerHTML += `
@@ -736,9 +751,22 @@
             });
         }
 
-        function showModal(title, contentHTML) { const m = document.getElementById('mainModal'); document.getElementById('modalTitle').innerHTML = title; document.getElementById('modalContent').innerHTML = contentHTML; m.style.display = 'flex'; setTimeout(() => m.classList.add('show'), 10); }
-        window.closeModal = () => { const m = document.getElementById('mainModal'); m.classList.remove('show'); setTimeout(() => m.style.display = 'none', 300); }
-        window.closePromo = () => { const pm = document.getElementById('promoKampasModal'); pm.classList.remove('show'); setTimeout(() => pm.style.display = 'none', 400); }
+        function showModal(title, contentHTML) {
+            const m = document.getElementById('mainModal');
+            document.getElementById('modalTitle').innerHTML = title;
+            document.getElementById('modalContent').innerHTML = contentHTML;
+            m.style.display = 'flex'; setTimeout(() => m.classList.add('show'), 10);
+        }
+
+        window.closeModal = () => {
+            const m = document.getElementById('mainModal');
+            m.classList.remove('show'); setTimeout(() => m.style.display = 'none', 300);
+        }
+
+        window.closePromo = () => {
+            const pm = document.getElementById('promoKampasModal');
+            pm.classList.remove('show'); setTimeout(() => pm.style.display = 'none', 400);
+        }
 
     </script>
 </body>
