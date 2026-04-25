@@ -3,428 +3,466 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MLU - Dashboard</title>
+    <title>MLU - Premium Dashboard</title>
     
+    <script>
+        const DASH_VERSION = "14.9_FULL_SYSTEM_RESTORED"; 
+        if (localStorage.getItem('maka_dash_v') !== DASH_VERSION) {
+            if ('caches' in window) { caches.keys().then((names) => { names.forEach(name => { caches.delete(name); }); }); }
+            localStorage.setItem('maka_dash_v', DASH_VERSION); window.location.reload(true); 
+        }
+    </script>
+
+    <link rel="manifest" href="manifest.json">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@700;800;900&family=Outfit:wght@500;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    
     <style>
         :root { 
-            --royal-blue: #0A2259; --electric-blue: #2D63ED; --bg-surface: #F0F4F8; 
-            --text-main: #0F172A; --text-muted: #64748B; --danger: #EF4444; 
-            --success: #10B981; --warning: #F59E0B; --gold: #FCD34D;
+            --royal-blue: #0A2259; --electric-blue: #2D63ED; --gold-lux: #D4AF37;
+            --bg-surface: #E8F0F8; --text-main: #0F172A; --text-muted: #64748B; 
+            --success: #10B981; --danger: #EF4444; --warning: #F59E0B;
+            --glass-bg: rgba(255, 255, 255, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.9);
+            --glass-shadow: 0 15px 35px rgba(10, 25, 49, 0.05);
+            --navy-dark: #071022;
         }
-        
-        body { margin: 0; background: var(--bg-surface); font-family: 'Inter', sans-serif; color: var(--text-main); padding-bottom: 100px; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
-        * { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; text-decoration: none; }
 
-        /* --- POPUP PENGUMUMAN (LEBARAN PREMIUM) --- */
-        .anno-overlay { 
-            position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 99999; 
-            display: none; /* Default Hidden, dikontrol JS */
-            align-items: center; justify-content: center; backdrop-filter: blur(8px);
-            animation: fadeIn 0.3s ease-out;
+        body { 
+            margin: 0; font-family: 'Inter', sans-serif; color: var(--text-main); padding-bottom: 100px; overflow-x: hidden; -webkit-tap-highlight-color: transparent;
+            background-color: var(--bg-surface);
+            background-image: radial-gradient(at 0% 0%, #FFFFFF 0px, transparent 50%), radial-gradient(at 100% 0%, rgba(212, 175, 55, 0.15) 0px, transparent 50%), radial-gradient(at 100% 100%, #FFFFFF 0px, transparent 50%), radial-gradient(at 0% 100%, rgba(45, 99, 237, 0.1) 0px, transparent 50%);
+            background-attachment: fixed;
         }
-        .anno-card {
-            background: linear-gradient(160deg, #022c22 0%, #064e3b 100%); /* Deep Emerald */
-            width: 85%; max-width: 380px; border-radius: 25px; padding: 0;
-            border: 2px solid rgba(252, 211, 77, 0.4); /* Gold Border */
-            box-shadow: 0 20px 60px rgba(0,0,0,0.6), 0 0 30px rgba(6, 78, 59, 0.5);
-            text-align: center; position: relative; overflow: visible;
-            margin-top: 20px;
-            animation: popUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
+        * { box-sizing: border-box; outline: none; text-decoration: none; }
+
+        .ambient-light { position: fixed; border-radius: 50%; filter: blur(90px); z-index: -1; opacity: 0.5; animation: floatLight 12s infinite alternate; }
+        .light-1 { top: -10%; left: -20%; width: 500px; height: 500px; background: rgba(45, 99, 237, 0.15); }
+        .light-2 { bottom: -10%; right: -20%; width: 450px; height: 450px; background: rgba(212, 175, 55, 0.15); animation-delay: -4s; }
+        @keyframes floatLight { 0% {transform: translate(0,0);} 100% {transform: translate(30px, 50px);} }
+
+        .fade-up { animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; transform: translateY(30px); }
+        .d-1 { animation-delay: 0.1s; } .d-2 { animation-delay: 0.2s; } .d-3 { animation-delay: 0.3s; } .d-4 { animation-delay: 0.4s; }
+        @keyframes slideUp { to { opacity: 1; transform: translateY(0); } }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        /* --- HEADER --- */
+        .top-header { padding: 30px 20px 10px; display: flex; justify-content: space-between; align-items: center; position: relative; z-index: 10;}
+        .greet-box { display: flex; flex-direction: column; }
+        .date-badge { background: rgba(255,255,255,0.6); backdrop-filter: blur(5px); padding: 4px 10px; border-radius: 50px; font-family: 'Space Grotesk'; font-size: 9px; font-weight: 800; color: var(--electric-blue); letter-spacing: 1px; display: inline-flex; align-items: center; gap: 5px; border: 1px solid rgba(255,255,255,0.8); margin-bottom: 5px;}
+        .greet-txt { font-family: 'Outfit'; font-size: 26px; font-weight: 900; color: var(--royal-blue); line-height: 1; letter-spacing: -0.5px;}
+        .btn-inbox { width: 45px; height: 45px; border-radius: 14px; background: white; border: 1px solid rgba(255,255,255,0.8); color: var(--royal-blue); font-size: 20px; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 20px rgba(0,0,0,0.05); cursor: pointer; transition: 0.2s; position: relative;}
+        .btn-inbox:active { transform: scale(0.9); background: var(--electric-blue); color: white; }
+        .inbox-badge { position: absolute; top: -5px; right: -5px; background: var(--danger); color: white; font-family: 'Space Grotesk'; font-size: 10px; font-weight: 900; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid white; box-shadow: 0 3px 10px rgba(239,68,68,0.4); animation: pulseBadge 2s infinite;}
+        @keyframes pulseBadge { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+
+        /* --- VIP CARD --- */
+        .vip-card { margin: 5px 20px 25px; border-radius: 24px; background: linear-gradient(135deg, #0A1128 0%, var(--royal-blue) 100%); position: relative; overflow: hidden; box-shadow: 0 20px 40px rgba(10,34,89,0.3); border: 1px solid rgba(255,255,255,0.15); display: flex; flex-direction: column;}
+        .vip-card::after { content: ''; position: absolute; inset: 0; background-image: radial-gradient(rgba(255,255,255,0.1) 1px, transparent 1px); background-size: 15px 15px; opacity: 0.3; pointer-events: none; z-index: 1;}
+        .vip-card::before { content: ''; position: absolute; right: -20px; top: -20px; width: 120px; height: 120px; background: radial-gradient(circle, rgba(212,175,55,0.2) 0%, transparent 70%); border-radius: 50%; z-index: 1;}
+        .vc-big-logo { position: absolute; right: 15px; top: 15px; height: 140px; width: auto; object-fit: contain; z-index: 2; opacity: 0.65; pointer-events: none;}
+        .vc-top { padding: 20px 25px 10px; display: flex; justify-content: space-between; align-items: flex-start; position: relative; z-index: 3;}
+        .vc-chip { width: 35px; height: 25px; background: linear-gradient(135deg, #FDE047, #CA8A04); border-radius: 6px; position: relative; overflow: hidden; opacity: 0.9;}
+        .vc-chip::after { content: ''; position: absolute; top: 50%; left: 0; width: 100%; height: 1px; background: rgba(0,0,0,0.2); }
+        .vc-chip::before { content: ''; position: absolute; left: 50%; top: 0; height: 100%; width: 1px; background: rgba(0,0,0,0.2); }
+        .vc-middle { padding: 0 25px; position: relative; z-index: 4; display: flex; align-items: center; gap: 15px;}
+        .vc-avatar { width: 70px; height: 70px; border-radius: 22px; background: white; padding: 3px; box-shadow: 0 10px 25px rgba(0,0,0,0.4); flex-shrink: 0;}
+        .vc-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 18px;}
+        .vc-info { flex: 1; }
+        .vc-name { font-family: 'Outfit'; font-size: 22px; font-weight: 900; color: white; line-height: 1.1; margin-bottom: 4px; text-shadow: 0 2px 10px rgba(0,0,0,0.8);}
+        .vc-plat { font-family: 'Space Grotesk'; font-size: 14px; font-weight: 700; color: #93C5FD; letter-spacing: 1.5px; text-shadow: 0 2px 5px rgba(0,0,0,0.8);}
+        .vc-bottom { margin-top: 20px; background: rgba(0,0,0,0.3); padding: 15px 25px; display: flex; justify-content: space-between; align-items: center; position: relative; z-index: 4; backdrop-filter: blur(10px);}
+        .vc-role { font-size: 11px; font-weight: 800; color: white; display: flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.1); padding: 4px 10px; border-radius: 8px;}
+        .vc-role i { color: var(--gold-lux); }
+        .vc-qr { font-size: 26px; color: white; cursor: pointer; transition: 0.2s; background: rgba(255,255,255,0.1); width: 45px; height: 45px; border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 5px 15px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.3);}
+        .vc-qr:active { transform: scale(0.9); background: var(--gold-lux); color: black;}
+
+        .dash-container { padding: 0 20px; display: flex; flex-direction: column; gap: 15px; position: relative; z-index: 10;}
+
+        /* --- FC BANNER KELAPA GADING (LACI) --- */
+        .fc-wrapper { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(20px); border-radius: 20px; border: 1px solid var(--glass-border); box-shadow: var(--glass-shadow); overflow: hidden; transition: 0.4s; }
+        .fc-banner { padding: 20px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; position: relative; z-index: 2;}
+        .fc-banner::before { content: ''; position: absolute; left: 0; top: 0; width: 6px; height: 100%; background: var(--electric-blue); border-radius: 20px 0 0 20px;}
+        .banner-title { font-family: 'Space Grotesk'; font-size: 16px; font-weight: 900; color: var(--royal-blue); margin-bottom: 6px; display: flex; align-items: center; gap: 8px;}
+        .banner-status { font-size: 10px; font-weight: 800; background: var(--bg-body); padding: 4px 8px; border-radius: 8px; display: inline-flex; align-items: center; gap: 5px; border: 1px solid #E2E8F0;}
+        .banner-icon { font-size: 18px; color: var(--royal-blue); transition: 0.4s; background: var(--bg-body); width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.05);}
+        .fc-wrapper.open .banner-icon { transform: rotate(180deg); background: var(--royal-blue); color: white;}
         
-        /* Ornamen Gantung (Ketupat CSS) */
-        .decoration-hang {
-            position: absolute; top: -10px; width: 100%; display: flex; justify-content: center; gap: 50px; z-index: 10; pointer-events: none;
-        }
-        .ketupat-box { position: relative; animation: sway 3s infinite ease-in-out; }
-        .ketupat-box:nth-child(2) { animation-delay: 1s; top: 15px; } 
+        .fc-laci { max-height: 0; overflow: hidden; transition: 0.4s; background: rgba(248,250,252,0.8); border-top: 1px solid transparent;}
+        .fc-wrapper.open .fc-laci { max-height: 600px; padding: 15px 20px; border-top-color: var(--glass-border); }
         
-        .ketupat-shape { width: 30px; height: 30px; background: var(--gold); transform: rotate(45deg); border: 2px solid #B45309; box-shadow: 0 0 10px rgba(252, 211, 77, 0.6); }
-        .ketupat-tali { position: absolute; top: -50px; left: 50%; width: 2px; height: 50px; background: rgba(252, 211, 77, 0.5); transform: translateX(-50%); }
+        .live-slot-item { background: var(--white); border: 1px solid #E2E8F0; border-radius: 14px; padding: 10px 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;}
+        .lsi-left { display: flex; flex-direction: column; }
+        .lsi-lbl { font-size: 8px; font-weight: 800; color: var(--text-gray); text-transform: uppercase; margin-bottom: 2px;}
+        .lsi-name { font-family: 'Outfit'; font-size: 14px; font-weight: 900; color: var(--royal-blue);}
+        .lsi-batre { font-family: 'Space Grotesk'; font-size: 14px; font-weight: 900; color: var(--success); background: rgba(16,185,129,0.1); padding: 4px 10px; border-radius: 8px;}
+        .lsi-empty { color: var(--text-gray); font-style: italic; font-weight: 600; font-size: 12px;}
 
-        /* Header Icon */
-        .anno-header-art { padding: 50px 20px 10px; background: radial-gradient(circle at 50% 0%, rgba(252, 211, 77, 0.15), transparent 70%); border-top-left-radius: 23px; border-top-right-radius: 23px; }
-        .icon-moon { font-size: 50px; background: -webkit-linear-gradient(#FCD34D, #F59E0B); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 0 15px rgba(245, 158, 11, 0.5)); }
-
-        /* Konten */
-        .anno-content { padding: 10px 25px 30px; position: relative; z-index: 2; color: white; font-family: 'Outfit', sans-serif; }
-        .anno-title { font-size: 24px; font-weight: 900; letter-spacing: 1px; color: white; margin-bottom: 5px; text-transform: uppercase; }
-        .anno-date { font-size: 16px; color: var(--gold); font-weight: 700; margin-bottom: 20px; display: inline-block; border-bottom: 1px solid rgba(252, 211, 77, 0.3); padding-bottom: 3px; }
-
-        /* Box Peringatan Merah */
-        .warning-box { background: rgba(220, 38, 38, 0.15); border: 2px solid rgba(220, 38, 38, 0.5); border-radius: 16px; padding: 15px; margin-bottom: 20px; }
-        .warning-text { font-size: 15px; color: #FCA5A5; line-height: 1.4; }
-        .big-warning { display: block; font-size: 22px; font-weight: 900; color: #EF4444; margin: 8px 0; text-transform: uppercase; text-shadow: 0 0 20px rgba(239, 68, 68, 0.3); }
-
-        .anno-note { font-size: 13px; color: #FFFFF; line-height: 1.5; font-style: italic; }
-        .anno-footer { margin-top: 25px; font-size: 12px; font-weight: 800; color: var(--gold); letter-spacing: 2px; display: flex; align-items: center; justify-content: center; gap: 8px; }
-        .anno-footer::before, .anno-footer::after { content:''; display: block; height: 1px; width: 30px; background: rgba(252, 211, 77, 0.3); }
-
-        /* Tombol Close */
-        .btn-anno-close { position: absolute; top: 10px; right: 10px; width: 30px; height: 30px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 50%; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 100; transition: 0.2s; }
-        .btn-anno-close:active { background: rgba(239,68,68,0.8); }
-
-        @keyframes popUp { 0%{transform:scale(0.8);opacity:0;} 100%{transform:scale(1);opacity:1;} }
-        @keyframes fadeIn { from{opacity:0;} to{opacity:1;} }
-        @keyframes sway { 0%,100%{transform:rotate(-5deg);} 50%{transform:rotate(5deg);} }
-
-        /* --- HEADER & PROFILE --- */
-        .header-bg { background: linear-gradient(160deg, var(--royal-blue) 0%, #15398F 100%); padding: 35px 20px 35px; border-bottom-left-radius: 35px; border-bottom-right-radius: 35px; position: relative; box-shadow: 0 10px 30px rgba(45, 99, 237, 0.25); border-bottom: 2px solid rgba(45, 99, 237, 0.3); }
-        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; color: white; }
-        .greeting { font-family: 'Space Grotesk'; font-size: 22px; font-weight: 900; line-height: 1.1; text-shadow: 0 2px 10px rgba(255,255,255,0.2); }
-        .date-text { font-size: 10px; font-weight: 800; color: #93C5FD; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px; }
-        .btn-settings { color: white; opacity: 0.9; font-size: 24px; cursor: pointer; }
-
-        .profile-card { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); backdrop-filter: blur(15px); padding: 12px 15px; border-radius: 18px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 5px 20px rgba(0,0,0,0.1); position: relative; }
-        .p-left { display: flex; align-items: center; gap: 12px; flex: 1; overflow: hidden;}
-        .p-photo { width: 45px; height: 45px; border-radius: 12px; object-fit: cover; border: 2px solid white; background: #E2E8F0; }
-        .p-info { color: white; overflow: hidden; }
+        .btn-lihat-antrian { width: 100%; padding: 10px; background: transparent; border: 2px dashed #CBD5E1; color: var(--text-gray); border-radius: 12px; font-family: 'Space Grotesk'; font-size: 11px; font-weight: 800; cursor: pointer; transition: 0.2s; margin-bottom: 12px;}
+        .btn-lihat-antrian:active { background: #F1F5F9; transform: scale(0.98); }
         
-        .p-role { font-size: 9px; font-weight: 800; background: var(--gold); color: #000; padding: 2px 6px; border-radius: 4px; display: inline-block; margin-bottom: 2px; }
+        .btn-laci { width: 100%; padding: 15px; border: none; border-radius: 14px; font-family: 'Space Grotesk'; font-size: 13px; font-weight: 900; letter-spacing: 1px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 10px 20px rgba(0,0,0,0.1);}
+        .btn-laci:active { transform: scale(0.96); }
+        .bl-primary { background: linear-gradient(135deg, var(--royal-blue), #15305B) !important; color: var(--gold-lux) !important; }
+        .bl-danger { background: linear-gradient(135deg, #DC2626, #991B1B) !important; color: white !important; }
+        .bl-success { background: linear-gradient(135deg, #10B981, #059669) !important; color: white !important; }
+
+        /* --- LOKASI FC ALTERNATIF --- */
+        .sect-title { font-size: 10px; font-weight: 900; color: var(--text-gray); text-transform: uppercase; letter-spacing: 1.5px; padding-left: 5px; margin-top: 5px; margin-bottom: 5px;}
         
-        .p-name { font-family: 'Space Grotesk'; font-size: 14px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 130px; }
-        .p-plat { font-size: 10px; font-weight: 600; color: #E2E8F0; margin-top: 2px; }
+        .fc-banner-alt { border-radius: 20px; padding: 15px 20px; display: flex; align-items: center; justify-content: space-between; background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(20px); border: 1px solid var(--glass-border); box-shadow: var(--glass-shadow); cursor: pointer; transition: 0.3s; position: relative; overflow: hidden; margin-bottom: 5px;}
+        .fc-banner-alt:active { transform: scale(0.98); }
+        .fc-banner-alt::before { content: ''; position: absolute; left: 0; top: 0; width: 6px; height: 100%; background: var(--warning); border-radius: 20px 0 0 20px;}
+        .fc-kc::before { background: #10B981; } 
+        .banner-val { font-size: 20px; color: var(--warning); text-align: right; background: rgba(245,158,11,0.1); width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 12px;}
+        .fc-kc .banner-val { color: #10B981; background: rgba(16,185,129,0.1); }
+
+        /* --- PILL BUTTONS --- */
+        .third-party-pills { display: flex; gap: 10px; margin-bottom: 10px; }
+        .pill-btn { flex: 1; padding: 12px 15px; border-radius: 50px; border: none; font-family: 'Space Grotesk'; font-size: 11px; font-weight: 800; color: white; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; transition: 0.2s; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .pill-btn:active { transform: scale(0.95); }
+        .pill-starvo { background: linear-gradient(135deg, #10B981, #059669); }
+        .pill-casan { background: linear-gradient(135deg, #8B5CF6, #6D28D9); }
+
+        /* --- PODIUM SULTAN TABUNGAN 3D --- */
+        .sultan-panel { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(20px); border-radius: 24px; padding: 20px; box-shadow: var(--glass-shadow); border: 1px solid var(--glass-border); position: relative;}
+        .sp-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .sp-title { font-family: 'Outfit'; font-size: 15px; font-weight: 900; color: var(--royal-blue); display: flex; align-items: center; gap: 8px;}
+        .sp-title i { color: var(--gold-lux); font-size: 18px;}
         
-        .p-fc-status { display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; min-width: 60px; cursor: pointer; border-left: 1px solid rgba(255,255,255,0.2); padding-left: 10px; margin-left: 10px; }
-        .pfc-title { font-size: 9px; font-weight: 800; color: #93C5FD; letter-spacing: 1px; display: flex; align-items: center; gap: 4px; margin-bottom: 2px;}
-        .pfc-val { font-family: 'Space Grotesk'; font-size: 14px; font-weight: 900; line-height: 1; }
+        .podium-wrapper { display: flex; align-items: flex-end; justify-content: center; gap: 10px; margin-top: 30px; height: 160px;}
+        .pod-item { border-radius: 16px 16px 10px 10px; width: 31%; text-align: center; position: relative; padding: 10px 5px 15px; display: flex; flex-direction: column; justify-content: flex-end; box-shadow: 0 10px 20px rgba(0,0,0,0.05); transition: 0.3s; }
+        .pod-1 { height: 100%; background: linear-gradient(135deg, var(--royal-blue), var(--navy-dark)); border: 2px solid var(--gold-lux); order: 2; z-index: 3;}
+        .pod-2 { height: 75%; background: linear-gradient(135deg, #FFFFFF, #F1F5F9); border: 1px solid #CBD5E1; order: 1; z-index: 2;}
+        .pod-3 { height: 65%; background: linear-gradient(135deg, #FEF3C7, #FDE68A); border: 1px solid #F59E0B; order: 3; z-index: 1;}
+        .pod-avatar { width: 40px; height: 40px; border-radius: 50%; background: white; margin: -25px auto 8px; border: 2px solid white; object-fit: cover; box-shadow: 0 5px 15px rgba(0,0,0,0.1);}
+        .pod-1 .pod-avatar { width: 55px; height: 55px; margin: -35px auto 8px; border: 3px solid var(--gold-lux); box-shadow: 0 10px 25px rgba(212,175,55,0.3); }
+        .pod-title { font-family: 'Space Grotesk'; font-size: 8px; font-weight: 900; margin-bottom: 4px; letter-spacing: 1px; line-height: 1.1;}
+        .pod-1 .pod-title { color: var(--gold-lux); font-size: 9px; text-shadow: 0 0 10px rgba(212,175,55,0.4);}
+        .pod-2 .pod-title { color: var(--text-gray); }
+        .pod-3 .pod-title { color: #B45309; }
+        .pod-name { font-family: 'Outfit'; font-size: 11px; font-weight: 800; line-height: 1.1; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;}
+        .pod-1 .pod-name { color: white; font-size: 12px;}
+        .pod-2 .pod-name, .pod-3 .pod-name { color: var(--royal-blue); }
+        .pod-badge { position: absolute; top: -10px; right: -5px; font-size: 20px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));}
+        .pod-1 .pod-badge { font-size: 26px; top: -15px; right: -10px;}
 
-        /* SWITCH LOKASI */
-        .loc-toggle { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; margin-left: 10px;}
-        .loc-label { font-size: 8px; font-weight: 800; color: #93C5FD; text-transform: uppercase; }
-        .switch { position: relative; display: inline-block; width: 36px; height: 20px; }
-        .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0,0,0,0.3); transition: .4s; border-radius: 20px; border: 1px solid rgba(255,255,255,0.3); }
-        .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 2px; background-color: white; transition: .4s; border-radius: 50%; }
-        input:checked + .slider { background-color: var(--success); border-color: var(--success); }
-        input:checked + .slider:before { transform: translateX(16px); }
-
-        /* --- DASHBOARD WIDGETS --- */
-        .dash-container { padding: 0 20px; margin: -25px 0 20px; position: relative; z-index: 10; display: flex; flex-direction: column; gap: 15px; }
-        
-        .fc-banner { 
-            background: white; border-radius: 20px; padding: 20px; 
-            display: flex; justify-content: space-between; align-items: center; 
-            box-shadow: 0 10px 30px rgba(10,34,89,0.08); border: 1px solid rgba(45,99,237,0.1); 
-            cursor: pointer; position: relative; overflow: hidden; transition: 0.2s;
-        }
-        .fc-banner::after { content: ''; position: absolute; right: -20px; top: -20px; width: 100px; height: 100px; background: rgba(45,99,237,0.05); border-radius: 50%; }
-        .banner-left { display: flex; flex-direction: column; z-index: 2; }
-        .banner-title { font-family: 'Space Grotesk'; font-size: 16px; font-weight: 900; color: var(--royal-blue); letter-spacing: 0.5px; display: flex; align-items: center; gap: 8px;}
-        .banner-desc { font-size: 10px; font-weight: 600; color: var(--text-muted); margin-top: 5px; }
-        .banner-right { text-align: right; z-index: 2; }
-        .banner-val { font-family: 'Space Grotesk'; font-size: 24px; font-weight: 900; line-height: 1; }
-        .banner-lbl { font-family: 'Inter'; font-size: 9px; font-weight: 800; color: var(--text-muted); letter-spacing: 1px; text-transform: uppercase; display: block; margin-top: 4px; }
-
-        /* RADAR MEMBER (PREMIUM MAP) */
-        #radarContainer { display: none; width: 100%; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border: 4px solid white; position: relative; background: #E2E8F0; }
-        #radarMap { width: 100%; height: 220px; z-index: 1; }
-        .radar-header { position: absolute; top: 10px; left: 10px; background: rgba(255,255,255,0.9); backdrop-filter:blur(5px); padding: 6px 14px; border-radius: 20px; font-family: 'Space Grotesk'; font-weight: 900; font-size: 10px; color: var(--royal-blue); z-index: 999; box-shadow: 0 5px 15px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 6px; border:1px solid rgba(45,99,237,0.1); }
-        .radar-dot { width: 8px; height: 8px; background: var(--success); border-radius: 50%; animation: blink 1.5s infinite; box-shadow:0 0 10px var(--success);}
-        @keyframes blink { 0% {opacity:1;} 50% { opacity: 0.3; } 100% {opacity:1;} }
-
-        /* --- MENU GRID --- */
-        .menu-container { padding: 0 20px; margin-bottom: 20px;}
-        .menu-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
-        .menu-btn { background: white; border-radius: 16px; padding: 15px 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; border: 1px solid rgba(45, 99, 237, 0.1); box-shadow: 0 5px 15px rgba(0,0,0,0.03); transition: 0.2s; cursor: pointer; }
-        .menu-btn:active { transform: scale(0.95); border-color: var(--electric-blue); }
+        /* --- COMPACT MENU GRID --- */
+        .menu-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 20px;}
+        .menu-btn { background: rgba(255,255,255,0.9); backdrop-filter: blur(15px); border: 1px solid var(--glass-border); border-radius: 20px; padding: 15px 10px; display: flex; flex-direction: column; align-items: center; text-align: center; box-shadow: var(--glass-shadow); cursor: pointer; transition: 0.3s;}
+        .menu-btn:active { transform: scale(0.95); }
         .icon-box { width: 45px; height: 45px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 20px; margin-bottom: 8px; color: white; }
-        
-        .ic-anggota { background: linear-gradient(135deg, var(--electric-blue) 0%, #1D4ED8 100%); }
-        .ic-pengurus { background: linear-gradient(135deg, var(--gold) 0%, #B48500 100%); }
-        .ic-keuangan { background: linear-gradient(135deg, var(--success) 0%, #059669 100%); }
-        .ic-antrian { background: linear-gradient(135deg, #0891B2 0%, #0369A1 100%); }
-        .ic-reminder { background: linear-gradient(135deg, #F97316 0%, #C2410C 100%); }
-        .ic-info { background: linear-gradient(135deg, #8B5CF6 0%, #4338CA 100%); }
-        .ic-pasar { background: linear-gradient(135deg, #EC4899 0%, #BE185D 100%); }
-        .ic-tour { background: linear-gradient(135deg, var(--danger) 0%, #991B1B 100%); }
-        .ic-tabungan { background: linear-gradient(135deg, #10B981 0%, #047857 100%); }
-        .ic-game { background: linear-gradient(135deg, #A855F7 0%, #7E22CE 100%); }
-        
-        .menu-title { font-family: 'Space Grotesk'; font-size: 12px; font-weight: 900; color: var(--royal-blue); margin-bottom: 2px; }
-        .menu-desc { font-size: 8px; font-weight: 600; color: var(--text-muted); line-height: 1.2; }
+        .ic-anggota { background: linear-gradient(135deg, #3B82F6, #1D4ED8); box-shadow: 0 5px 15px rgba(37, 99, 235, 0.2);} 
+        .ic-pengurus { background: linear-gradient(135deg, #F59E0B, #B45309); box-shadow: 0 5px 15px rgba(245, 158, 11, 0.2);} 
+        .ic-keuangan { background: linear-gradient(135deg, #64748B, #334155); box-shadow: 0 5px 15px rgba(100, 116, 139, 0.2);} 
+        .ic-tabungan { background: linear-gradient(135deg, #10B981, #047857); box-shadow: 0 5px 15px rgba(16, 185, 129, 0.2);} 
+        .ic-reminder { background: linear-gradient(135deg, #F97316, #C2410C); box-shadow: 0 5px 15px rgba(249, 115, 22, 0.2);} 
+        .ic-info { background: linear-gradient(135deg, #6366F1, #4338CA); box-shadow: 0 5px 15px rgba(99, 102, 241, 0.2);} 
+        .ic-pasar { background: linear-gradient(135deg, #EC4899, #BE185D); box-shadow: 0 5px 15px rgba(236, 72, 153, 0.2);} 
+        .ic-antrian { background: linear-gradient(135deg, #14B8A6, #0F766E); box-shadow: 0 5px 15px rgba(20, 184, 166, 0.2);} 
+        .ic-chat { background: linear-gradient(135deg, #8B5CF6, #7C3AED); box-shadow: 0 5px 15px rgba(139, 92, 246, 0.2);} 
+        .ic-danger { background: linear-gradient(135deg, #EF4444, #991B1B); box-shadow: 0 5px 15px rgba(239, 68, 68, 0.2);} 
+        .menu-title { font-family: 'Outfit'; font-size: 12px; font-weight: 800; color: var(--royal-blue); letter-spacing: 0.5px;}
 
-        /* --- FLOATING BUTTONS --- */
-        .float-container { position: fixed; bottom: 100px; right: 20px; display: flex; flex-direction: column; gap: 15px; z-index: 10000; }
-        .btn-float { width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; color: #fff; cursor: pointer; box-shadow: 0 10px 20px rgba(0,0,0,0.2); transition: 0.2s; }
-        .btn-float:active { transform: scale(0.9); }
-        .btn-sos { background: linear-gradient(135deg, var(--danger), #991B1B); border: 2px solid #FCA5A5; animation: pulseSOS 1.5s infinite; }
-        .btn-chat { background: linear-gradient(135deg, var(--electric-blue), #1D4ED8); border: 2px solid #93C5FD; }
-        .btn-sos::after { content: 'U.R.C'; position: absolute; bottom: -15px; font-family: 'Space Grotesk'; font-weight: 900; font-size: 9px; color: var(--danger); left: 50%; transform: translateX(-50%); }
-        .btn-chat::after { content: 'CHAT'; position: absolute; bottom: -15px; font-family: 'Space Grotesk'; font-weight: 900; font-size: 9px; color: var(--electric-blue); left: 50%; transform: translateX(-50%); }
+        /* --- FLOATING & BOTTOM NAV --- */
+        .float-container { position: fixed; bottom: 100px; right: 20px; display: flex; flex-direction: column; align-items: flex-end; gap: 12px; z-index: 2000; }
+        .btn-sos { width: 55px; height: 55px; border-radius: 18px; display: flex; align-items: center; justify-content: center; font-size: 22px; color: #fff; cursor: pointer; box-shadow: 0 10px 30px rgba(0,0,0,0.2); border: 2px solid white; transition: 0.2s; background: linear-gradient(135deg, #ef4444, #b91c1c); animation: pulseSOS 2s infinite; }
+        .btn-sos:active { transform: scale(0.9); }
+        @keyframes pulseSOS { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); } 70% { box-shadow: 0 0 0 15px rgba(239, 68, 68, 0); } }
+        .btn-wa-cs { background: linear-gradient(135deg, #25D366, #128C7E); color: white; border-radius: 50px; padding: 12px 20px; display: flex; align-items: center; gap: 8px; font-family: 'Space Grotesk'; font-weight: 800; font-size: 13px; text-decoration: none; box-shadow: 0 10px 30px rgba(37, 211, 102, 0.3); border: 2px solid white; transition: 0.2s; }
 
-        /* --- CHAT DRAWER --- */
-        .chat-drawer {
-            position: fixed; bottom: 0; left: 0; width: 100%; height: 90vh; background: white;
-            border-top-left-radius: 25px; border-top-right-radius: 25px;
-            transform: translateY(110%); transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);
-            z-index: 99999; display: flex; flex-direction: column;
-            box-shadow: 0 -10px 50px rgba(0,0,0,0.2);
-        }
-        .chat-drawer.open { transform: translateY(0); }
-        .chat-header { padding: 15px 20px; border-bottom: 1px solid #E2E8F0; display: flex; justify-content: space-between; align-items: center; background: white; border-top-left-radius: 25px; border-top-right-radius: 25px; }
-        .chat-title { font-family: 'Space Grotesk'; font-weight: 900; font-size: 18px; color: var(--royal-blue); }
-        .chat-body { flex: 1; overflow-y: auto; padding: 20px; background: var(--bg-surface); display: flex; flex-direction: column; gap: 10px; }
-        .msg-bubble { max-width: 80%; padding: 10px 15px; border-radius: 15px; font-size: 13px; line-height: 1.4; word-wrap: break-word; position:relative;}
-        .msg-me { align-self: flex-end; background: var(--electric-blue); color: white; border-bottom-right-radius: 2px; }
-        .msg-other { align-self: flex-start; background: white; color: var(--text-main); border-bottom-left-radius: 2px; border: 1px solid #E2E8F0; }
-        .msg-sender { font-size: 9px; font-weight: 700; margin-bottom: 3px; opacity: 0.8; display: block; }
-        .msg-reply-ctx { background: rgba(0,0,0,0.1); padding: 5px; border-radius: 5px; font-size: 10px; margin-bottom: 5px; border-left: 3px solid rgba(255,255,255,0.5); }
-        .msg-img { max-width: 100%; border-radius: 10px; margin-top: 5px; display: block; cursor: pointer;}
-        .chat-footer { padding: 10px 15px; background: white; border-top: 1px solid #E2E8F0; }
-        .reply-preview { background: #F1F5F9; padding: 8px 15px; font-size: 11px; border-radius: 10px; margin-bottom: 10px; display: none; justify-content: space-between; align-items: center; border-left: 3px solid var(--electric-blue); }
-        .input-area { display: flex; gap: 10px; align-items: flex-end; }
-        .chat-input { flex: 1; padding: 12px; border-radius: 20px; border: 1px solid #E2E8F0; background: #F8FAFC; outline: none; font-family: 'Inter'; font-size: 14px; max-height: 100px; overflow-y: auto; resize: none;}
-        .btn-icon { width: 45px; height: 45px; border-radius: 50%; border: none; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; flex-shrink: 0;}
-        .btn-attach { background: #F1F5F9; color: #64748B; }
-        .btn-send { background: var(--electric-blue); color: white; }
+        .dock-container { position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%); width: 88%; max-width: 380px; background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(25px); border: 1px solid white; padding: 15px 35px; border-radius: 50px; display: flex; justify-content: space-around; align-items: center; z-index: 9999; box-shadow: 0 20px 50px rgba(10,34,89,0.15); transition: 0.5s;}
+        .nav-item { display: flex; flex-direction: column; align-items: center; color: #94A3B8; transition: 0.3s; gap: 4px; text-decoration: none;}
+        .nav-item.active { color: var(--electric-blue); transform: translateY(-4px);}
+        .nav-text { font-family: 'Space Grotesk'; font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;}
 
-        /* MODAL SOS */
-        .modal-overlay { position: fixed; inset: 0; background: rgba(10,34,89,0.9); z-index: 99998; display: none; align-items: flex-end; justify-content: center; backdrop-filter: blur(8px); }
-        .modal-box { background: white; width: 100%; max-width: 500px; border-top-left-radius: 35px; border-top-right-radius: 35px; padding: 30px 25px; transform: translateY(100%); animation: slideUp 0.3s forwards; box-shadow: 0 -10px 40px rgba(239,68,68,0.2); border-top: 2px solid rgba(239,68,68,0.3);}
-        @keyframes slideUp { to { transform: translateY(0); } }
-        
-        .dock-container { position: fixed; bottom: 15px; left: 50%; transform: translateX(-50%); width: 85%; max-width: 350px; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px); border: 1px solid rgba(45, 99, 237, 0.2); padding: 10px 30px; border-radius: 50px; display: flex; justify-content: space-around; align-items: center; z-index: 9999; box-shadow: 0 10px 30px rgba(45, 99, 237, 0.15); }
-        .nav-item { display: flex; flex-direction: column; align-items: center; color: #94A3B8; transition: 0.3s; }
-        .nav-item.active { color: var(--electric-blue); }
-        .nav-item i { font-size: 18px; margin-bottom: 2px; }
-        .nav-text { font-family: 'Inter'; font-size: 8px; font-weight: 800; text-transform: uppercase; }
-        
-        /* HELPER */
-        .form-group { margin-bottom: 15px; } .form-input { width: 100%; padding: 15px; border-radius: 12px; border: 1px solid #E2E8F0; background: #F8FAFC; outline: none; }
-        .btn-send-sos { width: 100%; padding: 18px; border: none; border-radius: 16px; background: var(--danger); color: white; font-weight: 800; margin-top: 10px; cursor: pointer; }
-        @keyframes pulseSOS { 0%, 100% { box-shadow: 0 10px 20px rgba(239, 68, 68, 0.3); } 50% { box-shadow: 0 10px 30px rgba(239, 68, 68, 0.7); border: 2px solid #FFF;} }
+        /* MODALS */
+        .modal-glass-overlay { position: fixed; inset: 0; background: rgba(10,34,89,0.4); backdrop-filter: blur(8px); z-index: 99999; display: none; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s; padding: 20px; }
+        .modal-glass-overlay.show { opacity: 1; }
+        .modal-glass-box { background: rgba(255,255,255,0.95); border-radius: 25px; padding: 25px; width: 100%; max-width: 350px; text-align: center; box-shadow: 0 30px 80px rgba(0,0,0,0.2); transform: scale(0.9); transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); border: 1px solid white; position: relative;}
+        .modal-glass-overlay.show .modal-glass-box { transform: scale(1); }
+        .btn-modal { padding: 14px 25px; border-radius: 14px; font-family: 'Space Grotesk'; font-weight: 800; font-size: 13px; border: none; cursor: pointer; flex: 1; margin: 0 5px;}
+        .btn-close-modal { position: absolute; top: 15px; right: 15px; background: #F1F5F9; border: none; width: 35px; height: 35px; border-radius: 50%; font-size: 16px; cursor: pointer; color: #64748B; transition: 0.2s;}
+        .btn-close-modal:active { transform: scale(0.9); background: #E2E8F0;}
+
+        .qr-wrapper { background: white; border: 2px dashed #E2E8F0; padding: 15px; border-radius: 20px; display: inline-block; margin-bottom: 15px;}
+        .qr-wrapper img { width: 200px; height: 200px; border-radius: 10px; mix-blend-mode: multiply;}
+        .qr-name { font-family: 'Outfit'; font-size: 20px; font-weight: 900; color: var(--royal-blue); margin-bottom: 2px;}
+        .qr-desc { font-size: 11px; font-weight: 700; color: var(--text-muted); margin-bottom: 20px;}
+
+        /* INBOX MODAL (BOTTOM SHEET) */
+        .modal-box-bottom { background: white; border-radius: 35px 35px 0 0; width: 100%; padding: 25px 20px 40px; box-shadow: 0 -20px 50px rgba(0,0,0,0.3); position: relative; max-height: 80vh; overflow-y: auto; transform: translateY(100%); transition: 0.3s;}
+        .modal-glass-overlay.show .modal-box-bottom { transform: translateY(0); }
+        .modal-handle { width: 50px; height: 5px; background: #CBD5E1; border-radius: 10px; margin: 0 auto 20px; }
+        .inbox-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #E2E8F0; padding-bottom: 15px;}
+        .inbox-title { font-family: 'Outfit'; font-size: 20px; font-weight: 900; color: var(--royal-blue); margin: 0; display: flex; align-items: center; gap: 8px;}
+        .inbox-list { display: flex; flex-direction: column; gap: 12px; }
+        .inbox-item { background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 16px; padding: 15px; display: flex; gap: 15px; position: relative;}
+        .inbox-item.unread { background: white; border-color: rgba(45,99,237,0.3); box-shadow: 0 5px 15px rgba(45,99,237,0.05);}
+        .inbox-item.unread::before { content: ''; position: absolute; left: 12px; top: 20px; width: 8px; height: 8px; background: var(--electric-blue); border-radius: 50%; box-shadow: 0 0 10px rgba(45,99,237,0.5);}
+        .ib-icon { width: 40px; height: 40px; border-radius: 12px; background: rgba(45,99,237,0.1); color: var(--electric-blue); display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; margin-left: 10px;}
+        .ib-content { flex: 1; }
+        .ib-title { font-family: 'Space Grotesk'; font-size: 14px; font-weight: 800; color: var(--text-main); margin-bottom: 4px; line-height: 1.2;}
+        .inbox-item.unread .ib-title { color: var(--royal-blue); }
+        .ib-desc { font-size: 11px; font-weight: 600; color: var(--text-muted); line-height: 1.4; margin-bottom: 6px;}
+        .ib-time { font-size: 9px; font-weight: 800; color: #94A3B8;}
+
+        .form-group { text-align: left; margin-bottom: 15px;}
+        .form-label { font-size: 11px; font-weight: 800; color: var(--text-muted); margin-bottom: 5px; display: block; text-transform: uppercase;}
+        .form-input { width: 100%; padding: 15px; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 14px; font-family: 'Space Grotesk'; font-size: 15px; font-weight: 700; color: var(--text-main); outline: none; transition: 0.2s;}
+        .form-input:focus { border-color: var(--electric-blue); background: white; box-shadow: 0 0 0 3px rgba(45,99,237,0.1);}
+        .btn-submit { width: 100%; padding: 16px; background: var(--electric-blue); color: white; border: none; border-radius: 16px; font-family: 'Space Grotesk'; font-size: 14px; font-weight: 900; cursor: pointer; margin-top: 10px; box-shadow: 0 10px 20px rgba(45,99,237,0.3); transition: 0.2s;}
+        .btn-logout-modal { width: 100%; padding: 16px; background: white; color: var(--danger); border: 2px solid rgba(239,68,68,0.2); border-radius: 16px; font-family: 'Space Grotesk'; font-size: 14px; font-weight: 900; cursor: pointer; margin-top: 10px; transition: 0.2s;}
     
-        /* MARKER STYLE */
-        .custom-div-icon { background: transparent; border: none; }
-        .marker-pin { width: 30px; height: 30px; border-radius: 50%; background: #2D63ED; border: 2px solid white; box-shadow: 0 3px 5px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; }
-        .marker-pin img { width: 100%; height: 100%; object-fit: cover; }
-        .marker-label { position: absolute; bottom: -15px; left: 50%; transform: translateX(-50%); background: white; padding: 2px 5px; border-radius: 4px; font-size: 8px; font-weight: 800; white-space: nowrap; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        /* UTILS UNTUK LACI ANTREAN */
+        .list-area { overflow-y: auto; max-height: 50vh; flex: 1; padding-right: 5px; }
+        .list-item { background: white; border: 1px solid #E2E8F0; border-radius: 16px; padding: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 10px rgba(0,0,0,0.02);}
+        .li-plat { font-family: 'Space Grotesk'; font-size: 18px; font-weight: 900; color: var(--royal-blue); margin-bottom: 4px;}
+        .li-name { font-size: 11px; font-weight: 700; color: var(--text-gray); text-transform: uppercase;}
+        .li-batre { font-family: 'Space Grotesk'; font-size: 14px; font-weight: 900; color: var(--success); background: rgba(16,185,129,0.1); padding: 4px 10px; border-radius: 10px;}
     </style>
 </head>
 <body>
 
-    <div id="annoPopup" class="anno-overlay">
-        <div class="anno-card">
-            <div class="decoration-hang">
-                <div class="ketupat-box"><div class="ketupat-tali"></div><div class="ketupat-shape"></div></div>
-                <div class="ketupat-box"><div class="ketupat-tali" style="height:70px; top:-70px;"></div><div class="ketupat-shape"></div></div>
-                <div class="ketupat-box"><div class="ketupat-tali"></div><div class="ketupat-shape"></div></div>
-            </div>
-            <button class="btn-anno-close" onclick="closeAnno()"><i class="fas fa-times"></i></button>
-            <div class="anno-header-art"><i class="fas fa-bullhorn icon-moon"></i></div>
-            <div class="anno-content">
-                <div class="anno-title">HARAP DIPERHATIKAN</div>
-                <div class="anno-date">14 Mar - 24 Mar</div>
-                <div class="warning-box">
-                    <div class="warning-text">
-                        Mohon kerja samanya:
-                        <span class="big-warning">🚫 STOP CAS SAAT 95% JANGAN TUNGGU BIRU</span>
-                        UNTUK YG NGECAS MALAM HARAP TIDUR BERGANTIAN, HARUS ADA YG STANDBY MENJAGA CASAN
-                    </div>
-                </div>
-                <div class="anno-note">"KARENA SHOWROOM TUTUP. TIDAK ADA YANG BISA RESET FC JIKA ERROR. "</div>
-                <div class="anno-footer">PENGURUS MLU</div>
-            </div>
+    <div class="ambient-light light-1"></div>
+    <div class="ambient-light light-2"></div>
+
+    <div id="actionLoader" style="position:fixed; inset:0; background:rgba(255,255,255,0.8); backdrop-filter:blur(5px); z-index:999999; display:none; flex-direction:column; align-items:center; justify-content:center; opacity:0; transition:0.3s;">
+        <div style="width:50px; height:50px; border:5px solid #E2E8F0; border-top:5px solid var(--electric-blue); border-radius:50%; animation:spin 1s linear infinite; margin-bottom:15px;"></div>
+        <div style="font-family:'Space Grotesk'; font-weight:900; color:var(--royal-blue); letter-spacing:2px;">MEMPROSES...</div>
+    </div>
+
+    <div class="top-header fade-up d-1">
+        <div class="greet-box">
+            <div class="date-badge" id="displayDate">MEMUAT...</div>
+            <div class="greet-txt" id="greetingText">Halo!</div>
+        </div>
+        <div class="header-actions">
+            <button class="btn-inbox" onclick="bukaInbox()">
+                <i class="far fa-bell"></i>
+                <div class="inbox-badge" id="inboxBadge" style="display:none;">0</div>
+            </button>
         </div>
     </div>
 
-    <header class="header-bg">
-        <div class="top-bar">
-            <div>
-                <div class="date-text" id="displayDate">HARI INI</div>
-                <div class="greeting" id="greetingText">Halo, Kawan!</div>
-            </div>
-            <a href="settings.html" class="btn-settings"><i class="fas fa-cog"></i></a>
-        </div>
-
-        <div class="profile-card">
-            <div class="p-left">
-                <img src="" id="userPhoto" class="p-photo" onerror="this.src='https://ui-avatars.com/api/?background=2D63ED&color=fff&bold=true&name=MLU';">
-                <div class="p-info">
-                    <div class="p-role" id="userRole">MEMBER</div>
-                    <div class="p-name" id="userName">Memuat...</div>
-                    <div class="p-plat" id="userPlat">...</div>
-                </div>
-            </div>
-            
-            <div class="p-fc-status" onclick="window.location.href='antrian.html'">
-                <div class="pfc-title"><i class="fas fa-bolt"></i> FC</div>
-                <div class="pfc-val" id="profileFcStatus">...</div>
-            </div>
-
-            <div class="loc-toggle" id="locToggleContainer">
-                <span class="loc-label">LOKASI</span>
-                <label class="switch">
-                    <input type="checkbox" id="toggleLocation" onchange="toggleLoc(this)">
-                    <span class="slider"></span>
-                </label>
+    <div class="vip-card fade-up d-2">
+        <img src="logomlumaster.png" alt="Logo MLU" class="vc-big-logo" onerror="this.style.display='none'">
+        <div class="vc-top">
+            <div class="vc-left-group">
+                <div class="vc-chip"></div>
             </div>
         </div>
-    </header>
+        <div class="vc-middle">
+            <div class="vc-avatar"><img src="" id="userPhoto" onerror="this.src='https://ui-avatars.com/api/?background=D4AF37&color=000&bold=true&name=MLU';"></div>
+            <div class="vc-info">
+                <div class="vc-name" id="userName">Memuat...</div>
+                <div class="vc-plat" id="userPlat">...</div>
+            </div>
+        </div>
+        <div class="vc-bottom">
+            <div class="vc-role" id="userRole"><i class="fas fa-crown"></i> MEMBER</div>
+            <div class="vc-qr" onclick="tampilkanQR()" title="Tampilkan QR Pass"><i class="fas fa-qrcode"></i></div>
+        </div>
+    </div>
 
     <div class="dash-container">
-        <div class="fc-banner" onclick="window.location.href='antrian.html'">
-            <div class="banner-left">
-                <div class="banner-title"><i class="fas fa-charging-station" style="color:var(--royal-blue);"></i> STATUS STASIUN</div>
-                <div class="banner-desc" id="fcDistInfo"><i class="fas fa-map-marker-alt"></i> Menghitung...</div>
+        
+        <div class="fc-wrapper fade-up d-3" id="fcAccordion">
+            <div class="fc-banner" onclick="toggleFCAccordion()">
+                <div class="banner-left">
+                    <div class="banner-title"><i class="fas fa-charging-station" style="color: var(--electric-blue);"></i> FC KELAPA GADING</div>
+                    <div class="banner-status" id="statusGading"><i class="fas fa-spinner fa-spin"></i> Memuat status...</div>
+                </div>
+                <div class="banner-right"><div class="banner-icon"><i class="fas fa-chevron-down"></i></div></div>
             </div>
-            <div class="banner-right" id="fcStatusRight">
-                <span class="banner-lbl">INFO LIVE</span>
-                <div class="banner-val" style="color:#aaa; font-size:16px;">Memuat...</div>
-            </div>
-        </div>
-
-        <div id="radarContainer">
-            <div class="radar-header"><div class="radar-dot"></div> RADAR MEMBER</div>
-            <div id="radarMap"></div>
-        </div>
-    </div>
-
-    <main class="menu-container">
-        <div class="menu-grid">
             
-            <div style="grid-column: span 2; display:flex; gap:10px;">
-    <a href="absen.html" class="menu-btn" style="flex:1; background: linear-gradient(135deg, #10B981 0%, #059669 100%); border:none; box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3); padding: 15px;">
-        <div style="display:flex; align-items:center; gap:10px;">
-            <div class="icon-box" style="width:35px; height:35px; background:rgba(255,255,255,0.2); font-size:18px; margin:0; border-radius:10px;">
-                <i class="fas fa-qrcode"></i>
-            </div>
-            <div style="text-align:left;">
-                <div class="menu-title" style="color:white; font-size:14px; margin-bottom:0;">ABSEN KOPDAR</div>
-                <div class="menu-desc" style="color:rgba(255,255,255,0.9); font-size:9px;">Klik scan lokasi</div>
+            <div class="fc-laci">
+                <div style="font-size: 10px; font-weight: 900; color: var(--text-gray); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px;">STATUS SLOT CHARGER</div>
+                <div id="dashLiveSlots" style="display:flex; flex-direction:column; gap:8px; margin-bottom:15px;">
+                    <div style="text-align:center; font-size:11px; color:var(--text-muted);">Memuat data slot...</div>
+                </div>
+                <button class="btn-lihat-antrian" onclick="bukaDaftarTunggu()">LIHAT DAFTAR TUNGGU (<span id="qCountText">0</span>)</button>
+                <div id="fcDynamicAction">
+                    <button class="btn-laci bl-primary" onclick="persiapanDaftar()"><i class="fas fa-ticket-alt"></i> DAFTAR ANTRIAN</button>
+                </div>
+                <div id="fcSlotAction" style="display: none; margin-top: 10px;"></div>
             </div>
         </div>
-    </a>
 
-    <a href="rekap_absen.html" class="menu-btn" style="width: 35%; background: white; border:1px solid #E2E8F0; padding: 15px;">
-        <div style="display:flex; flex-direction:column; align-items:center; justify-content:center;">
-            <i class="fas fa-list-ol" style="font-size:20px; color:var(--royal-blue); margin-bottom:5px;"></i>
-            <div class="menu-title" style="color:var(--royal-blue); font-size:10px; margin:0;">LIHAT DATA</div>
+        <div class="sect-title fade-up d-3"><i class="fas fa-map-signs"></i> LOKASI FC ALTERNATIF</div>
+        <div class="fc-banner-alt fade-up d-3" id="altFcBanner" onclick="alert('Lokasi GPS belum tersedia!')">
+            <div class="banner-left">
+                <div class="banner-title" id="altFcNama" style="font-size: 14px;"><i class="fas fa-satellite-dish" style="color: var(--warning);"></i> MEMINDAI LOKASI...</div>
+                <div class="banner-status" id="statusAltFC" style="background:rgba(245,158,11,0.1); color:var(--warning);"><i class="fas fa-spinner fa-spin"></i> Menghitung GPS...</div>
+            </div>
+            <div class="banner-right">
+                <div class="banner-val" id="altFcIcon" style="color: var(--warning); background: rgba(245,158,11,0.1);"><i class="fas fa-arrow-circle-right"></i></div>
+            </div>
         </div>
-    </a>
-</div>
-            <a href="data_anggota.html" class="menu-btn">
-                <div class="icon-box ic-anggota"><i class="fas fa-users"></i></div>
-                <div class="menu-title">Data Anggota</div>
-                <div class="menu-desc">Database keluarga MLU</div>
-            </a>
-            <a href="pengurus.html" class="menu-btn">
-                <div class="icon-box ic-pengurus"><i class="fas fa-sitemap"></i></div>
-                <div class="menu-title">Pengurus</div>
-                <div class="menu-desc">Struktur komando pusat</div>
-            </a>
-            <a href="keuangan.html" class="menu-btn">
-                <div class="icon-box ic-keuangan"><i class="fas fa-wallet"></i></div>
-                <div class="menu-title">Uang Kas</div>
-                <div class="menu-desc">Laporan finansial</div>
-            </a>
-            <a href="tabungan.html" class="menu-btn">
-                <div class="icon-box ic-tabungan"><i class="fas fa-piggy-bank"></i></div>
-                <div class="menu-title">Tabungan</div>
-                <div class="menu-desc">Simpanan & Penarikan</div>
-            </a>
-            <a href="game.html" class="menu-btn" id="menuGame">
-                <div class="icon-box ic-game"><i class="fas fa-gamepad"></i></div>
-                <div class="menu-title">Game Center</div>
-                <div class="menu-desc">Hiburan santai</div>
-            </a>
-            <a href="antrian.html" class="menu-btn">
-                <div class="icon-box ic-antrian"><i class="fas fa-charging-station"></i></div>
-                <div class="menu-title">Live Antrian</div>
-                <div class="menu-desc">Monitor Stasiun FC</div>
-            </a>
-            <a href="reminder.html" class="menu-btn">
-                <div class="icon-box ic-reminder"><i class="fas fa-bell"></i></div>
-                <div class="menu-title">Garasi Pintar</div>
-                <div class="menu-desc">Log Book EV & OD</div>
-            </a>
-            <a href="info_mlu.html" class="menu-btn">
-                <div class="icon-box ic-info"><i class="fas fa-info-circle"></i></div>
-                <div class="menu-title">Info MLU</div>
-                <div class="menu-desc">Pusat informasi</div>
-            </a>
-            <a href="store.html" class="menu-btn">
-                <div class="icon-box ic-pasar"><i class="fas fa-store"></i></div>
-                <div class="menu-title">Pasar MLU</div>
-                <div class="menu-desc">Forum Jual Beli</div>
-            </a>
-        </div>
-    </main>
 
-    <div class="float-container" id="floatContainer">
-        <div class="btn-float btn-chat" onclick="openChat()"><i class="fas fa-comment-dots"></i></div>
-        <div class="btn-float btn-sos" onclick="openSosModal()"><i class="fas fa-ambulance"></i></div>
-    </div>
+        <div class="third-party-pills fade-up d-3">
+            <button class="pill-btn pill-starvo" onclick="bukaAppKetiga('Starvo')">
+                <i class="fas fa-leaf"></i> STARVO
+            </button>
+            <button class="pill-btn pill-casan" onclick="bukaAppKetiga('Casan.id')">
+                <i class="fas fa-bolt"></i> CASAN.ID
+            </button>
+        </div>
 
-    <div class="modal-overlay" id="chatOverlay" onclick="closeChat()"></div>
-    <div class="chat-drawer" id="chatDrawer">
-        <div class="chat-header">
-            <div class="chat-title"><i class="fas fa-comments"></i> MLU GLOBAL CHAT</div>
-            <button class="btn-icon btn-attach" style="width:30px; height:30px; margin-left:auto; margin-right:10px;" onclick="closeChat()"><i class="fas fa-chevron-down"></i></button>
-        </div>
-        <div class="chat-body" id="chatList"><div style="text-align:center; margin-top:50px; color:#aaa;">Memuat pesan...</div></div>
-        <div class="chat-footer">
-            <div class="reply-preview" id="replyPreview">
-                <span><i class="fas fa-reply"></i> Balas ke: <b id="replyToName">...</b></span>
-                <i class="fas fa-times" onclick="cancelReply()" style="cursor:pointer;"></i>
+        <div class="sultan-panel fade-up d-4">
+            <div class="sp-header">
+                <div class="sp-title"><i class="fas fa-crown"></i> SULTAN TABUNGAN</div>
+                <div style="font-size: 9px; color: var(--text-muted); font-weight: 800; letter-spacing: 1px;">TOP 3 SAVERS</div>
             </div>
-            <div class="input-area">
-                <button class="btn-icon btn-attach" onclick="document.getElementById('chatImgInput').click()"><i class="fas fa-image"></i></button>
-                <input type="file" id="chatImgInput" accept="image/*" style="display:none;" onchange="sendImage()">
-                <textarea id="chatInput" class="chat-input" rows="1" placeholder="Ketik pesan..." oninput="this.style.height='';this.style.height=this.scrollHeight+'px'"></textarea>
-                <button class="btn-icon btn-send" onclick="sendChat()"><i class="fas fa-paper-plane"></i></button>
+            <div class="podium-wrapper" id="topSaversList">
+                <div style="text-align: center; width: 100%; font-size: 11px; color: var(--text-muted); padding: 20px;">Memuat data sultan... <i class="fas fa-spinner fa-spin"></i></div>
             </div>
         </div>
-    </div>
 
-    <div class="modal-overlay" id="sosModal">
-        <div class="modal-box">
-            <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <div class="modal-title" style="font-family: 'Space Grotesk'; font-size: 20px; font-weight: 900; color: var(--danger);"><i class="fas fa-broadcast-tower"></i> Laporan S.O.S</div>
-                <button class="btn-icon btn-attach" onclick="document.getElementById('sosModal').style.display='none'"><i class="fas fa-times"></i></button>
-            </div>
-            <div class="form-group">
-                <label style="font-size: 10px; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Pilih Kendala Darurat</label>
-                <select id="sosType" class="form-input">
-                    <option>Unit Mogok / Trouble</option>
-                    <option>Ban Bocor / Kempes</option>
-                    <option>Kecelakaan Lalu Lintas</option>
-                    <option>Kehabisan Baterai di Jalan</option>
-                    <option>Tindak Kriminal / Begal</option>
-                    <option>Lainnya</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label style="font-size: 10px; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Keterangan Tambahan</label>
-                <textarea id="sosDesc" class="form-input" rows="3" placeholder="Patokan lokasi..."></textarea>
-            </div>
-            <button class="btn-send-sos" id="btnSendSos" onclick="sendSos()">BAGIKAN S.O.S</button>
+                <div class="sect-title fade-up d-4"><i class="fas fa-th-large"></i> MENU KOMUNITAS</div>
+        <div class="menu-grid fade-up d-4">
+            <a href="antrian.html" class="menu-btn"><div class="icon-box ic-antrian"><i class="fas fa-list-ol"></i></div><div class="menu-title">Antrian</div></a>
+            <a href="chat.html" class="menu-btn"><div class="icon-box ic-chat"><i class="fas fa-comments"></i></div><div class="menu-title">Obrolan</div></a>
+            <a href="store.html" class="menu-btn"><div class="icon-box ic-pasar"><i class="fas fa-store"></i></div><div class="menu-title">Pasar MLU</div></a>
+            <a href="data_anggota.html" class="menu-btn"><div class="icon-box ic-anggota"><i class="fas fa-users"></i></div><div class="menu-title">Data Anggota</div></a>
+            <a href="keuangan.html" class="menu-btn"><div class="icon-box ic-keuangan"><i class="fas fa-vault"></i></div><div class="menu-title">Uang Kas</div></a>
+            <a href="tabungan.html" class="menu-btn"><div class="icon-box ic-tabungan"><i class="fas fa-piggy-bank"></i></div><div class="menu-title">Tabungan</div></a>
+            <a href="reminder.html" class="menu-btn"><div class="icon-box ic-reminder"><i class="fas fa-bell"></i></div><div class="menu-title">Garasi Pintar</div></a>
+            <a href="pengurus.html" class="menu-btn"><div class="icon-box ic-pengurus"><i class="fas fa-sitemap"></i></div><div class="menu-title">Pengurus</div></a>
+            <a href="info_mlu.html" class="menu-btn"><div class="icon-box ic-info"><i class="fas fa-info-circle"></i></div><div class="menu-title">Info MLU</div></a>
+
+            <a href="absensi.html" class="menu-btn" id="btnAbsenKopdar" style="display:none;">
+                <div class="icon-box" style="background: linear-gradient(135deg, #10B981, #059669); box-shadow: 0 5px 15px rgba(16,185,129,0.2);">
+                    <i class="fas fa-qrcode"></i>
+                </div>
+                <div class="menu-title">Absen Kopdar</div>
+            </a>
+            
+            <a href="admin.html" class="menu-btn" id="btnAdminMlu" style="display:none; grid-column: span 2; border-color: rgba(239,68,68,0.3); background: rgba(239,68,68,0.02);">
+                <div class="icon-box ic-danger"><i class="fas fa-user-shield"></i></div>
+                <div class="menu-title" style="color: var(--danger);">Super Admin Panel</div>
+            </a>
         </div>
+
+
+    <div class="float-container">
+        <div class="btn-sos" onclick="openSosModal()"><i class="fas fa-ambulance"></i></div>
+        <a href="https://wa.me/6287722285445?text=Halo%20MAKA%20CS,%20saya%20member%20MLU%20ingin%20bertanya..." target="_blank" class="btn-wa-cs">
+            <i class="fab fa-whatsapp"></i><span>MAKA CS</span>
+        </a>
     </div>
 
     <div class="dock-container">
         <a href="lokasi_fc.html" class="nav-item"><i class="fas fa-map-marker-alt"></i><span class="nav-text">LOKASI</span></a>
         <a href="dashboard.html" class="nav-item active"><i class="fas fa-home"></i><span class="nav-text">HOME</span></a>
-        <a href="plan_route.html" class="nav-item"><i class="fas fa-route"></i><span class="nav-text">RUTE</span></a>
+        <a href="setting.html" class="nav-item"><i class="fas fa-user-cog"></i><span class="nav-text">PROFIL</span></a>
+    </div>
+
+    <div class="modal-glass-overlay" id="modalInbox" style="align-items: flex-end;" onclick="tutupInbox(event)">
+        <div class="modal-box-bottom" onclick="event.stopPropagation()">
+            <div class="modal-handle"></div>
+            <div class="inbox-header">
+                <h2 class="inbox-title"><i class="fas fa-inbox"></i> Kotak Masuk</h2>
+                <button class="btn-close-modal" onclick="document.getElementById('modalInbox').classList.remove('show'); setTimeout(()=>document.getElementById('modalInbox').style.display='none',300);"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="inbox-list" id="inboxListBody">
+                <div style="text-align:center; padding:30px 20px; color:var(--text-muted); font-size:12px;">Memuat pesan... <i class="fas fa-spinner fa-spin"></i></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-glass-overlay" id="modalDaftarAntrian">
+        <div class="modal-glass-box" style="text-align: left;">
+            <button class="btn-close-modal" onclick="tutupDaftarAntrian()"><i class="fas fa-times"></i></button>
+            <h2 style="font-family:'Outfit'; font-size:20px; color:var(--royal-blue); margin-top:0; margin-bottom: 20px; text-align:center; padding-right:20px;"><i class="fas fa-bolt" style="color:var(--gold-lux);"></i> MASUK ANTRIAN</h2>
+            <div class="form-group"><label class="form-label">Nama Pilot</label><input type="text" id="inpNama" class="form-input" readonly></div>
+            <div class="form-group"><label class="form-label">Plat Kendaraan</label><input type="text" id="inpPlat" class="form-input" readonly style="background: #E2E8F0; color: #64748B;"></div>
+            <div class="form-group"><label class="form-label">Sisa Baterai (%)</label><input type="text" inputmode="numeric" pattern="[0-9]*" id="inpBatre" class="form-input" placeholder="Contoh: 15" style="font-size:18px; text-align:center;"></div>
+            <button class="btn-submit" onclick="submitDaftarAntrian()"><i class="fas fa-check-circle"></i> KONFIRMASI DAFTAR</button>
+        </div>
+    </div>
+
+    <div class="modal-glass-overlay" id="modalListAntrian">
+        <div class="modal-glass-box">
+            <h3 class="m-title" style="font-family:'Outfit'; font-size:18px; color:var(--royal-blue); margin:0 0 15px; border-bottom:1px solid rgba(0,0,0,0.1); padding-bottom:12px; padding-right:30px; text-align:left;"><i class="fas fa-users" style="color:var(--electric-blue);"></i> DAFTAR TUNGGU</h3>
+            <button class="btn-close-modal" onclick="document.getElementById('modalListAntrian').classList.remove('show'); setTimeout(()=>document.getElementById('modalListAntrian').style.display='none',300);"><i class="fas fa-times"></i></button>
+            <div class="list-area" id="listAntrianContent"></div>
+        </div>
+    </div>
+
+    <div class="modal-glass-overlay" id="modalQR">
+        <div class="modal-glass-box" style="max-width: 300px;">
+            <button class="btn-close-modal" onclick="tutupQR()"><i class="fas fa-times"></i></button>
+            <h2 style="font-family:'Outfit'; font-size:20px; color:var(--royal-blue); margin-top:0; margin-bottom: 20px;"><i class="fas fa-expand"></i> DIGITAL PASS</h2>
+            <div class="qr-wrapper">
+                <img id="imgQrCode" src="" alt="Loading QR...">
+            </div>
+            <div class="qr-name" id="qrNamaFull">Nama</div>
+            <div class="qr-desc"><i class="fas fa-car" style="color:var(--text-muted);"></i> <span id="qrPlat">B 0000</span></div>
+            <div style="font-size: 10px; color: #94A3B8;">Tunjukkan QR Code ini untuk absensi acara / Kopdar MLU.</div>
+        </div>
+    </div>
+
+    <div class="modal-glass-overlay" id="modalSetting">
+        <div class="modal-glass-box" style="text-align: left;">
+            <button class="btn-close-modal" onclick="tutupSetting()"><i class="fas fa-times"></i></button>
+            <h2 style="font-family:'Outfit'; font-size:22px; color:var(--royal-blue); margin-top:0; margin-bottom: 20px; text-align:center;"><i class="fas fa-user-edit"></i> PENGATURAN</h2>
+            
+            <div class="form-group"><label class="form-label">Nama Lengkap</label><input type="text" id="setNama" class="form-input"></div>
+            <div class="form-group"><label class="form-label">Nomor WhatsApp</label><input type="number" id="setWa" class="form-input"></div>
+            <div class="form-group"><label class="form-label">Plat Kendaraan</label><input type="text" id="setPlat" class="form-input" readonly style="background: #E2E8F0; color: #64748B; cursor: not-allowed;" title="Plat tidak bisa diubah sendiri"></div>
+
+            <button class="btn-submit" onclick="simpanProfil()">UPDATE DATA</button>
+            <button class="btn-logout-modal" onclick="logoutApp()"><i class="fas fa-sign-out-alt"></i> KELUAR APLIKASI</button>
+        </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, doc, onSnapshot, updateDoc, collection, addDoc, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, onSnapshot, updateDoc, collection, getDocs, query, where, orderBy, limit, addDoc, runTransaction } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        const firebaseConfig = { apiKey: "AIzaSyAk3G5aQUBVe_g7_peVu1F6xllP_RejGq0", authDomain: "rtomaka-e67b5.firebaseapp.com", projectId: "rtomaka-e67b5", storageBucket: "rtomaka-e67b5.firebasestorage.app", messagingSenderId: "472036722228", appId: "1:472036722228:web:11d520f9204db317d02c61" };
-        const app = initializeApp(firebaseConfig); const db = getFirestore(app);
+        window.showActionLoader = () => {
+            const l = document.getElementById('actionLoader');
+            if(l) { l.style.display = 'flex'; setTimeout(() => l.style.opacity = '1', 10); }
+        };
+        window.hideActionLoader = () => {
+            const l = document.getElementById('actionLoader');
+            if(l) { l.style.opacity = '0'; setTimeout(() => l.style.display = 'none', 300); }
+        };
 
-        const appFC = initializeApp({ apiKey: "AIzaSyB666i9lYWIpxOdkwpoX9EvFvHLmHczeq8", authDomain: "fcgadingnew22.firebaseapp.com", projectId: "fcgadingnew22" }, "AppFC");
-        const dbFC = getFirestore(appFC);
-        const fcRef = doc(dbFC, "antrian", "utama");
+        window.bukaInbox = () => { 
+            const m = document.getElementById('modalInbox'); m.style.display='flex'; setTimeout(()=>m.classList.add('show'),10); 
+            localStorage.setItem('maka_last_read_inbox', Date.now().toString()); localStorage.setItem('maka_unread_count', '0');
+            const badge = document.getElementById('inboxBadge'); if(badge) badge.style.display = 'none';
+            document.querySelectorAll('.inbox-item.unread').forEach(el => el.classList.remove('unread'));
+        };
+        window.tutupInbox = (e) => { if(e.target.id === 'modalInbox') { e.target.classList.remove('show'); setTimeout(()=>e.target.style.display='none',300); }};
+        
+        window.tampilkanQR = () => { 
+            let uid = "GUEST", uName = "Nama", uPlat = "B 0000";
+            try { 
+                const uData = JSON.parse(localStorage.getItem('maka_user')); 
+                if(uData) { uid = uData.id || uData.plat.replace(/\s+/g, '').toUpperCase(); uName = uData.namaKtp || uData.namaWa || "Member"; uPlat = uData.plat || "-"; }
+            }catch(e){}
+            document.getElementById('imgQrCode').src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(uid)}&margin=10`; 
+            document.getElementById('qrNamaFull').innerText = uName; document.getElementById('qrPlat').innerHTML = `<i class="fas fa-car"></i> ${uPlat}`;
+            const m = document.getElementById('modalQR'); m.style.display='flex'; setTimeout(()=>m.classList.add('show'),10); 
+        };
+        window.tutupQR = () => { const m = document.getElementById('modalQR'); m.classList.remove('show'); setTimeout(()=>m.style.display='none',300); };
+        window.bukaSetting = () => { const m = document.getElementById('modalSetting'); m.style.display='flex'; setTimeout(()=>m.classList.add('show'),10); };
+        window.tutupSetting = () => { const m = document.getElementById('modalSetting'); m.classList.remove('show'); setTimeout(()=>m.style.display='none',300); };
+        window.logoutApp = () => { if(confirm("Yakin keluar?")) { localStorage.removeItem('maka_user'); window.location.href = 'index.html'; } };
+
+        const firebaseConfig = { apiKey: "AIzaSyAk3G5aQUBVe_g7_peVu1F6xllP_RejGq0", authDomain: "rtomaka-e67b5.firebaseapp.com", projectId: "rtomaka-e67b5" };
+        const appMain = initializeApp(firebaseConfig); 
+        const db = getFirestore(appMain);
+
+        const appGading = initializeApp({ apiKey: "AIzaSyB666i9lYWIpxOdkwpoX9EvFvHLmHczeq8", authDomain: "fcgadingnew22.firebaseapp.com", projectId: "fcgadingnew22" }, "AppGading");
+        const dbGading = getFirestore(appGading);
+        const refGading = doc(dbGading, "antrian", "utama");
+
+        const appKC = initializeApp({ apiKey: "AIzaSyDfsTAGclYUSRe6YhiljS-xb-v-9RBYVEM", authDomain: "antriankcnew.firebaseapp.com", projectId: "antriankcnew" }, "AppKC");
+        const dbKC = getFirestore(appKC);
 
         let uData = null;
         try { uData = JSON.parse(localStorage.getItem('maka_user')); } catch (e) {}
@@ -432,237 +470,267 @@
 
         const myName = uData.namaKtp || uData.namaWa || "User";
         const myPlat = uData.plat || "B XXXX XX";
-        let replyContext = null;
-        let map = null;
-        let markers = {};
+        const myPlatClean = myPlat.replace(/\s+/g, '').toUpperCase();
+        let userId = uData.id || myPlatClean;
 
-        // --- FUNGSI CLOSE PENGUMUMAN ---
-        window.closeAnno = () => { document.getElementById('annoPopup').style.display = 'none'; }
+        document.getElementById('displayDate').innerText = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'short' }).toUpperCase();
+        const hr = new Date().getHours();
+        document.getElementById('greetingText').innerText = hr<10?"Selamat Pagi,":hr<15?"Selamat Siang,":hr<18?"Selamat Sore,":"Selamat Malam,";
+        
+        document.getElementById('userName').innerText = myName;
+        document.getElementById('userPlat').innerHTML = `<i class="fas fa-car" style="font-size: 10px; margin-right: 5px;"></i> ${myPlat}`;
+        if (uData.foto && typeof uData.foto === 'string' && uData.foto.length > 50) document.getElementById('userPhoto').src = uData.foto;
 
-        // --- PENJADWALAN PENGUMUMAN (12 Maret - 26 Maret) ---
-        function checkAnnoSchedule() {
-            const now = new Date();
-            const start = new Date(2026, 2, 12, 23, 50, 0); 
-            const end = new Date(2026, 2, 25, 8, 0, 0);
-            if (now >= start && now <= end) {
-                document.getElementById('annoPopup').style.display = 'flex';
-            } else {
-                document.getElementById('annoPopup').style.display = 'none';
-            }
+        if (myPlatClean === "B4248SWF") document.getElementById('userRole').innerHTML = `<i class="fas fa-crown"></i> KELUARGA MLU`; 
+        else document.getElementById('userRole').innerHTML = `<i class="fas fa-crown"></i> ` + (uData.role || "MEMBER").toUpperCase();
+
+        document.getElementById('setNama').value = myName; 
+        document.getElementById('setWa').value = uData.noWa || ""; 
+        document.getElementById('setPlat').value = myPlat;
+        document.getElementById('qrNamaFull').innerText = myName;
+        document.getElementById('qrPlat').innerText = myPlat;
+        if(document.getElementById('inpNama')) document.getElementById('inpNama').value = myName;
+        if(document.getElementById('inpPlat')) document.getElementById('inpPlat').value = myPlat;
+
+        const roleCek = (uData.role || "").toUpperCase();
+        if (roleCek !== 'MEMBER' && roleCek !== 'KELUARGA MLU' && roleCek !== 'GUEST' || myPlatClean === "B4248SWF") {
+            const btnAbsen = document.getElementById('btnAbsenKopdar'); if(btnAbsen) btnAbsen.style.display = 'flex';
+            const btnAdmin = document.getElementById('btnAdminMlu'); if(btnAdmin) btnAdmin.style.display = 'flex';
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('displayDate').innerText = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-            document.getElementById('greetingText').innerText = (new Date().getHours() < 10) ? "Selamat Pagi," : (new Date().getHours() < 15) ? "Selamat Siang," : (new Date().getHours() < 18) ? "Selamat Sore," : "Selamat Malam,";
-            document.getElementById('userName').innerText = myName;
-            document.getElementById('userPlat').innerText = myPlat;
-            if (uData.foto && uData.foto.length > 50) document.getElementById('userPhoto').src = uData.foto;
+        window.simpanProfil = async () => {
+            const newNama = document.getElementById('setNama').value; const newWa = document.getElementById('setWa').value;
+            if(!newNama || !newWa) return alert("Data kosong!");
+            window.showActionLoader();
+            try { await updateDoc(doc(db, "mlu_members", userId), { namaKtp: newNama, noWa: newWa }); uData.namaKtp = newNama; uData.noWa = newWa; localStorage.setItem('maka_user', JSON.stringify(uData)); alert("Profil diperbarui!"); location.reload(); } catch(e) { window.hideActionLoader(); alert("Error: " + e.message); }
+        };
 
-            // --- SISTEM UNDERCOVER PAK RIZKY ---
-            const myPlatClean = myPlat.replace(/\s+/g, '').toUpperCase();
-            const roleEl = document.getElementById('userRole');
-            let displayRole = uData.role || "MEMBER";
+        const TOTAL_SLOTS = 3;
+        let localSlots = [null, null, null];
+        let localQueue = [];
 
-            if (myPlatClean === "B4248SWF") {
-                // Tampilan menyamar jadi member biasa
-                displayRole = "KELUARGA MLU";
-                roleEl.style.background = "rgba(255, 255, 255, 0.2)";
-                roleEl.style.color = "#FFF";
-                roleEl.style.border = "1px solid rgba(255, 255, 255, 0.4)";
-            } else if (displayRole === "PENGURUS") {
-                roleEl.style.background = "var(--gold)";
-                roleEl.style.color = "#000";
-                roleEl.style.border = "none";
-            } else {
-                roleEl.style.background = "rgba(255, 255, 255, 0.2)";
-                roleEl.style.color = "#FFF";
-                roleEl.style.border = "1px solid rgba(255, 255, 255, 0.4)";
-            }
-            roleEl.innerText = displayRole;
+        window.toggleFCAccordion = () => { document.getElementById('fcAccordion').classList.toggle('open'); }
 
-            // Cek Jadwal Pengumuman Lebaran
-            checkAnnoSchedule();
-
-            // --- PROTEKSI AJI (B 4381 SWD) ---
-            const blacklist = "B4381SWD";
-            if (myPlatClean === blacklist) {
-                document.querySelector('.btn-chat').style.display = 'none'; 
-                document.getElementById('locToggleContainer').style.display = 'none'; 
-                localStorage.setItem('maka_loc_share', 'OFF');
-            }
-
-            const savedLoc = localStorage.getItem('maka_loc_share');
-            if(savedLoc === 'ON' && myPlatClean !== blacklist) {
-                document.getElementById('toggleLocation').checked = true;
-                showRadar();
-                startTracking();
-            }
-
-            cekJarakFC();
-            initDataListeners();
-            initChat();
+        onSnapshot(refGading, (snap) => {
+            if(!snap.exists()) return; 
+            const d = snap.data(); localSlots = d.chargingSlots || [null, null, null]; localQueue = d.waitingQueue || []; updateFCUI();
         });
 
-        // --- MAP RADAR ---
-        let watchId = null;
-        window.toggleLoc = (el) => {
-            if(el.checked) {
-                if(confirm("Aktifkan lokasi? Peta Radar akan muncul.")) { 
-                    localStorage.setItem('maka_loc_share', 'ON'); 
-                    showRadar();
-                    startTracking(); 
-                } else { el.checked = false; }
-            } else { 
-                localStorage.setItem('maka_loc_share', 'OFF'); 
-                hideRadar();
-                stopTracking(); 
+        function cleanStr(s) { return s ? s.replace(/[^A-Z0-9]/gi, '').toUpperCase() : ''; }
+        function cleanName(n) { return n ? n.replace(/👑/g, '').trim() : ''; }
+
+        function updateFCUI() {
+            let usedCount = localSlots.filter(s => s !== null).length;
+            let emptySlots = TOTAL_SLOTS - usedCount;
+            if(emptySlots > 0) { document.getElementById('statusGading').innerHTML = `<span style="color:var(--success);"><i class="fas fa-check-circle"></i> ${emptySlots} KOSONG</span>`; } 
+            else { document.getElementById('statusGading').innerHTML = `<span style="color:var(--warning);"><i class="fas fa-battery-full"></i> FULL <span style="margin:0 4px; color:#E2E8F0;">|</span> <i class="fas fa-users"></i> ${localQueue.length} ANTRE</span>`; }
+
+            if(document.getElementById('qCountText')) document.getElementById('qCountText').innerText = localQueue.length;
+
+            const slotContainer = document.getElementById('dashLiveSlots');
+            let slotsHTML = '';
+            localSlots.forEach((s, i) => {
+                if(s) {
+                    let bat = s.batreSisa || s.batre || s.battery || "-";
+                    slotsHTML += `<div class="live-slot-item"><div class="lsi-left"><div class="lsi-lbl">SLOT 0${i+1}</div><div class="lsi-name">${cleanName(s.userName)}</div></div><div class="lsi-batre"><i class="fas fa-bolt"></i> ${bat.replace('%','')} %</div></div>`;
+                } else {
+                    slotsHTML += `<div class="live-slot-item" style="background: rgba(255,255,255,0.5);"><div class="lsi-left"><div class="lsi-lbl">SLOT 0${i+1}</div><div class="lsi-empty">Tersedia</div></div><div style="color:var(--text-gray); opacity:0.5;"><i class="fas fa-battery-empty fa-2x"></i></div></div>`;
+                }
+            });
+            slotContainer.innerHTML = slotsHTML;
+
+            const btnWrapper = document.getElementById('fcDynamicAction');
+            const slotWrapper = document.getElementById('fcSlotAction');
+            let myQIndex = localQueue.findIndex(q => cleanStr(q.plat) === myPlatClean);
+            let mySlotIndex = localSlots.findIndex(s => s && cleanStr(s.plat) === myPlatClean);
+
+            if (mySlotIndex > -1) {
+                btnWrapper.innerHTML = `<button class="btn-laci bl-success" onclick="stopChargingDash(${mySlotIndex})"><i class="fas fa-plug"></i> SELESAI CHARGING</button>`;
+                slotWrapper.style.display = 'none';
+            } else if (myQIndex > -1) {
+                if (myQIndex === 0 && emptySlots > 0) {
+                    slotWrapper.style.display = 'block'; 
+                    let slotBtns = '';
+                    localSlots.forEach((s, i) => { if(!s) slotBtns += `<button class="btn-laci" style="margin-bottom:10px; background:var(--success); color:white;" onclick="pilihSlotDash(${i})"><i class="fas fa-bolt"></i> MASUK SLOT 0${i+1}</button>`; });
+                    slotWrapper.innerHTML = `<div style="font-size:11px; color:var(--text-muted); text-align:center; margin-bottom:10px; font-weight:800;">GILIRAN ANDA! PILIH SLOT:</div>` + slotBtns;
+                    btnWrapper.innerHTML = `<button class="btn-laci bl-danger" style="margin-top:10px;" onclick="batalAntrianDash()"><i class="fas fa-times-circle"></i> BATALKAN ANTRIAN</button>`;
+                } else {
+                    slotWrapper.style.display = 'none';
+                    btnWrapper.innerHTML = `<button class="btn-laci" style="background:linear-gradient(135deg,#F59E0B,#B45309); color:white; margin-bottom:10px;" onclick="alert('Tunggu giliran Anda.')"><i class="fas fa-hourglass-half"></i> GILIRAN (#${myQIndex + 1})</button><button class="btn-laci bl-danger" onclick="batalAntrianDash()"><i class="fas fa-times-circle"></i> BATALKAN ANTRIAN</button>`;
+                }
+            } else {
+                btnWrapper.innerHTML = `<button class="btn-laci bl-primary" onclick="persiapanDaftar()"><i class="fas fa-ticket-alt"></i> DAFTAR ANTRIAN</button>`;
+                slotWrapper.style.display = 'none';
             }
         }
 
-        function showRadar() {
-            document.getElementById('radarContainer').style.display = 'block';
-            setTimeout(() => {
-                if(!map) {
-                    map = L.map('radarMap').setView([-6.1754, 106.8272], 10);
-                    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
-                        attribution: 'Esri'
-                    }).addTo(map);
-                    loadMembers();
-                }
-                map.invalidateSize();
-            }, 500);
-        }
-
-        function hideRadar() { document.getElementById('radarContainer').style.display = 'none'; }
-
-        function loadMembers() {
-            onSnapshot(collection(db, "mlu_members"), (snap) => {
-                snap.forEach(doc => {
-                    const m = doc.data();
-                    if(m.isSharing && m.lat && m.lng) {
-                        const icon = L.divIcon({
-                            className: 'custom-div-icon',
-                            html: `<div class="marker-pin"><img src="${m.foto || 'https://ui-avatars.com/api/?background=2D63ED&color=fff&name='+m.nama}"><div class="marker-label">${m.nama}</div></div>`,
-                            iconSize: [30, 42], iconAnchor: [15, 42]
-                        });
-                        if(markers[doc.id]) { markers[doc.id].setLatLng([m.lat, m.lng]); } 
-                        else { markers[doc.id] = L.marker([m.lat, m.lng], {icon: icon}).addTo(map); }
-                    } else {
-                        if(markers[doc.id]) { map.removeLayer(markers[doc.id]); delete markers[doc.id]; }
-                    }
+        window.bukaDaftarTunggu = () => {
+            const listArea = document.getElementById('listAntrianContent');
+            if(localQueue.length === 0) { listArea.innerHTML = `<div style="text-align:center; padding:30px; color:var(--text-gray);">Antrian Kosong.</div>`; } 
+            else {
+                let html = '';
+                localQueue.forEach((q, i) => {
+                    let bat = q.batreSisa || q.batre || q.battery || "-";
+                    let isMe = (cleanStr(q.plat) === myPlatClean) ? 'border: 2px solid var(--gold-main); background:rgba(212,175,55,0.05);' : '';
+                    html += `<div class="list-item" style="${isMe}"><div><div class="li-plat">${q.plat}</div><div class="li-name">#${i+1} • ${cleanName(q.userName)}</div></div><div class="li-batre"><i class="fas fa-battery-half"></i> ${bat.replace('%','')} %</div></div>`;
                 });
-            });
+                listArea.innerHTML = html;
+            }
+            const m = document.getElementById('modalListAntrian'); m.style.display='flex'; setTimeout(()=>m.classList.add('show'),10);
         }
 
-        function startTracking() {
-            if(navigator.geolocation) {
-                watchId = navigator.geolocation.watchPosition((pos) => {
-                    updateDoc(doc(db, "mlu_members", uData.id), { lat: pos.coords.latitude, lng: pos.coords.longitude, lastUpdate: Date.now(), isSharing: true });
-                    if(map) map.setView([pos.coords.latitude, pos.coords.longitude], 13);
-                }, null, { enableHighAccuracy: true });
+        window.persiapanDaftar = () => { const m = document.getElementById('modalDaftarAntrian'); m.style.display='flex'; setTimeout(()=>m.classList.add('show'),10); }
+        window.tutupDaftarAntrian = () => { const m = document.getElementById('modalDaftarAntrian'); m.classList.remove('show'); setTimeout(()=>m.style.display='none',300); }
+        
+        window.submitDaftarAntrian = async () => {
+            const b = document.getElementById('inpBatre').value;
+            if(!b) return alert("Isi baterai!");
+            if(parseInt(b) > 98) return alert("Max 98%!");
+            window.showActionLoader();
+            try { 
+                const snap = await getDoc(refGading); 
+                if(snap.exists()) { 
+                    let d = snap.data(); let q = d.waitingQueue || [];
+                    if(q.find(x => cleanStr(x.plat) === myPlatClean)) { window.hideActionLoader(); alert("Sudah terdaftar!"); return; } 
+                    q.push({ userName: myName, plat: myPlatClean, batre: b + "%", role: roleCek, timestamp: Date.now() }); 
+                    await updateDoc(refGading, { waitingQueue: q }); 
+                    window.hideActionLoader(); tutupDaftarAntrian(); document.getElementById('fcAccordion').classList.add('open');
+                } 
+            } catch(e) { window.hideActionLoader(); alert("ERROR"); } 
+        }
+
+        window.batalAntrianDash = () => {
+            if(confirm("Keluar antrian?")) {
+                window.showActionLoader();
+                runTransaction(dbGading, async(t) => { 
+                    const d = (await t.get(refGading)).data(); 
+                    const newQ = d.waitingQueue.filter(q => cleanStr(q.plat) !== myPlatClean); 
+                    t.update(refGading, { waitingQueue: newQ }); 
+                }).then(() => window.hideActionLoader());
             }
         }
-        function stopTracking() {
-            if(watchId) navigator.geolocation.clearWatch(watchId);
-            updateDoc(doc(db, "mlu_members", uData.id), { isSharing: false });
+        
+        window.stopChargingDash = (idx) => {
+            if(confirm("Kosongkan slot?")) {
+                window.showActionLoader();
+                runTransaction(dbGading, async(t)=>{ 
+                    const d = (await t.get(refGading)).data(); d.chargingSlots[idx] = null; t.update(refGading, {chargingSlots: d.chargingSlots}); 
+                }).then(() => window.hideActionLoader());
+            }
+        }
+        
+        window.pilihSlotDash = (i) => {
+            window.showActionLoader();
+            runTransaction(dbGading, async(t)=>{ 
+                const d = (await t.get(refGading)).data(); if(d.chargingSlots[i]) throw "Penuh!"; 
+                let q = d.waitingQueue; const idx = q.findIndex(x => cleanStr(x.plat) === myPlatClean); 
+                const me = q.splice(idx, 1)[0]; me.startTime = Date.now(); d.chargingSlots[i] = me; 
+                t.update(refGading, { chargingSlots: d.chargingSlots, waitingQueue: q }); 
+            }).then(() => window.hideActionLoader());
         }
 
-        // --- FC DATA ---
-        function initDataListeners() {
-            const timeout = setTimeout(() => {
-                if(document.getElementById('fcStatusRight').innerText.includes("Memuat")) {
-                    document.getElementById('fcStatusRight').innerHTML = `<div style="display:flex; flex-direction:column; align-items:flex-end;"><span class="banner-val" style="color:#aaa;">OFFLINE</span></div>`;
-                    document.getElementById('profileFcStatus').innerHTML = `<span style="color:#aaa; font-size:10px;">OFFLINE</span>`;
-                }
-            }, 5000);
-
-            onSnapshot(fcRef, (snap) => {
-                clearTimeout(timeout);
-                if (!snap.exists()) return;
-                const d = snap.data();
-                let qLen = (d.waitingQueue || []).length;
-                let empty = 0;
-                for(let i=0; i<3; i++) { if(d.chargingSlots[i]===null && !(d.disabledSlots && d.disabledSlots[i])) empty++; }
-                
-                let html = qLen > 0 ? `<span style="color:var(--warning);">${qLen} ANTRIAN</span>` : `<span style="color:var(--success);">${empty} SLOT KOSONG</span>`;
-                document.getElementById('fcStatusRight').innerHTML = `<div style="display:flex; flex-direction:column; align-items:flex-end;"><span class="banner-val">${html}</span><span class="banner-lbl">REALTIME INFO</span></div>`;
-                document.getElementById('profileFcStatus').innerHTML = `<span style="color:${qLen>0?'var(--warning)':'var(--success)'}; font-size:10px; font-weight:800;">${qLen>0?qLen+' ANTRI':empty+' SLOT'}</span>`;
-            });
+        window.bukaAppKetiga = (appNama) => {
+            let link = appNama === 'Starvo' ? "https://play.google.com/store/apps/details?id=com.moizasia.starvo_mobile" : "https://casan.id/home/index";
+            if(confirm(`Buka ${appNama}?`)) window.location.href = link;
         }
 
-        const STATION_LAT = -6.159389; const STATION_LNG = 106.901416;
-        function cekJarakFC() {
-            if (navigator.geolocation) {
+        // =========================================================================
+        // RADAR GPS ALTERNATIF (DI-RESTORE)
+        // =========================================================================
+        let kcLiveStatus = `<i class="fas fa-spinner fa-spin"></i> Memuat...`;
+        onSnapshot(doc(dbKC, "antrian", "utama"), (snap) => {
+            if(snap.exists()) {
+                const d = snap.data(); const slots = d.chargingSlots || [null, null, null, null, null];
+                const emptySlots = slots.filter(s => s === null).length; const qLen = (d.waitingQueue || []).length;
+                if (emptySlots > 0) { kcLiveStatus = `<span style="color:#10B981;"><i class="fas fa-check-circle"></i> ${emptySlots} Tersedia</span>`; } 
+                else { kcLiveStatus = `<span style="color:var(--warning);"><i class="fas fa-battery-full"></i> FULL | <i class="fas fa-users"></i> ${qLen} ANTRE</span>`; }
+                if (document.getElementById('liveKcIndicator')) { document.getElementById('liveKcIndicator').innerHTML = kcLiveStatus; }
+            }
+        });
+
+        function hitungJarak(lat1, lon1, lat2, lon2) { const R = 6371; const dLat = (lat2 - lat1) * Math.PI / 180; const dLon = (lon2 - lon1) * Math.PI / 180; const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon/2) * Math.sin(dLon/2); return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); }
+        
+        function startNearestFCRadar() {
+            if(!navigator.geolocation) {
+                document.getElementById('altFcNama').innerHTML = `<i class="fas fa-exclamation-triangle" style="color: var(--danger);"></i> GPS TIDAK DIDUKUNG`; 
+                document.getElementById('statusAltFC').innerHTML = "Perangkat Anda tidak mendukung fitur lokasi GPS."; return;
+            }
+
+            onSnapshot(collection(db, "fc_locations"), (snap) => {
+                let lokasiAlternatif = [ { id: "kc", name: "FC KARTIKA CHANDRA", lat: -6.2285953, lng: 106.819502, color: "#10B981" } ];
+                snap.forEach(doc => { const data = doc.data(); if(data.isActive !== false && doc.id !== 'gading') { lokasiAlternatif.push({ id: doc.id, name: data.name || doc.id, lat: data.lat, lng: data.lng, color: "var(--electric-blue)", mapLink: data.mapLink }); }});
+
                 navigator.geolocation.getCurrentPosition((pos) => {
-                    const lat = pos.coords.latitude; const lon = pos.coords.longitude;
-                    const p = 0.017453292519943295, c = Math.cos;
-                    const a = 0.5 - c((STATION_LAT - lat) * p)/2 + c(lat * p) * c(STATION_LAT * p) * (1 - c((STATION_LNG - lon) * p))/2;
-                    const distKm = 12742 * Math.asin(Math.sqrt(a)); 
-                    document.getElementById('fcDistInfo').innerHTML = `<i class="fas fa-map-marker-alt"></i> ~${distKm.toFixed(1)} KM (${Math.ceil((distKm/25)*60)} mnt)`;
-                });
-            }
-        }
+                    let nearestFC = null; let minDist = Infinity;
+                    lokasiAlternatif.forEach(fc => { let d = hitungJarak(pos.coords.latitude, pos.coords.longitude, fc.lat, fc.lng); if(d < minDist) { minDist = d; nearestFC = fc; } });
 
-        // --- CHAT LOGIC ---
-        function initChat() {
-            const qChat = query(collection(db, "mlu_chat_global"), orderBy("timestamp", "desc"), limit(50));
-            onSnapshot(qChat, (snap) => {
-                const list = document.getElementById('chatList');
-                list.innerHTML = '';
-                const msgs = [];
-                snap.forEach(d => msgs.push({id:d.id, ...d.data()}));
-                msgs.reverse().forEach(m => {
-                    const isMe = m.senderId === uData.id;
-                    const cls = isMe ? 'msg-me' : 'msg-other';
-                    const sender = isMe ? 'Saya' : (m.senderName || 'Member');
-                    let replyHtml = '';
-                    if(m.replyTo) { replyHtml = `<div class="msg-reply-ctx"><b>${m.replyTo.sender}:</b> ${m.replyTo.text.substring(0,30)}...</div>`; }
-                    let imgHtml = '';
-                    if(m.image) { imgHtml = `<img src="${m.image}" class="msg-img" onclick="viewImage('${m.image}')">`; }
-                    list.innerHTML += `<div class="msg-bubble ${cls}" onclick="setReply('${m.id}', '${sender}', '${m.text}')">${replyHtml}<span class="msg-sender">${sender} • ${m.plat}</span>${m.text}${imgHtml}</div>`;
-                });
-                list.scrollTop = list.scrollHeight;
+                    if(nearestFC) {
+                        window.currentNearestFC = nearestFC.id;
+                        document.getElementById('altFcNama').innerHTML = `<i class="fas fa-map-marker-alt" style="color: ${nearestFC.color};"></i> ${nearestFC.name.toUpperCase()}`;
+                        let statusHtml = `<span><i class="fas fa-location-arrow"></i> ${minDist.toFixed(1)} KM</span>`;
+                        
+                        if (nearestFC.id === 'kc') {
+                            document.getElementById('altFcBanner').classList.add('fc-kc'); document.getElementById('altFcIcon').style.color = '#10B981'; document.getElementById('altFcIcon').style.background = 'rgba(16,185,129,0.1)'; document.getElementById('statusAltFC').style.background = 'rgba(16,185,129,0.1)'; document.getElementById('statusAltFC').style.color = '#059669';
+                            statusHtml += ` <span style="margin: 0 5px;">|</span> <span id="liveKcIndicator">${kcLiveStatus}</span>`;
+                            document.getElementById('altFcBanner').onclick = () => window.location.href = 'antriankc.html';
+                        } else {
+                            document.getElementById('altFcBanner').classList.remove('fc-kc'); document.getElementById('altFcIcon').style.color = 'var(--electric-blue)'; document.getElementById('altFcIcon').style.background = 'rgba(45,99,237,0.1)'; document.getElementById('statusAltFC').style.background = 'rgba(45,99,237,0.1)'; document.getElementById('statusAltFC').style.color = 'var(--electric-blue)';
+                            const gmapsUrl = nearestFC.mapLink || `http://googleusercontent.com/maps.google.com/?q=${nearestFC.lat},${nearestFC.lng}`;
+                            document.getElementById('altFcBanner').onclick = () => window.open(gmapsUrl, '_blank');
+                        }
+                        document.getElementById('statusAltFC').innerHTML = statusHtml;
+                    }
+                }, () => { 
+                    document.getElementById('altFcNama').innerHTML = `<i class="fas fa-exclamation-triangle" style="color: var(--danger);"></i> GPS DIBLOKIR / LEMAH`; document.getElementById('statusAltFC').innerHTML = "Mohon izinkan akses GPS di pengaturan browser."; document.getElementById('statusAltFC').style.background = "rgba(239,68,68,0.1)"; document.getElementById('statusAltFC').style.color = "var(--danger)"; document.getElementById('altFcBanner').onclick = () => alert("Mohon izinkan akses GPS di pengaturan browser Anda.");
+                }, { timeout: 15000 });
             });
         }
+        startNearestFCRadar();
 
-        window.openChat = () => { document.getElementById('chatOverlay').style.display='block'; setTimeout(()=>document.getElementById('chatDrawer').classList.add('open'),10); };
-        window.closeChat = () => { document.getElementById('chatDrawer').classList.remove('open'); setTimeout(()=>document.getElementById('chatOverlay').style.display='none',300); };
-        window.setReply = (id, name, text) => { replyContext = { id, sender: name, text }; document.getElementById('replyToName').innerText = name; document.getElementById('replyPreview').style.display = 'flex'; }
-        window.cancelReply = () => { replyContext = null; document.getElementById('replyPreview').style.display = 'none'; }
-        window.sendChat = async () => {
-            const txt = document.getElementById('chatInput').value.trim();
-            if(!txt) return;
-            await addDoc(collection(db, "mlu_chat_global"), { text: txt, senderId: uData.id, senderName: myName, plat: myPlat, timestamp: Date.now(), replyTo: replyContext });
-            document.getElementById('chatInput').value = ''; cancelReply();
-        }
-        window.sendImage = () => {
-            const file = document.getElementById('chatImgInput').files[0];
-            if(!file) return;
-            const reader = new FileReader();
-            reader.onload = async function(e) {
-                const img = new Image();
-                img.onload = async function() {
-                    const cvs = document.createElement('canvas'); const ctx = cvs.getContext('2d');
-                    let w = img.width; let h = img.height;
-                    if(w>600){ h*=600/w; w=600;}
-                    cvs.width=w; cvs.height=h; ctx.drawImage(img,0,0,w,h);
-                    const b64 = cvs.toDataURL('image/jpeg', 0.7);
-                    await addDoc(collection(db, "mlu_chat_global"), { text: "", image: b64, senderId: uData.id, senderName: myName, plat: myPlat, timestamp: Date.now() });
+        // =========================================================================
+        // PODIUM & INBOX (DI-RESTORE)
+        // =========================================================================
+        onSnapshot(query(collection(db, "mlu_members"), orderBy("saldoTabungan", "desc"), limit(3)), (snap) => {
+            const list = document.getElementById('topSaversList'); list.innerHTML = ""; let arr = [];
+            snap.forEach(doc => { const d = doc.data(); if(d.saldoTabungan > 0) arr.push(d); });
+            if(arr.length === 0) { list.innerHTML = `<div style="padding:20px; font-size:11px;">Belum ada data.</div>`; return; }
+            let html = '';
+            if(arr[1]) html += `<div class="pod-item pod-2"><img src="${arr[1].foto||'https://ui-avatars.com/api/?name=MLU'}" class="pod-avatar"><div class="pod-title">CRAZY RICH</div><div class="pod-name">${arr[1].namaKtp || "Member"}</div></div>`;
+            if(arr[0]) html += `<div class="pod-item pod-1"><div class="pod-badge">👑</div><img src="${arr[0].foto||'https://ui-avatars.com/api/?name=MLU'}" class="pod-avatar"><div class="pod-title">SULTAN ELITE</div><div class="pod-name">${arr[0].namaKtp || "Member"}</div></div>`;
+            if(arr[2]) html += `<div class="pod-item pod-3"><img src="${arr[2].foto||'https://ui-avatars.com/api/?name=MLU'}" class="pod-avatar"><div class="pod-title">JURAGAN</div><div class="pod-name">${arr[2].namaKtp || "Member"}</div></div>`;
+            list.innerHTML = html;
+        });
+
+        // INBOX PESAN
+        onSnapshot(query(collection(db, "mlu_inbox"), orderBy("timestamp", "desc"), limit(20)), (snap) => {
+            const listBody = document.getElementById('inboxListBody'); let unreadCount = 0; let lastReadTime = parseInt(localStorage.getItem('maka_last_read_inbox') || '0'); let htmlStr = '';
+            if (snap.empty) { listBody.innerHTML = `<div style="text-align:center; padding:30px 20px; color:var(--text-muted); font-size:12px;"><i class="fas fa-box-open" style="font-size:30px; margin-bottom:10px; opacity:0.5; display:block;"></i>Belum ada pesan masuk.</div>`; document.getElementById('inboxBadge').style.display = 'none'; return; }
+
+            snap.forEach(doc => {
+                const data = doc.data(); let isTargetMe = false;
+                if (data.target === 'ALL' || !data.target) isTargetMe = true;
+                else if (data.target === 'PENGURUS' && uData.role && uData.role !== 'MEMBER' && uData.role !== 'KELUARGA MLU') isTargetMe = true;
+                else if (data.target === myPlatClean) isTargetMe = true;
+
+                if (isTargetMe) {
+                    const isUnread = data.timestamp > lastReadTime; if (isUnread) unreadCount++;
+                    const dateStr = new Date(data.timestamp).toLocaleString('id-ID', {day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'});
+                    const unreadClass = isUnread ? 'unread' : '';
+                    let iconHtml = '<i class="fas fa-bell"></i>'; let iconStyle = 'background: rgba(45,99,237,0.1); color: var(--electric-blue);';
+                    if(data.type === 'WARNING') { iconHtml = '<i class="fas fa-exclamation-triangle"></i>'; iconStyle = 'background: rgba(245,158,11,0.1); color: var(--warning);'; }
+                    else if(data.type === 'DANGER') { iconHtml = '<i class="fas fa-bullhorn"></i>'; iconStyle = 'background: rgba(239,68,68,0.1); color: var(--danger);'; }
+                    else if(data.type === 'SUCCESS') { iconHtml = '<i class="fas fa-check-circle"></i>'; iconStyle = 'background: rgba(16,185,129,0.1); color: var(--success);'; }
+                    else if(data.type === 'STORE') { iconHtml = '<i class="fas fa-store"></i>'; iconStyle = 'background: rgba(212,175,55,0.1); color: var(--gold-lux);'; }
+                    htmlStr += `<div class="inbox-item ${unreadClass}"><div class="ib-icon" style="${iconStyle}">${iconHtml}</div><div class="ib-content"><div class="ib-title">${data.title}</div><div class="ib-desc">${data.desc}</div><div class="ib-time">${dateStr}</div></div></div>`;
                 }
-                img.src = e.target.result;
-            }
-            reader.readAsDataURL(file);
-        }
-
-        window.openSosModal = () => { document.getElementById('sosModal').style.display = 'flex'; };
-        window.closeSosModal = () => { document.getElementById('sosModal').style.display = 'none'; };
-        window.sendSos = () => {
-            const btn = document.getElementById('btnSendSos'); btn.innerHTML = '...';
-            navigator.geolocation.getCurrentPosition((pos) => {
-                const url = `https://wa.me/?text=${encodeURIComponent(`*SOS MLU*\nNama: ${myName}\nPlat: ${myPlat}\nLokasi: http://maps.google.com/?q=${pos.coords.latitude},${pos.coords.longitude}\nInfo: ${document.getElementById('sosDesc').value}`)}`;
-                window.location.href = url;
             });
-        };
+            if (htmlStr === '') htmlStr = `<div style="text-align:center; padding:30px 20px; color:var(--text-muted); font-size:12px;"><i class="fas fa-box-open" style="font-size:30px; margin-bottom:10px; opacity:0.5; display:block;"></i>Belum ada pesan untuk Anda.</div>`;
+            listBody.innerHTML = htmlStr;
+
+            const badge = document.getElementById('inboxBadge');
+            if(unreadCount > 0) { badge.style.display = 'flex'; badge.innerText = unreadCount > 9 ? '9+' : unreadCount; const savedUnread = parseInt(localStorage.getItem('maka_unread_count') || '0'); if(unreadCount > savedUnread && navigator.vibrate) navigator.vibrate([100, 50, 100]); } else { badge.style.display = 'none'; }
+            localStorage.setItem('maka_unread_count', unreadCount.toString());
+        });
     </script>
 </body>
 </html>
