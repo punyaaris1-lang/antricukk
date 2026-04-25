@@ -6,7 +6,7 @@
     <title>FC Kelapa Gading - Elite Glass</title>
     
     <script>
-        const APP_VERSION = "7.3_LAYOUT_FIX"; 
+        const APP_VERSION = "7.4_MARKET_CAROUSEL_FIX"; 
         if (localStorage.getItem('maka_antrian_v') !== APP_VERSION) {
             if ('caches' in window) { caches.keys().then((names) => { names.forEach(name => { caches.delete(name); }); }); }
             localStorage.setItem('maka_antrian_v', APP_VERSION); window.location.reload(true); 
@@ -78,6 +78,25 @@
         .split-container.in-slot .queue-section { flex: 0 0 auto; padding: 15px 20px; min-height: fit-content; }
         .split-container.in-slot .store-section { flex: 3; } /* Pasar jadi 3/4 halaman */
         .split-container.in-slot .stats-wrapper { display: none; } /* Hilangin kotak stats */
+
+        /* LOGIKA PASAR BERUBAH JADI CAROUSEL BESAR (1 ITEM PER LAYAR) SAAT DI SLOT */
+        .split-container.in-slot .store-carousel { gap: 20px; padding: 0 20px 30px; }
+        .split-container.in-slot .item-float { 
+            width: 100%; 
+            scroll-snap-align: center; 
+            background: rgba(255,255,255,0.7); 
+            padding: 15px; 
+            border-radius: 24px; 
+            box-shadow: 0 10px 30px rgba(10,25,49,0.08); 
+            border: 1px solid rgba(255,255,255,0.9);
+        }
+        .split-container.in-slot .item-img-bg { height: 220px; border-radius: 18px; margin-bottom: 15px; background: white; }
+        .split-container.in-slot .item-name { 
+            font-size: 16px; margin-bottom: 8px; white-space: normal; 
+            display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+        }
+        .split-container.in-slot .p-price-promo { font-size: 18px; color: var(--danger); margin-bottom: 15px; }
+        .split-container.in-slot .btn-beli { font-size: 12px; padding: 15px; border-radius: 14px; box-shadow: 0 10px 20px rgba(10,25,49,0.2); }
 
         .active-slot-info { display: none; flex-direction: column; align-items: center; justify-content: center; width: 100%; margin-bottom: 10px; }
         .split-container.in-slot .active-slot-info { display: flex; }
@@ -234,7 +253,7 @@
             <div class="h-subtitle">Rumah Maka Lintas Utara</div>
         </div>
         <div class="header-right">
-            <button class="btn-menu" onclick="window.location.href='dashboard.html'"><i class="fas fa-home"></i></button>
+            <button class="btn-menu" onclick="resetApp()" title="Refresh Sistem"><i class="fas fa-sync-alt"></i></button>
         </div>
     </div>
 
@@ -426,6 +445,14 @@
         window.closeEliteModal = () => {
             const m = document.getElementById('eliteModal');
             m.classList.remove('show'); setTimeout(() => m.style.display = 'none', 300);
+        }
+
+        // FUNGSI RESET SYSTEM 
+        window.resetApp = () => {
+            showEliteConfirm("RESET SISTEM", "Aplikasi nyangkut? Tekan YA untuk refresh dan sinkronisasi data.", "danger", () => {
+                localStorage.removeItem('myPlat'); 
+                window.location.reload(true);
+            });
         }
 
         setTimeout(() => { document.getElementById('loader').style.opacity = '0'; setTimeout(()=> document.getElementById('loader').style.display = 'none', 300); }, 800);
