@@ -64,37 +64,21 @@
         .mb-yes { flex:1; background: var(--gold); color: #000; }
         .mb-no { flex:1; background: #333; color: #fff; border: 1px solid #555; }
 
-        /* --- LOGIN SCREEN BARU --- */
-        #loginScreen { position: fixed; inset: 0; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 99999; }
-        .login-box { background: #0a0a0a; border: 2px solid var(--gold); padding: 40px; border-radius: 15px; text-align: center; box-shadow: 0 0 40px rgba(255, 215, 0, 0.2); width: 90%; max-width: 350px; }
-        .inp-login-name { width: 100%; padding: 15px; font-size: 20px; font-family: 'Rajdhani', sans-serif; font-weight: bold; text-align: center; letter-spacing: 2px; background: #000; color: #fff; border: 1px solid #333; border-radius: 8px; margin-bottom: 10px; text-transform: uppercase; }
-        .inp-login-pin { width: 100%; padding: 15px; font-size: 32px; font-family: 'Teko', sans-serif; text-align: center; letter-spacing: 15px; background: #000; color: var(--gold); border: 1px solid #333; border-radius: 8px; margin-bottom: 20px; }
-        .btn-login { width: 100%; padding: 15px; background: var(--gold); color: #000; font-family: 'Rajdhani'; font-size: 20px; font-weight: 900; border: none; border-radius: 8px; cursor: pointer; text-transform: uppercase; }
-
-        #adminDashboard { display: none; flex-direction: column; }
+        /* KARENA LOGIN DIHILANGKAN, DASHBOARD LANGSUNG DITAMPILKAN */
+        #adminDashboard { display: flex; flex-direction: column; }
     </style>
 </head>
 <body>
-
-    <div id="loginScreen">
-        <div class="login-box">
-            <i class="fas fa-shield-alt" style="font-size: 50px; color: var(--gold); margin-bottom: 20px;"></i>
-            <h2 style="font-family:'Orbitron'; margin-top:0; color:#fff;">SYSTEM LOGIN</h2>
-            <input type="text" id="adminNameInput" class="inp-login-name" placeholder="NAMA ADMIN">
-            <input type="password" id="adminPinInput" class="inp-login-pin" placeholder="••••" maxlength="4">
-            <button class="btn-login" onclick="verifyLogin()">AUTHORIZE</button>
-        </div>
-    </div>
 
     <div id="adminDashboard">
         <div class="adm-header">
             <div>
                 <div style="font-family:'Black Ops One'; font-size:20px; color:#fff;">ADMIN PANEL</div>
-                <div style="font-size:10px; color:#666;">TITANIUM VERSION <span id="admNameDisplay" style="color:var(--gold); margin-left:5px; font-weight:bold;"></span></div>
+                <div style="font-size:10px; color:#666;">TITANIUM VERSION <span id="admNameDisplay" style="color:var(--gold); margin-left:5px; font-weight:bold;">| [ AKTIF ]</span></div>
             </div>
             <div style="display:flex; gap:5px;">
                 <button onclick="window.location.href='system.html'" class="btn-blue" style="font-size:12px;">SYSTEM</button>
-                <button onclick="logoutAdmin()" class="btn-red" style="font-size:12px;"><i class="fas fa-power-off"></i></button>
+                <button onclick="window.location.href='antrian.html'" class="btn-red" style="font-size:12px;" title="Keluar"><i class="fas fa-power-off"></i></button>
             </div>
         </div>
 
@@ -202,37 +186,6 @@
         let cachedQueue = [];
         let snapshotData = null;
 
-        // --- SISTEM LOGIN BARU (PAKSA LOGOUT SEMUA ADMIN LAMA) ---
-        // Kita gunakan 'adm_sess_v2' agar session yang lama 'adm_sess' tidak berlaku lagi
-        if(localStorage.getItem('adm_sess_v2')) {
-            document.getElementById('loginScreen').style.display = 'none';
-            document.getElementById('adminDashboard').style.display = 'block';
-            document.getElementById('admNameDisplay').innerText = `| [ ${localStorage.getItem('adm_name_v2')} ]`;
-        }
-
-        window.verifyLogin = () => {
-            const nama = document.getElementById('adminNameInput').value.trim().toUpperCase();
-            const pin = document.getElementById('adminPinInput').value;
-
-            if(!nama) return alert("NAMA ADMIN WAJIB DIISI!");
-            if(pin === "2505") { // PASSWORD ADMIN KG
-                localStorage.setItem('adm_sess_v2', '1');
-                localStorage.setItem('adm_name_v2', nama);
-                addLog(nama, "LOGIN_SYSTEM", "Akses berhasil");
-                location.reload();
-            } else {
-                alert("PIN SALAH!");
-            }
-        };
-
-        window.logoutAdmin = () => {
-            const nama = localStorage.getItem('adm_name_v2') || "ADMIN";
-            addLog(nama, "LOGOUT_SYSTEM", "Keluar aplikasi");
-            localStorage.removeItem('adm_sess_v2');
-            localStorage.removeItem('adm_name_v2');
-            location.reload();
-        };
-
         // --- MODAL LOGIC ---
         let currentCallback = null;
         window.askConfirm = (text, callback) => {
@@ -261,7 +214,7 @@
             const p = document.getElementById('editPlat').value.toUpperCase();
             const n = document.getElementById('editName').value.toUpperCase();
             const b = document.getElementById('editBatt').value;
-            const admName = localStorage.getItem('adm_name_v2') || "ADMIN";
+            const admName = "ADMIN";
 
             if(!p || !n) return alert("Plat & Nama tidak boleh kosong!");
 
@@ -288,7 +241,7 @@
             const d = snap.data();
             cachedSlots = d.chargingSlots || [null,null,null];
             cachedQueue = d.waitingQueue || [];
-            if(document.getElementById('adminDashboard').style.display !== 'none') updateMonitor();
+            updateMonitor();
         });
 
         function updateMonitor() {
@@ -358,7 +311,7 @@
         }
 
         window.resetTicketNumbers = () => {
-            const admName = localStorage.getItem('adm_name_v2') || "ADMIN";
+            const admName = "ADMIN";
             runTransaction(db, async(t) => {
                 const d = (await t.get(mainRef)).data();
                 let queue = d.waitingQueue || [];
@@ -373,7 +326,7 @@
             const p = document.getElementById('newPlat').value.trim().toUpperCase();
             const n = document.getElementById('newNama').value.trim().toUpperCase();
             const b = document.getElementById('newBatre').value;
-            const admName = localStorage.getItem('adm_name_v2') || "ADMIN";
+            const admName = "ADMIN";
 
             if(!p) return alert("Plat Nomor Wajib Diisi!");
             if(!b) return alert("SISA BATERAI WAJIB DIISI!"); // <-- Kunci WAJIB Batre
@@ -410,7 +363,7 @@
         };
 
         window.forceToSlot = (plat, slotIdx) => {
-            const admName = localStorage.getItem('adm_name_v2') || "ADMIN";
+            const admName = "ADMIN";
             runTransaction(db, async(t) => {
                 const d = (await t.get(mainRef)).data();
                 if(d.chargingSlots[slotIdx]) throw "SLOT TERISI!";
@@ -425,7 +378,7 @@
         };
 
         window.forceStop = (i) => {
-            const admName = localStorage.getItem('adm_name_v2') || "ADMIN";
+            const admName = "ADMIN";
             runTransaction(db, async(t) => {
                 const d = (await t.get(mainRef)).data();
                 d.chargingSlots[i] = null;
@@ -435,7 +388,7 @@
         };
 
         window.kickToQueue = (i) => {
-            const admName = localStorage.getItem('adm_name_v2') || "ADMIN";
+            const admName = "ADMIN";
             runTransaction(db, async(t) => {
                 const d = (await t.get(mainRef)).data();
                 const u = d.chargingSlots[i];
@@ -451,7 +404,7 @@
         window.moveSlotUser = () => {
             const s1 = document.getElementById('moveSrc').value;
             const s2 = document.getElementById('moveDest').value;
-            const admName = localStorage.getItem('adm_name_v2') || "ADMIN";
+            const admName = "ADMIN";
             if(s1 == s2) return alert("Pilih slot beda!");
             runTransaction(db, async(t) => {
                 const d = (await t.get(mainRef)).data();
@@ -464,7 +417,7 @@
         };
 
         window.switchQueue = (idx, dir) => {
-            const admName = localStorage.getItem('adm_name_v2') || "ADMIN";
+            const admName = "ADMIN";
             runTransaction(db, async(t) => {
                 const d = (await t.get(mainRef)).data();
                 let q = d.waitingQueue;
@@ -478,7 +431,7 @@
         };
 
         window.delQueue = (p) => {
-            const admName = localStorage.getItem('adm_name_v2') || "ADMIN";
+            const admName = "ADMIN";
             runTransaction(db, async(t) => {
                 const d = (await t.get(mainRef)).data();
                 const newQ = d.waitingQueue.filter(x => x.plat !== p);
@@ -496,7 +449,7 @@
         };
 
         window.executeRestore = () => {
-            const admName = localStorage.getItem('adm_name_v2') || "ADMIN";
+            const admName = "ADMIN";
             if(!snapshotData) return;
             runTransaction(db, async(t) => {
                 t.set(mainRef, { chargingSlots: snapshotData.chargingSlots || [null,null,null], waitingQueue: snapshotData.waitingQueue || [], lastTicket: snapshotData.lastTicket || 0 });
@@ -507,7 +460,7 @@
         };
 
         window.hardReset = () => {
-            const admName = localStorage.getItem('adm_name_v2') || "ADMIN";
+            const admName = "ADMIN";
             runTransaction(db, async(t) => {
                 t.set(mainRef, { chargingSlots: [null,null,null], waitingQueue: [], lastTicket: 0 });
                 addLog(admName, "HARD_RESET", "Wiped All Data");
