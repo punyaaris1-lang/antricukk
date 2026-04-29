@@ -202,7 +202,8 @@
         .li-plat { font-family: 'Space Grotesk'; font-size: 20px; font-weight: 900; color: var(--navy-main); line-height: 1; margin-bottom: 4px;}
         .li-name { font-size: 11px; font-weight: 700; color: var(--text-gray); text-transform: uppercase;}
         .li-batre { font-family: 'Space Grotesk'; font-size: 14px; font-weight: 900; color: var(--success); background: rgba(16,185,129,0.1); padding: 4px 10px; border-radius: 8px;}
-        .btn-kudeta { background: var(--danger); color: white; border: none; padding: 6px 12px; border-radius: 8px; font-family: 'Space Grotesk'; font-size: 10px; font-weight: 900; cursor: pointer; box-shadow: 0 5px 15px rgba(239,68,68,0.3); margin-top: 8px; width: 100%;}
+        .btn-kudeta { background: var(--danger); color: white; border: none; padding: 6px 12px; border-radius: 8px; font-family: 'Space Grotesk'; font-size: 10px; font-weight: 900; cursor: pointer; box-shadow: 0 5px 15px rgba(239,68,68,0.3); margin-top: 8px; width: 100%; transition: 0.2s; }
+        .btn-kudeta:active { transform: scale(0.95); }
 
         .inp-group { margin-bottom: 15px; text-align: left;}
         .inp-label { font-size: 11px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px; display: block; letter-spacing: 0.5px;}
@@ -629,15 +630,66 @@
             }).then(() => { closeModal(); }).catch(e => showEliteAlert("INFO", e)); 
         }
 
+        // === FUNGSI KUDETA (LANGSUNG HAPUS VICTIM) ===
+        window.prosesKudeta = (idx) => {
+            showEliteConfirm("AMBIL ALIH SLOT", "Anda yakin ingin mengambil alih slot ini? Data pengguna sebelumnya akan dihapus dari sistem.", "danger", () => {
+                runTransaction(dbQueue, async(t)=>{ 
+                    const d = (await t.get(mainRef)).data(); 
+                    let q = d.waitingQueue || []; 
+                    let slots = d.chargingSlots || [null, null, null];
+                    
+                    const myIndex = q.findIndex(x => cleanStr(x.plat) === cleanStr(myPlat)); 
+                    if(myIndex !== 0 && myIndex !== 1) throw "Hanya Antrian urutan 1 dan 2 yang bisa kudeta!";
+                    
+                    const me = q[myIndex];
+                    
+                    // Keluarkan saya dari antrian
+                    q.splice(myIndex, 1); 
+                    me.startTime = Date.now();
+                    
+                    // Timpa (hapus) siapapun yang ada di slot tersebut (atau mengisi slot kosong)
+                    slots[idx] = me; 
+                    
+                    t.update(mainRef, { chargingSlots: slots, waitingQueue: q }); 
+                }).then(() => { 
+                    closeModal(); 
+                    showEliteAlert("BERHASIL", "Slot berhasil diambil alih!");
+                }).catch(e => showEliteAlert("GAGAL AMBIL ALIH", e)); 
+            });
+        }
+
         window.openSlotList = () => {
             let html = ''; let myQIndex = localQueue.findIndex(q => cleanStr(q.plat) === cleanStr(myPlat));
             localSlots.forEach((s, i) => {
                 if(s) {
                     let durMin = Math.floor((Date.now() - (s.startTime || Date.now())) / 60000);
                     let batVal = s.batreSisa || s.batre || s.battery || "-";
-                    html += `<div class="list-item"><div><div class="li-plat">${s.plat}</div><div class="li-name">${cleanName(s.userName)} • ${durMin} MNT</div></div><div class="li-batre"><i class="fas fa-battery-half"></i> ${batVal.replace('%','')} %</div></div>`;
+                    
+                    let kudetaHtml = '';
+                    // RULES: Hanya index 0 (Antrean #1) atau index 1 (Antrean #2) yang bisa kudeta.
+                    if ((myQIndex === 0 || myQIndex === 1) && cleanStr(s.plat) !== cleanStr(myPlat)) {
+                        kudetaHtml = `<button class="btn-kudeta" onclick="prosesKudeta(${i})"><i class="fas fa-hand-rock"></i> KUDETA (HAPUS USER)</button>`;
+                    }
+
+                    html += `<div class="list-item" style="flex-wrap: wrap;">
+                                <div style="display:flex; justify-content:space-between; width:100%; align-items:center;">
+                                    <div><div class="li-plat">${s.plat}</div><div class="li-name">${cleanName(s.userName)} • ${durMin} MNT</div></div>
+                                    <div class="li-batre"><i class="fas fa-battery-half"></i> ${batVal.replace('%','')} %</div>
+                                </div>
+                                ${kudetaHtml}
+                            </div>`;
                 } else {
-                    html += `<div class="list-item" style="opacity:0.5;"><div><div class="li-plat" style="color:var(--text-gray);">SLOT 0${i+1}</div><div class="li-name">KOSONG</div></div></div>`;
+                    let kudetaHtml = '';
+                    // Jika Slot Kosong, Antrean #1 dan #2 bisa langsung bypass ambil alih slot ini dari list
+                    if (myQIndex === 0 || myQIndex === 1) {
+                        kudetaHtml = `<button class="btn-kudeta" style="background: var(--success); box-shadow: 0 5px 15px rgba(16,185,129,0.3);" onclick="prosesKudeta(${i})"><i class="fas fa-bolt"></i> AMBIL ALIH SLOT KOSONG</button>`;
+                    }
+                    html += `<div class="list-item" style="opacity:0.8; flex-wrap: wrap;">
+                                <div style="display:flex; justify-content:space-between; width:100%; align-items:center;">
+                                    <div><div class="li-plat" style="color:var(--text-gray);">SLOT 0${i+1}</div><div class="li-name">KOSONG</div></div>
+                                </div>
+                                ${kudetaHtml}
+                            </div>`;
                 }
             });
             showModal("<i class='fas fa-charging-station'></i> SLOT CHARGING", html);
