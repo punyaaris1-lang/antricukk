@@ -6,7 +6,7 @@
     <title>FC Kelapa Gading - Elite Glass</title>
     
     <script>
-        const APP_VERSION = "8.1_MARKET_CAROUSEL_FIX"; 
+        const APP_VERSION = "8.2_AUTO_CAROUSEL"; 
         if (localStorage.getItem('maka_antrian_v') !== APP_VERSION) {
             if ('caches' in window) { caches.keys().then((names) => { names.forEach(name => { caches.delete(name); }); }); }
             localStorage.setItem('maka_antrian_v', APP_VERSION); window.location.reload(true); 
@@ -125,7 +125,7 @@
         .btn-buka-pasar { background: var(--navy-main); color: var(--gold-main); padding: 8px 14px; border-radius: 20px; font-family: 'Space Grotesk'; font-size: 9px; font-weight: 800; border: none; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 5px 15px rgba(10,25,49,0.2); transition: 0.2s; }
         .btn-buka-pasar:active { transform: scale(0.95); }
 
-        /* CAROUSEL PASAR - BUG FIX SCROLL */
+        /* CAROUSEL PASAR */
         .store-carousel { 
             display: flex; gap: 12px; overflow-x: auto; padding: 0 20px 20px; 
             scroll-snap-type: x mandatory; scrollbar-width: none; 
@@ -144,6 +144,11 @@
         .item-name { font-family: 'Inter'; font-size: 11px; font-weight: 800; color: var(--navy-main); margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
         .p-price-promo { font-family: 'Space Grotesk'; font-size: 12px; font-weight: 900; color: var(--danger); margin-bottom: 6px; display: block;}
         
+        /* MARKET BADGES */
+        .stock-badge { font-size: 8px; font-weight: 800; padding: 3px 5px; border-radius: 5px; background: #E2E8F0; color: var(--text-gray); display: inline-block; margin-bottom: 6px; width: fit-content; }
+        .stock-badge.empty { background: #FEF2F2; color: var(--danger); border: 1px solid #FCA5A5; }
+        .seller-badge { font-size: 8px; color: var(--navy-main); font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 8px;}
+
         .btn-beli { width: 100%; padding: 8px; background: var(--navy-main); color: var(--gold-main); border: none; border-radius: 10px; font-family: 'Space Grotesk'; font-size: 9px; font-weight: 900; cursor: pointer; margin-top: auto; box-shadow: 0 5px 10px rgba(10,25,49,0.2); letter-spacing: 1px;}
 
         /* ELITE POP-UP MODAL */
@@ -183,10 +188,10 @@
         .fs-title { font-family: 'Inter'; font-size: 12px; font-weight: 800; color: var(--navy-main); line-height: 1.3; margin-bottom: 5px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;}
         .fs-price { font-family: 'Space Grotesk'; font-size: 14px; font-weight: 900; color: var(--danger); margin-bottom: 4px;}
 
-        /* MODAL LIST REGULER (MAIN MODAL) & CHECKOUT */
+        /* MODAL DAFTAR/LIST REGULER */
         .modal-overlay { position: fixed; inset: 0; background: rgba(10,25,49,0.8); z-index: 90000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(10px); opacity: 0; transition: opacity 0.3s; padding: 20px;}
         .modal-overlay.show { opacity: 1; }
-        .modal-box { width: 100%; max-width: 400px; background: rgba(255,255,255,0.95); backdrop-filter: blur(15px); border-radius: 30px; padding: 25px; box-shadow: 0 20px 50px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.8); transform: scale(0.9); transition: 0.3s; position: relative; overflow: hidden; max-height: 85vh; display: flex; flex-direction: column;}
+        .modal-box { width: 100%; max-width: 400px; background: rgba(255,255,255,0.9); backdrop-filter: blur(15px); border-radius: 30px; padding: 25px; box-shadow: 0 20px 50px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.8); transform: scale(0.9); transition: 0.3s; position: relative; overflow: hidden; max-height: 85vh; display: flex; flex-direction: column;}
         .modal-overlay.show .modal-box { transform: scale(1); }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid rgba(0,0,0,0.1); padding-bottom: 15px;}
         .m-title { font-family: 'Outfit'; font-size: 20px; font-weight: 900; color: var(--navy-main); margin: 0; display: flex; align-items: center; gap: 8px;}
@@ -200,7 +205,6 @@
         .btn-kudeta { background: var(--danger); color: white; border: none; padding: 6px 12px; border-radius: 8px; font-family: 'Space Grotesk'; font-size: 10px; font-weight: 900; cursor: pointer; box-shadow: 0 5px 15px rgba(239,68,68,0.3); margin-top: 8px; width: 100%; transition: 0.2s; }
         .btn-kudeta:active { transform: scale(0.95); }
 
-        .co-box { background: #F8FAFC; border: 1px solid #E2E8F0; padding: 15px; border-radius: 16px; margin-bottom: 15px; text-align: left; }
         .inp-group { margin-bottom: 15px; text-align: left;}
         .inp-label { font-size: 11px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px; display: block; letter-spacing: 0.5px;}
         .inp-text { width: 100%; padding: 15px; border-radius: 14px; border: 1px solid #E2E8F0; background: #F8FAFC; font-family: 'Inter'; font-weight: 700; font-size: 14px; color: var(--navy-main); outline: none; transition: 0.2s;}
@@ -216,8 +220,13 @@
         .pwa-prompt.show { bottom: 25px; }
         .pwa-btn { background: var(--electric-blue); color: white; border: none; padding: 10px 18px; border-radius: 12px; font-family: 'Space Grotesk'; font-weight: 900; font-size: 11px; cursor: pointer; box-shadow: 0 5px 15px rgba(45,99,237,0.3); }
 
-        /* GLOBAL ACTION LOADER */
+        /* CHECKOUT MODAL STYLES */
+        .co-box { background: #F8FAFC; border: 1px solid #E2E8F0; padding: 15px; border-radius: 16px; margin-bottom: 15px; text-align: left; }
+        .btn-checkout { width: 100%; padding: 16px; border-radius: 16px; border: none; background: var(--success); color: white; font-family: 'Space Grotesk'; font-size: 14px; font-weight: 900; cursor: pointer; box-shadow: 0 10px 20px rgba(16,185,129,0.3); margin-top: 10px; transition: 0.2s; }
+        .btn-checkout:active { transform: scale(0.98); }
+        
         #actionLoader { position:fixed; inset:0; background:rgba(255,255,255,0.8); backdrop-filter:blur(5px); z-index:999999; display:none; flex-direction:column; align-items:center; justify-content:center; opacity:0; transition:0.3s;}
+
     </style>
 </head>
 <body>
@@ -331,7 +340,7 @@
         <div class="modal-box">
             <div class="modal-header">
                 <h3 class="m-title" id="modalTitle"><i class="fas fa-info-circle"></i> TITLE</h3>
-                <button class="btn-close-modal" onclick="closeModal()"><i class="fas fa-times"></i></button>
+                <button class="btn-close-modal" onclick="closeModal('mainModal')"><i class="fas fa-times"></i></button>
             </div>
             <div class="list-area" id="modalContent"></div>
         </div>
@@ -408,6 +417,15 @@
         const appStore = initializeApp(fbStoreConfig, "AppStore");
         const dbStore = getFirestore(appStore);
 
+        // ILMU HITAM ONESIGNAL
+        window.tembakNotif = function(judul, isi) {
+            fetch("https://onesignal.com/api/v1/notifications", {
+                method: "POST",
+                headers: { "Content-Type": "application/json; charset=utf-8", "Authorization": "Basic Os_v2_app_br5t3yqa6bcwdm7xhgjeacsxmfbw4bmitq6eew45ddydv3vrvmrpfphcraqo2wxkxvqlcgxhaa6ra7kqixgx5e43iqx7cvp7pw6puaa" },
+                body: JSON.stringify({ app_id: "0c7b3de2-00f0-4561-b3f7-3992400a5761", included_segments: ["Subscribed Users"], headings: { "en": judul }, contents: { "en": isi } })
+            }).catch(err => console.log(err));
+        };
+
         // === 2. VARIABEL GLOBAL ===
         const STATION_LAT = -6.171583; const STATION_LNG = 106.899844; const MAX_DIST_KM = 0.2; 
         const TOTAL_SLOTS = 3;
@@ -422,9 +440,9 @@
         window.currentCheckoutItem = null;
 
         let uData = null;
+        let myName = "Guest";
         let myRole = "GUEST";
         let isPengurus = false;
-        let myName = "Guest";
         let myUserId = null;
 
         try { 
@@ -518,11 +536,7 @@
         // FUNGSI MENU ADMIN TERSEMBUNYI (PASSWORD 2505)
         window.triggerAdminPrompt = () => {
             const pwd = prompt("Masukkan Password:");
-            if (pwd === "2505") {
-                window.location.href = "admin.html";
-            } else if (pwd !== null && pwd !== "") {
-                alert("Password Salah!");
-            }
+            if (pwd === "2505") { window.location.href = "admin.html"; } else if (pwd !== null && pwd !== "") { alert("Password Salah!"); }
         };
 
         // FUNGSI RESET SYSTEM 
@@ -694,10 +708,9 @@
                 if(idx === -1) throw "DATA ANDA TIDAK DITEMUKAN!"; 
                 const me = q[idx]; q.splice(idx, 1); me.startTime = Date.now(); d.chargingSlots[i] = me; 
                 t.update(mainRef, { chargingSlots: d.chargingSlots, waitingQueue: q }); 
-            }).then(() => { closeModal(); }).catch(e => showEliteAlert("INFO", e)); 
+            }).then(() => { closeModal('mainModal'); }).catch(e => showEliteAlert("INFO", e)); 
         }
 
-        // === FUNGSI KUDETA (LANGSUNG HAPUS VICTIM) ===
         window.prosesKudeta = (idx) => {
             showEliteConfirm("AMBIL ALIH SLOT", "Anda yakin ingin mengambil alih slot ini? Data pengguna sebelumnya akan dihapus dari sistem.", "danger", () => {
                 runTransaction(dbQueue, async(t)=>{ 
@@ -709,17 +722,13 @@
                     if(myIndex !== 0 && myIndex !== 1) throw "Hanya Antrian urutan 1 dan 2 yang bisa kudeta!";
                     
                     const me = q[myIndex];
-                    
-                    // Keluarkan saya dari antrian
                     q.splice(myIndex, 1); 
                     me.startTime = Date.now();
-                    
-                    // Timpa (hapus) siapapun yang ada di slot tersebut (atau mengisi slot kosong)
                     slots[idx] = me; 
                     
                     t.update(mainRef, { chargingSlots: slots, waitingQueue: q }); 
                 }).then(() => { 
-                    closeModal(); 
+                    closeModal('mainModal'); 
                     showEliteAlert("BERHASIL", "Slot berhasil diambil alih!");
                 }).catch(e => showEliteAlert("GAGAL AMBIL ALIH", e)); 
             });
@@ -733,7 +742,6 @@
                     let batVal = s.batreSisa || s.batre || s.battery || "-";
                     
                     let kudetaHtml = '';
-                    // RULES: Hanya index 0 (Antrean #1) atau index 1 (Antrean #2) yang bisa kudeta.
                     if ((myQIndex === 0 || myQIndex === 1) && cleanStr(s.plat) !== cleanStr(myPlat)) {
                         kudetaHtml = `<button class="btn-kudeta" onclick="prosesKudeta(${i})"><i class="fas fa-hand-rock"></i> KUDETA (HAPUS USER)</button>`;
                     }
@@ -747,7 +755,6 @@
                             </div>`;
                 } else {
                     let kudetaHtml = '';
-                    // Jika Slot Kosong, Antrean #1 dan #2 bisa langsung bypass ambil alih slot ini dari list
                     if (myQIndex === 0 || myQIndex === 1) {
                         kudetaHtml = `<button class="btn-kudeta" style="background: var(--success); box-shadow: 0 5px 15px rgba(16,185,129,0.3);" onclick="prosesKudeta(${i})"><i class="fas fa-bolt"></i> AMBIL ALIH SLOT KOSONG</button>`;
                     }
@@ -776,6 +783,8 @@
         }
 
         // === 6. LOGIKA PASAR MLU E-COMMERCE DI ANTRIAN ===
+        let carouselInterval; // Variabel interval auto-scroll
+        
         onSnapshot(query(collection(dbStore, 'mlu_store'), orderBy('timestamp', 'desc')), (snap) => {
             const feed = document.getElementById('storeFeed');
             if (snap.empty) { feed.innerHTML = '<div style="width:100%; text-align:center; font-size:12px; color:var(--text-gray);">Pasar Kosong</div>'; return; }
@@ -801,8 +810,8 @@
                 let priceStr = window.formatK(p.price);
                 
                 const stockVal = p.stock !== undefined ? p.stock : 99;
-                let stockBadge = `<span style="font-size:8px; font-weight:800; color:var(--text-gray); background:#E2E8F0; padding:2px 5px; border-radius:4px; margin-bottom:4px; display:inline-block;"><i class="fas fa-box"></i> Stok: ${stockVal}</span>`;
-                if(stockVal <= 0) stockBadge = `<span style="font-size:8px; font-weight:800; color:var(--danger); background:#FEF2F2; border:1px solid #FCA5A5; padding:2px 5px; border-radius:4px; margin-bottom:4px; display:inline-block;"><i class="fas fa-times-circle"></i> Habis</span>`;
+                let stockBadge = `<span style="font-size:8px; font-weight:800; color:var(--text-gray); background:#E2E8F0; padding:2px 6px; border-radius:4px; margin-bottom:4px; display:inline-block;"><i class="fas fa-box"></i> Stok: ${stockVal}</span>`;
+                if(stockVal <= 0) stockBadge = `<span style="font-size:8px; font-weight:800; color:var(--danger); background:#FEF2F2; border:1px solid #FCA5A5; padding:2px 6px; border-radius:4px; margin-bottom:4px; display:inline-block;"><i class="fas fa-times-circle"></i> Habis</span>`;
 
                 let sellerBadge = '';
                 if(cleanStr(p.sellerPlat) === 'B4794SWF') {
@@ -821,6 +830,29 @@
                     <button class="btn-beli" style="margin-top:8px;">LIHAT DETAIL</button>
                 </div>`;
             });
+
+            // === AUTO SCROLL CAROUSEL LOGIC ===
+            clearInterval(carouselInterval);
+            carouselInterval = setInterval(() => {
+                if (feed.scrollLeft + feed.clientWidth >= feed.scrollWidth - 10) {
+                    feed.scrollTo({ left: 0, behavior: 'smooth' });
+                } else {
+                    feed.scrollBy({ left: 142, behavior: 'smooth' }); // Geser sebesar 1 item
+                }
+            }, 3000);
+
+            // Supaya gak rebutan pas user nyentuh/geser manual
+            feed.onpointerdown = () => clearInterval(carouselInterval);
+            feed.onpointerup = () => {
+                clearInterval(carouselInterval);
+                carouselInterval = setInterval(() => {
+                    if (feed.scrollLeft + feed.clientWidth >= feed.scrollWidth - 10) {
+                        feed.scrollTo({ left: 0, behavior: 'smooth' });
+                    } else {
+                        feed.scrollBy({ left: 142, behavior: 'smooth' });
+                    }
+                }, 3000);
+            };
         });
 
         // FUNGSI TRIGGER MUNCUL PROMO SETELAH DAFTAR
@@ -911,8 +943,6 @@
 
         window.openCheckoutModal = () => {
             if(!window.currentCheckoutItem) return;
-            if(!uData) return showEliteAlert("AKSES DITOLAK", "Silakan Login / Daftar Anggota di Dashboard untuk melakukan transaksi pembelian.");
-            
             closeModal('mainModal'); 
             
             document.getElementById('coTitle').innerText = window.currentCheckoutItem.title;
@@ -927,7 +957,6 @@
 
         window.submitOrder = async () => {
             if(!uData) return showEliteAlert("AKSES DITOLAK", "Silakan Login / Daftar Anggota di Dashboard untuk melakukan transaksi pembelian.");
-            
             const btn = document.getElementById('btnSubmitOrder');
             btn.innerText = "MEMPROSES..."; btn.style.opacity = '0.7';
             window.showActionLoader();
@@ -963,23 +992,17 @@
                     const waMsg = `Halo *${window.currentCheckoutItem.sellerName}*! 🎉\n\nAda pesanan baru masuk dari *${myName}* (${myPlatClean}) di Pasar MLU.\n\n*Barang:* ${window.currentCheckoutItem.title}\n*Harga:* Rp ${Number(window.currentCheckoutItem.price).toLocaleString('id-ID')}\n*Metode:* ${tipeBayarTxt}\n*Catatan Pembeli:* ${orderNotes || '-'}\n\nSilakan cek aplikasi MLU Anda di tab *Pesanan* untuk memprosesnya.`;
                     
                     window.open(`https://wa.me/${noWa}?text=${encodeURIComponent(waMsg)}`, '_blank');
-                } else {
-                    window.tembakNotif("🛒 PESANAN BARU MASUK!", `Ada yang beli ${window.currentCheckoutItem.title} dari Lapak lu Bos! Cek aplikasi sekarang.`);
                 }
                 
-                closeModal('checkoutModal'); window.hideActionLoader();
+                closeModal('checkoutModal');
+                setTimeout(() => { showEliteAlert("PESANAN BERHASIL", "Pesanan berhasil dibuat!\nSilakan buka aplikasi Dashboard -> Pasar MLU -> Pesanan untuk mengecek dan upload resi."); }, 500);
                 
-                setTimeout(() => {
-                    showEliteAlert("PESANAN BERHASIL", "Pesanan berhasil dibuat!\nSilakan buka aplikasi Dashboard -> Pasar MLU -> Pesanan untuk mengecek dan upload resi.");
-                }, 500);
-                
-            } catch(e) { window.hideActionLoader(); showEliteAlert("GAGAL", e.message); } 
-            finally { btn.innerText = "BUAT PESANAN SEKARANG"; btn.style.opacity = '1'; }
+            } catch(e) { window.hideActionLoader(); showEliteAlert("GAGAL", e.message); } finally { btn.innerText = "BUAT PESANAN SEKARANG"; btn.style.opacity = '1'; }
         }
 
         window.openFullStore = () => {
             document.getElementById('fullStoreView').style.display = 'flex';
-            window.renderFullStore(window.allStoreItems);
+            renderFullStore(window.allStoreItems);
         }
         
         window.closeFullStore = () => {
@@ -990,10 +1013,10 @@
         window.filterFullStore = () => {
             const key = document.getElementById('inpSearchStore').value.toLowerCase();
             const filtered = window.allStoreItems.filter(p => p.title.toLowerCase().includes(key));
-            window.renderFullStore(filtered);
+            renderFullStore(filtered);
         }
 
-        window.renderFullStore = (dataArray) => {
+        function renderFullStore(dataArray) {
             const grid = document.getElementById('fullStoreGrid');
             grid.innerHTML = '';
             if(dataArray.length === 0) {
@@ -1006,24 +1029,16 @@
                 let priceStr = window.formatK(p.price);
                 
                 const stockVal = p.stock !== undefined ? p.stock : 99;
-                let stockBadge = `<span style="font-size:8px; font-weight:800; color:var(--text-gray); background:#E2E8F0; padding:3px 6px; border-radius:5px; margin-bottom:5px; display:inline-block;"><i class="fas fa-box"></i> Stok: ${stockVal}</span>`;
-                if(stockVal <= 0) stockBadge = `<span style="font-size:8px; font-weight:800; color:var(--danger); background:#FEF2F2; border:1px solid #FCA5A5; padding:3px 6px; border-radius:5px; margin-bottom:5px; display:inline-block;"><i class="fas fa-times-circle"></i> Habis</span>`;
-
-                let sellerBadge = '';
-                if(cleanStr(p.sellerPlat) === 'B4794SWF') {
-                    sellerBadge = `<div style="font-size:8px; color:#10B981; font-weight:800; background:#ECFDF5; border:1px solid #A7F3D0; padding:3px 6px; border-radius:5px; display:inline-block; margin-top:5px;"><i class="fas fa-tree"></i> Keluarga Cemara</div>`;
-                } else {
-                    sellerBadge = `<div style="font-size:8px; color:var(--text-gray); font-weight:700; display:flex; align-items:center; gap:4px; margin-top:5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"><i class="fas fa-store"></i> ${p.sellerName}</div>`;
-                }
+                let stockBadge = `<span style="font-size:8px; font-weight:800; color:var(--text-gray); background:#E2E8F0; padding:2px 6px; border-radius:4px; margin-bottom:4px; display:inline-block;"><i class="fas fa-box"></i> Stok: ${stockVal}</span>`;
+                if(stockVal <= 0) stockBadge = `<span style="font-size:8px; font-weight:800; color:var(--danger); background:#FEF2F2; border:1px solid #FCA5A5; padding:2px 6px; border-radius:4px; margin-bottom:4px; display:inline-block;"><i class="fas fa-times-circle"></i> Habis</span>`;
 
                 grid.innerHTML += `
-                <div class="fs-card" onclick="window.openStoreDetail('${p.id}')">
+                <div class="fs-card" onclick="openStoreDetail('${p.id}')">
                     <div class="fs-card-img"><img src="${img}"></div>
                     <div class="fs-title">${p.title}</div>
                     ${stockBadge}
                     <div class="fs-price">Rp ${priceStr}</div>
-                    ${sellerBadge}
-                    <button class="btn-beli" style="margin-top:auto;">LIHAT DETAIL</button>
+                    <button class="btn-beli">LIHAT DETAIL</button>
                 </div>`;
             });
         }
