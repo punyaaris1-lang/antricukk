@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MLU - Live Station Locator</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Space+Grotesk:wght@700;900&family=Outfit:wght@800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <style>
+        :root { 
+            --royal-blue: #0A2259; --electric-blue: #2D63ED; 
+            --danger: #EF4444; --success: #10B981; --warning: #F59E0B;
+            --text-main: #0F172A; --text-muted: #64748B;
+        }
+        
+        body { margin: 0; padding: 0; font-family: 'Inter', sans-serif; overflow: hidden; background: #E2E8F0; }
+        * { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent;}
+
+        /* FULL SCREEN MAP */
+        #map { position: absolute; top: 0; bottom: 0; left: 0; right: 0; width: 100vw; height: 100vh; z-index: 1; }
+
+        /* HEADER OVERLAY */
+        .header-overlay { 
+            position: absolute; top: 0; left: 0; width: 100%; padding: 40px 20px 30px; 
+            background: linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.7) 60%, transparent 100%); 
+            z-index: 1000; text-align: left; pointer-events: none; display: flex; justify-content: space-between; align-items: flex-start;
+        }
+        .header-left { pointer-events: auto; }
+        .header-title { font-family: 'Outfit'; font-size: 28px; font-weight: 900; color: var(--royal-blue); margin: 0; text-shadow: 0 2px 10px rgba(255,255,255,0.8); letter-spacing: -0.5px; display: flex; align-items: center; gap: 8px;}
+        .header-sub { font-family: 'Space Grotesk'; font-size: 10px; font-weight: 800; color: var(--electric-blue); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 2px;}
+
+        /* 3RD PARTY FLOATING BUTTONS */
+        .header-right { pointer-events: auto; display: flex; flex-direction: column; gap: 10px; }
+        .btn-3rd {
+            width: 45px; height: 45px; border-radius: 14px; border: none;
+            display: flex; align-items: center; justify-content: center; font-size: 20px; color: white;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15); cursor: pointer; transition: 0.2s;
+        }
+        .btn-3rd:active { transform: scale(0.9); }
+        .b-starvo { background: linear-gradient(135deg, #10B981, #059669); }
+        .b-casan { background: linear-gradient(135deg, #8B5CF6, #6D28D9); }
+
+        /* CUSTOM MARKER CSS */
+        .custom-div-icon { background: transparent; border: none; }
+        .marker-body { width: 40px; height: 40px; border-radius: 50%; border: 3px solid white; display: flex; align-items: center; justify-content: center; font-size: 18px; color: white; box-shadow: 0 10px 20px rgba(0,0,0,0.3); transition: 0.3s; position: relative;}
+        .marker-body::after { content: ''; position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%); border-width: 8px 6px 0; border-style: solid; border-color: white transparent transparent transparent; }
+        
+        .marker-gading { background: var(--electric-blue); }
+        .marker-kc { background: var(--success); }
+        .marker-other { background: var(--warning); }
+        .marker-off { background: var(--danger); opacity: 0.8; }
+        
+        .marker-label { position: absolute; bottom: -30px; left: 50%; transform: translateX(-50%); background: white; color: var(--royal-blue); padding: 5px 10px; border-radius: 8px; font-family: 'Space Grotesk'; font-size: 11px; font-weight: 900; white-space: nowrap; box-shadow: 0 5px 15px rgba(0,0,0,0.15); border: 1px solid rgba(0,0,0,0.05); transition: 0.3s;}
+        
+        /* EFEK KETIKA MARKER AKTIF (DIPILIH) */
+        .marker-active .marker-body { transform: scale(1.2); box-shadow: 0 0 0 5px rgba(255,255,255,0.4); z-index: 1000 !important;}
+        .marker-active .marker-label { background: var(--royal-blue); color: white; transform: translateX(-50%) scale(1.1); bottom: -35px;}
+
+        /* BOTTOM CAROUSEL (KARTU LOKASI) */
+        .bottom-container {
+            position: fixed; bottom: 0; left: 0; width: 100%; z-index: 1000;
+            padding-bottom: 30px; background: linear-gradient(0deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.6) 70%, transparent 100%);
+            pointer-events: none; /* Biar sela-selanya bisa diklik petanya */
+        }
+
+        .cards-carousel {
+            display: flex; gap: 15px; overflow-x: auto; padding: 20px;
+            scroll-snap-type: x mandatory; scrollbar-width: none; -webkit-overflow-scrolling: touch;
+            pointer-events: auto; /* Kartunya doang yg bisa diklik/scroll */
+        }
+        .cards-carousel::-webkit-scrollbar { display: none; }
+
+        .loc-card {
+            width: 85vw; max-width: 320px; flex-shrink: 0; scroll-snap-align: center;
+            background: rgba(255,255,255,0.95); backdrop-filter: blur(15px);
+            border-radius: 24px; padding: 20px; border: 1px solid rgba(255,255,255,0.9);
+            box-shadow: 0 15px 35px rgba(10, 34, 89, 0.1); display: flex; flex-direction: column; gap: 15px;
+            transition: 0.3s;
+        }
+
+        .loc-header { display: flex; justify-content: space-between; align-items: flex-start; }
+        .loc-info { display: flex; flex-direction: column; gap: 4px; }
+        .loc-badge { font-size: 9px; font-weight: 800; padding: 4px 8px; border-radius: 6px; width: fit-content; text-transform: uppercase; letter-spacing: 1px;}
+        .badge-mlu { background: #EFF6FF; color: var(--electric-blue); }
+        .badge-kc { background: #ECFDF5; color: var(--success); }
+        .badge-other { background: #FFFBEB; color: var(--warning); border: 1px solid #FCD34D;}
+        .badge-off { background: #FEF2F2; color: var(--danger); border: 1px solid #FCA5A5;}
+        
+        .loc-name { font-family: 'Outfit'; font-size: 20px; font-weight: 900; color: var(--text-main); line-height: 1.1; }
+        .loc-desc { font-size: 11px; color: var(--text-muted); font-weight: 600; display: flex; align-items: center; gap: 5px; margin-top: 2px;}
+        
+        .loc-status { width: 45px; height: 45px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 20px; color: white; flex-shrink: 0; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .bg-gading { background: var(--electric-blue); }
+        .bg-kc { background: var(--success); }
+        .bg-other { background: var(--warning); }
+        .bg-off { background: var(--danger); }
+
+        .loc-actions { display: flex; gap: 10px; }
+        .btn-act { 
+            padding: 14px; border-radius: 14px; border: none; flex: 1;
+            font-family: 'Space Grotesk'; font-size: 12px; font-weight: 900; 
+            cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .btn-act:active { transform: scale(0.96); }
+        .btn-maps { background: #F1F5F9; color: var(--text-main); border: 1px solid #E2E8F0; }
+        .btn-maps:active { background: #E2E8F0; }
+        .btn-queue { background: var(--electric-blue); color: white; box-shadow: 0 5px 15px rgba(45, 99, 237, 0.3); }
+        .btn-queue.kc { background: var(--success); box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3); }
+
+        /* MENCARI GPS LOADER & TOASTS */
+        .toast-info {
+            position: absolute; top: 110px; left: 20px; background: white; padding: 8px 15px; border-radius: 50px;
+            font-family: 'Space Grotesk'; font-size: 10px; font-weight: 800; color: var(--text-main);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1); border: 1px solid #E2E8F0; display: flex; align-items: center; gap: 8px; z-index: 1000;
+            transition: 0.3s;
+        }
+        .toast-info i.loading { color: var(--warning); animation: spin 1s linear infinite;}
+        .toast-info.success i { color: var(--success); }
+        @keyframes spin { 100% {transform: rotate(360deg);} }
+    </style>
+</head>
+<body>
+
+    <div id="map"></div>
+
+    <div class="header-overlay">
+        <div class="header-left">
+            <div class="header-sub">MAKA LINTAS UTARA HUB</div>
+            <h1 class="header-title"><i class="fas fa-map-marked-alt" style="color:var(--electric-blue);"></i>MAKA Fast Charging</h1>
+        </div>
+        <div class="header-right">
+            <button class="btn-3rd b-starvo" onclick="window.location.href='https://play.google.com/store/apps/details?id=com.moizasia.starvo_mobile'" title="Buka Starvo"><i class="fas fa-leaf"></i></button>
+            <button class="btn-3rd b-casan" onclick="window.location.href='https://casan.id/home/index'" title="Buka Casan.id"><i class="fas fa-bolt"></i></button>
+        </div>
+    </div>
+
+    <div class="toast-info" id="gpsToast">
+        <i class="fas fa-spinner loading"></i> MENCARI LOKASI ANDA...
+    </div>
+
+    <div class="bottom-container">
+        <div class="cards-carousel" id="carousel">
+            </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // KONEKSI FIREBASE
+        const firebaseConfig = { apiKey: "AIzaSyAk3G5aQUBVe_g7_peVu1F6xllP_RejGq0", authDomain: "rtomaka-e67b5.firebaseapp.com", projectId: "rtomaka-e67b5" };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const locRef = collection(db, "fc_locations");
+
+        let map, userMarker, watchId;
+        let myLat = null, myLng = null; // Mulai dengan null
+        let fcMarkers = {};
+        let allStations = [];
+        let isInitialFocusDone = false; // Flag biar fokus terdekat cuma 1x di awal
+        let isAutoScrolling = false; // Flag anti-bentrok carousel & peta
+
+        // DATA UTAMA (FIXED)
+        const fixedStations = [
+            { id: 'gading', name: 'FC Kelapa Gading', lat: -6.159389, lng: 106.901416, isActive: true, mapLink: '' },
+            { id: 'kc', name: 'FC Kartika Chandra', lat: -6.2285953, lng: 106.819502, isActive: true, mapLink: '' }
+        ];
+
+        // INIT MAP (Set awal Jakarta)
+        map = L.map('map', { zoomControl: false }).setView([-6.1939, 106.8500], 12);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { attribution: 'CartoDB' }).addTo(map);
+
+        // RUMUS JARAK GPS
+        function calculateDist(lat1, lon1, lat2, lon2) { 
+            const p = 0.017453292519943295, c = Math.cos; 
+            const a = 0.5 - c((lat2 - lat1) * p)/2 + c(lat1 * p) * c(lat2 * p) * (1 - c((lon2 - lon1) * p))/2; 
+            return 12742 * Math.asin(Math.sqrt(a)); 
+        }
+
+        // BACA DATABASE FIREBASE SECARA REALTIME
+        onSnapshot(locRef, (snap) => {
+            // Bersihkan marker lama
+            Object.values(fcMarkers).forEach(m => map.removeLayer(m));
+            fcMarkers = {};
+            allStations = [...fixedStations]; // Reset ke default + Firebase baru
+            
+            snap.forEach(doc => {
+                if(doc.id !== 'gading' && doc.id !== 'kc') {
+                    allStations.push({ id: doc.id, ...doc.data() });
+                }
+            });
+
+            renderCarouselCards();
+            renderMapMarkers();
+            tryInitialFocus(); // Coba fokus kalau GPS udah dapet
+        });
+
+        // TRACK GPS USER
+        if (navigator.geolocation) {
+            watchId = navigator.geolocation.watchPosition((pos) => {
+                myLat = pos.coords.latitude;
+                myLng = pos.coords.longitude;
+                
+                const toast = document.getElementById('gpsToast');
+                toast.innerHTML = '<i class="fas fa-street-view"></i> LOKASI ANDA DITEMUKAN';
+                toast.classList.add('success');
+                setTimeout(() => { toast.style.opacity = '0'; }, 3000);
+
+                if (!userMarker) {
+                    const uIcon = L.divIcon({ className: 'custom-div-icon', html: `<div style="width:20px; height:20px; background:var(--electric-blue); border-radius:50%; border:3px solid white; box-shadow:0 0 0 10px rgba(45,99,237,0.2), 0 5px 15px rgba(0,0,0,0.3);"></div>`, iconSize: [20,20] });
+                    userMarker = L.marker([myLat, myLng], { icon: uIcon, zIndexOffset: 1000 }).addTo(map);
+                } else {
+                    userMarker.setLatLng([myLat, myLng]);
+                }
+
+                updateDistancesUI();
+                tryInitialFocus(); // Coba fokus kalau Firebase udah dapet data
+            }, (err) => {
+                document.getElementById('gpsToast').innerHTML = '<i class="fas fa-exclamation-triangle" style="color:var(--danger);"></i> GPS DITOLAK / MATI';
+            }, { enableHighAccuracy: true });
+        }
+
+        // FUNGSI CEK & FOKUS KE STASIUN TERDEKAT (CUMA 1X DI AWAL)
+        function tryInitialFocus() {
+            if (myLat !== null && allStations.length > 0 && !isInitialFocusDone) {
+                isInitialFocusDone = true;
+                
+                let nearest = allStations[0];
+                let minDist = calculateDist(myLat, myLng, nearest.lat, nearest.lng);
+                
+                for(let i = 1; i < allStations.length; i++) {
+                    let d = calculateDist(myLat, myLng, allStations[i].lat, allStations[i].lng);
+                    if(d < minDist) { minDist = d; nearest = allStations[i]; }
+                }
+
+                // Fokus ke stasiun terdekat
+                focusStation(nearest.id, nearest.lat, nearest.lng);
+
+                // Kasih Toast Notifikasi Suggestion
+                const toast = document.getElementById('gpsToast');
+                toast.style.opacity = '1';
+                toast.innerHTML = `<i class="fas fa-star" style="color:var(--warning);"></i> FC TERDEKAT DITAMPILKAN`;
+                setTimeout(() => { toast.style.opacity = '0'; }, 4000);
+            }
+        }
+
+        // FUNGSI UPDATE JARAK DI KARTU CAROUSEL SAAT USER BERGERAK
+        function updateDistancesUI() {
+            if(myLat === null || allStations.length === 0) return;
+            allStations.forEach(st => {
+                let d = calculateDist(myLat, myLng, st.lat, st.lng);
+                let distEl = document.getElementById(`dist-${st.id}`);
+                if(distEl) distEl.innerHTML = `<i class="fas fa-route"></i> Berjarak ${d.toFixed(1)} KM`;
+            });
+        }
+
+        // FUNGSI RENDER MARKER PETA
+        function renderMapMarkers() {
+            allStations.forEach(loc => {
+                const isOff = loc.isActive === false;
+                let markerClass = 'marker-other';
+                let icon = 'fa-charging-station';
+                
+                if (loc.id === 'gading') markerClass = 'marker-gading';
+                else if (loc.id === 'kc') markerClass = 'marker-kc';
+                
+                if (isOff) markerClass = 'marker-off';
+
+                const iconHtml = `
+                    <div class="marker-container" id="marker-${loc.id}">
+                        <div class="marker-body ${markerClass}"><i class="fas ${isOff ? 'fa-ban' : 'fa-bolt'}"></i></div>
+                        <div class="marker-label ${isOff ? 'lbl-off' : ''}">${loc.name}</div>
+                    </div>`;
+
+                const mIcon = L.divIcon({ className: 'custom-div-icon', html: iconHtml, iconSize: [40,40], iconAnchor: [20, 40] });
+                const marker = L.marker([loc.lat, loc.lng], { icon: mIcon }).addTo(map);
+                
+                marker.on('click', () => { focusStation(loc.id, loc.lat, loc.lng); });
+                fcMarkers[loc.id] = marker;
+            });
+        }
+
+        // FUNGSI RENDER CAROUSEL DI BAWAH
+        function renderCarouselCards() {
+            let html = '';
+            allStations.forEach(st => {
+                let badge = '', bgClass = '', queueBtn = '';
+                
+                if (st.id === 'gading') {
+                    badge = `<div class="loc-badge badge-mlu">BASECAMP MLU</div>`;
+                    bgClass = `bg-gading`;
+                    queueBtn = `<button class="btn-act btn-queue" onclick="window.location.href='antrian.html'"><i class="fas fa-ticket-alt"></i> AMBIL ANTREAN</button>`;
+                } else if (st.id === 'kc') {
+                    badge = `<div class="loc-badge badge-kc">LOKASI MITRA</div>`;
+                    bgClass = `bg-kc`;
+                    queueBtn = `<button class="btn-act btn-queue kc" onclick="window.location.href='antriankc.html'"><i class="fas fa-ticket-alt"></i> AMBIL ANTREAN</button>`;
+                } else {
+                    if(st.isActive === false) {
+                        badge = `<div class="loc-badge badge-off">SEDANG PERBAIKAN</div>`;
+                        bgClass = `bg-off`;
+                        queueBtn = `<button class="btn-act" style="background:#E2E8F0; color:#64748B;" disabled><i class="fas fa-lock"></i> OFFLINE</button>`;
+                    } else {
+                        badge = `<div class="loc-badge badge-other">CABANG BARU</div>`;
+                        bgClass = `bg-other`;
+                        queueBtn = `<button class="btn-act" style="background:#E2E8F0; color:#64748B;" disabled><i class="fas fa-clock"></i> SEGERA HADIR</button>`;
+                    }
+                }
+
+                let mapUrl = st.mapLink || `http://googleusercontent.com/maps.google.com/?q=${st.lat},${st.lng}`;
+
+                html += `
+                <div class="loc-card" id="card-${st.id}">
+                    <div class="loc-header">
+                        <div class="loc-info">
+                            ${badge}
+                            <div class="loc-name">${st.name}</div>
+                            <div class="loc-desc" id="dist-${st.id}"><i class="fas fa-route"></i> Menghitung jarak...</div>
+                        </div>
+                        <div class="loc-status ${bgClass}"><i class="fas ${st.isActive===false?'fa-tools':'fa-charging-station'}"></i></div>
+                    </div>
+                    <div class="loc-actions">
+                        <button class="btn-act btn-maps" onclick="window.open('${mapUrl}', '_blank')"><i class="fas fa-location-arrow"></i> MAPS</button>
+                        ${queueBtn}
+                    </div>
+                </div>`;
+            });
+            document.getElementById('carousel').innerHTML = html;
+            updateDistancesUI(); // Update text jarak
+        }
+
+        // FUNGSI FOKUS KE STASIUN TERTENTU (Sync Peta & Kartu)
+        function focusStation(id, lat, lng) {
+            // 1. Zoom & Pindah Peta (Digeser dikit lat-nya biar posisinya pas di atas kartu)
+            map.setView([lat - 0.005, lng], 14, { animate: true, duration: 0.5 }); 
+
+            // 2. Beri efek "Active" di Marker Peta
+            document.querySelectorAll('.marker-container').forEach(el => el.classList.remove('marker-active'));
+            const activeMarker = document.getElementById(`marker-${id}`);
+            if(activeMarker) activeMarker.classList.add('marker-active');
+
+            // 3. Geser Carousel Kartu di Bawah Otomatis
+            const carousel = document.getElementById('carousel');
+            const targetCard = document.getElementById(`card-${id}`);
+            if (carousel && targetCard) {
+                isAutoScrolling = true; // Kunci biar event 'scroll' manual nggak bentrok
+                const scrollPos = targetCard.offsetLeft - (carousel.clientWidth / 2) + (targetCard.clientWidth / 2);
+                carousel.scrollTo({ left: scrollPos, behavior: 'smooth' });
+                
+                // Lepas kuncian setelah animasi scroll selesai
+                setTimeout(() => { isAutoScrolling = false; }, 600); 
+            }
+        }
+
+        // AUTO-SYNC: KETIKA KARTU DIGESER MANUAL, PETA IKUT PINDAH!
+        const carousel = document.getElementById('carousel');
+        let scrollTimeout;
+
+        carousel.addEventListener('scroll', () => {
+            if(isAutoScrolling) return; // Kalau lagi digerakin sama sistem, cuekin aja
+            
+            clearTimeout(scrollTimeout);
+            scrollTimeout = setTimeout(() => {
+                // Deteksi kartu mana yang lagi ada di tengah layar HP
+                const centerPoint = carousel.scrollLeft + (carousel.clientWidth / 2);
+                
+                let closestId = allStations.length > 0 ? allStations[0].id : null;
+                let minDiff = Infinity;
+
+                allStations.forEach(st => {
+                    const card = document.getElementById(`card-${st.id}`);
+                    if(card) {
+                        const cardCenter = card.offsetLeft + (card.clientWidth / 2);
+                        const diff = Math.abs(cardCenter - centerPoint);
+                        if(diff < minDiff) {
+                            minDiff = diff;
+                            closestId = st.id;
+                        }
+                    }
+                });
+
+                // Pindahkan Peta dan Efek Marker ke Kartu yang terdeteksi di tengah
+                if(closestId) {
+                    const targetSt = allStations.find(s => s.id === closestId);
+                    if(targetSt) {
+                        map.setView([targetSt.lat - 0.005, targetSt.lng], 14, { animate: true, duration: 0.5 });
+                        document.querySelectorAll('.marker-container').forEach(el => el.classList.remove('marker-active'));
+                        const activeMarker = document.getElementById(`marker-${closestId}`);
+                        if(activeMarker) activeMarker.classList.add('marker-active');
+                    }
+                }
+            }, 150); // Delay dikit biar peta nggak pusing pas digeser ngebut
+        });
+
+    </script>
+</body>
+</html>
