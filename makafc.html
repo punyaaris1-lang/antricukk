@@ -65,13 +65,13 @@
         .bottom-container {
             position: fixed; bottom: 0; left: 0; width: 100%; z-index: 1000;
             padding-bottom: 30px; background: linear-gradient(0deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.6) 70%, transparent 100%);
-            pointer-events: none; /* Biar sela-selanya bisa diklik petanya */
+            pointer-events: none; 
         }
 
         .cards-carousel {
             display: flex; gap: 15px; overflow-x: auto; padding: 20px;
             scroll-snap-type: x mandatory; scrollbar-width: none; -webkit-overflow-scrolling: touch;
-            pointer-events: auto; /* Kartunya doang yg bisa diklik/scroll */
+            pointer-events: auto; 
         }
         .cards-carousel::-webkit-scrollbar { display: none; }
 
@@ -79,12 +79,12 @@
             width: 85vw; max-width: 320px; flex-shrink: 0; scroll-snap-align: center;
             background: rgba(255,255,255,0.95); backdrop-filter: blur(15px);
             border-radius: 24px; padding: 20px; border: 1px solid rgba(255,255,255,0.9);
-            box-shadow: 0 15px 35px rgba(10, 34, 89, 0.1); display: flex; flex-direction: column; gap: 15px;
+            box-shadow: 0 15px 35px rgba(10, 34, 89, 0.1); display: flex; flex-direction: column; gap: 12px;
             transition: 0.3s;
         }
 
-        .loc-header { display: flex; justify-content: space-between; align-items: flex-start; }
-        .loc-info { display: flex; flex-direction: column; gap: 4px; }
+        .loc-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+        .loc-info { display: flex; flex-direction: column; gap: 4px; flex: 1; }
         .loc-badge { font-size: 9px; font-weight: 800; padding: 4px 8px; border-radius: 6px; width: fit-content; text-transform: uppercase; letter-spacing: 1px;}
         .badge-mlu { background: #EFF6FF; color: var(--electric-blue); }
         .badge-kc { background: #ECFDF5; color: var(--success); }
@@ -94,13 +94,17 @@
         .loc-name { font-family: 'Outfit'; font-size: 20px; font-weight: 900; color: var(--text-main); line-height: 1.1; }
         .loc-desc { font-size: 11px; color: var(--text-muted); font-weight: 600; display: flex; align-items: center; gap: 5px; margin-top: 2px;}
         
+        /* NEW DETAILS BADGES FOR CAROUSEL CARD */
+        .card-details { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 2px; }
+        .badge-info-card { padding: 4px 8px; border-radius: 6px; font-family: 'Space Grotesk'; font-size: 9px; font-weight: 800; text-transform: uppercase; border: 1px solid; display: inline-flex; align-items: center; gap: 4px; }
+
         .loc-status { width: 45px; height: 45px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 20px; color: white; flex-shrink: 0; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
         .bg-gading { background: var(--electric-blue); }
         .bg-kc { background: var(--success); }
         .bg-other { background: var(--warning); }
         .bg-off { background: var(--danger); }
 
-        .loc-actions { display: flex; gap: 10px; }
+        .loc-actions { display: flex; gap: 10px; margin-top: 4px; }
         .btn-act { 
             padding: 14px; border-radius: 14px; border: none; flex: 1;
             font-family: 'Space Grotesk'; font-size: 12px; font-weight: 900; 
@@ -131,7 +135,7 @@
     <div class="header-overlay">
         <div class="header-left">
             <div class="header-sub">MAKA LINTAS UTARA HUB</div>
-            <h1 class="header-title"><i class="fas fa-map-marked-alt" style="color:var(--electric-blue);"></i>MAKA Fast Charging</h1>
+            <h1 class="header-title"><i class="fas fa-map-marked-alt" style="color:var(--electric-blue);"></i>MAKA FC</h1>
         </div>
         <div class="header-right">
             <button class="btn-3rd b-starvo" onclick="window.location.href='https://play.google.com/store/apps/details?id=com.moizasia.starvo_mobile'" title="Buka Starvo"><i class="fas fa-leaf"></i></button>
@@ -144,8 +148,7 @@
     </div>
 
     <div class="bottom-container">
-        <div class="cards-carousel" id="carousel">
-            </div>
+        <div class="cards-carousel" id="carousel"></div>
     </div>
 
     <script type="module">
@@ -159,16 +162,16 @@
         const locRef = collection(db, "fc_locations");
 
         let map, userMarker, watchId;
-        let myLat = null, myLng = null; // Mulai dengan null
+        let myLat = null, myLng = null; 
         let fcMarkers = {};
         let allStations = [];
-        let isInitialFocusDone = false; // Flag biar fokus terdekat cuma 1x di awal
-        let isAutoScrolling = false; // Flag anti-bentrok carousel & peta
+        let isInitialFocusDone = false; 
+        let isAutoScrolling = false; 
 
-        // DATA UTAMA (FIXED)
+        // DATA UTAMA (FIXED) DIBERIKAN DEFAULT INFO AGAR TIDAK KOSONG
         const fixedStations = [
-            { id: 'gading', name: 'FC Kelapa Gading', lat: -6.159389, lng: 106.901416, isActive: true, mapLink: '' },
-            { id: 'kc', name: 'FC Kartika Chandra', lat: -6.2285953, lng: 106.819502, isActive: true, mapLink: '' }
+            { id: 'gading', name: 'FC Kelapa Gading', lat: -6.159389, lng: 106.901416, isActive: true, mapLink: '', provider: '', nozzleCount: 3, is24Hours: true },
+            { id: 'kc', name: 'FC Kartika Chandra', lat: -6.2285953, lng: 106.819502, isActive: true, mapLink: '', provider: 'STARVO', nozzleCount: 5, is24Hours: true }
         ];
 
         // INIT MAP (Set awal Jakarta)
@@ -184,10 +187,9 @@
 
         // BACA DATABASE FIREBASE SECARA REALTIME
         onSnapshot(locRef, (snap) => {
-            // Bersihkan marker lama
             Object.values(fcMarkers).forEach(m => map.removeLayer(m));
             fcMarkers = {};
-            allStations = [...fixedStations]; // Reset ke default + Firebase baru
+            allStations = [...fixedStations]; 
             
             snap.forEach(doc => {
                 if(doc.id !== 'gading' && doc.id !== 'kc') {
@@ -197,7 +199,7 @@
 
             renderCarouselCards();
             renderMapMarkers();
-            tryInitialFocus(); // Coba fokus kalau GPS udah dapet
+            tryInitialFocus(); 
         });
 
         // TRACK GPS USER
@@ -219,13 +221,12 @@
                 }
 
                 updateDistancesUI();
-                tryInitialFocus(); // Coba fokus kalau Firebase udah dapet data
+                tryInitialFocus(); 
             }, (err) => {
                 document.getElementById('gpsToast').innerHTML = '<i class="fas fa-exclamation-triangle" style="color:var(--danger);"></i> GPS DITOLAK / MATI';
             }, { enableHighAccuracy: true });
         }
 
-        // FUNGSI CEK & FOKUS KE STASIUN TERDEKAT (CUMA 1X DI AWAL)
         function tryInitialFocus() {
             if (myLat !== null && allStations.length > 0 && !isInitialFocusDone) {
                 isInitialFocusDone = true;
@@ -238,10 +239,8 @@
                     if(d < minDist) { minDist = d; nearest = allStations[i]; }
                 }
 
-                // Fokus ke stasiun terdekat
                 focusStation(nearest.id, nearest.lat, nearest.lng);
 
-                // Kasih Toast Notifikasi Suggestion
                 const toast = document.getElementById('gpsToast');
                 toast.style.opacity = '1';
                 toast.innerHTML = `<i class="fas fa-star" style="color:var(--warning);"></i> FC TERDEKAT DITAMPILKAN`;
@@ -249,7 +248,6 @@
             }
         }
 
-        // FUNGSI UPDATE JARAK DI KARTU CAROUSEL SAAT USER BERGERAK
         function updateDistancesUI() {
             if(myLat === null || allStations.length === 0) return;
             allStations.forEach(st => {
@@ -259,12 +257,10 @@
             });
         }
 
-        // FUNGSI RENDER MARKER PETA
         function renderMapMarkers() {
             allStations.forEach(loc => {
                 const isOff = loc.isActive === false;
                 let markerClass = 'marker-other';
-                let icon = 'fa-charging-station';
                 
                 if (loc.id === 'gading') markerClass = 'marker-gading';
                 else if (loc.id === 'kc') markerClass = 'marker-kc';
@@ -285,18 +281,17 @@
             });
         }
 
-        // FUNGSI RENDER CAROUSEL DI BAWAH
         function renderCarouselCards() {
             let html = '';
             allStations.forEach(st => {
                 let badge = '', bgClass = '', queueBtn = '';
                 
                 if (st.id === 'gading') {
-                    badge = `<div class="loc-badge badge-mlu">BASECAMP MLU</div>`;
+                    badge = `<div class="loc-badge badge-mlu">RUMAH MLU</div>`;
                     bgClass = `bg-gading`;
                     queueBtn = `<button class="btn-act btn-queue" onclick="window.location.href='antrian.html'"><i class="fas fa-ticket-alt"></i> AMBIL ANTREAN</button>`;
                 } else if (st.id === 'kc') {
-                    badge = `<div class="loc-badge badge-kc">LOKASI MITRA</div>`;
+                    badge = `<div class="loc-badge badge-kc">MLKC BASECAMP</div>`;
                     bgClass = `bg-kc`;
                     queueBtn = `<button class="btn-act btn-queue kc" onclick="window.location.href='antriankc.html'"><i class="fas fa-ticket-alt"></i> AMBIL ANTREAN</button>`;
                 } else {
@@ -305,9 +300,25 @@
                         bgClass = `bg-off`;
                         queueBtn = `<button class="btn-act" style="background:#E2E8F0; color:#64748B;" disabled><i class="fas fa-lock"></i> OFFLINE</button>`;
                     } else {
-                        badge = `<div class="loc-badge badge-other">CABANG BARU</div>`;
+                        badge = `<div class="loc-badge badge-other">Lokasi Fc</div>`;
                         bgClass = `bg-other`;
                         queueBtn = `<button class="btn-act" style="background:#E2E8F0; color:#64748B;" disabled><i class="fas fa-clock"></i> SEGERA HADIR</button>`;
+                    }
+                }
+
+                // RACIK BADGES INFORMASI BARU (PROVIDER, NOZZLE, OPERASIONAL)
+                let detailsHtml = '';
+                if (st.provider) {
+                    detailsHtml += `<span class="badge-info-card" style="background: rgba(45,99,237,0.06); color: var(--electric-blue); border-color: rgba(45,99,237,0.15);"><i class="fas fa-charging-station"></i> ${st.provider}</span>`;
+                }
+                if (st.nozzleCount) {
+                    detailsHtml += `<span class="badge-info-card" style="background: rgba(245,158,11,0.06); color: #D97706; border-color: rgba(245,158,11,0.15);"><i class="fas fa-plug"></i> ${st.nozzleCount} NOZZLE</span>`;
+                }
+                if (st.is24Hours !== undefined) {
+                    if (st.is24Hours) {
+                        detailsHtml += `<span class="badge-info-card" style="background: rgba(16,185,129,0.06); color: var(--success); border-color: rgba(16,185,129,0.15);"><i class="fas fa-clock"></i> 24 JAM</span>`;
+                    } else {
+                        detailsHtml += `<span class="badge-info-card" style="background: rgba(239,68,68,0.06); color: var(--danger); border-color: rgba(239,68,68,0.15);"><i class="fas fa-hourglass-end"></i> TERBATAS</span>`;
                     }
                 }
 
@@ -319,6 +330,7 @@
                         <div class="loc-info">
                             ${badge}
                             <div class="loc-name">${st.name}</div>
+                            <div class="card-details">${detailsHtml}</div>
                             <div class="loc-desc" id="dist-${st.id}"><i class="fas fa-route"></i> Menghitung jarak...</div>
                         </div>
                         <div class="loc-status ${bgClass}"><i class="fas ${st.isActive===false?'fa-tools':'fa-charging-station'}"></i></div>
@@ -330,42 +342,35 @@
                 </div>`;
             });
             document.getElementById('carousel').innerHTML = html;
-            updateDistancesUI(); // Update text jarak
+            updateDistancesUI(); 
         }
 
-        // FUNGSI FOKUS KE STASIUN TERTENTU (Sync Peta & Kartu)
         function focusStation(id, lat, lng) {
-            // 1. Zoom & Pindah Peta (Digeser dikit lat-nya biar posisinya pas di atas kartu)
             map.setView([lat - 0.005, lng], 14, { animate: true, duration: 0.5 }); 
 
-            // 2. Beri efek "Active" di Marker Peta
             document.querySelectorAll('.marker-container').forEach(el => el.classList.remove('marker-active'));
             const activeMarker = document.getElementById(`marker-${id}`);
             if(activeMarker) activeMarker.classList.add('marker-active');
 
-            // 3. Geser Carousel Kartu di Bawah Otomatis
             const carousel = document.getElementById('carousel');
             const targetCard = document.getElementById(`card-${id}`);
             if (carousel && targetCard) {
-                isAutoScrolling = true; // Kunci biar event 'scroll' manual nggak bentrok
+                isAutoScrolling = true; 
                 const scrollPos = targetCard.offsetLeft - (carousel.clientWidth / 2) + (targetCard.clientWidth / 2);
                 carousel.scrollTo({ left: scrollPos, behavior: 'smooth' });
                 
-                // Lepas kuncian setelah animasi scroll selesai
                 setTimeout(() => { isAutoScrolling = false; }, 600); 
             }
         }
 
-        // AUTO-SYNC: KETIKA KARTU DIGESER MANUAL, PETA IKUT PINDAH!
         const carousel = document.getElementById('carousel');
         let scrollTimeout;
 
         carousel.addEventListener('scroll', () => {
-            if(isAutoScrolling) return; // Kalau lagi digerakin sama sistem, cuekin aja
+            if(isAutoScrolling) return; 
             
             clearTimeout(scrollTimeout);
             scrollTimeout = setTimeout(() => {
-                // Deteksi kartu mana yang lagi ada di tengah layar HP
                 const centerPoint = carousel.scrollLeft + (carousel.clientWidth / 2);
                 
                 let closestId = allStations.length > 0 ? allStations[0].id : null;
@@ -383,7 +388,6 @@
                     }
                 });
 
-                // Pindahkan Peta dan Efek Marker ke Kartu yang terdeteksi di tengah
                 if(closestId) {
                     const targetSt = allStations.find(s => s.id === closestId);
                     if(targetSt) {
@@ -393,7 +397,7 @@
                         if(activeMarker) activeMarker.classList.add('marker-active');
                     }
                 }
-            }, 150); // Delay dikit biar peta nggak pusing pas digeser ngebut
+            }, 150); 
         });
 
     </script>
