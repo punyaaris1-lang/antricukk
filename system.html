@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FC KELAPA GADING - SYSTEM PHANTOM</title>
+    <title>FC KELAPA GADING - SYSTEM PHANTOM FIXED</title>
     
     <link rel="manifest" href="manifest.json?v=3">
     <meta name="theme-color" content="#D8A22E">
@@ -219,7 +219,6 @@
 
     <div class="slot-container" id="slotsContainer"></div>
 
-    <!-- PASAR MLU TICKER CAROUSEL (NEW) -->
     <div class="market-ticker-wrapper">
         <div class="mt-label"><i class="fas fa-shopping-cart"></i> PASAR MLU</div>
         <div class="mt-track" id="marketFeed">
@@ -251,10 +250,8 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const mainRef = doc(db, "antrian", "utama");
-        const historyRef = collection(db, "riwayatCharging");
-        const logRef = collection(db, "activityLog");
 
-        // === DB STORE (UNTUK TICKER PASAR MLU) ===
+        // === DB STORE (UNTUK TICKER PASAR MLU & LOGGER SUPER DETAIL) ===
         const fbStoreConfig = { apiKey: "AIzaSyAk3G5aQUBVe_g7_peVu1F6xllP_RejGq0", authDomain: "rtomaka-e67b5.firebaseapp.com", projectId: "rtomaka-e67b5" };
         const appStore = initializeApp(fbStoreConfig, "AppStore");
         const dbStore = getFirestore(appStore);
@@ -267,8 +264,22 @@
         function cleanName(n) { return n ? n.replace(/👑/g, '').trim() : ''; } 
         function escapeHtml(text) { if (!text) return ""; return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); }
         function calculateDist(lat1, lon1, lat2, lon2) { const R = 6371; const dLat = (lat2-lat1)*Math.PI/180; const dLon = (lon2-lon1)*Math.PI/180; const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2; return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); }
-        function addUserLog(action, details) { addDoc(logRef, { actor: myPlat || "GUEST", action: action, details: details, timestamp: new Date() }).catch(e=>{}); }
         function formatK(num) { if(num >= 1000000) return (num/1000000).toFixed(1) + 'jt'; if(num >= 1000) return (num/1000).toFixed(0) + 'rb'; return num; }
+
+        // --- SISTEM LOGGER SUPER DETAIL ---
+        async function catatLogSuperDetail(action, nama, plat, detailStr) {
+            try {
+                await addDoc(collection(dbQueue, "mlu_super_logs"), {
+                    waktu: new Date().toLocaleString('id-ID'),
+                    timestamp: Date.now(),
+                    nama: nama || "SYSTEM",
+                    plat: plat || "-",
+                    action: action,
+                    detail: detailStr,
+                    sumber: "SYSTEM_TV_LAYAR"
+                });
+            } catch(e) { console.error("Gagal log aktivitas:", e); }
+        }
 
         // --- SISTEM UI MODAL CUSTOM ---
         window.closeCustomModal = () => { $('customModal').style.display = 'none'; $('modalInput').style.display = 'none'; $('modalInput').value = ''; };
@@ -301,7 +312,7 @@
         window.closeModal = (id) => { $(id).style.display = 'none'; };
 
         // --- GATEKEEPER & GPS WATCHER ---
-        const myPlat = localStorage.getItem('myPlat');
+        let myPlat = localStorage.getItem('myPlat');
         const isSuperAdmin = localStorage.getItem('sa_sess');
 
         if(!myPlat && !isSuperAdmin) {
@@ -315,7 +326,7 @@
                     const dist = calculateDist(STATION_LAT, STATION_LNG, pos.coords.latitude, pos.coords.longitude);
                     if(dist > AUTO_KICK_KM) { 
                         showAlert(`Anda telah keluar radius (${(dist).toFixed(2)} KM). Sesi diakhiri otomatis.`, "PERINGATAN GPS", () => {
-                            localStorage.clear(); sessionStorage.clear(); window.location.replace('antrian.html');
+                            localStorage.removeItem('myPlat'); window.location.replace('antrian.html');
                         }); 
                     }
                 }, (err) => console.log(err), {enableHighAccuracy: true, maximumAge: 10000});
@@ -325,7 +336,7 @@
         // --- ADMIN BYPASS ---
         window.triggerAdminPrompt = () => {
             showPrompt("MASUKKAN KODE AKSES:", (pass) => {
-                if(pass === "2505") { window.location.href = "admin.html"; } 
+                if(pass === "1404") { window.location.href = "admin.html"; } 
                 else if (pass === "090815") { 
                     if(localStorage.getItem('sa_sess')) { localStorage.removeItem('sa_sess'); showAlert("GOD MODE MATI."); } 
                     else { localStorage.setItem('sa_sess', '1'); showAlert("GOD MODE AKTIF (Bypass GPS)."); } 
@@ -340,13 +351,12 @@
             if (!snap.exists()) return; 
             const d = snap.data(); localSlots = d.chargingSlots || [null, null, null]; localQueue = d.waitingQueue || []; 
             
-            // --- AUTO WIPE JIKA DATA DI SERVER SUDAH TIDAK ADA ---
+            // --- AUTO WIPE JIKA DATA DI SERVER SUDAH TIDAK ADA (TANPA NGE-CLEAR LOCALSTORAGE TOTAL) ---
             if (myPlat && !isSuperAdmin) {
                 const inQueue = localQueue.some(q => cleanStr(q.plat) === cleanStr(myPlat));
                 const inSlot = localSlots.some(s => s && s !== null && cleanStr(s.plat) === cleanStr(myPlat));
                 if (!inQueue && !inSlot) {
-                    localStorage.clear();
-                    sessionStorage.clear();
+                    localStorage.removeItem('myPlat'); 
                     window.location.replace('antrian.html');
                     return;
                 }
@@ -410,7 +420,7 @@
                                 </div>
                             </div>
                         </div>`;
-                    if(isMe) { div.onclick = () => showConfirm("Apakah Anda sudah selesai Charging dan ingin mengosongkan slot?", () => stopCharging(i), "SELESAI CHARGING?"); }
+                    if(isMe) { div.onclick = () => stopCharging(i); }
                 } else {
                     let btnHTML = ''; 
                     if (localQueue.length === 0 || myQIndex === 0) btnHTML = `<button class="btn-pilih-slot" onclick="window.selectSlot(${i})">PILIH SLOT</button>`; 
@@ -449,65 +459,126 @@
             return `<div class="tactical-badge ${css}"><div class="tb-icon"><i class="fas ${icon}"></i></div><div class="tb-text">${label ? `<div class="tb-label">${label}</div>` : ''}<div class="tb-role">${roleTxt}</div></div></div>`;
         }
 
+        // ========================================================
+        // FUNGSI TRANSAKSI YANG SUDAH DIBERSIHKAN (NO SIDE EFFECTS)
+        // ========================================================
+
         window.selectSlot = async (i) => { 
             showConfirm(`Anda yakin ingin memasuki SLOT 0${i+1}?`, () => { 
+                let userMasuk = null;
+                $('loading-screen').style.display = 'flex'; setTimeout(()=>$('loading-screen').style.opacity = '1',10);
+                
                 runTransaction(db, async(t)=>{ 
                     const d = (await t.get(mainRef)).data(); 
                     if(d.chargingSlots[i]) throw "SLOT SUDAH TERISI!"; 
-                    let q = d.waitingQueue; 
+                    
+                    let q = [...d.waitingQueue]; // Copy array
                     const idx = q.findIndex(x => cleanStr(x.plat) === cleanStr(myPlat)); 
                     if(idx === -1) throw "DATA ANTRIAN ANDA TIDAK DITEMUKAN!"; 
-                    const me = q[idx]; q.splice(idx, 1); me.startTime = Date.now(); d.chargingSlots[i] = me; 
-                    t.update(mainRef, { chargingSlots: d.chargingSlots, waitingQueue: q }); 
-                }).then(() => addUserLog("START", `Masuk Slot ${i+1}`)).catch(e => showAlert(e, "ERROR")); 
+                    
+                    userMasuk = q[idx]; 
+                    q.splice(idx, 1); 
+                    userMasuk.startTime = Date.now(); 
+                    
+                    let newSlots = [...d.chargingSlots]; // Copy array
+                    newSlots[i] = userMasuk; 
+                    
+                    t.update(mainRef, { chargingSlots: newSlots, waitingQueue: q }); 
+                }).then(() => { 
+                    if(userMasuk) {
+                        catatLogSuperDetail("MASUK_SLOT", userMasuk.userName, userMasuk.plat, `Pindah dari Daftar Tunggu ke Slot 0${i+1} dengan sisa baterai ${userMasuk.batreSisa}%`);
+                    }
+                    $('loading-screen').style.opacity = '0'; setTimeout(()=>$('loading-screen').style.display = 'none',500); 
+                }).catch(e => { 
+                    $('loading-screen').style.opacity = '0'; setTimeout(()=>$('loading-screen').style.display = 'none',500); 
+                    showAlert(e, "ERROR"); 
+                }); 
             }, "MASUK SLOT"); 
         };
 
         window.stopCharging = (i) => { 
-            runTransaction(db, async(t)=>{ 
-                const d = (await t.get(mainRef)).data(); const u = d.chargingSlots[i]; 
-                if(u) addDoc(historyRef, {...u, finishTime: new Date(), action: "STOP"}); 
-                d.chargingSlots[i] = null; t.update(mainRef, {chargingSlots: d.chargingSlots}); 
-            }).then(() => { 
-                localStorage.clear(); 
-                sessionStorage.clear();
-                window.location.replace('antrian.html'); 
-            }); 
+            showConfirm("Apakah Anda yakin sudah selesai dan ingin mengosongkan slot ini?", () => {
+                let userSelesai = null;
+                $('loading-screen').style.display = 'flex'; setTimeout(()=>$('loading-screen').style.opacity = '1',10);
+                
+                runTransaction(db, async(t)=>{ 
+                    const d = (await t.get(mainRef)).data(); 
+                    userSelesai = d.chargingSlots[i]; 
+                    
+                    let newSlots = [...d.chargingSlots];
+                    newSlots[i] = null; 
+                    
+                    t.update(mainRef, {chargingSlots: newSlots}); 
+                }).then(() => { 
+                    if(userSelesai) {
+                        catatLogSuperDetail("SELESAI_CHARGING", userSelesai.userName, userSelesai.plat, `Menyelesaikan pengisian daya di Slot 0${i+1} dan mengosongkan tempat.`);
+                    }
+                    localStorage.removeItem('myPlat'); 
+                    window.location.replace('antrian.html'); 
+                }).catch(e=>{ 
+                    $('loading-screen').style.opacity = '0'; setTimeout(()=>$('loading-screen').style.display = 'none',500);
+                    showAlert("GAGAL", e); 
+                }); 
+            }, "SELESAI CHARGING?");
         };
         
-        window.userTriggerKudeta = (idx, plat) => {
-            showConfirm(`Anda akan mengambil alih paksa slot milik ${plat}. Lanjutkan?`, () => {
+        window.userTriggerKudeta = (idx, platVictim) => {
+            showConfirm(`Anda akan mengambil alih paksa slot milik ${platVictim}. Lanjutkan?`, () => {
+                let userKudeta = null;
+                $('loading-screen').style.display = 'flex'; setTimeout(()=>$('loading-screen').style.opacity = '1',10);
+                
                 runTransaction(db, async(t) => {
                     const d = (await t.get(mainRef)).data();
-                    let q = d.waitingQueue || [];
+                    let q = [...(d.waitingQueue || [])];
+                    
                     const myIdx = q.findIndex(x => cleanStr(x.plat) === cleanStr(myPlat));
                     if(myIdx === -1) throw "Anda tidak terdaftar di antrian!";
                     
-                    let me = q.splice(myIdx, 1)[0]; 
-                    me.userName = cleanName(me.userName); 
-                    me.role = "KUDETA";
-                    me.startTime = Date.now();
+                    userKudeta = q.splice(myIdx, 1)[0]; 
+                    userKudeta.userName = cleanName(userKudeta.userName); 
+                    userKudeta.role = "KUDETA";
+                    userKudeta.startTime = Date.now();
                     
-                    d.chargingSlots[idx] = me;
-                    t.update(mainRef, {chargingSlots: d.chargingSlots, waitingQueue: q});
+                    let newSlots = [...d.chargingSlots];
+                    newSlots[idx] = userKudeta;
+                    
+                    t.update(mainRef, {chargingSlots: newSlots, waitingQueue: q});
                 }).then(() => { 
+                    if(userKudeta) {
+                        catatLogSuperDetail("KUDETA", userKudeta.userName, userKudeta.plat, `Mengambil alih secara paksa Slot 0${idx+1} (Menggusur plat ${platVictim})`);
+                    }
+                    $('loading-screen').style.opacity = '0'; setTimeout(()=>$('loading-screen').style.display = 'none',500);
                     showAlert("Slot berhasil diambil alih!", "KUDETA SUKSES"); 
-                }).catch(e => showAlert("ERROR: " + e, "GAGAL KUDETA"));
+                }).catch(e => { 
+                    $('loading-screen').style.opacity = '0'; setTimeout(()=>$('loading-screen').style.display = 'none',500);
+                    showAlert("ERROR: " + e, "GAGAL KUDETA"); 
+                });
             }, "PERINGATAN KUDETA!");
         };
 
         window.cancelQueue = () => { 
             showConfirm("Apakah Anda yakin ingin membatalkan antrian dan keluar dari sistem?", () => { 
+                let userBatal = null;
+                $('loading-screen').style.display = 'flex'; setTimeout(()=>$('loading-screen').style.opacity = '1',10);
+                
                 runTransaction(db, async(t) => { 
                     const d = (await t.get(mainRef)).data(); 
+                    
+                    const myObj = d.waitingQueue.find(q => cleanStr(q.plat) === cleanStr(myPlat));
+                    if(myObj) userBatal = myObj;
+
                     const newQ = d.waitingQueue.filter(q => cleanStr(q.plat) !== cleanStr(myPlat)); 
                     t.update(mainRef, { waitingQueue: newQ }); 
-                    addUserLog("CANCEL", `User ${myPlat} keluar antrian`); 
                 }).then(() => { 
-                    localStorage.clear(); 
-                    sessionStorage.clear();
+                    if(userBatal) {
+                        catatLogSuperDetail("BATAL_ANTRE", userBatal.userName, userBatal.plat, `Keluar dan membatalkan antrean secara mandiri dari System TV.`);
+                    }
+                    localStorage.removeItem('myPlat'); 
                     window.location.replace('antrian.html'); 
-                }).catch(e => showAlert("ERROR: " + e, "GAGAL")); 
+                }).catch(e => { 
+                    $('loading-screen').style.opacity = '0'; setTimeout(()=>$('loading-screen').style.display = 'none',500);
+                    showAlert("ERROR: " + e, "GAGAL"); 
+                }); 
             }, "BATAL ANTRIAN?"); 
         };
         
@@ -517,14 +588,14 @@
             else { localQueue.forEach((q, i) => { 
                 let bat = q.batreSisa || (q.batre ? q.batre.replace('%','') : null) || (q.battery ? q.battery.replace('%','') : "-");
                 let safeName = cleanName(q.userName);
-                body.innerHTML += `<div style="background:rgba(216,162,46,0.05); margin:0 0 10px 0; padding:15px; border-left:4px solid var(--gold); display:flex; justify-content:space-between; align-items:center; border-radius:0 4px 4px 0; border:1px solid rgba(216,162,46,0.1);"><div><div style="font-family:'Teko'; font-size:36px; color:#fff; letter-spacing:1px; line-height:1; text-shadow:0 0 10px rgba(255,255,255,0.2);">${q.plat} <span style="font-size:16px; color:var(--silver); text-shadow:0 0 5px var(--silver-glow);"><i class="fas fa-bolt"></i> ${bat}%</span></div><div style="font-family:'Rajdhani'; font-size:16px; color:var(--silver-text); font-weight:bold; text-transform:uppercase;">${safeName}</div></div><div style="font-family:'Rajdhani'; font-size:14px; color:#000; background:var(--gold); padding:4px 10px; font-weight:800; border-radius:4px; box-shadow:0 0 10px var(--gold-glow);">ANTRIAN #${i+1}</div></div>`; 
+                body.innerHTML += `<div style="background:rgba(216,162,46,0.05); margin:0 0 10px 0; padding:15px; border-left:4px solid var(--gold); display:flex; justify-content:space-between; align-items:center; border-radius:0 4px 4px 0; border:1px solid rgba(216,162,46,0.1);"><div><div style="font-family:'Teko'; font-size:36px; color:#fff; letter-spacing:1px; line-height:1; text-shadow:0 0 10px rgba(255,255,255,0.2);">${q.plat} <span style="font-size:16px; color:var(--silver); text-shadow:0 0 5px var(--silver-glow);"><i class=\"fas fa-bolt\"></i> ${bat}%</span></div><div style="font-family:'Rajdhani'; font-size:16px; color:var(--silver-text); font-weight:bold; text-transform:uppercase;">${safeName}</div></div><div style="font-family:'Rajdhani'; font-size:14px; color:#000; background:var(--gold); padding:4px 10px; font-weight:800; border-radius:4px; box-shadow:0 0 10px var(--gold-glow);\">ANTRIAN #${i+1}</div></div>`; 
             }); } 
             $('queueListModal').style.display = 'flex'; 
         };
         
-        window.resetApp = () => showConfirm("Hapus sesi aplikasi dari perangkat ini?", () => { localStorage.clear(); sessionStorage.clear(); window.location.replace('antrian.html'); }, "RESET SISTEM");
+        window.resetApp = () => showConfirm("Hapus sesi aplikasi dari perangkat ini?", () => { localStorage.removeItem('myPlat'); window.location.replace('antrian.html'); }, "RESET SISTEM");
 
-        // === LOGIKA MARKET TICKER CAROUSEL (NEW) ===
+        // === LOGIKA MARKET TICKER CAROUSEL (NEW HOLOGRAM UI) ===
         let tickerInterval;
         onSnapshot(query(collection(dbStore, 'mlu_store'), orderBy('timestamp', 'desc')), (snap) => {
             const feed = $('marketFeed');
@@ -553,7 +624,7 @@
                 `;
             });
 
-            // Auto Scroll Ticker Logic
+            // Auto Scroll Ticker Logic (Super Smooth Continuous)
             clearInterval(tickerInterval);
             tickerInterval = setInterval(() => {
                 if (feed.scrollLeft >= feed.scrollWidth - feed.clientWidth - 5) {
@@ -561,7 +632,7 @@
                 } else {
                     feed.scrollBy({ left: 2, behavior: 'auto' });
                 }
-            }, 30); // Super smooth continuous scroll
+            }, 30); 
             
             // Berhenti pas disentuh layar TV (jika touch screen)
             feed.onpointerdown = () => clearInterval(tickerInterval);
