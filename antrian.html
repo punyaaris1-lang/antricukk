@@ -18,7 +18,7 @@
     
     <script>
         // UPDATE VERSION BIAR CACHE HP LU LANGSUNG KESAPU BERSIH
-        const APP_VERSION = "9.9_FIX_FATAL_UI_AND_BUTTONS"; 
+        const APP_VERSION = "9.9.1_FIX_LOADING_NO_CHAT"; 
         if (localStorage.getItem('maka_antrian_v') !== APP_VERSION) {
             if ('caches' in window) { caches.keys().then((names) => { names.forEach(name => { caches.delete(name); }); }); }
             localStorage.setItem('maka_antrian_v', APP_VERSION); window.location.reload(true); 
@@ -51,7 +51,7 @@
         }
 
         .app-container {
-            width: 100%; max-width: 480px; background-color: #FDFBF7; /* Background cream halus persis di SS */
+            width: 100%; max-width: 480px; background-color: #FDFBF7;
             background-image: radial-gradient(circle at 50% 0%, var(--mlu-gold-glow) 0%, transparent 40%);
             min-height: 100vh; position: relative; box-shadow: 0 0 40px rgba(0,0,0,0.05);
             padding-bottom: 40px; overflow-x: hidden;
@@ -87,7 +87,6 @@
         .ring-inner {
             width: 255px; height: 255px; border-radius: 50%; background: var(--bg-pure); z-index: 2;
             position: relative; border: 1px solid var(--border-soft); box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-            /* overflow hidden dihapus biar pill STANDBY bisa tembus batas bawah */
         }
 
         /* LOGO JUMBO FULL CIRCLE */
@@ -189,22 +188,6 @@
         .fs-search-box input { flex: 1; border: none; background: transparent; color: var(--text-dark); font-family: 'Inter'; font-weight: 800; outline: none;}
         .fs-content { flex: 1; overflow-y: auto; padding: 20px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; align-content: flex-start; padding-bottom: 50px;}
 
-        /* CHAT WIDGET */
-        .chat-toggle-btn { position: fixed; bottom: 20px; right: 20px; width: 60px; height: 60px; background: var(--mlu-black); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--bg-pure); font-size: 24px; cursor: pointer; z-index: 99998; box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
-        .chat-badge { position: absolute; top: -2px; right: -2px; width: 14px; height: 14px; background: var(--danger); border-radius: 50%; box-shadow: 0 0 10px rgba(239,68,68,0.8); border: 2px solid white; animation: pulseLive 2s infinite;}
-        .chat-widget { position: fixed; bottom: 90px; right: 20px; width: 320px; max-width: calc(100vw - 40px); background: var(--bg-pure); border: 1px solid var(--border-soft); border-radius: 20px; display: flex; flex-direction: column; overflow: hidden; z-index: 99999; opacity: 0; transform: translateY(20px) scale(0.95); pointer-events: none; transition: 0.3s; box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
-        .chat-widget.show { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
-        .chat-header { background: var(--bg-off); padding: 15px; font-family: 'Space Grotesk'; font-weight: 900; color: var(--text-dark); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-soft); }
-        .dot-blink { width: 6px; height: 6px; background: var(--success); border-radius: 50%; box-shadow: 0 0 8px var(--success); animation: pulseLive 1.5s infinite; }
-        .chat-body { height: 250px; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; scrollbar-width: none; }
-        .msg-bubble { padding: 10px 14px; border-radius: 12px; font-size: 13px; max-width: 85%; line-height: 1.4; font-weight:700;}
-        .msg-admin { background: var(--bg-off); border-left: 3px solid var(--text-dark); color: var(--text-dark); align-self: flex-start; }
-        .msg-user { background: var(--mlu-black); color: var(--bg-pure); align-self: flex-end; }
-        .chat-input-area { display: flex; padding: 12px; background: var(--bg-off); border-top: 1px solid var(--border-soft); }
-        .chat-input { flex: 1; background: transparent; border: none; color: var(--text-dark); outline: none; font-weight:700; }
-        .btn-send { background: var(--mlu-black); color: var(--bg-pure); border: none; border-radius: 10px; width: 35px; height: 35px; cursor: pointer; font-size: 14px; }
-        .wa-shortcut { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px; background: var(--success); color: white; font-family: 'Space Grotesk'; font-size: 12px; font-weight: 900; text-decoration: none; transition: 0.2s; letter-spacing: 1px; }
-
         /* LOADING & RESTORE */
         #loader { position: fixed; inset: 0; background: var(--bg-pure); z-index: 999999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: 0.3s;}
         #actionLoader { position:fixed; inset:0; background:rgba(255,255,255,0.8); backdrop-filter:blur(5px); z-index:999999; display:none; flex-direction:column; align-items:center; justify-content:center; opacity:0; transition:0.3s;}
@@ -256,7 +239,7 @@
         
         <input type="text" id="inpRestorePlat" class="restore-inp" placeholder="Cth: B 1234 XYZ" autocomplete="off">
         
-        <!-- PANGGILAN FUNGSI JS GLOBAL YANG SUDAH DIBENERIN -->
+        <!-- PANGGILAN FUNGSI JS GLOBAL -->
         <button class="btn-elite btn-main-dark" style="max-width:320px; margin-bottom:15px;" onclick="window.restoreSessionProcess()">PULIHKAN SESI</button>
         <button class="btn-elite btn-restore-light" style="max-width:320px;" onclick="document.getElementById('restoreOverlay').style.display='none'">KEMBALI KE PORTAL AWAL</button>
     </div>
@@ -317,16 +300,16 @@
         <!-- Technical Stats Row -->
         <div class="stats-row" id="statsWrapper">
             <div class="stat-item" onclick="window.openSlotList()">
-                <div class="stat-label">TERISI</div>
+                <div class="stat-label" style="margin-bottom:5px;">TERISI</div>
                 <div class="stat-value" id="valSlot">0<span style="font-size: 16px; color: var(--text-gray);">/3</span></div>
             </div>
             <div class="stat-item" onclick="window.openQueueList()" style="border-left:1px solid var(--border-soft); border-right:1px solid var(--border-soft);">
-                <div class="stat-label">ANTREAN</div>
+                <div class="stat-label" style="margin-bottom:5px;">ANTREAN</div>
                 <div class="stat-value" id="valQueue">0</div>
             </div>
             <div class="stat-item">
-                <div class="stat-label">SLOT ANDA</div>
-                <div class="stat-value" id="displaySlot" style="color: var(--mlu-gold);">-</div>
+                <div class="stat-label" style="margin-bottom:5px;">SLOT ANDA</div>
+                <div class="stat-value" id="displaySlot" style="color: var(--text-gray);">-</div>
             </div>
         </div>
 
@@ -406,32 +389,19 @@
         </div>
     </div>
 
-    <!-- CHAT WIDGET -->
-    <div class="chat-toggle-btn" onclick="window.toggleChat()">
-        <i class="fas fa-comment-dots"></i>
-        <div class="chat-badge"></div>
-    </div>
-
-    <div class="chat-widget" id="chatWidget">
-        <div class="chat-header">
-            <div><i class="fas fa-headset" style="color:var(--electric-blue);"></i> PUSAT BANTUAN</div>
-            <div style="display: flex; align-items: center; gap: 6px; font-size: 10px; color: var(--success);"><div class="dot-blink"></div> ONLINE</div>
-        </div>
-        
-        <div class="chat-body" id="chatBody">
-            <div class="msg-bubble msg-admin">
-                <b>SYSTEM ADMIN:</b><br>Halo Pilot, ada kendala dengan sistem charging atau antrean?
-            </div>
-        </div>
-        
-        <div class="chat-input-area">
-            <input type="text" id="chatInput" class="chat-input" placeholder="Ketik laporan Anda..." autocomplete="off">
-            <button class="btn-send" onclick="window.sendChatMsg()"><i class="fas fa-paper-plane"></i></button>
-        </div>
-    </div>
-
-    <!-- SCRIPT NON-FIREBASE (FUNGSI GLOBAL UI) - DITARUH DI LUAR MODULE BIAR TOMBOL NGGAK MATI -->
+    <!-- SCRIPT NON-FIREBASE (FUNGSI GLOBAL UI) - DITARUH DI LUAR MODULE BIAR TOMBOL HTML BISA MANGGIL -->
     <script>
+        // KODE NGILANGIN LOADER YG KETINGGALAN KEMAREN!
+        window.addEventListener('DOMContentLoaded', (event) => {
+            setTimeout(() => { 
+                const loader = document.getElementById('loader');
+                if(loader) {
+                    loader.style.opacity = '0'; 
+                    setTimeout(()=> loader.style.display = 'none', 300);
+                }
+            }, 800);
+        });
+
         window.showActionLoader = () => { document.getElementById('actionLoader').style.display = 'flex'; setTimeout(() => document.getElementById('actionLoader').style.opacity = '1', 10); };
         window.hideActionLoader = () => { document.getElementById('actionLoader').style.opacity = '0'; setTimeout(() => document.getElementById('actionLoader').style.display = 'none', 300); };
 
@@ -519,11 +489,6 @@
             document.getElementById('inpSearchStore').value = '';
         }
 
-        window.toggleChat = () => {
-            const w = document.getElementById('chatWidget');
-            w.classList.toggle('show');
-        }
-
         window.changePaymentNote = () => {
             const method = document.getElementById('coMethod').value;
             const warning = document.getElementById('coWarning');
@@ -537,7 +502,7 @@
         }
     </script>
 
-    <!-- REKAYASA FIREBASE & LOGIC (HANYA FUNGSI DATABASE) -->
+    <!-- REKAYASA FIREBASE & LOGIC UTAMA -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, doc, onSnapshot, runTransaction, collection, getDoc, updateDoc, getDocs, query, orderBy, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -853,12 +818,33 @@
             });
         };
 
-        window.openSlotSelection = () => {
-            let html = '<div style="font-size:12px; color:var(--text-gray); font-weight:900; margin-bottom:15px;">Pilih slot kosong untuk mulai charging:</div>';
+        window.openSlotList = () => {
+            let html = ''; let myQIndex = localQueue.findIndex(q => cleanStr(q.plat) === cleanStr(myPlat));
             localSlots.forEach((s, i) => {
-                if(!s) { html += `<div class="list-item" style="cursor:pointer; border-color:var(--success);" onclick="window.pilihSlotEks(${i})"><div><div class="li-plat" style="color:var(--success);">SLOT 0${i+1}</div><div class="li-name" style="color:var(--text-gray);">TERSEDIA</div></div><i class="fas fa-chevron-right" style="color:var(--success);"></i></div>`; }
+                if(s) {
+                    let durMin = Math.floor((Date.now() - (s.startTime || Date.now())) / 60000);
+                    let batVal = s.batreSisa || s.batre || s.battery || "-";
+                    let kudetaHtml = ((myQIndex === 0 || myQIndex === 1) && cleanStr(s.plat) !== cleanStr(myPlat)) ? `<button class="btn-kudeta" onclick="window.prosesKudeta(${i})"><i class="fas fa-hand-rock"></i> KUDETA (HAPUS USER)</button>` : '';
+                    html += `<div class="list-item" style="flex-wrap: wrap;"><div style="display:flex; justify-content:space-between; width:100%; align-items:center;"><div><div class="li-plat">${s.plat}</div><div class="li-name">${cleanName(s.userName)} • ${durMin} MNT</div></div><div class="li-batre"><i class="fas fa-battery-half"></i> ${batVal.replace('%','')} %</div></div>${kudetaHtml}</div>`;
+                } else {
+                    let kudetaHtml = (myQIndex === 0 || myQIndex === 1) ? `<button class="btn-kudeta" style="background: var(--success);" onclick="window.prosesKudeta(${i})"><i class="fas fa-bolt"></i> AMBIL ALIH KOSONG</button>` : '';
+                    html += `<div class="list-item" style="flex-wrap: wrap; background:var(--bg-off);"><div style="display:flex; justify-content:space-between; width:100%; align-items:center;"><div><div class="li-plat" style="color:var(--text-gray);">SLOT 0${i+1}</div><div class="li-name">KOSONG</div></div></div>${kudetaHtml}</div>`;
+                }
             });
-            window.showModal("<i class='fas fa-plug'></i> PILIH SLOT", html);
+            window.showModal("<i class='fas fa-charging-station'></i> SLOT CHARGING", html);
+        }
+
+        window.openQueueList = () => {
+            let html = '';
+            if(localQueue.length === 0) html = '<div style="text-align:center; color:var(--text-gray); font-weight:900; padding:20px;">Antrean Kosong</div>';
+            else {
+                localQueue.forEach((q, i) => {
+                    let batVal = q.batreSisa || q.batre || q.battery || "-";
+                    let isMeStyle = cleanStr(q.plat) === cleanStr(myPlat) ? 'border-color:var(--mlu-gold); background:rgba(220,163,17,0.05);' : '';
+                    html += `<div class="list-item" style="${isMeStyle}"><div><div class="li-plat">${q.plat}</div><div class="li-name">#${i+1} • ${cleanName(q.userName)}</div></div><div class="li-batre"><i class="fas fa-battery-half"></i> ${batVal.replace('%','')} %</div></div>`;
+                });
+            }
+            window.showModal("<i class='fas fa-users'></i> DAFTAR TUNGGU", html);
         }
 
         window.pilihSlotEks = (i) => {
@@ -914,51 +900,41 @@
             });
         }
 
-        window.openSlotList = () => {
-            let html = ''; let myQIndex = localQueue.findIndex(q => cleanStr(q.plat) === cleanStr(myPlat));
-            localSlots.forEach((s, i) => {
-                if(s) {
-                    let durMin = Math.floor((Date.now() - (s.startTime || Date.now())) / 60000);
-                    let batVal = s.batreSisa || s.batre || s.battery || "-";
-                    let kudetaHtml = ((myQIndex === 0 || myQIndex === 1) && cleanStr(s.plat) !== cleanStr(myPlat)) ? `<button class="btn-kudeta" onclick="window.prosesKudeta(${i})"><i class="fas fa-hand-rock"></i> KUDETA (HAPUS USER)</button>` : '';
-                    html += `<div class="list-item" style="flex-wrap: wrap;"><div style="display:flex; justify-content:space-between; width:100%; align-items:center;"><div><div class="li-plat">${s.plat}</div><div class="li-name">${cleanName(s.userName)} • ${durMin} MNT</div></div><div class="li-batre"><i class="fas fa-battery-half"></i> ${batVal.replace('%','')} %</div></div>${kudetaHtml}</div>`;
-                } else {
-                    let kudetaHtml = (myQIndex === 0 || myQIndex === 1) ? `<button class="btn-kudeta" style="background: var(--success);" onclick="window.prosesKudeta(${i})"><i class="fas fa-bolt"></i> AMBIL ALIH KOSONG</button>` : '';
-                    html += `<div class="list-item" style="flex-wrap: wrap; background:var(--bg-off);"><div style="display:flex; justify-content:space-between; width:100%; align-items:center;"><div><div class="li-plat" style="color:var(--text-gray);">SLOT 0${i+1}</div><div class="li-name">KOSONG</div></div></div>${kudetaHtml}</div>`;
-                }
-            });
-            window.showModal("<i class='fas fa-charging-station'></i> SLOT CHARGING", html);
-        }
-
-        window.openQueueList = () => {
-            let html = '';
-            if(localQueue.length === 0) html = '<div style="text-align:center; color:var(--text-gray); font-weight:900; padding:20px;">Antrean Kosong</div>';
-            else {
-                localQueue.forEach((q, i) => {
-                    let batVal = q.batreSisa || q.batre || q.battery || "-";
-                    let isMeStyle = cleanStr(q.plat) === cleanStr(myPlat) ? 'border-color:var(--mlu-gold); background:rgba(220,163,17,0.05);' : '';
-                    html += `<div class="list-item" style="${isMeStyle}"><div><div class="li-plat">${q.plat}</div><div class="li-name">#${i+1} • ${cleanName(q.userName)}</div></div><div class="li-batre"><i class="fas fa-battery-half"></i> ${batVal.replace('%','')} %</div></div>`;
-                });
-            }
-            window.showModal("<i class='fas fa-users'></i> DAFTAR TUNGGU", html);
-        }
-
         // === LOGIKA PASAR E-COMMERCE ===
+        let carouselInterval; 
+        
         onSnapshot(query(collection(dbStore, 'mlu_store'), orderBy('timestamp', 'desc')), (snap) => {
             const feed = document.getElementById('storeFeed');
             if (snap.empty) { feed.innerHTML = '<div style="width:100%; text-align:center; font-size:12px; font-weight:900; color:var(--text-gray);">Pasar Kosong</div>'; return; }
             
             let allProducts = [];
             snap.forEach(docSnap => { allProducts.push({ id: docSnap.id, ...docSnap.data() }); });
-            window.allStoreItems = allProducts;
+
+            let kampasItems = []; let kopiItems = []; let normalItems = [];
+            allProducts.forEach(p => {
+                let titleLow = p.title.toLowerCase();
+                if(titleLow.includes('kampas') || titleLow.includes('kanvas') || titleLow.includes('rem')) { kampasItems.push(p); } 
+                else if(titleLow.includes('kopi')) { kopiItems.push(p); } 
+                else { normalItems.push(p); }
+            });
+
+            window.allStoreItems = [...kampasItems, ...kopiItems, ...normalItems];
 
             feed.innerHTML = '';
             window.allStoreItems.forEach(p => {
                 let img = p.image || 'https://placehold.co/300x300/E2E8F0/94A3B8?text=NO+IMAGE';
                 let priceStr = window.formatK(p.price);
+                
                 const stockVal = p.stock !== undefined ? p.stock : 99;
                 let stockBadge = `<span class="stock-badge"><i class="fas fa-box"></i> Stok: ${stockVal}</span>`;
                 if(stockVal <= 0) stockBadge = `<span class="stock-badge empty"><i class="fas fa-times-circle"></i> Habis</span>`;
+
+                let sellerBadge = '';
+                if(cleanStr(p.sellerPlat) === 'B4794SWF') {
+                    sellerBadge = `<div style="font-size:9px; color:#10B981; font-weight:900; background:#ECFDF5; border:1px solid #A7F3D0; padding:3px 6px; border-radius:6px; display:inline-block; margin-top:4px;"><i class="fas fa-tree"></i> Keluarga Cemara</div>`;
+                } else {
+                    sellerBadge = `<div class="seller-badge"><i class="fas fa-store"></i> ${p.sellerName}</div>`;
+                }
 
                 feed.innerHTML += `
                 <div class="item-float" onclick="window.openStoreDetail('${p.id}')">
@@ -966,25 +942,63 @@
                     <div class="item-name">${p.title}</div>
                     ${stockBadge}
                     <div class="p-price-promo">Rp ${priceStr}</div>
+                    ${sellerBadge}
                     <button class="btn-beli">LIHAT DETAIL</button>
                 </div>`;
             });
+
+            clearInterval(carouselInterval);
+            carouselInterval = setInterval(() => {
+                if (feed.scrollLeft + feed.clientWidth >= feed.scrollWidth - 10) {
+                    feed.scrollTo({ left: 0, behavior: 'smooth' });
+                } else {
+                    feed.scrollBy({ left: 142, behavior: 'smooth' }); 
+                }
+            }, 3000);
+
+            feed.onpointerdown = () => clearInterval(carouselInterval);
+            feed.onpointerup = () => {
+                clearInterval(carouselInterval);
+                carouselInterval = setInterval(() => {
+                    if (feed.scrollLeft + feed.clientWidth >= feed.scrollWidth - 10) {
+                        feed.scrollTo({ left: 0, behavior: 'smooth' });
+                    } else {
+                        feed.scrollBy({ left: 142, behavior: 'smooth' });
+                    }
+                }, 3000);
+            };
         });
 
         window.openStoreDetail = (id) => {
             const data = window.allStoreItems.find(x => x.id === id);
-            if(!data) return; window.currentCheckoutItem = data;
+            if(!data) return;
+            window.currentCheckoutItem = data;
 
+            let titleLow = data.title.toLowerCase();
+            let isKampas = titleLow.includes('kampas') || titleLow.includes('kanvas') || titleLow.includes('rem');
+            
+            let extraInfo = isKampas ? `<div style="background:#FFFBEB; border:1px dashed #F59E0B; color:#B45309; padding:10px; border-radius:12px; margin-bottom:15px; font-size:11px; font-weight:800; line-height:1.4;"><i class="fas fa-tools"></i> INFO: Sistem Booking. Pembelian hari ini, pemasangan paling cepat BESOK (H+1). Silakan konfirmasi jadwal via WA.</div>` : '';
+            
             const stockVal = data.stock !== undefined ? data.stock : 99;
             let stockBadge = `<div style="display:inline-block; font-size:11px; font-weight:900; color:var(--text-gray); background:#E2E8F0; padding:4px 10px; border-radius:8px; margin-bottom:15px;"><i class="fas fa-box"></i> Stok: ${stockVal}</div>`;
             
-            let actionButtons = `<div style="display:flex; gap:10px;"><button class="btn-elite btn-restore-light" style="flex:0.8; font-size:12px;" onclick="window.chatSeller()"><i class="fab fa-whatsapp"></i> TANYA</button><button class="btn-elite btn-success-mode" style="flex:1.2; font-size:12px;" onclick="window.openCheckoutModal()"><i class="fas fa-shopping-cart"></i> BELI</button></div>`;
+            let actionButtons = '';
+            if(!uData) {
+                actionButtons = `<button class="btn-elite btn-success-mode" onclick="window.chatSeller()"><i class="fab fa-whatsapp" style="font-size:20px;"></i> HUBUNGI PENJUAL</button>`;
+            } else if (cleanStr(data.sellerPlat) === myPlatClean) { 
+                actionButtons = `<button class="btn-elite" style="background:#E2E8F0; color:#64748B;" disabled><i class="fas fa-store"></i> INI LAPAK ANDA</button>`;
+            } else if (stockVal <= 0) {
+                actionButtons = `<div style="display:flex; gap:10px;"><button class="btn-elite btn-restore-light" style="flex:1;" onclick="window.chatSeller()"><i class="fab fa-whatsapp"></i> TANYA</button><button class="btn-elite" style="flex:1; background:#CBD5E1; color:white;" disabled><i class="fas fa-ban"></i> HABIS</button></div>`;
+            } else {
+                actionButtons = `<div style="display:flex; gap:10px;"><button class="btn-elite btn-restore-light" style="flex:0.8;" onclick="window.chatSeller()"><i class="fab fa-whatsapp"></i> TANYA</button><button class="btn-elite btn-success-mode" style="flex:1.2;" onclick="window.openCheckoutModal()"><i class="fas fa-shopping-cart"></i> BELI</button></div>`;
+            }
 
             const html = `
                 <img src="${data.image || 'https://placehold.co/400x400'}" style="width:100%; height:200px; object-fit:cover; border-radius:16px; margin-bottom:15px; border:1px solid #E2E8F0;">
                 <div style="font-family:'Space Grotesk'; font-size:24px; font-weight:900; color:var(--danger); text-align:left; line-height:1; margin-bottom:5px;">Rp ${Number(data.price).toLocaleString('id-ID')}</div>
                 <div style="font-family:'Inter'; font-size:16px; font-weight:900; color:var(--text-dark); text-align:left; margin-bottom:10px;">${data.title}</div>
                 ${stockBadge}
+                ${extraInfo}
                 <div style="font-size:12px; font-weight:600; color:var(--text-gray); text-align:left; background:#F8FAFC; padding:10px; border-radius:12px; margin-bottom:20px; white-space:pre-wrap; border:1px solid var(--border-soft);">${data.desc || 'Tidak ada deskripsi.'}</div>
                 ${actionButtons}
             `;
@@ -998,50 +1012,80 @@
             window.open(`https://wa.me/${noWa}?text=Halo%20${window.currentCheckoutItem.sellerName},%20saya%20tertarik%20dengan%20barang%20${window.currentCheckoutItem.title}%20di%20Pasar%20MLU.`, '_blank');
         }
 
+        window.openCheckoutModal = () => {
+            if(!window.currentCheckoutItem) return;
+            if(!uData) return window.showEliteAlert("AKSES DITOLAK", "Silakan Login di Dashboard untuk membeli.");
+            
+            window.closeModal('mainModal'); 
+            document.getElementById('coTitle').innerText = window.currentCheckoutItem.title;
+            document.getElementById('coPrice').innerText = "Rp " + Number(window.currentCheckoutItem.price).toLocaleString('id-ID');
+            document.getElementById('coNotes').value = '';
+            document.getElementById('coMethod').value = 'QRIS';
+            window.changePaymentNote();
+            
+            const cm = document.getElementById('checkoutModal');
+            cm.style.display = 'flex'; setTimeout(() => cm.classList.add('show'), 300);
+        }
+
         window.submitOrder = async () => {
             if(!uData) return window.showEliteAlert("AKSES DITOLAK", "Silakan Login di Dashboard MLU untuk membeli.");
-            const btn = document.getElementById('btnSubmitOrder'); btn.innerText = "MEMPROSES..."; btn.style.opacity = '0.7';
+            const btn = document.getElementById('btnSubmitOrder');
+            btn.innerText = "MEMPROSES..."; btn.style.opacity = '0.7';
             window.showActionLoader();
+            
             try {
                 await runTransaction(dbStore, async (t) => {
                     const itemRef = doc(dbStore, 'mlu_store', window.currentCheckoutItem.id);
                     const itemSnap = await t.get(itemRef);
+                    if (!itemSnap.exists()) throw new Error("Barang sudah dihapus penjual!");
+                    
                     const currentStock = itemSnap.data().stock !== undefined ? itemSnap.data().stock : 99;
                     if(currentStock <= 0) throw new Error("STOK_HABIS");
+                    
                     t.update(itemRef, { stock: currentStock - 1 });
+                    
+                    const orderNotes = document.getElementById('coNotes').value.trim();
+                    const payMethod = document.getElementById('coMethod').value;
+                    const statusAwal = payMethod === 'QRIS' ? 'UNPAID' : 'WAITING_COD';
+
                     const newOrderRef = doc(collection(dbStore, 'mlu_store_orders'));
-                    t.set(newOrderRef, { productId: window.currentCheckoutItem.id, productTitle: window.currentCheckoutItem.title, price: window.currentCheckoutItem.price, buyerName: myName, buyerPlat: myPlatClean, buyerWa: uData.hp || "", sellerName: window.currentCheckoutItem.sellerName, sellerPlat: window.currentCheckoutItem.sellerPlat, sellerWa: window.currentCheckoutItem.sellerWa, notes: document.getElementById('coNotes').value.trim(), paymentMethod: document.getElementById('coMethod').value, status: document.getElementById('coMethod').value === 'QRIS' ? 'UNPAID' : 'WAITING_COD', timestamp: Date.now() });
+                    t.set(newOrderRef, {
+                        productId: window.currentCheckoutItem.id, productTitle: window.currentCheckoutItem.title, price: window.currentCheckoutItem.price,
+                        buyerName: myName, buyerPlat: myPlatClean, buyerWa: uData.hp || "", 
+                        sellerName: window.currentCheckoutItem.sellerName, sellerPlat: window.currentCheckoutItem.sellerPlat, sellerWa: window.currentCheckoutItem.sellerWa, sellerId: window.currentCheckoutItem.sellerId || null,
+                        notes: orderNotes, paymentMethod: payMethod, status: statusAwal, timestamp: Date.now()
+                    });
                 });
                 
-                catatLogSuperDetail("BELI_BARANG", myName, myPlatClean, `Beli ${window.currentCheckoutItem.title}`);
+                const payMethod = document.getElementById('coMethod').value;
+                const orderNotes = document.getElementById('coNotes').value.trim();
+
+                catatLogSuperDetail("BELI_BARANG", myName, myPlatClean, `Membeli ${window.currentCheckoutItem.title} via ${payMethod}`);
+
+                let noWa = window.currentCheckoutItem.sellerWa; 
+                if(noWa) {
+                    if(noWa.startsWith('0')) noWa = '62' + noWa.substring(1);
+                    const tipeBayarTxt = payMethod === 'QRIS' ? 'Transfer QRIS (Rekber MLU)' : 'COD / Bayar Tunai';
+                    const waMsg = `Halo *${window.currentCheckoutItem.sellerName}*! 🎉\n\nAda pesanan baru masuk dari *${myName}* (${myPlatClean}) di Pasar MLU.\n\n*Barang:* ${window.currentCheckoutItem.title}\n*Harga:* Rp ${Number(window.currentCheckoutItem.price).toLocaleString('id-ID')}\n*Metode:* ${tipeBayarTxt}\n*Catatan Pembeli:* ${orderNotes || '-'}\n\nSilakan cek aplikasi MLU Anda di tab *Pesanan* untuk memprosesnya.`;
+                    
+                    window.open(`https://wa.me/${noWa}?text=${encodeURIComponent(waMsg)}`, '_blank');
+                }
+                
                 window.closeModal('checkoutModal');
-                setTimeout(() => { window.showEliteAlert("PESANAN BERHASIL", "Pesanan berhasil dibuat!\nCek aplikasi Dashboard -> Pasar MLU -> Pesanan."); }, 500);
+                setTimeout(() => { window.showEliteAlert("PESANAN BERHASIL", "Pesanan berhasil dibuat!\nSilakan buka aplikasi Dashboard -> Pasar MLU -> Pesanan untuk mengecek."); }, 500);
+                
             } catch(e) { 
                 window.hideActionLoader(); 
-                if(e.message === "STOK_HABIS") { window.showEliteAlert("STOK HABIS", "Mohon maaf Bos, barang baru aja dibeli orang!"); window.closeModal('checkoutModal'); } else { window.showEliteAlert("GAGAL", e.message); }
-            } finally { window.hideActionLoader(); btn.innerText = "BUAT PESANAN SEKARANG"; btn.style.opacity = '1'; }
-        }
-
-        window.filterFullStore = () => {
-            const key = document.getElementById('inpSearchStore').value.toLowerCase();
-            const filtered = window.allStoreItems.filter(p => p.title.toLowerCase().includes(key));
-            const grid = document.getElementById('fullStoreGrid'); grid.innerHTML = '';
-            filtered.forEach(p => {
-                grid.innerHTML += `<div class="fs-card" style="background:var(--bg-pure); border-radius:20px; padding:12px; border:1px solid var(--border-soft); box-shadow:0 5px 15px rgba(0,0,0,0.03);" onclick="window.openStoreDetail('${p.id}')"><img src="${p.image || 'https://placehold.co/300'}" style="width:100%; aspect-ratio:1; object-fit:cover; border-radius:12px; margin-bottom:10px;"><div style="font-family:'Inter'; font-size:12px; font-weight:900; color:var(--text-dark); margin-bottom:5px; line-height:1.3;">${p.title}</div><div style="font-family:'Space Grotesk'; font-size:15px; font-weight:900; color:var(--danger); margin-bottom:10px;">Rp ${window.formatK(p.price)}</div><button class="btn-elite btn-restore-light" style="padding:10px; font-size:10px; border-radius:10px; width:100%;">DETAIL</button></div>`;
-            });
-        }
-
-        window.sendChatMsg = () => {
-            const input = document.getElementById('chatInput');
-            const val = input.value.trim();
-            if(!val) return;
-            const chatBody = document.getElementById('chatBody');
-            chatBody.innerHTML += `<div class="msg-bubble msg-user">${val}</div>`;
-            input.value = ''; chatBody.scrollTop = chatBody.scrollHeight;
-            setTimeout(() => {
-                chatBody.innerHTML += `<div class="msg-bubble msg-admin"><b>SYSTEM ADMIN:</b><br>Laporan diterima. Hubungi WA admin untuk respon cepat.</div>`;
-                chatBody.scrollTop = chatBody.scrollHeight;
-            }, 1000);
+                if(e.message === "STOK_HABIS") {
+                    window.showEliteAlert("STOK HABIS", "Mohon maaf Bos, barang ini baru saja dibeli orang lain dan stoknya habis!");
+                    window.closeModal('checkoutModal');
+                } else {
+                    window.showEliteAlert("GAGAL", e.message); 
+                }
+            } finally { 
+                window.hideActionLoader();
+                btn.innerText = "BUAT PESANAN SEKARANG"; btn.style.opacity = '1'; 
+            }
         }
     </script>
 </body>
