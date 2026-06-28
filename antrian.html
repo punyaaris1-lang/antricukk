@@ -18,7 +18,7 @@
     <title>FC Kelapa Gading - Elite Glass</title>
     
     <script>
-        const APP_VERSION = "8.8_SUPPORT_CHAT_ADDED_NEW_DESIGN_BIG_LOGO"; 
+        const APP_VERSION = "9.2_FIX_LOGOUT_BUG_AND_ANIMATION"; 
         if (localStorage.getItem('maka_antrian_v') !== APP_VERSION) {
             if ('caches' in window) { caches.keys().then((names) => { names.forEach(name => { caches.delete(name); }); }); }
             localStorage.setItem('maka_antrian_v', APP_VERSION); window.location.reload(true); 
@@ -95,9 +95,8 @@
             display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1px solid var(--border-soft); box-shadow: 0 5px 15px rgba(0,0,0,0.05);
         }
 
-        /* PERUBAHAN UKURAN LOGO DI SINI CUK */
         .mlu-logo-container { position: relative; width: 190px; height: 190px; margin-bottom: 2px; margin-top: -12px; --batre-level: 0%; }
-        .logo-gray { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; filter: grayscale(100%) opacity(0.15); }
+        .logo-gray { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; filter: grayscale(100%) opacity(0.2); }
         .logo-color { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; clip-path: inset(calc(100% - var(--batre-level)) 0 0 0); transition: clip-path 1.5s cubic-bezier(0.4, 0, 0.2, 1); }
 
         .battery-text {
@@ -296,7 +295,7 @@
             <div class="ring-outer">
                 <div class="ring-glow"></div>
                 <div class="ring-inner">
-                    <!-- MLU LOGO MASTER (SIZE DIPERBESAR DI CSS .mlu-logo-container) -->
+                    <!-- MLU LOGO MASTER -->
                     <div class="mlu-logo-container" id="logoContainer">
                         <img src="logomlumaster.png" class="logo-gray" alt="Logo Empty">
                         <img src="logomlumaster.png" class="logo-color" alt="Logo Full">
@@ -450,7 +449,7 @@
         const appStore = initializeApp(fbStoreConfig, "AppStore");
         const dbStore = getFirestore(appStore);
 
-        // === 2. VARIABEL GLOBAL ===
+        // === 2. VARIABEL GLOBAL & ANIMASI LOGO ===
         const STATION_LAT = -6.171583; const STATION_LNG = 106.899844; const MAX_DIST_KM = 0.2; 
         const TOTAL_SLOTS = 3;
         
@@ -461,6 +460,9 @@
         
         window.allStoreItems = []; 
         window.currentCheckoutItem = null;
+        
+        let simulatedBattery = null;
+        let chargeSimInterval = null;
 
         let uData = null;
         let myRole = "GUEST";
@@ -481,7 +483,6 @@
         } catch(e){}
 
         if (!myPlat) { myPlat = localStorage.getItem('myPlat') || ""; }
-        const myPlatClean = myPlat.replace(/\s+/g, '').toUpperCase();
 
         const cleanStr = (s) => s ? s.replace(/[^A-Z0-9]/gi, '').toUpperCase() : '';
         const cleanName = (n) => n ? n.replace(/👑/g, '').trim() : '';
@@ -572,7 +573,7 @@
             m.classList.remove('show'); setTimeout(() => m.style.display = 'none', 300);
         }
 
-        // FUNGSI MENU ADMIN TERSEMBUNYI (PASSWORD 2505)
+        // FUNGSI MENU ADMIN TERSEMBUNYI
         window.triggerAdminPrompt = () => {
             const pwd = prompt("Masukkan Password:");
             if (pwd === "2505") { window.location.href = "admin.html"; } else if (pwd !== null && pwd !== "") { alert("Password Salah!"); }
@@ -603,7 +604,7 @@
             }
         });
 
-        // === FUNGSI PULIHKAN SESI BARU ===
+        // === FUNGSI PULIHKAN SESI ===
         window.bukaRestoreSesi = () => {
             document.getElementById('restoreOverlay').style.display = 'flex';
         };
@@ -635,7 +636,7 @@
             }
         };
 
-        // === 3. LOGIKA ANTRIAN ===
+        // === 3. LOGIKA ANTRIAN UTAMA ===
         onSnapshot(mainRef, (snap) => {
             if (!snap.exists()) return; 
             const d = snap.data(); 
@@ -643,10 +644,11 @@
             localQueue = d.waitingQueue || []; 
             updateMainUI();
             
-            // AUTO WIPE SINKRONISASI
+            // FIX BUG LOGOUT OTOMATIS: pastikan ngecek pake plat yg bener-bener clean
             if (myPlat && !isSuperAdmin) {
-                const inQueue = localQueue.some(q => cleanStr(q.plat) === myPlatClean);
-                const inSlot = localSlots.some(s => s && s !== null && cleanStr(s.plat) === myPlatClean);
+                const currentClean = cleanStr(myPlat);
+                const inQueue = localQueue.some(q => cleanStr(q.plat) === currentClean);
+                const inSlot = localSlots.some(s => s && s !== null && cleanStr(s.plat) === currentClean);
                 if (!inQueue && !inSlot) {
                     localStorage.removeItem('myPlat'); 
                     myPlat = "";
@@ -675,30 +677,23 @@
             let myQIndex = localQueue.findIndex(q => cleanStr(q.plat) === cleanStr(myPlat));
             let mySlotIndex = localSlots.findIndex(s => s && cleanStr(s.plat) === cleanStr(myPlat));
 
-            // RESET LOGO DEFAULT
-            document.getElementById('logoContainer').style.setProperty('--batre-level', '0%');
-            
             const batteryText = document.getElementById('batteryText');
-            batteryText.innerText = "STANDBY";
-            batteryText.style.color = "var(--text-gray)";
-            batteryText.style.borderColor = "var(--border-soft)";
-            batteryText.style.background = "var(--bg-off)";
-            
-            document.getElementById('dashboardCore').classList.remove('is-charging');
-            document.getElementById('displaySlot').innerText = "-";
-            document.getElementById('displaySlot').style.color = "var(--text-gray)";
 
             if (mySlotIndex > -1) {
-                // Di Dalam Slot CHARGING
+                // POSISI SEDANG CHARGING (DI DALAM SLOT)
                 let mySlotData = localSlots[mySlotIndex];
-                let b = parseInt(mySlotData.batreSisa || mySlotData.batre || 0);
+                let dbBatre = parseInt(mySlotData.batreSisa || mySlotData.batre || mySlotData.battery || 0);
+                
+                // Set nilai awal simulasi supaya nggak turun lagi kalo refresh
+                if (simulatedBattery === null || simulatedBattery < dbBatre) {
+                    simulatedBattery = dbBatre;
+                }
                 
                 document.getElementById('displaySlot').innerText = "0" + (mySlotIndex + 1);
                 document.getElementById('displaySlot').style.color = "var(--mlu-gold)";
                 
-                // ANIMASI CHARGING MLU LOGO
-                document.getElementById('logoContainer').style.setProperty('--batre-level', b + '%');
                 document.getElementById('dashboardCore').classList.add('is-charging');
+                document.getElementById('logoContainer').style.setProperty('--batre-level', simulatedBattery + '%');
                 
                 batteryText.innerHTML = `<i class="fas fa-bolt fa-fade"></i> CHARGING...`;
                 batteryText.style.color = "var(--mlu-gold)";
@@ -708,10 +703,37 @@
                 btnMain.innerHTML = `<i class="fas fa-plug"></i> SELESAI CHARGING`;
                 btnMain.classList.add('btn-success-mode');
                 btnMain.onclick = () => stopCharging(mySlotIndex);
+
+                // ANIMASI BATERAI NGUNCI TIAP 3 DETIK (NAIK 1%)
+                if (!chargeSimInterval) {
+                    chargeSimInterval = setInterval(() => {
+                        if (simulatedBattery < 95) {
+                            simulatedBattery += 1;
+                            document.getElementById('logoContainer').style.setProperty('--batre-level', simulatedBattery + '%');
+                        } else {
+                            clearInterval(chargeSimInterval);
+                        }
+                    }, 3000); 
+                }
+
             } else {
-                // Tidak di dalam slot
+                // TIDAK DI DALAM SLOT (RESET ANIMASI LOGO & WARNA)
+                simulatedBattery = null;
+                if (chargeSimInterval) { clearInterval(chargeSimInterval); chargeSimInterval = null; }
+
+                document.getElementById('logoContainer').style.setProperty('--batre-level', '0%');
+                document.getElementById('dashboardCore').classList.remove('is-charging');
+                
+                batteryText.innerText = "STANDBY";
+                batteryText.style.color = "var(--text-gray)";
+                batteryText.style.borderColor = "var(--border-soft)";
+                batteryText.style.background = "var(--bg-off)";
+                
+                document.getElementById('displaySlot').innerText = "-";
+                document.getElementById('displaySlot').style.color = "var(--text-gray)";
+
                 if (myQIndex > -1) {
-                    // Berada di dalam Antrean
+                    // Berada di dalam Antrean (Belum Masuk Slot)
                     btnCancel.className = 'btn-elite btn-danger-mode';
                     btnCancel.style.display = 'flex'; 
                     btnCancel.innerHTML = `<i class="fas fa-times-circle"></i> BATALKAN ANTREAN`;
@@ -728,11 +750,11 @@
                         btnMain.onclick = () => showEliteAlert("INFO ANTREAN", `Silakan tunggu giliran Anda.\n\nTombol <b>MASUK SLOT</b> akan otomatis muncul saat Anda berada di <b>Urutan #1</b> dan ada <b>Slot Kosong</b>.`);
                     }
                 } else {
-                    // Belum Daftar
+                    // Belum Daftar (Posisi Murni Kosong)
                     btnMain.innerHTML = `<i class="fas fa-ticket-alt"></i> DAFTAR ANTREAN`;
                     btnMain.onclick = () => handleDaftar();
                     
-                    // TAMPILKAN TOMBOL PULIHKAN SESI DI BAWAHNYA
+                    // TOMBOL PULIHKAN SESI
                     btnCancel.style.display = 'flex';
                     btnCancel.className = 'btn-elite';
                     btnCancel.style.background = 'transparent';
@@ -770,7 +792,6 @@
             showModal("<i class='fas fa-id-card'></i> REGISTRASI ANTREAN", html);
         }
 
-        // FIX BUG RACE CONDITION & IMMUTABLE COPY
         window.submitData = async () => { 
             const n = document.getElementById('inpNama').value.toUpperCase(); 
             const p = document.getElementById('inpPlat').value.toUpperCase(); 
@@ -788,7 +809,7 @@
                     let q = [...(d.waitingQueue || [])]; 
                     let s = [...(d.chargingSlots || [])]; 
 
-                    // Cek apakah sudah terdaftar
+                    // Cek apakah sudah terdaftar pake string clean biar ga double
                     if(q.find(x => cleanStr(x.plat) === cleanStr(p)) || s.find(y => y && cleanStr(y.plat) === cleanStr(p))) { 
                         throw new Error("ALREADY_REGISTERED"); 
                     } 
@@ -798,7 +819,6 @@
                     t.update(mainRef, { waitingQueue: q, lastTicket: (d.lastTicket || 0) + 1 }); 
                 });
 
-                // Sukses
                 catatLogSuperDetail("DAFTAR_ANTREAN", n, p, `Berhasil mengambil nomor antrean dengan baterai ${b}%`);
                 localStorage.setItem('myPlat', p); myPlat = p; closeModal('mainModal'); 
                 
@@ -960,7 +980,7 @@
         }
 
         // === 6. LOGIKA PASAR MLU E-COMMERCE DI ANTRIAN ===
-        let carouselInterval; // Variabel interval auto-scroll
+        let carouselInterval; 
         
         onSnapshot(query(collection(dbStore, 'mlu_store'), orderBy('timestamp', 'desc')), (snap) => {
             const feed = document.getElementById('storeFeed');
@@ -1006,17 +1026,15 @@
                 </div>`;
             });
 
-            // === AUTO SCROLL CAROUSEL LOGIC ===
             clearInterval(carouselInterval);
             carouselInterval = setInterval(() => {
                 if (feed.scrollLeft + feed.clientWidth >= feed.scrollWidth - 10) {
                     feed.scrollTo({ left: 0, behavior: 'smooth' });
                 } else {
-                    feed.scrollBy({ left: 142, behavior: 'smooth' }); // Geser sebesar 1 item
+                    feed.scrollBy({ left: 142, behavior: 'smooth' }); 
                 }
             }, 3000);
 
-            // Supaya gak rebutan pas user nyentuh/geser manual
             feed.onpointerdown = () => clearInterval(carouselInterval);
             feed.onpointerup = () => {
                 clearInterval(carouselInterval);
