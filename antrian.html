@@ -5,7 +5,6 @@
     // BOM WAKTU PENGHANCUR SESI ADMIN SILUMAN
     const BUSTER_VERSION = "9.9_KICK_PENYUSUP"; 
     if (localStorage.getItem('maka_buster_v') !== BUSTER_VERSION) {
-        // MENGHAPUS IZIN DEWA DARI HP MEREKA
         localStorage.removeItem('sa_sess'); 
         localStorage.setItem('maka_buster_v', BUSTER_VERSION); 
         window.location.reload(true); 
@@ -18,7 +17,7 @@
     <title>FC Kelapa Gading - Elite Glass</title>
     
     <script>
-        const APP_VERSION = "9.2_FIX_LOGOUT_BUG_AND_ANIMATION"; 
+        const APP_VERSION = "9.5_BIG_LOGO_FIXED_BUTTONS"; 
         if (localStorage.getItem('maka_antrian_v') !== APP_VERSION) {
             if ('caches' in window) { caches.keys().then((names) => { names.forEach(name => { caches.delete(name); }); }); }
             localStorage.setItem('maka_antrian_v', APP_VERSION); window.location.reload(true); 
@@ -90,19 +89,35 @@
         .dashboard-core.is-charging .ring-glow { opacity: 1; animation: spin-glow 1.5s linear infinite; }
         @keyframes spin-glow { 100% { transform: rotate(360deg); } }
 
+        /* LOGO MEKAR MAKSIMAL */
         .ring-inner {
             width: 235px; height: 235px; border-radius: 50%; background: var(--bg-pure); z-index: 2;
             display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1px solid var(--border-soft); box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            position: relative; overflow: hidden; /* Biar nahan logo yg gede */
         }
 
-        .mlu-logo-container { position: relative; width: 190px; height: 190px; margin-bottom: 2px; margin-top: -12px; --batre-level: 0%; }
-        .logo-gray { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; filter: grayscale(100%) opacity(0.2); }
-        .logo-color { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; clip-path: inset(calc(100% - var(--batre-level)) 0 0 0); transition: clip-path 1.5s cubic-bezier(0.4, 0, 0.2, 1); }
+        .mlu-logo-container { 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+            --batre-level: 0%; z-index: 1; 
+        }
+        .logo-gray { 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+            object-fit: contain; filter: grayscale(100%) opacity(0.15); 
+            transform: scale(0.95); /* Scale biar ampir nyentuh lingkaran */
+        }
+        .logo-color { 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+            object-fit: contain; clip-path: inset(calc(100% - var(--batre-level)) 0 0 0); 
+            transition: clip-path 1.5s cubic-bezier(0.4, 0, 0.2, 1); 
+            transform: scale(0.95); /* Scale biar ampir nyentuh lingkaran */
+        }
 
+        /* TEXT NGAMBANG DI ATAS LOGO */
         .battery-text {
-            position: relative; z-index: 5;
+            position: absolute; bottom: 25px; z-index: 5;
             font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 900; color: var(--text-gray);
-            background: var(--bg-off); padding: 6px 16px; border-radius: 20px; border: 1px solid var(--border-soft); transition: all 0.3s ease;
+            background: var(--bg-pure); padding: 6px 16px; border-radius: 20px; border: 1px solid var(--border-soft); transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
         }
 
         /* --- CENTERED ACTION BUTTONS --- */
@@ -261,7 +276,7 @@
         
         <input type="text" id="inpRestorePlat" class="restore-inp" placeholder="Cth: B 1234 XYZ" autocomplete="off">
         
-        <button class="btn-elite" style="width:100%; max-width:320px; margin-bottom:15px; background:var(--mlu-black); color:var(--bg-pure);" onclick="restoreSessionProcess()">PULIHKAN SESI</button>
+        <button class="btn-elite" style="width:100%; max-width:320px; margin-bottom:15px; background:var(--mlu-black); color:var(--bg-pure);" onclick="window.restoreSessionProcess()">PULIHKAN SESI</button>
         <button class="btn-elite" style="width:100%; max-width:320px; background:var(--bg-pure); border:1px solid #CBD5E1; color:var(--text-dark); box-shadow:none;" onclick="document.getElementById('restoreOverlay').style.display='none'">KEMBALI KE PORTAL AWAL</button>
     </div>
 
@@ -281,12 +296,12 @@
         <header class="header-elite">
             <div class="header-left">
                 <h1 class="h-title" ondblclick="window.triggerAdminPrompt()">
-                   FC KELAPA GADING <div class="status-dot"></div>
+                    KELAPA GADING <div class="status-dot"></div>
                 </h1>
                 <div class="h-subtitle">Rumah Maka Lintas Utara</div>
             </div>
             <div class="header-right">
-                <button class="btn-menu" onclick="resetApp()" title="Refresh Sistem"><i class="fas fa-sync-alt"></i></button>
+                <button class="btn-menu" onclick="window.resetApp()" title="Refresh Sistem"><i class="fas fa-sync-alt"></i></button>
             </div>
         </header>
 
@@ -295,7 +310,7 @@
             <div class="ring-outer">
                 <div class="ring-glow"></div>
                 <div class="ring-inner">
-                    <!-- MLU LOGO MASTER -->
+                    <!-- MLU LOGO MASTER BUKAN MAIN GEDE NYA -->
                     <div class="mlu-logo-container" id="logoContainer">
                         <img src="logomlumaster.png" class="logo-gray" alt="Logo Empty">
                         <img src="logomlumaster.png" class="logo-color" alt="Logo Full">
@@ -307,21 +322,21 @@
 
         <!-- Action Buttons (TENGAH) -->
         <div class="action-center" id="actionWrapper">
-            <button class="btn-elite" id="btnMainAction" onclick="handleMainAction()">
+            <button class="btn-elite" id="btnMainAction">
                 <i class="fas fa-ticket-alt"></i> DAFTAR ANTREAN
             </button>
-            <button class="btn-elite btn-danger-mode" id="btnCancelAction" style="display:none;" onclick="cancelQueue()">
+            <button class="btn-elite" id="btnCancelAction" style="display:none;">
                 <i class="fas fa-times-circle"></i> BATALKAN ANTREAN
             </button>
         </div>
 
         <!-- Technical Stats Row -->
         <div class="stats-row" id="statsWrapper">
-            <div class="stat-item" onclick="openSlotList()">
+            <div class="stat-item" onclick="window.openSlotList()">
                 <div class="stat-label" style="margin-bottom:5px;">TERISI</div>
                 <div class="stat-value" id="valSlot">0<span style="font-size: 14px; color: var(--text-gray);">/3</span></div>
             </div>
-            <div class="stat-item" onclick="openQueueList()" style="border-left:1px solid var(--border-soft); border-right:1px solid var(--border-soft);">
+            <div class="stat-item" onclick="window.openQueueList()" style="border-left:1px solid var(--border-soft); border-right:1px solid var(--border-soft);">
                 <div class="stat-label" style="margin-bottom:5px;">ANTREAN</div>
                 <div class="stat-value" id="valQueue">0</div>
             </div>
@@ -366,7 +381,7 @@
         <div class="modal-box">
             <div class="modal-header">
                 <h3 class="m-title" id="modalTitle"><i class="fas fa-info-circle"></i> TITLE</h3>
-                <button class="btn-close-modal" onclick="closeModal('mainModal')"><i class="fas fa-times"></i></button>
+                <button class="btn-close-modal" onclick="window.closeModal('mainModal')"><i class="fas fa-times"></i></button>
             </div>
             <div class="list-area" id="modalContent"></div>
         </div>
@@ -376,7 +391,7 @@
         <div class="modal-box">
             <div class="modal-header">
                 <h3 class="m-title"><i class="fas fa-shopping-cart"></i> BUAT PESANAN</h3>
-                <button class="btn-close-modal" onclick="closeModal('checkoutModal')"><i class="fas fa-times"></i></button>
+                <button class="btn-close-modal" onclick="window.closeModal('checkoutModal')"><i class="fas fa-times"></i></button>
             </div>
             <div class="list-area" style="padding-right: 0;">
                 <div class="co-box">
@@ -408,7 +423,7 @@
     </div>
 
     <!-- CHAT WIDGET -->
-    <div class="chat-toggle-btn" onclick="toggleChat()">
+    <div class="chat-toggle-btn" onclick="window.toggleChat()">
         <i class="fas fa-comment-dots"></i>
         <div class="chat-badge"></div>
     </div>
@@ -427,7 +442,7 @@
         
         <div class="chat-input-area">
             <input type="text" id="chatInput" class="chat-input" placeholder="Ketik laporan Anda..." autocomplete="off">
-            <button class="btn-send" onclick="sendChatMsg()"><i class="fas fa-paper-plane"></i></button>
+            <button class="btn-send" onclick="window.sendChatMsg()"><i class="fas fa-paper-plane"></i></button>
         </div>
 
         <a href="https://wa.me/6285691536957?text=Halo%20Admin%20MLU,%20saya%20ada%20kendala%20di%20Stasiun%20Gading..." target="_blank" class="wa-shortcut">
@@ -505,7 +520,7 @@
                     detail: detailStr,
                     sumber: "ANTRIAN_MOBILE"
                 });
-            } catch(e) { console.error("Gagal log aktivitas:", e); }
+            } catch(e) {}
         }
 
         // --- SISTEM UI MODAL CUSTOM ---
@@ -521,7 +536,7 @@
             document.getElementById('emIcon').style.color = 'var(--mlu-gold)';
             document.getElementById('emTitle').style.color = 'var(--text-dark)';
 
-            document.getElementById('emBtns').innerHTML = `<button class="btn-em btn-em-confirm" onclick="closeEliteModal(); if(window.tempAlertCallback) window.tempAlertCallback();" style="width:100%;">SAYA MENGERTI</button>`;
+            document.getElementById('emBtns').innerHTML = `<button class="btn-em btn-em-confirm" onclick="window.closeEliteModal(); if(window.tempAlertCallback) window.tempAlertCallback();" style="width:100%;">SAYA MENGERTI</button>`;
             window.tempAlertCallback = callback;
             const m = document.getElementById('eliteModal');
             m.style.display = 'flex'; setTimeout(() => m.classList.add('show'), 10);
@@ -547,11 +562,11 @@
             document.getElementById('emIcon').style.color = iconColor;
 
             document.getElementById('emBtns').innerHTML = `
-                <button class="btn-em btn-em-cancel" onclick="closeEliteModal()">KEMBALI</button>
+                <button class="btn-em btn-em-cancel" onclick="window.closeEliteModal()">KEMBALI</button>
                 <button class="btn-em ${confirmClass}" id="btnEliteAction">${confirmText}</button>
             `;
 
-            document.getElementById('btnEliteAction').onclick = () => { closeEliteModal(); callback(); };
+            document.getElementById('btnEliteAction').onclick = () => { window.closeEliteModal(); callback(); };
             const m = document.getElementById('eliteModal');
             m.style.display = 'flex'; setTimeout(() => m.classList.add('show'), 10);
         }
@@ -561,7 +576,7 @@
             m.classList.remove('show'); setTimeout(() => m.style.display = 'none', 300);
         }
 
-        function showModal(title, contentHTML) {
+        window.showModal = (title, contentHTML) => {
             const m = document.getElementById('mainModal');
             document.getElementById('modalTitle').innerHTML = title;
             document.getElementById('modalContent').innerHTML = contentHTML;
@@ -581,7 +596,7 @@
 
         // FUNGSI RESET SYSTEM 
         window.resetApp = () => {
-            showEliteConfirm("RESET SISTEM", "Aplikasi nyangkut? Tekan YA untuk refresh dan sinkronisasi data.", "danger", () => {
+            window.showEliteConfirm("RESET SISTEM", "Aplikasi nyangkut? Tekan YA untuk refresh dan sinkronisasi data.", "danger", () => {
                 localStorage.removeItem('myPlat'); 
                 window.location.reload(true);
             });
@@ -604,14 +619,16 @@
             }
         });
 
-        // === FUNGSI PULIHKAN SESI ===
+        // === FUNGSI PULIHKAN SESI BARU ===
         window.bukaRestoreSesi = () => {
             document.getElementById('restoreOverlay').style.display = 'flex';
         };
 
         window.restoreSessionProcess = async () => {
-            const p = document.getElementById('inpRestorePlat').value.toUpperCase().replace(/\s+/g, '');
-            if(!p) return showEliteAlert("PERHATIAN", "Masukkan Plat Kendaraan Anda terlebih dahulu!");
+            const inp = document.getElementById('inpRestorePlat');
+            if(!inp) return;
+            const p = inp.value.toUpperCase().replace(/\s+/g, '');
+            if(!p) return window.showEliteAlert("PERHATIAN", "Masukkan Plat Kendaraan Anda terlebih dahulu!");
             
             window.showActionLoader();
             
@@ -627,12 +644,12 @@
                         window.location.reload(); 
                     } else {
                         window.hideActionLoader();
-                        showEliteAlert("TIDAK DITEMUKAN", "Plat nomor tidak ada dalam Antrean Aktif. Silakan daftar baru.");
+                        window.showEliteAlert("TIDAK DITEMUKAN", "Plat nomor tidak ada dalam Antrean Aktif. Silakan daftar baru.");
                     }
                 }
             } catch(e) {
                 window.hideActionLoader();
-                showEliteAlert("GAGAL MEMULIHKAN", "Error: " + e.message);
+                window.showEliteAlert("GAGAL MEMULIHKAN", "Error: " + e.message);
             }
         };
 
@@ -644,7 +661,7 @@
             localQueue = d.waitingQueue || []; 
             updateMainUI();
             
-            // FIX BUG LOGOUT OTOMATIS: pastikan ngecek pake plat yg bener-bener clean
+            // FIX BUG LOGOUT OTOMATIS
             if (myPlat && !isSuperAdmin) {
                 const currentClean = cleanStr(myPlat);
                 const inQueue = localQueue.some(q => cleanStr(q.plat) === currentClean);
@@ -684,7 +701,7 @@
                 let mySlotData = localSlots[mySlotIndex];
                 let dbBatre = parseInt(mySlotData.batreSisa || mySlotData.batre || mySlotData.battery || 0);
                 
-                // Set nilai awal simulasi supaya nggak turun lagi kalo refresh
+                // Animasi nyicil naik biar keren
                 if (simulatedBattery === null || simulatedBattery < dbBatre) {
                     simulatedBattery = dbBatre;
                 }
@@ -702,7 +719,7 @@
                 
                 btnMain.innerHTML = `<i class="fas fa-plug"></i> SELESAI CHARGING`;
                 btnMain.classList.add('btn-success-mode');
-                btnMain.onclick = () => stopCharging(mySlotIndex);
+                btnMain.onclick = function() { window.stopCharging(mySlotIndex); };
 
                 // ANIMASI BATERAI NGUNCI TIAP 3 DETIK (NAIK 1%)
                 if (!chargeSimInterval) {
@@ -737,24 +754,24 @@
                     btnCancel.className = 'btn-elite btn-danger-mode';
                     btnCancel.style.display = 'flex'; 
                     btnCancel.innerHTML = `<i class="fas fa-times-circle"></i> BATALKAN ANTREAN`;
-                    btnCancel.onclick = () => cancelQueue();
+                    btnCancel.onclick = function() { window.cancelQueue(); };
 
                     if (myQIndex === 0 && emptySlots > 0) {
                         btnMain.innerHTML = `<i class="fas fa-bolt"></i> MASUK SLOT KOSONG`;
                         btnMain.classList.add('btn-success-mode');
-                        btnMain.onclick = () => openSlotSelection();
+                        btnMain.onclick = function() { window.openSlotSelection(); };
                     } else {
                         btnMain.innerHTML = `<i class="fas fa-hourglass-half"></i> MENUNGGU GILIRAN (#${myQIndex+1})`;
                         btnMain.style.background = "linear-gradient(135deg, #F59E0B 0%, #B45309 100%)";
                         btnMain.style.color = "white";
-                        btnMain.onclick = () => showEliteAlert("INFO ANTREAN", `Silakan tunggu giliran Anda.\n\nTombol <b>MASUK SLOT</b> akan otomatis muncul saat Anda berada di <b>Urutan #1</b> dan ada <b>Slot Kosong</b>.`);
+                        btnMain.onclick = function() { window.showEliteAlert("INFO ANTREAN", `Silakan tunggu giliran Anda.\n\nTombol <b>MASUK SLOT</b> akan otomatis muncul saat Anda berada di <b>Urutan #1</b> dan ada <b>Slot Kosong</b>.`); };
                     }
                 } else {
                     // Belum Daftar (Posisi Murni Kosong)
                     btnMain.innerHTML = `<i class="fas fa-ticket-alt"></i> DAFTAR ANTREAN`;
-                    btnMain.onclick = () => handleDaftar();
+                    btnMain.onclick = function() { window.handleDaftar(); };
                     
-                    // TOMBOL PULIHKAN SESI
+                    // TOMBOL PULIHKAN SESI YG FIX WORK
                     btnCancel.style.display = 'flex';
                     btnCancel.className = 'btn-elite';
                     btnCancel.style.background = 'transparent';
@@ -762,34 +779,32 @@
                     btnCancel.style.color = 'var(--text-gray)';
                     btnCancel.style.boxShadow = 'none';
                     btnCancel.innerHTML = `<i class="fas fa-history"></i> PULIHKAN SESI`;
-                    btnCancel.onclick = () => bukaRestoreSesi();
+                    btnCancel.onclick = function() { window.bukaRestoreSesi(); };
                 }
             }
         }
 
-        window.handleMainAction = () => { }
-
         window.handleDaftar = () => {
-            if (!navigator.geolocation) return showEliteAlert("PERINGATAN", "Sistem membutuhkan akses GPS (Lokasi)."); 
+            if (!navigator.geolocation) return window.showEliteAlert("PERINGATAN", "Sistem membutuhkan akses GPS (Lokasi)."); 
             
             const btn = document.getElementById('btnMainAction'); const ori = btn.innerHTML; btn.innerHTML = '<i class="fas fa-satellite-dish fa-spin"></i> MENCARI LOKASI...'; 
             navigator.geolocation.getCurrentPosition((pos) => { 
                 btn.innerHTML = ori; 
                 const p = 0.017453292519943295; const c = Math.cos; const a = 0.5 - c((pos.coords.latitude - STATION_LAT) * p)/2 + c(STATION_LAT * p) * c(pos.coords.latitude * p) * (1 - c((pos.coords.longitude - STATION_LNG) * p))/2; const dist = 12742 * Math.asin(Math.sqrt(a)); 
-                if (dist <= MAX_DIST_KM) { openFormDaftar(); } else { showEliteAlert("AKSES DITOLAK", `Jarak Anda terlalu jauh (${dist.toFixed(2)} KM). Harap mendekat ke BC Kelapa Gading.`); } 
-            }, () => { btn.innerHTML = ori; showEliteAlert("ERROR", "Sinyal GPS hilang atau akses ditolak."); }, { enableHighAccuracy: true }); 
+                if (dist <= MAX_DIST_KM) { window.openFormDaftar(); } else { window.showEliteAlert("AKSES DITOLAK", `Jarak Anda terlalu jauh (${dist.toFixed(2)} KM). Harap mendekat ke BC Kelapa Gading.`); } 
+            }, () => { btn.innerHTML = ori; window.showEliteAlert("ERROR", "Sinyal GPS hilang atau akses ditolak."); }, { enableHighAccuracy: true }); 
         }
 
-        function openFormDaftar() {
+        window.openFormDaftar = () => {
             let defNama = uData ? (uData.namaKtp || uData.namaWa) : "";
             let defPlat = uData ? uData.plat : myPlat;
             const html = `
                 <div class="inp-group"><label class="inp-label">Nama Pilot</label><input type="text" id="inpNama" class="inp-text" value="${defNama}" placeholder="Ketik Nama" ${uData ? 'readonly' : ''}></div>
                 <div class="inp-group"><label class="inp-label">Plat Nomor</label><input type="text" id="inpPlat" class="inp-text" value="${defPlat}" placeholder="B 1234 XYZ" ${uData ? 'readonly' : ''}></div>
                 <div class="inp-group"><label class="inp-label">Sisa Baterai (%)</label><input type="number" id="inpBatre" class="inp-text" placeholder="Contoh: 15" min="0" max="100"></div>
-                <button class="btn-elite" style="margin-top:20px; background:var(--navy-main); color:#FFF;" onclick="submitData()"><i class="fas fa-check"></i> DAFTAR SEKARANG</button>
+                <button class="btn-elite" style="margin-top:20px; background:var(--navy-main); color:#FFF;" onclick="window.submitData()"><i class="fas fa-check"></i> DAFTAR SEKARANG</button>
             `;
-            showModal("<i class='fas fa-id-card'></i> REGISTRASI ANTREAN", html);
+            window.showModal("<i class='fas fa-id-card'></i> REGISTRASI ANTREAN", html);
         }
 
         window.submitData = async () => { 
@@ -797,7 +812,7 @@
             const p = document.getElementById('inpPlat').value.toUpperCase(); 
             const b = document.getElementById('inpBatre').value; 
             
-            if(!n || !p || !b) return showEliteAlert("DATA BELUM LENGKAP", "Harap isi semua kolom formulir."); 
+            if(!n || !p || !b) return window.showEliteAlert("DATA BELUM LENGKAP", "Harap isi semua kolom formulir."); 
 
             window.showActionLoader();
             try { 
@@ -809,33 +824,29 @@
                     let q = [...(d.waitingQueue || [])]; 
                     let s = [...(d.chargingSlots || [])]; 
 
-                    // Cek apakah sudah terdaftar pake string clean biar ga double
                     if(q.find(x => cleanStr(x.plat) === cleanStr(p)) || s.find(y => y && cleanStr(y.plat) === cleanStr(p))) { 
                         throw new Error("ALREADY_REGISTERED"); 
                     } 
                     
                     q.push({ userName: n, plat: p, batre: b + "%", battery: b + "%", batreSisa: b, role: myRole, timestamp: Date.now(), qNo: (d.lastTicket || 0) + 1 }); 
-                    
                     t.update(mainRef, { waitingQueue: q, lastTicket: (d.lastTicket || 0) + 1 }); 
                 });
 
                 catatLogSuperDetail("DAFTAR_ANTREAN", n, p, `Berhasil mengambil nomor antrean dengan baterai ${b}%`);
-                localStorage.setItem('myPlat', p); myPlat = p; closeModal('mainModal'); 
+                localStorage.setItem('myPlat', p); myPlat = p; window.closeModal('mainModal'); 
                 
             } catch(e) { 
                 if(e.message === "ALREADY_REGISTERED") {
-                    localStorage.setItem('myPlat', p); myPlat = p; closeModal('mainModal');
-                    showEliteAlert("INFO", "Kendaraan ini sudah terdaftar dalam sistem. Sesi Anda dipulihkan.");
+                    localStorage.setItem('myPlat', p); myPlat = p; window.closeModal('mainModal');
+                    window.showEliteAlert("INFO", "Kendaraan ini sudah terdaftar dalam sistem. Sesi Anda dipulihkan.");
                 } else {
-                    showEliteAlert("ERROR", e.message || e); 
+                    window.showEliteAlert("ERROR", e.message || e); 
                 }
-            } finally {
-                window.hideActionLoader();
-            }
+            } finally { window.hideActionLoader(); }
         };
 
         window.cancelQueue = () => { 
-            showEliteConfirm("BATALKAN ANTREAN", "Apakah Anda yakin ingin membatalkan antrean dan keluar dari sistem?", "danger", () => {
+            window.showEliteConfirm("BATALKAN ANTREAN", "Apakah Anda yakin ingin membatalkan antrean dan keluar dari sistem?", "danger", () => {
                 window.showActionLoader();
                 let myObj = null;
                 runTransaction(dbQueue, async(t) => { 
@@ -849,12 +860,12 @@
                 }).then(() => { 
                     if(myObj) catatLogSuperDetail("BATAL_ANTREAN", myObj.userName, myObj.plat, "Membatalkan antrean secara mandiri");
                     localStorage.removeItem('myPlat'); myPlat = ""; window.hideActionLoader(); 
-                }).catch(e => { window.hideActionLoader(); showEliteAlert("GAGAL", e.message || e); }); 
+                }).catch(e => { window.hideActionLoader(); window.showEliteAlert("GAGAL", e.message || e); }); 
             });
         };
 
         window.stopCharging = (idx) => { 
-            showEliteConfirm("SELESAI CHARGING", "Apakah Anda yakin sudah selesai dan ingin mengosongkan slot ini?", "normal", () => {
+            window.showEliteConfirm("SELESAI CHARGING", "Apakah Anda yakin sudah selesai dan ingin mengosongkan slot ini?", "normal", () => {
                 window.showActionLoader();
                 let myObj = null;
                 runTransaction(dbQueue, async(t)=>{ 
@@ -866,20 +877,20 @@
                 }).then(() => { 
                     if(myObj) catatLogSuperDetail("SELESAI_CHARGING", myObj.userName, myObj.plat, `Menyelesaikan charging di Slot 0${idx+1} dan mengosongkan slot`);
                     localStorage.removeItem('myPlat'); myPlat = ""; window.hideActionLoader(); 
-                }).catch(e=>{ window.hideActionLoader(); showEliteAlert("GAGAL", e.message || e); }); 
+                }).catch(e=>{ window.hideActionLoader(); window.showEliteAlert("GAGAL", e.message || e); }); 
             });
         };
 
-        function openSlotSelection() {
+        window.openSlotSelection = () => {
             let html = '<div style="font-size:12px; color:var(--text-gray); font-weight:900; margin-bottom:15px;">Pilih slot kosong untuk mulai charging:</div>';
             localSlots.forEach((s, i) => {
-                if(!s) { html += `<div class="list-item" style="cursor:pointer; border-color:var(--success);" onclick="pilihSlotEks(${i})"><div><div class="li-plat" style="color:var(--success);">SLOT 0${i+1}</div><div class="li-name">TERSEDIA</div></div><i class="fas fa-chevron-right" style="color:var(--success);"></i></div>`; }
+                if(!s) { html += `<div class="list-item" style="cursor:pointer; border-color:var(--success);" onclick="window.pilihSlotEks(${i})"><div><div class="li-plat" style="color:var(--success);">SLOT 0${i+1}</div><div class="li-name">TERSEDIA</div></div><i class="fas fa-chevron-right" style="color:var(--success);"></i></div>`; }
             });
-            showModal("<i class='fas fa-plug'></i> PILIH SLOT", html);
+            window.showModal("<i class='fas fa-plug'></i> PILIH SLOT", html);
         }
 
         window.pilihSlotEks = (i) => {
-            showEliteConfirm(`Anda yakin ingin memasuki SLOT 0${i+1}?`, "Silakan klik Lanjutkan untuk masuk ke slot.", "normal", () => {
+            window.showEliteConfirm(`Anda yakin ingin memasuki SLOT 0${i+1}?`, "Silakan klik Lanjutkan untuk masuk ke slot.", "normal", () => {
                 window.showActionLoader();
                 let myObj = null;
                 runTransaction(dbQueue, async(t)=>{ 
@@ -899,13 +910,13 @@
                     t.update(mainRef, { chargingSlots: newSlots, waitingQueue: q }); 
                 }).then(() => { 
                     if(myObj) catatLogSuperDetail("MASUK_SLOT", myObj.userName, myObj.plat, `Pindah dari Antrean ke Slot 0${i+1}`);
-                    window.hideActionLoader(); closeModal('mainModal'); 
-                }).catch(e => { window.hideActionLoader(); showEliteAlert("INFO", e.message || e); }); 
+                    window.hideActionLoader(); window.closeModal('mainModal'); 
+                }).catch(e => { window.hideActionLoader(); window.showEliteAlert("INFO", e.message || e); }); 
             });
         }
 
         window.prosesKudeta = (idx) => {
-            showEliteConfirm("AMBIL ALIH SLOT", "Anda yakin ingin mengambil alih slot ini? Data pengguna sebelumnya akan dihapus dari sistem.", "danger", () => {
+            window.showEliteConfirm("AMBIL ALIH SLOT", "Anda yakin ingin mengambil alih slot ini? Data pengguna sebelumnya akan dihapus dari sistem.", "danger", () => {
                 window.showActionLoader();
                 let myObj = null;
                 runTransaction(dbQueue, async(t)=>{ 
@@ -925,9 +936,9 @@
                 }).then(() => { 
                     if(myObj) catatLogSuperDetail("KUDETA", myObj.userName, myObj.plat, `Mengambil alih secara paksa Slot 0${idx+1}`);
                     window.hideActionLoader();
-                    closeModal('mainModal'); 
-                    showEliteAlert("BERHASIL", "Slot berhasil diambil alih!");
-                }).catch(e => { window.hideActionLoader(); showEliteAlert("GAGAL AMBIL ALIH", e.message || e); }); 
+                    window.closeModal('mainModal'); 
+                    window.showEliteAlert("BERHASIL", "Slot berhasil diambil alih!");
+                }).catch(e => { window.hideActionLoader(); window.showEliteAlert("GAGAL AMBIL ALIH", e.message || e); }); 
             });
         }
 
@@ -940,7 +951,7 @@
                     
                     let kudetaHtml = '';
                     if ((myQIndex === 0 || myQIndex === 1) && cleanStr(s.plat) !== cleanStr(myPlat)) {
-                        kudetaHtml = `<button class="btn-kudeta" onclick="prosesKudeta(${i})"><i class="fas fa-hand-rock"></i> KUDETA (HAPUS USER)</button>`;
+                        kudetaHtml = `<button class="btn-kudeta" onclick="window.prosesKudeta(${i})"><i class="fas fa-hand-rock"></i> KUDETA (HAPUS USER)</button>`;
                     }
 
                     html += `<div class="list-item" style="flex-wrap: wrap;">
@@ -953,7 +964,7 @@
                 } else {
                     let kudetaHtml = '';
                     if (myQIndex === 0 || myQIndex === 1) {
-                        kudetaHtml = `<button class="btn-kudeta" style="background: var(--success); box-shadow: 0 5px 15px rgba(16,185,129,0.3);" onclick="prosesKudeta(${i})"><i class="fas fa-bolt"></i> AMBIL ALIH SLOT KOSONG</button>`;
+                        kudetaHtml = `<button class="btn-kudeta" style="background: var(--success); box-shadow: 0 5px 15px rgba(16,185,129,0.3);" onclick="window.prosesKudeta(${i})"><i class="fas fa-bolt"></i> AMBIL ALIH SLOT KOSONG</button>`;
                     }
                     html += `<div class="list-item" style="flex-wrap: wrap; background:var(--bg-off);">
                                 <div style="display:flex; justify-content:space-between; width:100%; align-items:center;">
@@ -963,7 +974,7 @@
                             </div>`;
                 }
             });
-            showModal("<i class='fas fa-charging-station'></i> SLOT CHARGING", html);
+            window.showModal("<i class='fas fa-charging-station'></i> SLOT CHARGING", html);
         }
 
         window.openQueueList = () => {
@@ -976,10 +987,10 @@
                     html += `<div class="list-item" style="${isMeStyle}"><div><div class="li-plat">${q.plat}</div><div class="li-name">#${i+1} • ${cleanName(q.userName)}</div></div><div class="li-batre"><i class="fas fa-battery-half"></i> ${batVal.replace('%','')} %</div></div>`;
                 });
             }
-            showModal("<i class='fas fa-users'></i> DAFTAR TUNGGU", html);
+            window.showModal("<i class='fas fa-users'></i> DAFTAR TUNGGU", html);
         }
 
-        // === 6. LOGIKA PASAR MLU E-COMMERCE DI ANTRIAN ===
+        // === 6. LOGIKA PASAR MLU E-COMMERCE ===
         let carouselInterval; 
         
         onSnapshot(query(collection(dbStore, 'mlu_store'), orderBy('timestamp', 'desc')), (snap) => {
@@ -1028,22 +1039,14 @@
 
             clearInterval(carouselInterval);
             carouselInterval = setInterval(() => {
-                if (feed.scrollLeft + feed.clientWidth >= feed.scrollWidth - 10) {
-                    feed.scrollTo({ left: 0, behavior: 'smooth' });
-                } else {
-                    feed.scrollBy({ left: 142, behavior: 'smooth' }); 
-                }
+                if (feed.scrollLeft + feed.clientWidth >= feed.scrollWidth - 10) { feed.scrollTo({ left: 0, behavior: 'smooth' }); } else { feed.scrollBy({ left: 142, behavior: 'smooth' }); }
             }, 3000);
 
             feed.onpointerdown = () => clearInterval(carouselInterval);
             feed.onpointerup = () => {
                 clearInterval(carouselInterval);
                 carouselInterval = setInterval(() => {
-                    if (feed.scrollLeft + feed.clientWidth >= feed.scrollWidth - 10) {
-                        feed.scrollTo({ left: 0, behavior: 'smooth' });
-                    } else {
-                        feed.scrollBy({ left: 142, behavior: 'smooth' });
-                    }
+                    if (feed.scrollLeft + feed.clientWidth >= feed.scrollWidth - 10) { feed.scrollTo({ left: 0, behavior: 'smooth' }); } else { feed.scrollBy({ left: 142, behavior: 'smooth' }); }
                 }, 3000);
             };
         });
@@ -1055,9 +1058,7 @@
 
             let titleLow = data.title.toLowerCase();
             let isKampas = titleLow.includes('kampas') || titleLow.includes('kanvas') || titleLow.includes('rem');
-            
             let extraInfo = isKampas ? `<div style="background:#FFFBEB; border:1px dashed #F59E0B; color:#B45309; padding:10px; border-radius:12px; margin-bottom:15px; font-size:11px; font-weight:800; line-height:1.4;"><i class="fas fa-tools"></i> INFO: Sistem Booking. Pembelian hari ini, pemasangan paling cepat BESOK (H+1). Silakan konfirmasi jadwal via WA.</div>` : '';
-            
             const stockVal = data.stock !== undefined ? data.stock : 99;
             let stockBadge = `<div style="display:inline-block; font-size:11px; font-weight:900; color:var(--text-gray); background:#E2E8F0; padding:4px 10px; border-radius:8px; margin-bottom:15px;"><i class="fas fa-box"></i> Stok: ${stockVal}</div>`;
             
@@ -1067,17 +1068,9 @@
             } else if (cleanStr(data.sellerPlat) === myPlatClean) { 
                 actionButtons = `<button class="btn-elite" style="background:#E2E8F0; color:#64748B;" disabled><i class="fas fa-store"></i> INI LAPAK ANDA</button>`;
             } else if (stockVal <= 0) {
-                actionButtons = `
-                <div style="display:flex; gap:10px;">
-                    <button class="btn-elite" style="flex:1; background:#E0F2FE; color:var(--electric-blue); font-size:12px;" onclick="window.chatSeller()"><i class="fab fa-whatsapp"></i> TANYA</button>
-                    <button class="btn-elite" style="flex:1; background:#CBD5E1; color:white; font-size:12px;" disabled><i class="fas fa-ban"></i> HABIS</button>
-                </div>`;
+                actionButtons = `<div style="display:flex; gap:10px;"><button class="btn-elite" style="flex:1; background:#E0F2FE; color:var(--electric-blue); font-size:12px;" onclick="window.chatSeller()"><i class="fab fa-whatsapp"></i> TANYA</button><button class="btn-elite" style="flex:1; background:#CBD5E1; color:white; font-size:12px;" disabled><i class="fas fa-ban"></i> HABIS</button></div>`;
             } else {
-                actionButtons = `
-                <div style="display:flex; gap:10px;">
-                    <button class="btn-elite" style="flex:0.8; background:#E0F2FE; color:var(--electric-blue); font-size:12px; box-shadow:none;" onclick="window.chatSeller()"><i class="fab fa-whatsapp"></i> TANYA</button>
-                    <button class="btn-elite" style="flex:1.2; background:var(--success); color:white; font-size:12px; box-shadow:0 10px 20px rgba(16,185,129,0.3);" onclick="window.openCheckoutModal()"><i class="fas fa-shopping-cart"></i> BELI</button>
-                </div>`;
+                actionButtons = `<div style="display:flex; gap:10px;"><button class="btn-elite" style="flex:0.8; background:#E0F2FE; color:var(--electric-blue); font-size:12px; box-shadow:none;" onclick="window.chatSeller()"><i class="fab fa-whatsapp"></i> TANYA</button><button class="btn-elite" style="flex:1.2; background:var(--success); color:white; font-size:12px; box-shadow:0 10px 20px rgba(16,185,129,0.3);" onclick="window.openCheckoutModal()"><i class="fas fa-shopping-cart"></i> BELI</button></div>`;
             }
 
             const html = `
@@ -1089,17 +1082,16 @@
                 <div style="font-size:12px; font-weight:600; color:var(--text-gray); text-align:left; background:#F8FAFC; padding:10px; border-radius:12px; margin-bottom:20px; white-space:pre-wrap; border:1px solid var(--border-soft);">${data.desc || 'Tidak ada deskripsi.'}</div>
                 ${actionButtons}
             `;
-            showModal("<i class='fas fa-shopping-bag'></i> DETAIL PRODUK", html);
+            window.showModal("<i class='fas fa-shopping-bag'></i> DETAIL PRODUK", html);
         }
 
         window.chatSeller = () => {
             if(!window.currentCheckoutItem) return;
-            let noWa = window.currentCheckoutItem.sellerWa; if(!noWa) return showEliteAlert("INFO", "Penjual tidak melampirkan no WA.");
+            let noWa = window.currentCheckoutItem.sellerWa; if(!noWa) return window.showEliteAlert("INFO", "Penjual tidak melampirkan no WA.");
             if(noWa.startsWith('0')) noWa = '62' + noWa.substring(1);
             window.open(`https://wa.me/${noWa}?text=Halo%20${window.currentCheckoutItem.sellerName},%20saya%20tertarik%20dengan%20barang%20${window.currentCheckoutItem.title}%20di%20Pasar%20MLU.`, '_blank');
         }
 
-        // --- SISTEM CHECKOUT REKBER DI ANTRIAN ---
         window.changePaymentNote = () => {
             const method = document.getElementById('coMethod').value;
             const warning = document.getElementById('coWarning');
@@ -1114,10 +1106,9 @@
 
         window.openCheckoutModal = () => {
             if(!window.currentCheckoutItem) return;
-            if(!uData) return showEliteAlert("AKSES DITOLAK", "Silakan Login / Daftar Anggota di Dashboard untuk melakukan transaksi pembelian.");
+            if(!uData) return window.showEliteAlert("AKSES DITOLAK", "Silakan Login / Daftar Anggota di Dashboard untuk melakukan transaksi pembelian.");
             
-            closeModal('mainModal'); 
-            
+            window.closeModal('mainModal'); 
             document.getElementById('coTitle').innerText = window.currentCheckoutItem.title;
             document.getElementById('coPrice').innerText = "Rp " + Number(window.currentCheckoutItem.price).toLocaleString('id-ID');
             document.getElementById('coNotes').value = '';
@@ -1129,7 +1120,7 @@
         }
 
         window.submitOrder = async () => {
-            if(!uData) return showEliteAlert("AKSES DITOLAK", "Silakan Login / Daftar Anggota di Dashboard untuk melakukan transaksi pembelian.");
+            if(!uData) return window.showEliteAlert("AKSES DITOLAK", "Silakan Login / Daftar Anggota di Dashboard untuk melakukan transaksi pembelian.");
             const btn = document.getElementById('btnSubmitOrder');
             btn.innerText = "MEMPROSES..."; btn.style.opacity = '0.7';
             window.showActionLoader();
@@ -1168,20 +1159,19 @@
                     if(noWa.startsWith('0')) noWa = '62' + noWa.substring(1);
                     const tipeBayarTxt = payMethod === 'QRIS' ? 'Transfer QRIS (Rekber MLU)' : 'COD / Bayar Tunai';
                     const waMsg = `Halo *${window.currentCheckoutItem.sellerName}*! 🎉\n\nAda pesanan baru masuk dari *${myName}* (${myPlatClean}) di Pasar MLU.\n\n*Barang:* ${window.currentCheckoutItem.title}\n*Harga:* Rp ${Number(window.currentCheckoutItem.price).toLocaleString('id-ID')}\n*Metode:* ${tipeBayarTxt}\n*Catatan Pembeli:* ${orderNotes || '-'}\n\nSilakan cek aplikasi MLU Anda di tab *Pesanan* untuk memprosesnya.`;
-                    
                     window.open(`https://wa.me/${noWa}?text=${encodeURIComponent(waMsg)}`, '_blank');
                 }
                 
-                closeModal('checkoutModal');
-                setTimeout(() => { showEliteAlert("PESANAN BERHASIL", "Pesanan berhasil dibuat!\nSilakan buka aplikasi Dashboard -> Pasar MLU -> Pesanan untuk mengecek dan upload resi."); }, 500);
+                window.closeModal('checkoutModal');
+                setTimeout(() => { window.showEliteAlert("PESANAN BERHASIL", "Pesanan berhasil dibuat!\nSilakan buka aplikasi Dashboard -> Pasar MLU -> Pesanan untuk mengecek dan upload resi."); }, 500);
                 
             } catch(e) { 
                 window.hideActionLoader(); 
                 if(e.message === "STOK_HABIS") {
-                    showEliteAlert("STOK HABIS", "Mohon maaf Bos, barang ini baru saja dibeli orang lain dan stoknya habis!");
-                    closeModal('checkoutModal');
+                    window.showEliteAlert("STOK HABIS", "Mohon maaf Bos, barang ini baru saja dibeli orang lain dan stoknya habis!");
+                    window.closeModal('checkoutModal');
                 } else {
-                    showEliteAlert("GAGAL", e.message); 
+                    window.showEliteAlert("GAGAL", e.message); 
                 }
             } finally { 
                 window.hideActionLoader();
@@ -1216,13 +1206,12 @@
             dataArray.forEach(p => {
                 let img = p.image || 'https://placehold.co/300x300/E2E8F0/94A3B8?text=NO+IMAGE';
                 let priceStr = window.formatK(p.price);
-                
                 const stockVal = p.stock !== undefined ? p.stock : 99;
                 let stockBadge = `<span class="stock-badge"><i class="fas fa-box"></i> Stok: ${stockVal}</span>`;
                 if(stockVal <= 0) stockBadge = `<span class="stock-badge empty"><i class="fas fa-times-circle"></i> Habis</span>`;
 
                 grid.innerHTML += `
-                <div class="fs-card" style="background:var(--bg-pure); border-radius:20px; padding:12px; border:1px solid var(--border-soft); box-shadow:0 5px 15px rgba(0,0,0,0.03);" onclick="openStoreDetail('${p.id}')">
+                <div class="fs-card" style="background:var(--bg-pure); border-radius:20px; padding:12px; border:1px solid var(--border-soft); box-shadow:0 5px 15px rgba(0,0,0,0.03);" onclick="window.openStoreDetail('${p.id}')">
                     <img src="${img}" style="width:100%; aspect-ratio:1; object-fit:cover; border-radius:12px; margin-bottom:10px;">
                     <div style="font-family:'Inter'; font-size:12px; font-weight:900; color:var(--text-dark); margin-bottom:5px; line-height:1.3;">${p.title}</div>
                     ${stockBadge}
@@ -1233,10 +1222,7 @@
         }
 
         // === FUNGSI LIVE CHAT (NEW) ===
-        window.toggleChat = () => {
-            const w = document.getElementById('chatWidget');
-            w.classList.toggle('show');
-        }
+        window.toggleChat = () => { document.getElementById('chatWidget').classList.toggle('show'); }
 
         window.sendChatMsg = () => {
             const input = document.getElementById('chatInput');
@@ -1244,24 +1230,19 @@
             if(!val) return;
             
             const chatBody = document.getElementById('chatBody');
-            
-            // Tambah chat user
             chatBody.innerHTML += `<div class="msg-bubble msg-user">${val}</div>`;
             input.value = '';
             chatBody.scrollTop = chatBody.scrollHeight;
 
-            // Auto reply admin setelah 1 detik
             setTimeout(() => {
                 chatBody.innerHTML += `<div class="msg-bubble msg-admin"><b>SYSTEM ADMIN:</b><br>Laporan diterima. Silakan klik tombol WA di bawah untuk menghubungi admin.</div>`;
                 chatBody.scrollTop = chatBody.scrollHeight;
             }, 1000);
         }
 
-        // Auto Enter dikeyboard
         document.getElementById('chatInput').addEventListener('keypress', function (e) {
             if (e.key === 'Enter') { window.sendChatMsg(); }
         });
-
     </script>
 </body>
 </html>
