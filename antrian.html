@@ -14,10 +14,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#FFFFFF">
-    <title>FC Kelapa Gading - Elite Glass</title>
+    <title>FC Kelapa Gading - Elite</title>
     
     <script>
-        const APP_VERSION = "9.5_BIG_LOGO_FIXED_BUTTONS"; 
+        // UPDATE VERSION BIAR CACHE HP LU LANGSUNG KESAPU BERSIH
+        const APP_VERSION = "9.9_FIX_FATAL_UI_AND_BUTTONS"; 
         if (localStorage.getItem('maka_antrian_v') !== APP_VERSION) {
             if ('caches' in window) { caches.keys().then((names) => { names.forEach(name => { caches.delete(name); }); }); }
             localStorage.setItem('maka_antrian_v', APP_VERSION); window.location.reload(true); 
@@ -25,126 +26,117 @@
     </script>
     
     <link rel="manifest" href="manifest.json?v=5">
-    
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700;800&family=Space+Grotesk:wght@700;800;900&family=Outfit:wght@300;600;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
         :root {
-            /* TEMA PUTIH (LIGHT MODE) TEGAS */
             --bg-pure: #FFFFFF;
-            --bg-off: #F1F5F9; 
-            --bg-card: #FFFFFF;
+            --bg-off: #F8FAFC; 
             --text-dark: #0F172A; 
-            --text-gray: #334155; 
+            --text-gray: #475569; 
             --border-soft: #E2E8F0;
-            
-            --navy-main: #0A1931;
             --mlu-gold: #DCA311;
             --mlu-gold-glow: rgba(220, 163, 17, 0.15);
-            --mlu-black: #0F172A;
-            
+            --mlu-black: #0B1120;
             --success: #10B981;
             --danger: #EF4444;
             --electric-blue: #2D63ED;
         }
 
         body { 
-            margin: 0; font-family: 'Inter', sans-serif; background-color: #E2E8F0;
+            margin: 0; font-family: 'Inter', sans-serif; background-color: var(--bg-off);
             color: var(--text-dark); min-height: 100vh; overflow-x: hidden; overflow-y: auto; 
             display: flex; flex-direction: column; align-items: center; -webkit-tap-highlight-color: transparent;
         }
 
         .app-container {
-            width: 100%; max-width: 480px; background-color: var(--bg-pure);
-            background-image: radial-gradient(circle at 50% -10%, var(--mlu-gold-glow) 0%, transparent 50%);
+            width: 100%; max-width: 480px; background-color: #FDFBF7; /* Background cream halus persis di SS */
+            background-image: radial-gradient(circle at 50% 0%, var(--mlu-gold-glow) 0%, transparent 40%);
             min-height: 100vh; position: relative; box-shadow: 0 0 40px rgba(0,0,0,0.05);
             padding-bottom: 40px; overflow-x: hidden;
         }
 
         /* --- HEADER --- */
         .header-elite { padding: 25px 20px 15px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
-        .h-title { font-family: 'Space Grotesk'; font-size: 22px; font-weight: 900; color: var(--text-dark); margin: 0; display: flex; align-items: center; gap: 8px;}
-        .h-subtitle { font-family: 'Inter'; font-size: 11px; font-weight: 900; color: var(--mlu-gold); letter-spacing: 2px; text-transform: uppercase; margin-top: 4px;}
+        .h-title { font-family: 'Space Grotesk'; font-size: 24px; font-weight: 900; color: var(--text-dark); margin: 0; display: flex; align-items: center; gap: 8px;}
+        .h-subtitle { font-family: 'Space Grotesk'; font-size: 11px; font-weight: 900; color: var(--mlu-gold); letter-spacing: 1.5px; text-transform: uppercase; margin-top: 4px;}
         
         .status-dot { width: 10px; height: 10px; background: var(--success); border-radius: 50%; box-shadow: 0 0 10px var(--success); animation: pulseLive 2s infinite; }
         @keyframes pulseLive { 0% {box-shadow: 0 0 0 0 rgba(16,185,129,0.5);} 70% {box-shadow: 0 0 0 10px rgba(16,185,129,0);} 100% {box-shadow: 0 0 0 0 rgba(16,185,129,0);} }
 
-        .btn-menu { width: 40px; height: 40px; border-radius: 50%; background: var(--bg-pure); display: flex; align-items: center; justify-content: center; font-size: 16px; color: var(--text-dark); border: 1px solid var(--border-soft); box-shadow: 0 4px 10px rgba(0,0,0,0.05); cursor: pointer; transition: 0.2s;}
+        .btn-menu { width: 42px; height: 42px; border-radius: 50%; background: var(--bg-pure); display: flex; align-items: center; justify-content: center; font-size: 16px; color: var(--text-dark); box-shadow: 0 4px 10px rgba(0,0,0,0.05); cursor: pointer; border:none; transition: 0.2s;}
         .btn-menu:active { transform: scale(0.9); }
 
-        /* --- ANIMATED IoT RING --- */
-        .dashboard-core { display: flex; justify-content: center; align-items: center; padding: 25px 0 35px; position: relative; }
+        /* --- CIRCLE DASHBOARD & BIG LOGO --- */
+        .dashboard-core { display: flex; justify-content: center; align-items: center; padding: 25px 0 50px; position: relative; }
         
         .ring-outer {
-            width: 250px; height: 250px; border-radius: 50%; display: flex; justify-content: center; align-items: center; 
-            position: relative; background: var(--bg-off); box-shadow: inset 0 0 20px rgba(0,0,0,0.03); border: 1px dashed #CBD5E1;
+            width: 270px; height: 270px; border-radius: 50%; display: flex; justify-content: center; align-items: center; 
+            position: relative; background: transparent; border: 2px dashed #CBD5E1; box-shadow: inset 0 0 30px rgba(0,0,0,0.02);
         }
 
         .ring-glow {
-            position: absolute; top: -3px; left: -3px; right: -3px; bottom: -3px; border-radius: 50%;
+            position: absolute; top: -4px; left: -4px; right: -4px; bottom: -4px; border-radius: 50%;
             background: conic-gradient(from 0deg, transparent 70%, var(--mlu-gold) 100%);
             filter: blur(5px); opacity: 0; transition: opacity 0.5s ease;
         }
         .dashboard-core.is-charging .ring-glow { opacity: 1; animation: spin-glow 1.5s linear infinite; }
         @keyframes spin-glow { 100% { transform: rotate(360deg); } }
 
-        /* LOGO MEKAR MAKSIMAL */
         .ring-inner {
-            width: 235px; height: 235px; border-radius: 50%; background: var(--bg-pure); z-index: 2;
-            display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1px solid var(--border-soft); box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-            position: relative; overflow: hidden; /* Biar nahan logo yg gede */
+            width: 255px; height: 255px; border-radius: 50%; background: var(--bg-pure); z-index: 2;
+            position: relative; border: 1px solid var(--border-soft); box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            /* overflow hidden dihapus biar pill STANDBY bisa tembus batas bawah */
         }
 
+        /* LOGO JUMBO FULL CIRCLE */
         .mlu-logo-container { 
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
-            --batre-level: 0%; z-index: 1; 
+            position: absolute; top: 15px; left: 15px; right: 15px; bottom: 15px; 
+            --batre-level: 0%; border-radius: 50%; overflow: hidden;
         }
         .logo-gray { 
             position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
             object-fit: contain; filter: grayscale(100%) opacity(0.15); 
-            transform: scale(0.95); /* Scale biar ampir nyentuh lingkaran */
         }
         .logo-color { 
             position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
             object-fit: contain; clip-path: inset(calc(100% - var(--batre-level)) 0 0 0); 
             transition: clip-path 1.5s cubic-bezier(0.4, 0, 0.2, 1); 
-            transform: scale(0.95); /* Scale biar ampir nyentuh lingkaran */
         }
 
-        /* TEXT NGAMBANG DI ATAS LOGO */
+        /* PILL STANDBY / CHARGING MENGAMBANG DI BAWAH */
         .battery-text {
-            position: absolute; bottom: 25px; z-index: 5;
-            font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 900; color: var(--text-gray);
-            background: var(--bg-pure); padding: 6px 16px; border-radius: 20px; border: 1px solid var(--border-soft); transition: all 0.3s ease;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            position: absolute; bottom: -18px; left: 50%; transform: translateX(-50%); z-index: 5;
+            font-family: 'Space Grotesk', sans-serif; font-size: 14px; font-weight: 900; color: var(--text-gray);
+            background: var(--bg-pure); padding: 8px 24px; border-radius: 30px; 
+            border: 1px solid var(--border-soft); box-shadow: 0 4px 15px rgba(0,0,0,0.05); 
+            white-space: nowrap; transition: all 0.3s ease; letter-spacing: 1px;
         }
 
-        /* --- CENTERED ACTION BUTTONS --- */
+        /* --- BUTTONS --- */
         .action-center { display: flex; flex-direction: column; gap: 12px; padding: 0 20px; margin-bottom: 30px; }
         .btn-elite { 
             width: 100%; padding: 18px; border-radius: 16px; font-size: 14px; font-weight: 900; 
             font-family: 'Space Grotesk'; display: flex; justify-content: center; align-items: center; gap: 10px; 
             border: none; cursor: pointer; transition: 0.2s; letter-spacing: 1px;
-            background: var(--mlu-black); color: var(--bg-pure); box-shadow: 0 10px 25px rgba(15, 23, 42, 0.2);
         }
         .btn-elite:active { transform: scale(0.97); }
         
+        .btn-main-dark { background: var(--mlu-black); color: var(--bg-pure); box-shadow: 0 10px 25px rgba(11, 17, 32, 0.2); }
+        .btn-restore-light { background: var(--bg-pure); color: var(--text-dark); border: 2px solid var(--border-soft); }
         .btn-danger-mode { background: var(--danger) !important; color: white !important; box-shadow: 0 10px 25px rgba(239,68,68,0.3) !important; border:none !important; }
         .btn-success-mode { background: var(--success) !important; color: white !important; box-shadow: 0 10px 25px rgba(16,185,129,0.3) !important; border:none !important; }
 
         /* --- TECHNICAL STATS ROW --- */
         .stats-row {
-            display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; padding: 20px 16px;
+            display: grid; grid-template-columns: repeat(3, 1fr); padding: 25px 16px;
             border-top: 1px solid var(--border-soft); border-bottom: 1px solid var(--border-soft);
-            background: var(--bg-off); align-items: center; cursor: pointer;
+            background: var(--bg-pure); align-items: center; cursor: pointer;
         }
-        .stat-item { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 100%; }
-        .stat-icon { color: var(--text-gray); font-size: 24px; transition: 0.3s; }
-        .stat-value { font-family: 'JetBrains Mono', monospace; font-size: 24px; font-weight: 800; color: var(--text-dark); }
+        .stat-item { display: flex; flex-direction: column; align-items: center; gap: 10px; width: 100%; }
+        .stat-value { font-family: 'Space Grotesk', sans-serif; font-size: 28px; font-weight: 900; color: var(--text-dark); line-height: 1;}
         .stat-label { font-size: 11px; font-weight: 900; color: var(--text-gray); text-transform: uppercase; letter-spacing: 1px; text-align: center; }
-        
-        .dashboard-core.is-charging ~ .stats-row .slot-active-icon { color: var(--mlu-gold); }
 
         /* --- PASAR MLU CATALOG --- */
         .store-section { padding: 30px 0 0 0; }
@@ -152,26 +144,18 @@
         .sh-title { font-family: 'Space Grotesk'; font-size: 18px; font-weight: 900; color: var(--text-dark); display: flex; align-items: center; gap: 8px;}
         .flash-badge { background: var(--danger); color: white; font-size: 10px; font-family: 'Inter'; font-weight:900; padding: 3px 8px; border-radius: 6px; letter-spacing: 1px; animation: pulseFlash 1s infinite alternate; }
         @keyframes pulseFlash { 0% { opacity: 1; } 100% { opacity: 0.5; } }
-
         .btn-buka-pasar { background: var(--bg-pure); border: 1px solid var(--text-dark); color: var(--text-dark); padding: 8px 14px; border-radius: 20px; font-family: 'Space Grotesk'; font-size: 11px; font-weight: 900; cursor: pointer; display: flex; align-items: center; gap: 6px; }
 
         .store-carousel { display: flex; gap: 15px; overflow-x: auto; padding: 0 20px 25px; scroll-snap-type: x mandatory; scrollbar-width: none; align-items: stretch; width: 100%; -webkit-overflow-scrolling: touch;}
         .store-carousel::-webkit-scrollbar { display: none; }
-        
-        .item-float { 
-            width: 150px; scroll-snap-align: center; flex-shrink: 0; display: flex; flex-direction: column; cursor: pointer; 
-            background: var(--bg-pure); padding: 12px; border-radius: 22px; border: 1px solid var(--border-soft); box-shadow: 0 5px 15px rgba(0,0,0,0.03); transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-        .item-float:active { transform: scale(0.92) translateY(4px); box-shadow: 0 4px 10px rgba(10,25,49,0.1); }
-        .item-img-bg { width: 100%; height: 130px; background: var(--bg-off); border-radius: 14px; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; overflow: hidden; box-shadow: inset 0 0 10px rgba(0,0,0,0.05);}
+        .item-float { width: 150px; scroll-snap-align: center; flex-shrink: 0; display: flex; flex-direction: column; cursor: pointer; background: var(--bg-pure); padding: 12px; border-radius: 22px; border: 1px solid var(--border-soft); box-shadow: 0 5px 15px rgba(0,0,0,0.03); transition: all 0.3s ease;}
+        .item-img-bg { width: 100%; height: 130px; background: var(--bg-off); border-radius: 14px; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; overflow: hidden; }
         .item-img-bg img { width: 100%; height: 100%; object-fit: cover; }
-        .item-name { font-family: 'Inter'; font-size: 13px; font-weight: 900; color: var(--text-dark); margin-bottom: 4px; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;}
+        .item-name { font-family: 'Inter'; font-size: 13px; font-weight: 900; color: var(--text-dark); margin-bottom: 4px; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; overflow: hidden;}
         .p-price-promo { font-family: 'Space Grotesk'; font-size: 15px; font-weight: 900; color: var(--danger); margin-bottom: 6px; display: block;}
         .btn-beli { width: 100%; padding: 12px; background: var(--bg-off); color: var(--text-dark); border: none; border-radius: 12px; font-family: 'Space Grotesk'; font-size: 11px; font-weight: 900; cursor: pointer; margin-top: auto; }
-
         .stock-badge { font-size: 9px; font-weight: 900; padding: 4px 6px; border-radius: 6px; background: #EFF6FF; color: var(--electric-blue); display: inline-block; margin-bottom: 6px; width: fit-content; border: 1px solid #BFDBFE; }
         .stock-badge.empty { background: #FEF2F2; color: var(--danger); border-color: #FCA5A5; }
-        .seller-badge { font-size: 9px; color: var(--text-gray); font-weight: 900; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 10px;}
 
         /* MODALS & OVERLAYS */
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 90000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(5px); opacity: 0; transition: opacity 0.3s; padding: 20px;}
@@ -221,14 +205,10 @@
         .btn-send { background: var(--mlu-black); color: var(--bg-pure); border: none; border-radius: 10px; width: 35px; height: 35px; cursor: pointer; font-size: 14px; }
         .wa-shortcut { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px; background: var(--success); color: white; font-family: 'Space Grotesk'; font-size: 12px; font-weight: 900; text-decoration: none; transition: 0.2s; letter-spacing: 1px; }
 
-        /* LOADING & PWA & RESTORE */
+        /* LOADING & RESTORE */
         #loader { position: fixed; inset: 0; background: var(--bg-pure); z-index: 999999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: 0.3s;}
         #actionLoader { position:fixed; inset:0; background:rgba(255,255,255,0.8); backdrop-filter:blur(5px); z-index:999999; display:none; flex-direction:column; align-items:center; justify-content:center; opacity:0; transition:0.3s;}
         .spinner { width: 40px; height: 40px; border: 4px solid var(--border-soft); border-top: 4px solid var(--text-dark); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 15px; }
-
-        .pwa-prompt { position: fixed; bottom: -150px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 350px; background: rgba(15,23,42,0.95); backdrop-filter: blur(10px); padding: 15px 20px; border-radius: 20px; box-shadow: 0 15px 40px rgba(0,0,0,0.3); display: flex; justify-content: space-between; align-items: center; transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 99999; border: 1px solid rgba(255,255,255,0.1); }
-        .pwa-prompt.show { bottom: 25px; }
-        .pwa-btn { background: var(--electric-blue); color: white; border: none; padding: 10px 18px; border-radius: 12px; font-family: 'Space Grotesk'; font-weight: 900; font-size: 11px; cursor: pointer; box-shadow: 0 5px 15px rgba(45,99,237,0.3); }
 
         .restore-overlay { display:none; position:fixed; inset:0; background:var(--bg-pure); z-index:9999999; flex-direction:column; align-items:center; justify-content:center; padding:20px; text-align:center; background-image: radial-gradient(circle at top left, var(--mlu-gold-glow) 0%, transparent 60%); }
         .restore-inp { width:100%; max-width:320px; padding:18px; border-radius:16px; border:2px solid var(--mlu-gold); background:var(--bg-off); color:var(--text-dark); font-family:'Space Grotesk'; font-size:24px; font-weight:900; text-align:center; text-transform:uppercase; margin-bottom:20px; outline:none; box-shadow:0 10px 30px rgba(220,163,17,0.1); letter-spacing:2px; }
@@ -276,8 +256,9 @@
         
         <input type="text" id="inpRestorePlat" class="restore-inp" placeholder="Cth: B 1234 XYZ" autocomplete="off">
         
-        <button class="btn-elite" style="width:100%; max-width:320px; margin-bottom:15px; background:var(--mlu-black); color:var(--bg-pure);" onclick="window.restoreSessionProcess()">PULIHKAN SESI</button>
-        <button class="btn-elite" style="width:100%; max-width:320px; background:var(--bg-pure); border:1px solid #CBD5E1; color:var(--text-dark); box-shadow:none;" onclick="document.getElementById('restoreOverlay').style.display='none'">KEMBALI KE PORTAL AWAL</button>
+        <!-- PANGGILAN FUNGSI JS GLOBAL YANG SUDAH DIBENERIN -->
+        <button class="btn-elite btn-main-dark" style="max-width:320px; margin-bottom:15px;" onclick="window.restoreSessionProcess()">PULIHKAN SESI</button>
+        <button class="btn-elite btn-restore-light" style="max-width:320px;" onclick="document.getElementById('restoreOverlay').style.display='none'">KEMBALI KE PORTAL AWAL</button>
     </div>
 
     <!-- ELITE MODAL (CONFIRMATIONS) -->
@@ -296,9 +277,9 @@
         <header class="header-elite">
             <div class="header-left">
                 <h1 class="h-title" ondblclick="window.triggerAdminPrompt()">
-                    KELAPA GADING <div class="status-dot"></div>
+                    FC KELAPA GADING <div class="status-dot"></div>
                 </h1>
-                <div class="h-subtitle">Rumah Maka Lintas Utara</div>
+                <div class="h-subtitle">RUMAH MAKA LINTAS UTARA</div>
             </div>
             <div class="header-right">
                 <button class="btn-menu" onclick="window.resetApp()" title="Refresh Sistem"><i class="fas fa-sync-alt"></i></button>
@@ -309,40 +290,43 @@
         <main class="dashboard-core" id="dashboardCore">
             <div class="ring-outer">
                 <div class="ring-glow"></div>
+                
                 <div class="ring-inner">
-                    <!-- MLU LOGO MASTER BUKAN MAIN GEDE NYA -->
+                    <!-- MLU LOGO JUMBO (UKURAN MEKAR FULL CIRCLE) -->
                     <div class="mlu-logo-container" id="logoContainer">
                         <img src="logomlumaster.png" class="logo-gray" alt="Logo Empty">
                         <img src="logomlumaster.png" class="logo-color" alt="Logo Full">
                     </div>
-                    <div class="battery-text" id="batteryText">STANDBY</div>
                 </div>
+                
+                <!-- PILL STANDBY MENGAMBANG DI BAWAH CIRCLE -->
+                <div class="battery-text" id="batteryText">STANDBY</div>
             </div>
         </main>
 
         <!-- Action Buttons (TENGAH) -->
         <div class="action-center" id="actionWrapper">
-            <button class="btn-elite" id="btnMainAction">
+            <button class="btn-elite btn-main-dark" id="btnMainAction">
                 <i class="fas fa-ticket-alt"></i> DAFTAR ANTREAN
             </button>
-            <button class="btn-elite" id="btnCancelAction" style="display:none;">
-                <i class="fas fa-times-circle"></i> BATALKAN ANTREAN
+            <button class="btn-elite btn-restore-light" id="btnCancelAction" style="display:none;">
+                <i class="fas fa-history"></i> PULIHKAN SESI
             </button>
         </div>
 
         <!-- Technical Stats Row -->
         <div class="stats-row" id="statsWrapper">
             <div class="stat-item" onclick="window.openSlotList()">
-                <div class="stat-label" style="margin-bottom:5px;">TERISI</div>
-                <div class="stat-value" id="valSlot">0<span style="font-size: 14px; color: var(--text-gray);">/3</span></div>
+                <div class="stat-label">TERISI</div>
+                <div class="stat-value" id="valSlot">0<span style="font-size: 16px; color: var(--text-gray);">/3</span></div>
             </div>
             <div class="stat-item" onclick="window.openQueueList()" style="border-left:1px solid var(--border-soft); border-right:1px solid var(--border-soft);">
-                <div class="stat-label" style="margin-bottom:5px;">ANTREAN</div>
+                <div class="stat-label">ANTREAN</div>
                 <div class="stat-value" id="valQueue">0</div>
             </div>
             <div class="stat-item">
-                <div class="stat-label" style="margin-bottom:5px;">SLOT ANDA</div>
-                <div class="stat-value" id="displaySlot" style="color: var(--text-gray);">-</div>
+                <div class="stat-label">SLOT ANDA</div>
+                <div class="stat-value" id="displaySlot" style="color: var(--mlu-gold);">-</div>
             </div>
         </div>
 
@@ -444,86 +428,10 @@
             <input type="text" id="chatInput" class="chat-input" placeholder="Ketik laporan Anda..." autocomplete="off">
             <button class="btn-send" onclick="window.sendChatMsg()"><i class="fas fa-paper-plane"></i></button>
         </div>
-
-        <a href="https://wa.me/6285691536957?text=Halo%20Admin%20MLU,%20saya%20ada%20kendala%20di%20Stasiun%20Gading..." target="_blank" class="wa-shortcut">
-            <i class="fab fa-whatsapp" style="font-size:18px;"></i> HUBUNGI WA ADMIN (DARURAT)
-        </a>
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, doc, onSnapshot, runTransaction, collection, getDoc, updateDoc, getDocs, query, orderBy, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-        // === 1. KONFIGURASI ===
-        const fbQueueConfig = { apiKey: "AIzaSyB666i9lYWIpxOdkwpoX9EvFvHLmHczeq8", authDomain: "fcgadingnew22.firebaseapp.com", projectId: "fcgadingnew22" };
-        const appQueue = initializeApp(fbQueueConfig, "AppQueue");
-        const dbQueue = getFirestore(appQueue);
-        const mainRef = doc(dbQueue, "antrian", "utama");
-
-        const fbStoreConfig = { apiKey: "AIzaSyAk3G5aQUBVe_g7_peVu1F6xllP_RejGq0", authDomain: "rtomaka-e67b5.firebaseapp.com", projectId: "rtomaka-e67b5" };
-        const appStore = initializeApp(fbStoreConfig, "AppStore");
-        const dbStore = getFirestore(appStore);
-
-        // === 2. VARIABEL GLOBAL & ANIMASI LOGO ===
-        const STATION_LAT = -6.171583; const STATION_LNG = 106.899844; const MAX_DIST_KM = 0.2; 
-        const TOTAL_SLOTS = 3;
-        
-        let localSlots = [null, null, null]; 
-        let localQueue = []; 
-        let myPlat = ""; 
-        let isSuperAdmin = localStorage.getItem('sa_sess');
-        
-        window.allStoreItems = []; 
-        window.currentCheckoutItem = null;
-        
-        let simulatedBattery = null;
-        let chargeSimInterval = null;
-
-        let uData = null;
-        let myRole = "GUEST";
-        let isPengurus = false;
-        let myName = "Guest";
-        let myUserId = null;
-
-        try { 
-            const raw = localStorage.getItem('maka_user'); 
-            if(raw) { 
-                uData = JSON.parse(raw); 
-                myRole = uData.role ? uData.role.toUpperCase() : "MEMBER";
-                isPengurus = (myRole !== 'KELUARGA MLU' && myRole !== 'GUEST');
-                myPlat = uData.plat || "";
-                myName = uData.namaKtp || uData.namaWa || uData.nama || "Member";
-                myUserId = uData.id || myPlat.replace(/\s+/g, '').toUpperCase();
-            } 
-        } catch(e){}
-
-        if (!myPlat) { myPlat = localStorage.getItem('myPlat') || ""; }
-
-        const cleanStr = (s) => s ? s.replace(/[^A-Z0-9]/gi, '').toUpperCase() : '';
-        const cleanName = (n) => n ? n.replace(/👑/g, '').trim() : '';
-
-        window.formatK = function(num) { 
-            if(num >= 1000000) return (num/1000000).toFixed(1) + 'jt'; 
-            if(num >= 1000) return (num/1000).toFixed(0) + 'rb'; 
-            return num; 
-        }
-
-        // --- SISTEM LOGGER SUPER DETAIL ---
-        async function catatLogSuperDetail(action, nama, plat, detailStr) {
-            try {
-                await addDoc(collection(dbQueue, "mlu_super_logs"), {
-                    waktu: new Date().toLocaleString('id-ID'),
-                    timestamp: Date.now(),
-                    nama: nama || "SYSTEM",
-                    plat: plat || "-",
-                    action: action,
-                    detail: detailStr,
-                    sumber: "ANTRIAN_MOBILE"
-                });
-            } catch(e) {}
-        }
-
-        // --- SISTEM UI MODAL CUSTOM ---
+    <!-- SCRIPT NON-FIREBASE (FUNGSI GLOBAL UI) - DITARUH DI LUAR MODULE BIAR TOMBOL NGGAK MATI -->
+    <script>
         window.showActionLoader = () => { document.getElementById('actionLoader').style.display = 'flex'; setTimeout(() => document.getElementById('actionLoader').style.opacity = '1', 10); };
         window.hideActionLoader = () => { document.getElementById('actionLoader').style.opacity = '0'; setTimeout(() => document.getElementById('actionLoader').style.display = 'none', 300); };
 
@@ -534,7 +442,6 @@
             document.getElementById('emIcon').innerHTML = '<i class="fas fa-info-circle"></i>';
             document.getElementById('emIcon').style.background = 'rgba(212,175,55,0.1)';
             document.getElementById('emIcon').style.color = 'var(--mlu-gold)';
-            document.getElementById('emTitle').style.color = 'var(--text-dark)';
 
             document.getElementById('emBtns').innerHTML = `<button class="btn-em btn-em-confirm" onclick="window.closeEliteModal(); if(window.tempAlertCallback) window.tempAlertCallback();" style="width:100%;">SAYA MENGERTI</button>`;
             window.tempAlertCallback = callback;
@@ -544,7 +451,6 @@
 
         window.showEliteConfirm = (title, msg, type = 'normal', callback) => {
             document.getElementById('emTitle').innerText = title;
-            document.getElementById('emTitle').style.color = 'var(--text-dark)';
             document.getElementById('emMsg').innerHTML = msg;
             
             let iconHtml = '<i class="fas fa-question-circle"></i>';
@@ -588,13 +494,11 @@
             m.classList.remove('show'); setTimeout(() => m.style.display = 'none', 300);
         }
 
-        // FUNGSI MENU ADMIN TERSEMBUNYI
         window.triggerAdminPrompt = () => {
             const pwd = prompt("Masukkan Password:");
             if (pwd === "2505") { window.location.href = "admin.html"; } else if (pwd !== null && pwd !== "") { alert("Password Salah!"); }
         };
 
-        // FUNGSI RESET SYSTEM 
         window.resetApp = () => {
             window.showEliteConfirm("RESET SISTEM", "Aplikasi nyangkut? Tekan YA untuk refresh dan sinkronisasi data.", "danger", () => {
                 localStorage.removeItem('myPlat'); 
@@ -602,27 +506,107 @@
             });
         }
 
-        setTimeout(() => { document.getElementById('loader').style.opacity = '0'; setTimeout(()=> document.getElementById('loader').style.display = 'none', 300); }, 800);
-
-        // --- SISTEM PWA INSTALL PROMPT ---
-        let deferredPrompt;
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault(); deferredPrompt = e;
-            setTimeout(() => { document.getElementById('pwaPrompt').classList.add('show'); }, 3000);
-        });
-        document.getElementById('btnInstallPwa').addEventListener('click', async () => {
-            document.getElementById('pwaPrompt').classList.remove('show');
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
-                if (outcome === 'accepted') deferredPrompt = null;
-            }
-        });
-
-        // === FUNGSI PULIHKAN SESI BARU ===
         window.bukaRestoreSesi = () => {
             document.getElementById('restoreOverlay').style.display = 'flex';
         };
+
+        window.openFullStore = () => {
+            document.getElementById('fullStoreView').style.display = 'flex';
+        }
+        
+        window.closeFullStore = () => {
+            document.getElementById('fullStoreView').style.display = 'none';
+            document.getElementById('inpSearchStore').value = '';
+        }
+
+        window.toggleChat = () => {
+            const w = document.getElementById('chatWidget');
+            w.classList.toggle('show');
+        }
+
+        window.changePaymentNote = () => {
+            const method = document.getElementById('coMethod').value;
+            const warning = document.getElementById('coWarning');
+            if(method === 'QRIS') {
+                warning.style.display = 'block';
+                warning.innerHTML = `<b>KHUSUS TRANSFER QRIS:</b><br>Dana ditampung di Rekber Kas MLU (Aman). Penjual otomatis dipotong 5% untuk Kas.`;
+            } else {
+                warning.style.display = 'block';
+                warning.innerHTML = `<b>BAYAR TUNAI / COD:</b><br>Pembayaran langsung ke Penjual saat bertemu. Tidak ada potongan Kas.`;
+            }
+        }
+    </script>
+
+    <!-- REKAYASA FIREBASE & LOGIC (HANYA FUNGSI DATABASE) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, doc, onSnapshot, runTransaction, collection, getDoc, updateDoc, getDocs, query, orderBy, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const fbQueueConfig = { apiKey: "AIzaSyB666i9lYWIpxOdkwpoX9EvFvHLmHczeq8", authDomain: "fcgadingnew22.firebaseapp.com", projectId: "fcgadingnew22" };
+        const appQueue = initializeApp(fbQueueConfig, "AppQueue");
+        const dbQueue = getFirestore(appQueue);
+        const mainRef = doc(dbQueue, "antrian", "utama");
+
+        const fbStoreConfig = { apiKey: "AIzaSyAk3G5aQUBVe_g7_peVu1F6xllP_RejGq0", authDomain: "rtomaka-e67b5.firebaseapp.com", projectId: "rtomaka-e67b5" };
+        const appStore = initializeApp(fbStoreConfig, "AppStore");
+        const dbStore = getFirestore(appStore);
+
+        const STATION_LAT = -6.171583; const STATION_LNG = 106.899844; const MAX_DIST_KM = 0.2; 
+        const TOTAL_SLOTS = 3;
+        
+        let localSlots = [null, null, null]; 
+        let localQueue = []; 
+        let myPlat = ""; 
+        let isSuperAdmin = localStorage.getItem('sa_sess');
+        
+        window.allStoreItems = []; 
+        window.currentCheckoutItem = null;
+        
+        let simulatedBattery = null;
+        let chargeSimInterval = null;
+
+        let uData = null;
+        let myRole = "GUEST";
+        let isPengurus = false;
+        let myName = "Guest";
+        let myUserId = null;
+
+        try { 
+            const raw = localStorage.getItem('maka_user'); 
+            if(raw) { 
+                uData = JSON.parse(raw); 
+                myRole = uData.role ? uData.role.toUpperCase() : "MEMBER";
+                isPengurus = (myRole !== 'KELUARGA MLU' && myRole !== 'GUEST');
+                myPlat = uData.plat || "";
+                myName = uData.namaKtp || uData.namaWa || uData.nama || "Member";
+                myUserId = uData.id || myPlat.replace(/\s+/g, '').toUpperCase();
+            } 
+        } catch(e){}
+
+        if (!myPlat) { myPlat = localStorage.getItem('myPlat') || ""; }
+
+        const cleanStr = (s) => s ? s.replace(/[^A-Z0-9]/gi, '').toUpperCase() : '';
+        const cleanName = (n) => n ? n.replace(/👑/g, '').trim() : '';
+
+        window.formatK = function(num) { 
+            if(num >= 1000000) return (num/1000000).toFixed(1) + 'jt'; 
+            if(num >= 1000) return (num/1000).toFixed(0) + 'rb'; 
+            return num; 
+        }
+
+        async function catatLogSuperDetail(action, nama, plat, detailStr) {
+            try {
+                await addDoc(collection(dbQueue, "mlu_super_logs"), {
+                    waktu: new Date().toLocaleString('id-ID'),
+                    timestamp: Date.now(),
+                    nama: nama || "SYSTEM",
+                    plat: plat || "-",
+                    action: action,
+                    detail: detailStr,
+                    sumber: "ANTRIAN_MOBILE"
+                });
+            } catch(e) { console.error("Gagal log aktivitas:", e); }
+        }
 
         window.restoreSessionProcess = async () => {
             const inp = document.getElementById('inpRestorePlat');
@@ -653,7 +637,6 @@
             }
         };
 
-        // === 3. LOGIKA ANTRIAN UTAMA ===
         onSnapshot(mainRef, (snap) => {
             if (!snap.exists()) return; 
             const d = snap.data(); 
@@ -661,7 +644,6 @@
             localQueue = d.waitingQueue || []; 
             updateMainUI();
             
-            // FIX BUG LOGOUT OTOMATIS
             if (myPlat && !isSuperAdmin) {
                 const currentClean = cleanStr(myPlat);
                 const inQueue = localQueue.some(q => cleanStr(q.plat) === currentClean);
@@ -678,18 +660,15 @@
             let usedCount = localSlots.filter(s => s !== null).length;
             let emptySlots = TOTAL_SLOTS - usedCount;
 
-            document.getElementById('valSlot').innerHTML = `${usedCount}<span style="font-size: 14px; color: var(--text-gray);">/${TOTAL_SLOTS}</span>`;
+            document.getElementById('valSlot').innerHTML = `${usedCount}<span style="font-size: 16px; color: var(--text-gray);">/${TOTAL_SLOTS}</span>`;
             document.getElementById('valQueue').innerText = localQueue.length;
 
             const btnMain = document.getElementById('btnMainAction');
             const btnCancel = document.getElementById('btnCancelAction');
             
-            btnMain.className = 'btn-elite'; 
+            btnMain.className = 'btn-elite btn-main-dark'; 
             btnMain.style.display = 'flex';
             btnCancel.style.display = 'none';
-            btnMain.style.background = '';
-            btnMain.style.border = '';
-            btnMain.style.color = '';
 
             let myQIndex = localQueue.findIndex(q => cleanStr(q.plat) === cleanStr(myPlat));
             let mySlotIndex = localSlots.findIndex(s => s && cleanStr(s.plat) === cleanStr(myPlat));
@@ -697,11 +676,10 @@
             const batteryText = document.getElementById('batteryText');
 
             if (mySlotIndex > -1) {
-                // POSISI SEDANG CHARGING (DI DALAM SLOT)
+                // CHARGING MODE
                 let mySlotData = localSlots[mySlotIndex];
                 let dbBatre = parseInt(mySlotData.batreSisa || mySlotData.batre || mySlotData.battery || 0);
                 
-                // Animasi nyicil naik biar keren
                 if (simulatedBattery === null || simulatedBattery < dbBatre) {
                     simulatedBattery = dbBatre;
                 }
@@ -712,16 +690,15 @@
                 document.getElementById('dashboardCore').classList.add('is-charging');
                 document.getElementById('logoContainer').style.setProperty('--batre-level', simulatedBattery + '%');
                 
-                batteryText.innerHTML = `<i class="fas fa-bolt fa-fade"></i> CHARGING...`;
+                batteryText.innerHTML = `<i class="fas fa-bolt fa-fade" style="color:var(--mlu-gold); margin-right:4px;"></i> CHARGING...`;
                 batteryText.style.color = "var(--mlu-gold)";
                 batteryText.style.borderColor = "var(--mlu-gold)";
-                batteryText.style.background = "var(--bg-pure)";
+                batteryText.style.boxShadow = "0 5px 15px rgba(220,163,17,0.2)";
                 
                 btnMain.innerHTML = `<i class="fas fa-plug"></i> SELESAI CHARGING`;
-                btnMain.classList.add('btn-success-mode');
+                btnMain.className = 'btn-elite btn-success-mode';
                 btnMain.onclick = function() { window.stopCharging(mySlotIndex); };
 
-                // ANIMASI BATERAI NGUNCI TIAP 3 DETIK (NAIK 1%)
                 if (!chargeSimInterval) {
                     chargeSimInterval = setInterval(() => {
                         if (simulatedBattery < 95) {
@@ -734,7 +711,7 @@
                 }
 
             } else {
-                // TIDAK DI DALAM SLOT (RESET ANIMASI LOGO & WARNA)
+                // STANDBY MODE
                 simulatedBattery = null;
                 if (chargeSimInterval) { clearInterval(chargeSimInterval); chargeSimInterval = null; }
 
@@ -744,13 +721,13 @@
                 batteryText.innerText = "STANDBY";
                 batteryText.style.color = "var(--text-gray)";
                 batteryText.style.borderColor = "var(--border-soft)";
-                batteryText.style.background = "var(--bg-off)";
+                batteryText.style.boxShadow = "0 4px 15px rgba(0,0,0,0.05)";
                 
                 document.getElementById('displaySlot').innerText = "-";
                 document.getElementById('displaySlot').style.color = "var(--text-gray)";
 
                 if (myQIndex > -1) {
-                    // Berada di dalam Antrean (Belum Masuk Slot)
+                    // ANTREAN MODE
                     btnCancel.className = 'btn-elite btn-danger-mode';
                     btnCancel.style.display = 'flex'; 
                     btnCancel.innerHTML = `<i class="fas fa-times-circle"></i> BATALKAN ANTREAN`;
@@ -758,26 +735,21 @@
 
                     if (myQIndex === 0 && emptySlots > 0) {
                         btnMain.innerHTML = `<i class="fas fa-bolt"></i> MASUK SLOT KOSONG`;
-                        btnMain.classList.add('btn-success-mode');
+                        btnMain.className = 'btn-elite btn-success-mode';
                         btnMain.onclick = function() { window.openSlotSelection(); };
                     } else {
                         btnMain.innerHTML = `<i class="fas fa-hourglass-half"></i> MENUNGGU GILIRAN (#${myQIndex+1})`;
+                        btnMain.className = 'btn-elite';
                         btnMain.style.background = "linear-gradient(135deg, #F59E0B 0%, #B45309 100%)";
-                        btnMain.style.color = "white";
-                        btnMain.onclick = function() { window.showEliteAlert("INFO ANTREAN", `Silakan tunggu giliran Anda.\n\nTombol <b>MASUK SLOT</b> akan otomatis muncul saat Anda berada di <b>Urutan #1</b> dan ada <b>Slot Kosong</b>.`); };
+                        btnMain.onclick = function() { window.showEliteAlert("INFO ANTREAN", `Silakan tunggu giliran Anda.\n\nTombol <b>MASUK SLOT</b> otomatis muncul saat Anda di <b>Urutan #1</b>.`); };
                     }
                 } else {
-                    // Belum Daftar (Posisi Murni Kosong)
+                    // GUEST MODE
                     btnMain.innerHTML = `<i class="fas fa-ticket-alt"></i> DAFTAR ANTREAN`;
                     btnMain.onclick = function() { window.handleDaftar(); };
                     
-                    // TOMBOL PULIHKAN SESI YG FIX WORK
                     btnCancel.style.display = 'flex';
-                    btnCancel.className = 'btn-elite';
-                    btnCancel.style.background = 'transparent';
-                    btnCancel.style.border = '2px solid var(--border-soft)';
-                    btnCancel.style.color = 'var(--text-gray)';
-                    btnCancel.style.boxShadow = 'none';
+                    btnCancel.className = 'btn-elite btn-restore-light';
                     btnCancel.innerHTML = `<i class="fas fa-history"></i> PULIHKAN SESI`;
                     btnCancel.onclick = function() { window.bukaRestoreSesi(); };
                 }
@@ -802,7 +774,7 @@
                 <div class="inp-group"><label class="inp-label">Nama Pilot</label><input type="text" id="inpNama" class="inp-text" value="${defNama}" placeholder="Ketik Nama" ${uData ? 'readonly' : ''}></div>
                 <div class="inp-group"><label class="inp-label">Plat Nomor</label><input type="text" id="inpPlat" class="inp-text" value="${defPlat}" placeholder="B 1234 XYZ" ${uData ? 'readonly' : ''}></div>
                 <div class="inp-group"><label class="inp-label">Sisa Baterai (%)</label><input type="number" id="inpBatre" class="inp-text" placeholder="Contoh: 15" min="0" max="100"></div>
-                <button class="btn-elite" style="margin-top:20px; background:var(--navy-main); color:#FFF;" onclick="window.submitData()"><i class="fas fa-check"></i> DAFTAR SEKARANG</button>
+                <button class="btn-elite btn-main-dark" style="margin-top:20px;" onclick="window.submitData()"><i class="fas fa-check"></i> DAFTAR SEKARANG</button>
             `;
             window.showModal("<i class='fas fa-id-card'></i> REGISTRASI ANTREAN", html);
         }
@@ -832,13 +804,13 @@
                     t.update(mainRef, { waitingQueue: q, lastTicket: (d.lastTicket || 0) + 1 }); 
                 });
 
-                catatLogSuperDetail("DAFTAR_ANTREAN", n, p, `Berhasil mengambil nomor antrean dengan baterai ${b}%`);
+                catatLogSuperDetail("DAFTAR_ANTREAN", n, p, `Berhasil mengambil antrean dengan baterai ${b}%`);
                 localStorage.setItem('myPlat', p); myPlat = p; window.closeModal('mainModal'); 
                 
             } catch(e) { 
                 if(e.message === "ALREADY_REGISTERED") {
                     localStorage.setItem('myPlat', p); myPlat = p; window.closeModal('mainModal');
-                    window.showEliteAlert("INFO", "Kendaraan ini sudah terdaftar dalam sistem. Sesi Anda dipulihkan.");
+                    window.showEliteAlert("INFO", "Kendaraan sudah terdaftar. Sesi dipulihkan.");
                 } else {
                     window.showEliteAlert("ERROR", e.message || e); 
                 }
@@ -846,7 +818,7 @@
         };
 
         window.cancelQueue = () => { 
-            window.showEliteConfirm("BATALKAN ANTREAN", "Apakah Anda yakin ingin membatalkan antrean dan keluar dari sistem?", "danger", () => {
+            window.showEliteConfirm("BATALKAN ANTREAN", "Yakin batalkan antrean?", "danger", () => {
                 window.showActionLoader();
                 let myObj = null;
                 runTransaction(dbQueue, async(t) => { 
@@ -858,14 +830,14 @@
                     
                     t.update(mainRef, { waitingQueue: newQ }); 
                 }).then(() => { 
-                    if(myObj) catatLogSuperDetail("BATAL_ANTREAN", myObj.userName, myObj.plat, "Membatalkan antrean secara mandiri");
+                    if(myObj) catatLogSuperDetail("BATAL_ANTREAN", myObj.userName, myObj.plat, "Batal antrean mandiri");
                     localStorage.removeItem('myPlat'); myPlat = ""; window.hideActionLoader(); 
                 }).catch(e => { window.hideActionLoader(); window.showEliteAlert("GAGAL", e.message || e); }); 
             });
         };
 
         window.stopCharging = (idx) => { 
-            window.showEliteConfirm("SELESAI CHARGING", "Apakah Anda yakin sudah selesai dan ingin mengosongkan slot ini?", "normal", () => {
+            window.showEliteConfirm("SELESAI CHARGING", "Selesai dan kosongkan slot?", "normal", () => {
                 window.showActionLoader();
                 let myObj = null;
                 runTransaction(dbQueue, async(t)=>{ 
@@ -875,7 +847,7 @@
                     slots[idx] = null; 
                     t.update(mainRef, {chargingSlots: slots}); 
                 }).then(() => { 
-                    if(myObj) catatLogSuperDetail("SELESAI_CHARGING", myObj.userName, myObj.plat, `Menyelesaikan charging di Slot 0${idx+1} dan mengosongkan slot`);
+                    if(myObj) catatLogSuperDetail("SELESAI_CHARGING", myObj.userName, myObj.plat, `Selesai charging Slot 0${idx+1}`);
                     localStorage.removeItem('myPlat'); myPlat = ""; window.hideActionLoader(); 
                 }).catch(e=>{ window.hideActionLoader(); window.showEliteAlert("GAGAL", e.message || e); }); 
             });
@@ -884,13 +856,13 @@
         window.openSlotSelection = () => {
             let html = '<div style="font-size:12px; color:var(--text-gray); font-weight:900; margin-bottom:15px;">Pilih slot kosong untuk mulai charging:</div>';
             localSlots.forEach((s, i) => {
-                if(!s) { html += `<div class="list-item" style="cursor:pointer; border-color:var(--success);" onclick="window.pilihSlotEks(${i})"><div><div class="li-plat" style="color:var(--success);">SLOT 0${i+1}</div><div class="li-name">TERSEDIA</div></div><i class="fas fa-chevron-right" style="color:var(--success);"></i></div>`; }
+                if(!s) { html += `<div class="list-item" style="cursor:pointer; border-color:var(--success);" onclick="window.pilihSlotEks(${i})"><div><div class="li-plat" style="color:var(--success);">SLOT 0${i+1}</div><div class="li-name" style="color:var(--text-gray);">TERSEDIA</div></div><i class="fas fa-chevron-right" style="color:var(--success);"></i></div>`; }
             });
             window.showModal("<i class='fas fa-plug'></i> PILIH SLOT", html);
         }
 
         window.pilihSlotEks = (i) => {
-            window.showEliteConfirm(`Anda yakin ingin memasuki SLOT 0${i+1}?`, "Silakan klik Lanjutkan untuk masuk ke slot.", "normal", () => {
+            window.showEliteConfirm(`Anda yakin masuk SLOT 0${i+1}?`, "Klik LANJUTKAN untuk mengisi slot.", "normal", () => {
                 window.showActionLoader();
                 let myObj = null;
                 runTransaction(dbQueue, async(t)=>{ 
@@ -898,7 +870,7 @@
                     if(d.data().chargingSlots[i]) throw new Error("SLOT SUDAH TERISI!"); 
                     let q = [...d.data().waitingQueue]; 
                     const idx = q.findIndex(x => cleanStr(x.plat) === cleanStr(myPlat)); 
-                    if(idx === -1) throw new Error("DATA ANDA TIDAK DITEMUKAN DI ANTREAN!"); 
+                    if(idx === -1) throw new Error("DATA TIDAK DITEMUKAN DI ANTREAN!"); 
                     
                     const oldUser = q[idx];
                     q.splice(idx, 1); 
@@ -909,14 +881,14 @@
                     
                     t.update(mainRef, { chargingSlots: newSlots, waitingQueue: q }); 
                 }).then(() => { 
-                    if(myObj) catatLogSuperDetail("MASUK_SLOT", myObj.userName, myObj.plat, `Pindah dari Antrean ke Slot 0${i+1}`);
+                    if(myObj) catatLogSuperDetail("MASUK_SLOT", myObj.userName, myObj.plat, `Masuk Slot 0${i+1}`);
                     window.hideActionLoader(); window.closeModal('mainModal'); 
                 }).catch(e => { window.hideActionLoader(); window.showEliteAlert("INFO", e.message || e); }); 
             });
         }
 
         window.prosesKudeta = (idx) => {
-            window.showEliteConfirm("AMBIL ALIH SLOT", "Anda yakin ingin mengambil alih slot ini? Data pengguna sebelumnya akan dihapus dari sistem.", "danger", () => {
+            window.showEliteConfirm("AMBIL ALIH SLOT", "Ambil alih paksa dan hapus user sebelumnya?", "danger", () => {
                 window.showActionLoader();
                 let myObj = null;
                 runTransaction(dbQueue, async(t)=>{ 
@@ -925,7 +897,7 @@
                     let slots = [...(d.data().chargingSlots || [null, null, null])];
                     
                     const myIndex = q.findIndex(x => cleanStr(x.plat) === cleanStr(myPlat)); 
-                    if(myIndex !== 0 && myIndex !== 1) throw new Error("Hanya Antrian urutan 1 dan 2 yang bisa kudeta!");
+                    if(myIndex !== 0 && myIndex !== 1) throw new Error("Hanya Antrean #1 & #2 yang bisa kudeta!");
                     
                     const oldUser = q[myIndex];
                     q.splice(myIndex, 1); 
@@ -934,11 +906,11 @@
                     
                     t.update(mainRef, { chargingSlots: slots, waitingQueue: q }); 
                 }).then(() => { 
-                    if(myObj) catatLogSuperDetail("KUDETA", myObj.userName, myObj.plat, `Mengambil alih secara paksa Slot 0${idx+1}`);
+                    if(myObj) catatLogSuperDetail("KUDETA", myObj.userName, myObj.plat, `Kudeta Slot 0${idx+1}`);
                     window.hideActionLoader();
                     window.closeModal('mainModal'); 
-                    window.showEliteAlert("BERHASIL", "Slot berhasil diambil alih!");
-                }).catch(e => { window.hideActionLoader(); window.showEliteAlert("GAGAL AMBIL ALIH", e.message || e); }); 
+                    window.showEliteAlert("BERHASIL", "Slot diambil alih!");
+                }).catch(e => { window.hideActionLoader(); window.showEliteAlert("GAGAL KUDETA", e.message || e); }); 
             });
         }
 
@@ -948,30 +920,11 @@
                 if(s) {
                     let durMin = Math.floor((Date.now() - (s.startTime || Date.now())) / 60000);
                     let batVal = s.batreSisa || s.batre || s.battery || "-";
-                    
-                    let kudetaHtml = '';
-                    if ((myQIndex === 0 || myQIndex === 1) && cleanStr(s.plat) !== cleanStr(myPlat)) {
-                        kudetaHtml = `<button class="btn-kudeta" onclick="window.prosesKudeta(${i})"><i class="fas fa-hand-rock"></i> KUDETA (HAPUS USER)</button>`;
-                    }
-
-                    html += `<div class="list-item" style="flex-wrap: wrap;">
-                                <div style="display:flex; justify-content:space-between; width:100%; align-items:center;">
-                                    <div><div class="li-plat">${s.plat}</div><div class="li-name">${cleanName(s.userName)} • ${durMin} MNT</div></div>
-                                    <div class="li-batre"><i class="fas fa-battery-half"></i> ${batVal.replace('%','')} %</div>
-                                </div>
-                                ${kudetaHtml}
-                            </div>`;
+                    let kudetaHtml = ((myQIndex === 0 || myQIndex === 1) && cleanStr(s.plat) !== cleanStr(myPlat)) ? `<button class="btn-kudeta" onclick="window.prosesKudeta(${i})"><i class="fas fa-hand-rock"></i> KUDETA (HAPUS USER)</button>` : '';
+                    html += `<div class="list-item" style="flex-wrap: wrap;"><div style="display:flex; justify-content:space-between; width:100%; align-items:center;"><div><div class="li-plat">${s.plat}</div><div class="li-name">${cleanName(s.userName)} • ${durMin} MNT</div></div><div class="li-batre"><i class="fas fa-battery-half"></i> ${batVal.replace('%','')} %</div></div>${kudetaHtml}</div>`;
                 } else {
-                    let kudetaHtml = '';
-                    if (myQIndex === 0 || myQIndex === 1) {
-                        kudetaHtml = `<button class="btn-kudeta" style="background: var(--success); box-shadow: 0 5px 15px rgba(16,185,129,0.3);" onclick="window.prosesKudeta(${i})"><i class="fas fa-bolt"></i> AMBIL ALIH SLOT KOSONG</button>`;
-                    }
-                    html += `<div class="list-item" style="flex-wrap: wrap; background:var(--bg-off);">
-                                <div style="display:flex; justify-content:space-between; width:100%; align-items:center;">
-                                    <div><div class="li-plat" style="color:var(--text-gray);">SLOT 0${i+1}</div><div class="li-name">KOSONG</div></div>
-                                </div>
-                                ${kudetaHtml}
-                            </div>`;
+                    let kudetaHtml = (myQIndex === 0 || myQIndex === 1) ? `<button class="btn-kudeta" style="background: var(--success);" onclick="window.prosesKudeta(${i})"><i class="fas fa-bolt"></i> AMBIL ALIH KOSONG</button>` : '';
+                    html += `<div class="list-item" style="flex-wrap: wrap; background:var(--bg-off);"><div style="display:flex; justify-content:space-between; width:100%; align-items:center;"><div><div class="li-plat" style="color:var(--text-gray);">SLOT 0${i+1}</div><div class="li-name">KOSONG</div></div></div>${kudetaHtml}</div>`;
                 }
             });
             window.showModal("<i class='fas fa-charging-station'></i> SLOT CHARGING", html);
@@ -990,41 +943,22 @@
             window.showModal("<i class='fas fa-users'></i> DAFTAR TUNGGU", html);
         }
 
-        // === 6. LOGIKA PASAR MLU E-COMMERCE ===
-        let carouselInterval; 
-        
+        // === LOGIKA PASAR E-COMMERCE ===
         onSnapshot(query(collection(dbStore, 'mlu_store'), orderBy('timestamp', 'desc')), (snap) => {
             const feed = document.getElementById('storeFeed');
             if (snap.empty) { feed.innerHTML = '<div style="width:100%; text-align:center; font-size:12px; font-weight:900; color:var(--text-gray);">Pasar Kosong</div>'; return; }
             
             let allProducts = [];
             snap.forEach(docSnap => { allProducts.push({ id: docSnap.id, ...docSnap.data() }); });
-
-            let kampasItems = []; let kopiItems = []; let normalItems = [];
-            allProducts.forEach(p => {
-                let titleLow = p.title.toLowerCase();
-                if(titleLow.includes('kampas') || titleLow.includes('kanvas') || titleLow.includes('rem')) { kampasItems.push(p); } 
-                else if(titleLow.includes('kopi')) { kopiItems.push(p); } 
-                else { normalItems.push(p); }
-            });
-
-            window.allStoreItems = [...kampasItems, ...kopiItems, ...normalItems];
+            window.allStoreItems = allProducts;
 
             feed.innerHTML = '';
             window.allStoreItems.forEach(p => {
                 let img = p.image || 'https://placehold.co/300x300/E2E8F0/94A3B8?text=NO+IMAGE';
                 let priceStr = window.formatK(p.price);
-                
                 const stockVal = p.stock !== undefined ? p.stock : 99;
                 let stockBadge = `<span class="stock-badge"><i class="fas fa-box"></i> Stok: ${stockVal}</span>`;
                 if(stockVal <= 0) stockBadge = `<span class="stock-badge empty"><i class="fas fa-times-circle"></i> Habis</span>`;
-
-                let sellerBadge = '';
-                if(cleanStr(p.sellerPlat) === 'B4794SWF') {
-                    sellerBadge = `<div style="font-size:9px; color:#10B981; font-weight:900; background:#ECFDF5; border:1px solid #A7F3D0; padding:3px 6px; border-radius:6px; display:inline-block; margin-top:4px;"><i class="fas fa-tree"></i> Keluarga Cemara</div>`;
-                } else {
-                    sellerBadge = `<div class="seller-badge"><i class="fas fa-store"></i> ${p.sellerName}</div>`;
-                }
 
                 feed.innerHTML += `
                 <div class="item-float" onclick="window.openStoreDetail('${p.id}')">
@@ -1032,53 +966,25 @@
                     <div class="item-name">${p.title}</div>
                     ${stockBadge}
                     <div class="p-price-promo">Rp ${priceStr}</div>
-                    ${sellerBadge}
                     <button class="btn-beli">LIHAT DETAIL</button>
                 </div>`;
             });
-
-            clearInterval(carouselInterval);
-            carouselInterval = setInterval(() => {
-                if (feed.scrollLeft + feed.clientWidth >= feed.scrollWidth - 10) { feed.scrollTo({ left: 0, behavior: 'smooth' }); } else { feed.scrollBy({ left: 142, behavior: 'smooth' }); }
-            }, 3000);
-
-            feed.onpointerdown = () => clearInterval(carouselInterval);
-            feed.onpointerup = () => {
-                clearInterval(carouselInterval);
-                carouselInterval = setInterval(() => {
-                    if (feed.scrollLeft + feed.clientWidth >= feed.scrollWidth - 10) { feed.scrollTo({ left: 0, behavior: 'smooth' }); } else { feed.scrollBy({ left: 142, behavior: 'smooth' }); }
-                }, 3000);
-            };
         });
 
         window.openStoreDetail = (id) => {
             const data = window.allStoreItems.find(x => x.id === id);
-            if(!data) return;
-            window.currentCheckoutItem = data;
+            if(!data) return; window.currentCheckoutItem = data;
 
-            let titleLow = data.title.toLowerCase();
-            let isKampas = titleLow.includes('kampas') || titleLow.includes('kanvas') || titleLow.includes('rem');
-            let extraInfo = isKampas ? `<div style="background:#FFFBEB; border:1px dashed #F59E0B; color:#B45309; padding:10px; border-radius:12px; margin-bottom:15px; font-size:11px; font-weight:800; line-height:1.4;"><i class="fas fa-tools"></i> INFO: Sistem Booking. Pembelian hari ini, pemasangan paling cepat BESOK (H+1). Silakan konfirmasi jadwal via WA.</div>` : '';
             const stockVal = data.stock !== undefined ? data.stock : 99;
             let stockBadge = `<div style="display:inline-block; font-size:11px; font-weight:900; color:var(--text-gray); background:#E2E8F0; padding:4px 10px; border-radius:8px; margin-bottom:15px;"><i class="fas fa-box"></i> Stok: ${stockVal}</div>`;
             
-            let actionButtons = '';
-            if(!uData) {
-                actionButtons = `<button class="btn-elite" style="background:var(--success); color:white; box-shadow:0 10px 20px rgba(16,185,129,0.3);" onclick="window.chatSeller()"><i class="fab fa-whatsapp" style="font-size:20px;"></i> HUBUNGI PENJUAL</button>`;
-            } else if (cleanStr(data.sellerPlat) === myPlatClean) { 
-                actionButtons = `<button class="btn-elite" style="background:#E2E8F0; color:#64748B;" disabled><i class="fas fa-store"></i> INI LAPAK ANDA</button>`;
-            } else if (stockVal <= 0) {
-                actionButtons = `<div style="display:flex; gap:10px;"><button class="btn-elite" style="flex:1; background:#E0F2FE; color:var(--electric-blue); font-size:12px;" onclick="window.chatSeller()"><i class="fab fa-whatsapp"></i> TANYA</button><button class="btn-elite" style="flex:1; background:#CBD5E1; color:white; font-size:12px;" disabled><i class="fas fa-ban"></i> HABIS</button></div>`;
-            } else {
-                actionButtons = `<div style="display:flex; gap:10px;"><button class="btn-elite" style="flex:0.8; background:#E0F2FE; color:var(--electric-blue); font-size:12px; box-shadow:none;" onclick="window.chatSeller()"><i class="fab fa-whatsapp"></i> TANYA</button><button class="btn-elite" style="flex:1.2; background:var(--success); color:white; font-size:12px; box-shadow:0 10px 20px rgba(16,185,129,0.3);" onclick="window.openCheckoutModal()"><i class="fas fa-shopping-cart"></i> BELI</button></div>`;
-            }
+            let actionButtons = `<div style="display:flex; gap:10px;"><button class="btn-elite btn-restore-light" style="flex:0.8; font-size:12px;" onclick="window.chatSeller()"><i class="fab fa-whatsapp"></i> TANYA</button><button class="btn-elite btn-success-mode" style="flex:1.2; font-size:12px;" onclick="window.openCheckoutModal()"><i class="fas fa-shopping-cart"></i> BELI</button></div>`;
 
             const html = `
                 <img src="${data.image || 'https://placehold.co/400x400'}" style="width:100%; height:200px; object-fit:cover; border-radius:16px; margin-bottom:15px; border:1px solid #E2E8F0;">
                 <div style="font-family:'Space Grotesk'; font-size:24px; font-weight:900; color:var(--danger); text-align:left; line-height:1; margin-bottom:5px;">Rp ${Number(data.price).toLocaleString('id-ID')}</div>
                 <div style="font-family:'Inter'; font-size:16px; font-weight:900; color:var(--text-dark); text-align:left; margin-bottom:10px;">${data.title}</div>
                 ${stockBadge}
-                ${extraInfo}
                 <div style="font-size:12px; font-weight:600; color:var(--text-gray); text-align:left; background:#F8FAFC; padding:10px; border-radius:12px; margin-bottom:20px; white-space:pre-wrap; border:1px solid var(--border-soft);">${data.desc || 'Tidak ada deskripsi.'}</div>
                 ${actionButtons}
             `;
@@ -1092,157 +998,51 @@
             window.open(`https://wa.me/${noWa}?text=Halo%20${window.currentCheckoutItem.sellerName},%20saya%20tertarik%20dengan%20barang%20${window.currentCheckoutItem.title}%20di%20Pasar%20MLU.`, '_blank');
         }
 
-        window.changePaymentNote = () => {
-            const method = document.getElementById('coMethod').value;
-            const warning = document.getElementById('coWarning');
-            if(method === 'QRIS') {
-                warning.style.display = 'block';
-                warning.innerHTML = `<b>KHUSUS TRANSFER QRIS:</b><br>Dana ditampung di Rekber Kas MLU (Aman). Penjual otomatis dipotong 5% untuk Kas.`;
-            } else {
-                warning.style.display = 'block';
-                warning.innerHTML = `<b>BAYAR TUNAI / COD:</b><br>Pembayaran langsung ke Penjual saat bertemu. Tidak ada potongan Kas.`;
-            }
-        }
-
-        window.openCheckoutModal = () => {
-            if(!window.currentCheckoutItem) return;
-            if(!uData) return window.showEliteAlert("AKSES DITOLAK", "Silakan Login / Daftar Anggota di Dashboard untuk melakukan transaksi pembelian.");
-            
-            window.closeModal('mainModal'); 
-            document.getElementById('coTitle').innerText = window.currentCheckoutItem.title;
-            document.getElementById('coPrice').innerText = "Rp " + Number(window.currentCheckoutItem.price).toLocaleString('id-ID');
-            document.getElementById('coNotes').value = '';
-            document.getElementById('coMethod').value = 'QRIS';
-            window.changePaymentNote();
-            
-            const cm = document.getElementById('checkoutModal');
-            cm.style.display = 'flex'; setTimeout(() => cm.classList.add('show'), 300);
-        }
-
         window.submitOrder = async () => {
-            if(!uData) return window.showEliteAlert("AKSES DITOLAK", "Silakan Login / Daftar Anggota di Dashboard untuk melakukan transaksi pembelian.");
-            const btn = document.getElementById('btnSubmitOrder');
-            btn.innerText = "MEMPROSES..."; btn.style.opacity = '0.7';
+            if(!uData) return window.showEliteAlert("AKSES DITOLAK", "Silakan Login di Dashboard MLU untuk membeli.");
+            const btn = document.getElementById('btnSubmitOrder'); btn.innerText = "MEMPROSES..."; btn.style.opacity = '0.7';
             window.showActionLoader();
-            
             try {
                 await runTransaction(dbStore, async (t) => {
                     const itemRef = doc(dbStore, 'mlu_store', window.currentCheckoutItem.id);
                     const itemSnap = await t.get(itemRef);
-                    if (!itemSnap.exists()) throw new Error("Barang sudah dihapus penjual!");
-                    
                     const currentStock = itemSnap.data().stock !== undefined ? itemSnap.data().stock : 99;
                     if(currentStock <= 0) throw new Error("STOK_HABIS");
-                    
                     t.update(itemRef, { stock: currentStock - 1 });
-                    
-                    const orderNotes = document.getElementById('coNotes').value.trim();
-                    const payMethod = document.getElementById('coMethod').value;
-                    const statusAwal = payMethod === 'QRIS' ? 'UNPAID' : 'WAITING_COD';
-
                     const newOrderRef = doc(collection(dbStore, 'mlu_store_orders'));
-                    t.set(newOrderRef, {
-                        productId: window.currentCheckoutItem.id, productTitle: window.currentCheckoutItem.title, price: window.currentCheckoutItem.price,
-                        buyerName: myName, buyerPlat: myPlatClean, buyerWa: uData.hp || "", 
-                        sellerName: window.currentCheckoutItem.sellerName, sellerPlat: window.currentCheckoutItem.sellerPlat, sellerWa: window.currentCheckoutItem.sellerWa, sellerId: window.currentCheckoutItem.sellerId || null,
-                        notes: orderNotes, paymentMethod: payMethod, status: statusAwal, timestamp: Date.now()
-                    });
+                    t.set(newOrderRef, { productId: window.currentCheckoutItem.id, productTitle: window.currentCheckoutItem.title, price: window.currentCheckoutItem.price, buyerName: myName, buyerPlat: myPlatClean, buyerWa: uData.hp || "", sellerName: window.currentCheckoutItem.sellerName, sellerPlat: window.currentCheckoutItem.sellerPlat, sellerWa: window.currentCheckoutItem.sellerWa, notes: document.getElementById('coNotes').value.trim(), paymentMethod: document.getElementById('coMethod').value, status: document.getElementById('coMethod').value === 'QRIS' ? 'UNPAID' : 'WAITING_COD', timestamp: Date.now() });
                 });
                 
-                const payMethod = document.getElementById('coMethod').value;
-                const orderNotes = document.getElementById('coNotes').value.trim();
-
-                catatLogSuperDetail("BELI_BARANG", myName, myPlatClean, `Membeli ${window.currentCheckoutItem.title} via ${payMethod}`);
-
-                let noWa = window.currentCheckoutItem.sellerWa; 
-                if(noWa) {
-                    if(noWa.startsWith('0')) noWa = '62' + noWa.substring(1);
-                    const tipeBayarTxt = payMethod === 'QRIS' ? 'Transfer QRIS (Rekber MLU)' : 'COD / Bayar Tunai';
-                    const waMsg = `Halo *${window.currentCheckoutItem.sellerName}*! 🎉\n\nAda pesanan baru masuk dari *${myName}* (${myPlatClean}) di Pasar MLU.\n\n*Barang:* ${window.currentCheckoutItem.title}\n*Harga:* Rp ${Number(window.currentCheckoutItem.price).toLocaleString('id-ID')}\n*Metode:* ${tipeBayarTxt}\n*Catatan Pembeli:* ${orderNotes || '-'}\n\nSilakan cek aplikasi MLU Anda di tab *Pesanan* untuk memprosesnya.`;
-                    window.open(`https://wa.me/${noWa}?text=${encodeURIComponent(waMsg)}`, '_blank');
-                }
-                
+                catatLogSuperDetail("BELI_BARANG", myName, myPlatClean, `Beli ${window.currentCheckoutItem.title}`);
                 window.closeModal('checkoutModal');
-                setTimeout(() => { window.showEliteAlert("PESANAN BERHASIL", "Pesanan berhasil dibuat!\nSilakan buka aplikasi Dashboard -> Pasar MLU -> Pesanan untuk mengecek dan upload resi."); }, 500);
-                
+                setTimeout(() => { window.showEliteAlert("PESANAN BERHASIL", "Pesanan berhasil dibuat!\nCek aplikasi Dashboard -> Pasar MLU -> Pesanan."); }, 500);
             } catch(e) { 
                 window.hideActionLoader(); 
-                if(e.message === "STOK_HABIS") {
-                    window.showEliteAlert("STOK HABIS", "Mohon maaf Bos, barang ini baru saja dibeli orang lain dan stoknya habis!");
-                    window.closeModal('checkoutModal');
-                } else {
-                    window.showEliteAlert("GAGAL", e.message); 
-                }
-            } finally { 
-                window.hideActionLoader();
-                btn.innerText = "BUAT PESANAN SEKARANG"; btn.style.opacity = '1'; 
-            }
-        }
-
-        window.openFullStore = () => {
-            document.getElementById('fullStoreView').style.display = 'flex';
-            renderFullStore(window.allStoreItems);
-        }
-        
-        window.closeFullStore = () => {
-            document.getElementById('fullStoreView').style.display = 'none';
-            document.getElementById('inpSearchStore').value = '';
+                if(e.message === "STOK_HABIS") { window.showEliteAlert("STOK HABIS", "Mohon maaf Bos, barang baru aja dibeli orang!"); window.closeModal('checkoutModal'); } else { window.showEliteAlert("GAGAL", e.message); }
+            } finally { window.hideActionLoader(); btn.innerText = "BUAT PESANAN SEKARANG"; btn.style.opacity = '1'; }
         }
 
         window.filterFullStore = () => {
             const key = document.getElementById('inpSearchStore').value.toLowerCase();
             const filtered = window.allStoreItems.filter(p => p.title.toLowerCase().includes(key));
-            renderFullStore(filtered);
-        }
-
-        function renderFullStore(dataArray) {
-            const grid = document.getElementById('fullStoreGrid');
-            grid.innerHTML = '';
-            if(dataArray.length === 0) {
-                grid.innerHTML = '<div style="grid-column: 1 / -1; text-align:center; padding:30px; color:var(--text-gray); font-weight:900;">Barang tidak ditemukan.</div>';
-                return;
-            }
-
-            dataArray.forEach(p => {
-                let img = p.image || 'https://placehold.co/300x300/E2E8F0/94A3B8?text=NO+IMAGE';
-                let priceStr = window.formatK(p.price);
-                const stockVal = p.stock !== undefined ? p.stock : 99;
-                let stockBadge = `<span class="stock-badge"><i class="fas fa-box"></i> Stok: ${stockVal}</span>`;
-                if(stockVal <= 0) stockBadge = `<span class="stock-badge empty"><i class="fas fa-times-circle"></i> Habis</span>`;
-
-                grid.innerHTML += `
-                <div class="fs-card" style="background:var(--bg-pure); border-radius:20px; padding:12px; border:1px solid var(--border-soft); box-shadow:0 5px 15px rgba(0,0,0,0.03);" onclick="window.openStoreDetail('${p.id}')">
-                    <img src="${img}" style="width:100%; aspect-ratio:1; object-fit:cover; border-radius:12px; margin-bottom:10px;">
-                    <div style="font-family:'Inter'; font-size:12px; font-weight:900; color:var(--text-dark); margin-bottom:5px; line-height:1.3;">${p.title}</div>
-                    ${stockBadge}
-                    <div style="font-family:'Space Grotesk'; font-size:15px; font-weight:900; color:var(--danger); margin-bottom:10px;">Rp ${priceStr}</div>
-                    <button class="btn-beli" style="padding:10px; font-size:10px; border-radius:10px; width:100%;">DETAIL</button>
-                </div>`;
+            const grid = document.getElementById('fullStoreGrid'); grid.innerHTML = '';
+            filtered.forEach(p => {
+                grid.innerHTML += `<div class="fs-card" style="background:var(--bg-pure); border-radius:20px; padding:12px; border:1px solid var(--border-soft); box-shadow:0 5px 15px rgba(0,0,0,0.03);" onclick="window.openStoreDetail('${p.id}')"><img src="${p.image || 'https://placehold.co/300'}" style="width:100%; aspect-ratio:1; object-fit:cover; border-radius:12px; margin-bottom:10px;"><div style="font-family:'Inter'; font-size:12px; font-weight:900; color:var(--text-dark); margin-bottom:5px; line-height:1.3;">${p.title}</div><div style="font-family:'Space Grotesk'; font-size:15px; font-weight:900; color:var(--danger); margin-bottom:10px;">Rp ${window.formatK(p.price)}</div><button class="btn-elite btn-restore-light" style="padding:10px; font-size:10px; border-radius:10px; width:100%;">DETAIL</button></div>`;
             });
         }
-
-        // === FUNGSI LIVE CHAT (NEW) ===
-        window.toggleChat = () => { document.getElementById('chatWidget').classList.toggle('show'); }
 
         window.sendChatMsg = () => {
             const input = document.getElementById('chatInput');
             const val = input.value.trim();
             if(!val) return;
-            
             const chatBody = document.getElementById('chatBody');
             chatBody.innerHTML += `<div class="msg-bubble msg-user">${val}</div>`;
-            input.value = '';
-            chatBody.scrollTop = chatBody.scrollHeight;
-
+            input.value = ''; chatBody.scrollTop = chatBody.scrollHeight;
             setTimeout(() => {
-                chatBody.innerHTML += `<div class="msg-bubble msg-admin"><b>SYSTEM ADMIN:</b><br>Laporan diterima. Silakan klik tombol WA di bawah untuk menghubungi admin.</div>`;
+                chatBody.innerHTML += `<div class="msg-bubble msg-admin"><b>SYSTEM ADMIN:</b><br>Laporan diterima. Hubungi WA admin untuk respon cepat.</div>`;
                 chatBody.scrollTop = chatBody.scrollHeight;
             }, 1000);
         }
-
-        document.getElementById('chatInput').addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') { window.sendChatMsg(); }
-        });
     </script>
 </body>
 </html>
