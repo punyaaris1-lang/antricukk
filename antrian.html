@@ -17,8 +17,7 @@
     <title>FC Kelapa Gading - Elite</title>
     
     <script>
-        // UPDATE VERSION BIAR CACHE HP LU LANGSUNG KESAPU BERSIH
-        const APP_VERSION = "9.9.1_FIX_LOADING_NO_CHAT"; 
+        const APP_VERSION = "9.9.3_FIX_PWA_BANNER_BUG"; 
         if (localStorage.getItem('maka_antrian_v') !== APP_VERSION) {
             if ('caches' in window) { caches.keys().then((names) => { names.forEach(name => { caches.delete(name); }); }); }
             localStorage.setItem('maka_antrian_v', APP_VERSION); window.location.reload(true); 
@@ -104,7 +103,7 @@
             transition: clip-path 1.5s cubic-bezier(0.4, 0, 0.2, 1); 
         }
 
-        /* PILL STANDBY / CHARGING MENGAMBANG DI BAWAH */
+        /* PILL STANDBY MENGAMBANG DI BAWAH */
         .battery-text {
             position: absolute; bottom: -18px; left: 50%; transform: translateX(-50%); z-index: 5;
             font-family: 'Space Grotesk', sans-serif; font-size: 14px; font-weight: 900; color: var(--text-gray);
@@ -208,25 +207,57 @@
         .btn-em-cancel { background: var(--bg-off); color: var(--text-dark); border: 1px solid var(--border-soft); }
         .btn-em-confirm { background: var(--text-dark); color: var(--bg-pure); }
         .btn-em-danger { background: var(--danger); color: white; }
+
+        /* PWA BANNER FIX CSS - DI TARUH DI BAWAH BIAR JALAN NYA PERFECT */
+        .pwa-prompt { 
+            position: fixed; bottom: -150px; left: 50%; transform: translateX(-50%); 
+            width: 92%; max-width: 400px; background: rgba(15, 23, 42, 0.98); 
+            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            padding: 16px 20px; border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.3); 
+            display: flex; justify-content: space-between; align-items: center; 
+            transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 999999; 
+            border: 1px solid rgba(255,255,255,0.1); 
+        }
+        .pwa-prompt.show { bottom: 20px; }
+        .pwa-btn { 
+            background: var(--mlu-gold); color: var(--mlu-black); border: none; 
+            padding: 12px 22px; border-radius: 12px; font-family: 'Space Grotesk'; 
+            font-weight: 900; font-size: 12px; cursor: pointer; 
+            box-shadow: 0 5px 15px rgba(220,163,17,0.3); 
+        }
     </style>
 </head>
 <body>
 
+    <!-- LOADING SCREEN DENGAN QUOTES RANDOM -->
     <div id="loader">
         <div class="spinner"></div>
-        <div style="font-family:'Space Grotesk'; font-weight:900; color:var(--text-dark); letter-spacing:2px;">MENYAMBUNGKAN...</div>
+        <div id="loadingText" style="font-family:'Space Grotesk'; font-weight:900; color:var(--text-dark); letter-spacing:1px; font-size:14px; text-align:center; max-width:80%; line-height:1.5;">MENYAMBUNGKAN...</div>
     </div>
+    
+    <script>
+        const quotes = [
+            "MENYAMBUNGKAN KONEKSI MLU SERVER...",
+            "MEMANASKAN DINAMO KELISTRIKAN...",
+            "SABAR BOS, LAGI NYARI COLOKAN...",
+            "GASPOL TAPI TETEP NYETRUM...",
+            "MENGISI ENERGI LINTAS UTARA...",
+            "TETAP TENANG, ANTRIAN MASIH AMAN...",
+            "SELAMAT DATANG DI RUMAH MAKA LINTAS UTARA..."
+        ];
+        document.getElementById('loadingText').innerText = quotes[Math.floor(Math.random() * quotes.length)];
+    </script>
     
     <div id="actionLoader">
         <div class="spinner" style="border-top-color:var(--electric-blue);"></div>
         <div style="font-family:'Space Grotesk'; font-weight:900; color:var(--text-dark); letter-spacing:2px;">MEMPROSES...</div>
     </div>
 
-    <!-- PWA INSTALL PROMPT -->
+    <!-- PWA INSTALL PROMPT BANNER - FIXED POSISI DI BAWAH -->
     <div class="pwa-prompt" id="pwaPrompt">
         <div>
             <div style="font-family:'Space Grotesk'; font-size:14px; font-weight:900; color:white; margin-bottom:2px;">Install Aplikasi MLU</div>
-            <div style="font-size:10px; color:rgba(255,255,255,0.7); font-weight:700;">Akses lebih cepat dan ringan</div>
+            <div style="font-size:11px; color:rgba(255,255,255,0.7); font-weight:700;">Akses lebih cepat, ringan & anti-logout</div>
         </div>
         <button class="pwa-btn" id="btnInstallPwa">INSTALL</button>
     </div>
@@ -239,12 +270,11 @@
         
         <input type="text" id="inpRestorePlat" class="restore-inp" placeholder="Cth: B 1234 XYZ" autocomplete="off">
         
-        <!-- PANGGILAN FUNGSI JS GLOBAL -->
         <button class="btn-elite btn-main-dark" style="max-width:320px; margin-bottom:15px;" onclick="window.restoreSessionProcess()">PULIHKAN SESI</button>
         <button class="btn-elite btn-restore-light" style="max-width:320px;" onclick="document.getElementById('restoreOverlay').style.display='none'">KEMBALI KE PORTAL AWAL</button>
     </div>
 
-    <!-- ELITE MODAL (CONFIRMATIONS) -->
+    <!-- ELITE MODAL -->
     <div class="elite-modal-overlay" id="eliteModal">
         <div class="elite-modal-box">
             <div class="em-icon" id="emIcon"><i class="fas fa-exclamation-triangle"></i></div>
@@ -275,14 +305,12 @@
                 <div class="ring-glow"></div>
                 
                 <div class="ring-inner">
-                    <!-- MLU LOGO JUMBO (UKURAN MEKAR FULL CIRCLE) -->
                     <div class="mlu-logo-container" id="logoContainer">
                         <img src="logomlumaster.png" class="logo-gray" alt="Logo Empty">
                         <img src="logomlumaster.png" class="logo-color" alt="Logo Full">
                     </div>
                 </div>
                 
-                <!-- PILL STANDBY MENGAMBANG DI BAWAH CIRCLE -->
                 <div class="battery-text" id="batteryText">STANDBY</div>
             </div>
         </main>
@@ -389,9 +417,8 @@
         </div>
     </div>
 
-    <!-- SCRIPT NON-FIREBASE (FUNGSI GLOBAL UI) - DITARUH DI LUAR MODULE BIAR TOMBOL HTML BISA MANGGIL -->
+    <!-- SCRIPT UTILS GLOBAL UI -->
     <script>
-        // KODE NGILANGIN LOADER YG KETINGGALAN KEMAREN!
         window.addEventListener('DOMContentLoaded', (event) => {
             setTimeout(() => { 
                 const loader = document.getElementById('loader');
@@ -399,7 +426,7 @@
                     loader.style.opacity = '0'; 
                     setTimeout(()=> loader.style.display = 'none', 300);
                 }
-            }, 800);
+            }, 1000);
         });
 
         window.showActionLoader = () => { document.getElementById('actionLoader').style.display = 'flex'; setTimeout(() => document.getElementById('actionLoader').style.opacity = '1', 10); };
@@ -408,11 +435,9 @@
         window.showEliteAlert = (title, msg, callback=null) => {
             document.getElementById('emTitle').innerText = title;
             document.getElementById('emMsg').innerHTML = msg;
-            
             document.getElementById('emIcon').innerHTML = '<i class="fas fa-info-circle"></i>';
             document.getElementById('emIcon').style.background = 'rgba(212,175,55,0.1)';
             document.getElementById('emIcon').style.color = 'var(--mlu-gold)';
-
             document.getElementById('emBtns').innerHTML = `<button class="btn-em btn-em-confirm" onclick="window.closeEliteModal(); if(window.tempAlertCallback) window.tempAlertCallback();" style="width:100%;">SAYA MENGERTI</button>`;
             window.tempAlertCallback = callback;
             const m = document.getElementById('eliteModal');
@@ -422,83 +447,38 @@
         window.showEliteConfirm = (title, msg, type = 'normal', callback) => {
             document.getElementById('emTitle').innerText = title;
             document.getElementById('emMsg').innerHTML = msg;
-            
             let iconHtml = '<i class="fas fa-question-circle"></i>';
             let iconBg = 'rgba(45,99,237,0.1)'; let iconColor = 'var(--electric-blue)';
             let confirmClass = 'btn-em-confirm'; let confirmText = 'YA, LANJUTKAN';
-
             if(type === 'danger') {
                 iconHtml = '<i class="fas fa-exclamation-triangle"></i>';
                 iconBg = 'rgba(239,68,68,0.1)'; iconColor = 'var(--danger)';
                 confirmClass = 'btn-em-danger'; confirmText = 'YA, HAPUS / BATAL';
             }
-
             document.getElementById('emIcon').innerHTML = iconHtml;
             document.getElementById('emIcon').style.background = iconBg;
             document.getElementById('emIcon').style.color = iconColor;
-
             document.getElementById('emBtns').innerHTML = `
                 <button class="btn-em btn-em-cancel" onclick="window.closeEliteModal()">KEMBALI</button>
                 <button class="btn-em ${confirmClass}" id="btnEliteAction">${confirmText}</button>
             `;
-
             document.getElementById('btnEliteAction').onclick = () => { window.closeEliteModal(); callback(); };
             const m = document.getElementById('eliteModal');
             m.style.display = 'flex'; setTimeout(() => m.classList.add('show'), 10);
         }
 
-        window.closeEliteModal = () => {
-            const m = document.getElementById('eliteModal');
-            m.classList.remove('show'); setTimeout(() => m.style.display = 'none', 300);
-        }
-
-        window.showModal = (title, contentHTML) => {
-            const m = document.getElementById('mainModal');
-            document.getElementById('modalTitle').innerHTML = title;
-            document.getElementById('modalContent').innerHTML = contentHTML;
-            m.style.display = 'flex'; setTimeout(() => m.classList.add('show'), 10);
-        }
-
-        window.closeModal = (id = 'mainModal') => {
-            const m = document.getElementById(id);
-            m.classList.remove('show'); setTimeout(() => m.style.display = 'none', 300);
-        }
-
-        window.triggerAdminPrompt = () => {
-            const pwd = prompt("Masukkan Password:");
-            if (pwd === "2505") { window.location.href = "admin.html"; } else if (pwd !== null && pwd !== "") { alert("Password Salah!"); }
-        };
-
-        window.resetApp = () => {
-            window.showEliteConfirm("RESET SISTEM", "Aplikasi nyangkut? Tekan YA untuk refresh dan sinkronisasi data.", "danger", () => {
-                localStorage.removeItem('myPlat'); 
-                window.location.reload(true);
-            });
-        }
-
-        window.bukaRestoreSesi = () => {
-            document.getElementById('restoreOverlay').style.display = 'flex';
-        };
-
-        window.openFullStore = () => {
-            document.getElementById('fullStoreView').style.display = 'flex';
-        }
-        
-        window.closeFullStore = () => {
-            document.getElementById('fullStoreView').style.display = 'none';
-            document.getElementById('inpSearchStore').value = '';
-        }
-
+        window.closeEliteModal = () => { const m = document.getElementById('eliteModal'); m.classList.remove('show'); setTimeout(() => m.style.display = 'none', 300); }
+        window.showModal = (title, contentHTML) => { const m = document.getElementById('mainModal'); document.getElementById('modalTitle').innerHTML = title; document.getElementById('modalContent').innerHTML = contentHTML; m.style.display = 'flex'; setTimeout(() => m.classList.add('show'), 10); }
+        window.closeModal = (id = 'mainModal') => { const m = document.getElementById(id); m.classList.remove('show'); setTimeout(() => m.style.display = 'none', 300); }
+        window.triggerAdminPrompt = () => { const pwd = prompt("Masukkan Password:"); if (pwd === "2505") { window.location.href = "admin.html"; } };
+        window.resetApp = () => { window.showEliteConfirm("RESET SISTEM", "Aplikasi nyangkut? Tekan YA untuk refresh dan sinkronisasi data.", "danger", () => { localStorage.removeItem('myPlat'); window.location.reload(true); }); }
+        window.bukaRestoreSesi = () => { document.getElementById('restoreOverlay').style.display = 'flex'; };
+        window.openFullStore = () => { document.getElementById('fullStoreView').style.display = 'flex'; }
+        window.closeFullStore = () => { document.getElementById('fullStoreView').style.display = 'none'; document.getElementById('inpSearchStore').value = ''; }
         window.changePaymentNote = () => {
             const method = document.getElementById('coMethod').value;
             const warning = document.getElementById('coWarning');
-            if(method === 'QRIS') {
-                warning.style.display = 'block';
-                warning.innerHTML = `<b>KHUSUS TRANSFER QRIS:</b><br>Dana ditampung di Rekber Kas MLU (Aman). Penjual otomatis dipotong 5% untuk Kas.`;
-            } else {
-                warning.style.display = 'block';
-                warning.innerHTML = `<b>BAYAR TUNAI / COD:</b><br>Pembayaran langsung ke Penjual saat bertemu. Tidak ada potongan Kas.`;
-            }
+            if(method === 'QRIS') { warning.style.display = 'block'; warning.innerHTML = `<b>KHUSUS TRANSFER QRIS:</b><br>Dana ditampung di Rekber Kas MLU (Aman). Penjual otomatis dipotong 5% untuk Kas.`; } else { warning.style.display = 'block'; warning.innerHTML = `<b>BAYAR TUNAI / COD:</b><br>Pembayaran langsung ke Penjual saat bertemu. Tidak ada potongan Kas.`; }
         }
     </script>
 
@@ -530,211 +510,102 @@
         let simulatedBattery = null;
         let chargeSimInterval = null;
 
-        let uData = null;
-        let myRole = "GUEST";
-        let isPengurus = false;
-        let myName = "Guest";
-        let myUserId = null;
+        let uData = null; let myRole = "GUEST"; let isPengurus = false; let myName = "Guest"; let myUserId = null;
 
         try { 
             const raw = localStorage.getItem('maka_user'); 
             if(raw) { 
-                uData = JSON.parse(raw); 
-                myRole = uData.role ? uData.role.toUpperCase() : "MEMBER";
-                isPengurus = (myRole !== 'KELUARGA MLU' && myRole !== 'GUEST');
-                myPlat = uData.plat || "";
+                uData = JSON.parse(raw); myRole = uData.role ? uData.role.toUpperCase() : "MEMBER";
+                isPengurus = (myRole !== 'KELUARGA MLU' && myRole !== 'GUEST'); myPlat = uData.plat || "";
                 myName = uData.namaKtp || uData.namaWa || uData.nama || "Member";
                 myUserId = uData.id || myPlat.replace(/\s+/g, '').toUpperCase();
             } 
         } catch(e){}
 
         if (!myPlat) { myPlat = localStorage.getItem('myPlat') || ""; }
-
+        const myPlatClean = myPlat.replace(/\s+/g, '').toUpperCase();
         const cleanStr = (s) => s ? s.replace(/[^A-Z0-9]/gi, '').toUpperCase() : '';
         const cleanName = (n) => n ? n.replace(/👑/g, '').trim() : '';
 
-        window.formatK = function(num) { 
-            if(num >= 1000000) return (num/1000000).toFixed(1) + 'jt'; 
-            if(num >= 1000) return (num/1000).toFixed(0) + 'rb'; 
-            return num; 
-        }
+        window.formatK = function(num) { if(num >= 1000000) return (num/1000000).toFixed(1) + 'jt'; if(num >= 1000) return (num/1000).toFixed(0) + 'rb'; return num; }
 
         async function catatLogSuperDetail(action, nama, plat, detailStr) {
-            try {
-                await addDoc(collection(dbQueue, "mlu_super_logs"), {
-                    waktu: new Date().toLocaleString('id-ID'),
-                    timestamp: Date.now(),
-                    nama: nama || "SYSTEM",
-                    plat: plat || "-",
-                    action: action,
-                    detail: detailStr,
-                    sumber: "ANTRIAN_MOBILE"
-                });
-            } catch(e) { console.error("Gagal log aktivitas:", e); }
+            try { await addDoc(collection(dbQueue, "mlu_super_logs"), { waktu: new Date().toLocaleString('id-ID'), timestamp: Date.now(), nama: nama || "SYSTEM", plat: plat || "-", action: action, detail: detailStr, sumber: "ANTRIAN_MOBILE" }); } catch(e) {}
         }
 
         window.restoreSessionProcess = async () => {
-            const inp = document.getElementById('inpRestorePlat');
-            if(!inp) return;
-            const p = inp.value.toUpperCase().replace(/\s+/g, '');
-            if(!p) return window.showEliteAlert("PERHATIAN", "Masukkan Plat Kendaraan Anda terlebih dahulu!");
-            
+            const inp = document.getElementById('inpRestorePlat'); if(!inp) return;
+            const p = inp.value.toUpperCase().replace(/\s+/g, ''); if(!p) return window.showEliteAlert("PERHATIAN", "Masukkan Plat Kendaraan Anda!");
             window.showActionLoader();
-            
             try {
                 const snap = await getDoc(mainRef);
                 if(snap.exists()) {
-                    const d = snap.data();
-                    const q = d.waitingQueue || [];
-                    const s = d.chargingSlots || [];
-                    
-                    if(q.find(x => cleanStr(x.plat) === p) || s.find(y => y && y !== null && cleanStr(y.plat) === p)) {
-                        localStorage.setItem('myPlat', p);
-                        window.location.reload(); 
-                    } else {
-                        window.hideActionLoader();
-                        window.showEliteAlert("TIDAK DITEMUKAN", "Plat nomor tidak ada dalam Antrean Aktif. Silakan daftar baru.");
-                    }
+                    const d = snap.data(); const q = d.waitingQueue || []; const s = d.chargingSlots || [];
+                    if(q.find(x => cleanStr(x.plat) === p) || s.find(y => y && y !== null && cleanStr(y.plat) === p)) { localStorage.setItem('myPlat', p); window.location.reload(); } else { window.hideActionLoader(); window.showEliteAlert("TIDAK DITEMUKAN", "Plat nomor tidak ada dalam Antrean Aktif."); }
                 }
-            } catch(e) {
-                window.hideActionLoader();
-                window.showEliteAlert("GAGAL MEMULIHKAN", "Error: " + e.message);
-            }
+            } catch(e) { window.hideActionLoader(); window.showEliteAlert("GAGAL MEMULIHKAN", "Error: " + e.message); }
         };
 
         onSnapshot(mainRef, (snap) => {
             if (!snap.exists()) return; 
-            const d = snap.data(); 
-            localSlots = d.chargingSlots || [null, null, null]; 
-            localQueue = d.waitingQueue || []; 
-            updateMainUI();
-            
+            const d = snap.data(); localSlots = d.chargingSlots || [null, null, null]; localQueue = d.waitingQueue || []; updateMainUI();
             if (myPlat && !isSuperAdmin) {
                 const currentClean = cleanStr(myPlat);
-                const inQueue = localQueue.some(q => cleanStr(q.plat) === currentClean);
-                const inSlot = localSlots.some(s => s && s !== null && cleanStr(s.plat) === currentClean);
-                if (!inQueue && !inSlot) {
-                    localStorage.removeItem('myPlat'); 
-                    myPlat = "";
-                    updateMainUI(); 
-                }
+                if (!localQueue.some(q => cleanStr(q.plat) === currentClean) && !localSlots.some(s => s && s !== null && cleanStr(s.plat) === currentClean)) { localStorage.removeItem('myPlat'); myPlat = ""; updateMainUI(); }
             }
         });
 
         function updateMainUI() {
-            let usedCount = localSlots.filter(s => s !== null).length;
-            let emptySlots = TOTAL_SLOTS - usedCount;
-
+            let usedCount = localSlots.filter(s => s !== null).length; let emptySlots = TOTAL_SLOTS - usedCount;
             document.getElementById('valSlot').innerHTML = `${usedCount}<span style="font-size: 16px; color: var(--text-gray);">/${TOTAL_SLOTS}</span>`;
             document.getElementById('valQueue').innerText = localQueue.length;
 
-            const btnMain = document.getElementById('btnMainAction');
-            const btnCancel = document.getElementById('btnCancelAction');
-            
-            btnMain.className = 'btn-elite btn-main-dark'; 
-            btnMain.style.display = 'flex';
-            btnCancel.style.display = 'none';
+            const btnMain = document.getElementById('btnMainAction'); const btnCancel = document.getElementById('btnCancelAction');
+            btnMain.className = 'btn-elite btn-main-dark'; btnMain.style.display = 'flex'; btnCancel.style.display = 'none';
 
             let myQIndex = localQueue.findIndex(q => cleanStr(q.plat) === cleanStr(myPlat));
             let mySlotIndex = localSlots.findIndex(s => s && cleanStr(s.plat) === cleanStr(myPlat));
-
             const batteryText = document.getElementById('batteryText');
 
             if (mySlotIndex > -1) {
-                // CHARGING MODE
-                let mySlotData = localSlots[mySlotIndex];
-                let dbBatre = parseInt(mySlotData.batreSisa || mySlotData.batre || mySlotData.battery || 0);
-                
-                if (simulatedBattery === null || simulatedBattery < dbBatre) {
-                    simulatedBattery = dbBatre;
-                }
-                
+                let mySlotData = localSlots[mySlotIndex]; let dbBatre = parseInt(mySlotData.batreSisa || mySlotData.batre || mySlotData.battery || 0);
+                if (simulatedBattery === null || simulatedBattery < dbBatre) { simulatedBattery = dbBatre; }
                 document.getElementById('displaySlot').innerText = "0" + (mySlotIndex + 1);
                 document.getElementById('displaySlot').style.color = "var(--mlu-gold)";
-                
                 document.getElementById('dashboardCore').classList.add('is-charging');
                 document.getElementById('logoContainer').style.setProperty('--batre-level', simulatedBattery + '%');
-                
                 batteryText.innerHTML = `<i class="fas fa-bolt fa-fade" style="color:var(--mlu-gold); margin-right:4px;"></i> CHARGING...`;
-                batteryText.style.color = "var(--mlu-gold)";
-                batteryText.style.borderColor = "var(--mlu-gold)";
-                batteryText.style.boxShadow = "0 5px 15px rgba(220,163,17,0.2)";
-                
-                btnMain.innerHTML = `<i class="fas fa-plug"></i> SELESAI CHARGING`;
-                btnMain.className = 'btn-elite btn-success-mode';
+                batteryText.style.color = "var(--mlu-gold)"; batteryText.style.borderColor = "var(--mlu-gold)"; batteryText.style.boxShadow = "0 5px 15px rgba(220,163,17,0.2)";
+                btnMain.innerHTML = `<i class="fas fa-plug"></i> SELESAI CHARGING`; btnMain.className = 'btn-elite btn-success-mode';
                 btnMain.onclick = function() { window.stopCharging(mySlotIndex); };
-
-                if (!chargeSimInterval) {
-                    chargeSimInterval = setInterval(() => {
-                        if (simulatedBattery < 95) {
-                            simulatedBattery += 1;
-                            document.getElementById('logoContainer').style.setProperty('--batre-level', simulatedBattery + '%');
-                        } else {
-                            clearInterval(chargeSimInterval);
-                        }
-                    }, 3000); 
-                }
-
+                if (!chargeSimInterval) { chargeSimInterval = setInterval(() => { if (simulatedBattery < 95) { simulatedBattery += 1; document.getElementById('logoContainer').style.setProperty('--batre-level', simulatedBattery + '%'); } else { clearInterval(chargeSimInterval); } }, 3000); }
             } else {
-                // STANDBY MODE
-                simulatedBattery = null;
-                if (chargeSimInterval) { clearInterval(chargeSimInterval); chargeSimInterval = null; }
-
-                document.getElementById('logoContainer').style.setProperty('--batre-level', '0%');
-                document.getElementById('dashboardCore').classList.remove('is-charging');
-                
-                batteryText.innerText = "STANDBY";
-                batteryText.style.color = "var(--text-gray)";
-                batteryText.style.borderColor = "var(--border-soft)";
-                batteryText.style.boxShadow = "0 4px 15px rgba(0,0,0,0.05)";
-                
-                document.getElementById('displaySlot').innerText = "-";
-                document.getElementById('displaySlot').style.color = "var(--text-gray)";
-
+                simulatedBattery = null; if (chargeSimInterval) { clearInterval(chargeSimInterval); chargeSimInterval = null; }
+                document.getElementById('logoContainer').style.setProperty('--batre-level', '0%'); document.getElementById('dashboardCore').classList.remove('is-charging');
+                batteryText.innerText = "STANDBY"; batteryText.style.color = "var(--text-gray)"; batteryText.style.borderColor = "var(--border-soft)"; batteryText.style.boxShadow = "0 4px 15px rgba(0,0,0,0.05)";
+                document.getElementById('displaySlot').innerText = "-"; document.getElementById('displaySlot').style.color = "var(--text-gray)";
                 if (myQIndex > -1) {
-                    // ANTREAN MODE
-                    btnCancel.className = 'btn-elite btn-danger-mode';
-                    btnCancel.style.display = 'flex'; 
-                    btnCancel.innerHTML = `<i class="fas fa-times-circle"></i> BATALKAN ANTREAN`;
-                    btnCancel.onclick = function() { window.cancelQueue(); };
-
-                    if (myQIndex === 0 && emptySlots > 0) {
-                        btnMain.innerHTML = `<i class="fas fa-bolt"></i> MASUK SLOT KOSONG`;
-                        btnMain.className = 'btn-elite btn-success-mode';
-                        btnMain.onclick = function() { window.openSlotSelection(); };
-                    } else {
-                        btnMain.innerHTML = `<i class="fas fa-hourglass-half"></i> MENUNGGU GILIRAN (#${myQIndex+1})`;
-                        btnMain.className = 'btn-elite';
-                        btnMain.style.background = "linear-gradient(135deg, #F59E0B 0%, #B45309 100%)";
-                        btnMain.onclick = function() { window.showEliteAlert("INFO ANTREAN", `Silakan tunggu giliran Anda.\n\nTombol <b>MASUK SLOT</b> otomatis muncul saat Anda di <b>Urutan #1</b>.`); };
-                    }
+                    btnCancel.className = 'btn-elite btn-danger-mode'; btnCancel.style.display = 'flex'; btnCancel.innerHTML = `<i class="fas fa-times-circle"></i> BATALKAN ANTREAN`; btnCancel.onclick = function() { window.cancelQueue(); };
+                    if (myQIndex === 0 && emptySlots > 0) { btnMain.innerHTML = `<i class="fas fa-bolt"></i> MASUK SLOT KOSONG`; btnMain.className = 'btn-elite btn-success-mode'; btnMain.onclick = function() { window.openSlotSelection(); }; } 
+                    else { btnMain.innerHTML = `<i class="fas fa-hourglass-half"></i> MENUNGGU GILIRAN (#${myQIndex+1})`; btnMain.onclick = function() { window.showEliteAlert("INFO ANTREAN", `Silakan tunggu giliran Anda.\n\nTombol <b>MASUK SLOT</b> otomatis muncul saat Anda di <b>Urutan #1</b>.`); }; }
                 } else {
-                    // GUEST MODE
-                    btnMain.innerHTML = `<i class="fas fa-ticket-alt"></i> DAFTAR ANTREAN`;
-                    btnMain.onclick = function() { window.handleDaftar(); };
-                    
-                    btnCancel.style.display = 'flex';
-                    btnCancel.className = 'btn-elite btn-restore-light';
-                    btnCancel.innerHTML = `<i class="fas fa-history"></i> PULIHKAN SESI`;
-                    btnCancel.onclick = function() { window.bukaRestoreSesi(); };
+                    btnMain.innerHTML = `<i class="fas fa-ticket-alt"></i> DAFTAR ANTREAN`; btnMain.onclick = function() { window.handleDaftar(); };
+                    btnCancel.style.display = 'flex'; btnCancel.className = 'btn-elite btn-restore-light'; btnCancel.innerHTML = `<i class="fas fa-history"></i> PULIHKAN SESI`; btnCancel.onclick = function() { window.bukaRestoreSesi(); };
                 }
             }
         }
 
         window.handleDaftar = () => {
             if (!navigator.geolocation) return window.showEliteAlert("PERINGATAN", "Sistem membutuhkan akses GPS (Lokasi)."); 
-            
             const btn = document.getElementById('btnMainAction'); const ori = btn.innerHTML; btn.innerHTML = '<i class="fas fa-satellite-dish fa-spin"></i> MENCARI LOKASI...'; 
             navigator.geolocation.getCurrentPosition((pos) => { 
-                btn.innerHTML = ori; 
-                const p = 0.017453292519943295; const c = Math.cos; const a = 0.5 - c((pos.coords.latitude - STATION_LAT) * p)/2 + c(STATION_LAT * p) * c(pos.coords.latitude * p) * (1 - c((pos.coords.longitude - STATION_LNG) * p))/2; const dist = 12742 * Math.asin(Math.sqrt(a)); 
+                btn.innerHTML = ori; const p = 0.017453292519943295; const c = Math.cos; const a = 0.5 - c((pos.coords.latitude - STATION_LAT) * p)/2 + c(STATION_LAT * p) * c(pos.coords.latitude * p) * (1 - c((pos.coords.longitude - STATION_LNG) * p))/2; const dist = 12742 * Math.asin(Math.sqrt(a)); 
                 if (dist <= MAX_DIST_KM) { window.openFormDaftar(); } else { window.showEliteAlert("AKSES DITOLAK", `Jarak Anda terlalu jauh (${dist.toFixed(2)} KM). Harap mendekat ke BC Kelapa Gading.`); } 
             }, () => { btn.innerHTML = ori; window.showEliteAlert("ERROR", "Sinyal GPS hilang atau akses ditolak."); }, { enableHighAccuracy: true }); 
         }
 
         window.openFormDaftar = () => {
-            let defNama = uData ? (uData.namaKtp || uData.namaWa) : "";
-            let defPlat = uData ? uData.plat : myPlat;
+            let defNama = uData ? (uData.namaKtp || uData.namaWa) : ""; let defPlat = uData ? uData.plat : myPlat;
             const html = `
                 <div class="inp-group"><label class="inp-label">Nama Pilot</label><input type="text" id="inpNama" class="inp-text" value="${defNama}" placeholder="Ketik Nama" ${uData ? 'readonly' : ''}></div>
                 <div class="inp-group"><label class="inp-label">Plat Nomor</label><input type="text" id="inpPlat" class="inp-text" value="${defPlat}" placeholder="B 1234 XYZ" ${uData ? 'readonly' : ''}></div>
@@ -745,348 +616,62 @@
         }
 
         window.submitData = async () => { 
-            const n = document.getElementById('inpNama').value.toUpperCase(); 
-            const p = document.getElementById('inpPlat').value.toUpperCase(); 
-            const b = document.getElementById('inpBatre').value; 
-            
+            const n = document.getElementById('inpNama').value.toUpperCase(); const p = document.getElementById('inpPlat').value.toUpperCase(); const b = document.getElementById('inpBatre').value; 
             if(!n || !p || !b) return window.showEliteAlert("DATA BELUM LENGKAP", "Harap isi semua kolom formulir."); 
-
             window.showActionLoader();
             try { 
                 await runTransaction(dbQueue, async (t) => {
-                    const snap = await t.get(mainRef);
-                    if (!snap.exists()) throw new Error("Sistem Offline!");
-                    
-                    let d = snap.data(); 
-                    let q = [...(d.waitingQueue || [])]; 
-                    let s = [...(d.chargingSlots || [])]; 
-
-                    if(q.find(x => cleanStr(x.plat) === cleanStr(p)) || s.find(y => y && cleanStr(y.plat) === cleanStr(p))) { 
-                        throw new Error("ALREADY_REGISTERED"); 
-                    } 
-                    
+                    const snap = await t.get(mainRef); if (!snap.exists()) throw new Error("Sistem Offline!");
+                    let d = snap.data(); let q = [...(d.waitingQueue || [])]; let s = [...(d.chargingSlots || [])]; 
+                    if(q.find(x => cleanStr(x.plat) === cleanStr(p)) || s.find(y => y && cleanStr(y.plat) === cleanStr(p))) { throw new Error("ALREADY_REGISTERED"); } 
                     q.push({ userName: n, plat: p, batre: b + "%", battery: b + "%", batreSisa: b, role: myRole, timestamp: Date.now(), qNo: (d.lastTicket || 0) + 1 }); 
                     t.update(mainRef, { waitingQueue: q, lastTicket: (d.lastTicket || 0) + 1 }); 
                 });
-
                 catatLogSuperDetail("DAFTAR_ANTREAN", n, p, `Berhasil mengambil antrean dengan baterai ${b}%`);
                 localStorage.setItem('myPlat', p); myPlat = p; window.closeModal('mainModal'); 
-                
             } catch(e) { 
-                if(e.message === "ALREADY_REGISTERED") {
-                    localStorage.setItem('myPlat', p); myPlat = p; window.closeModal('mainModal');
-                    window.showEliteAlert("INFO", "Kendaraan sudah terdaftar. Sesi dipulihkan.");
-                } else {
-                    window.showEliteAlert("ERROR", e.message || e); 
-                }
+                if(e.message === "ALREADY_REGISTERED") { localStorage.setItem('myPlat', p); myPlat = p; window.closeModal('mainModal'); window.showEliteAlert("INFO", "Kendaraan sudah terdaftar. Sesi dipulihkan."); } 
+                else { window.showEliteAlert("ERROR", e.message || e); }
             } finally { window.hideActionLoader(); }
         };
 
         window.cancelQueue = () => { 
-            window.showEliteConfirm("BATALKAN ANTREAN", "Yakin batalkan antrean?", "danger", () => {
-                window.showActionLoader();
-                let myObj = null;
+            window.showEliteConfirm("BATALKAN ANTREAN", "Apakah Anda yakin ingin membatalkan antrean?", "danger", () => {
+                window.showActionLoader(); let myObj = null;
                 runTransaction(dbQueue, async(t) => { 
-                    const d = await t.get(mainRef); 
-                    let q = [...(d.data().waitingQueue || [])];
-                    
-                    myObj = q.find(x => cleanStr(x.plat) === cleanStr(myPlat));
-                    const newQ = q.filter(x => cleanStr(x.plat) !== cleanStr(myPlat)); 
-                    
-                    t.update(mainRef, { waitingQueue: newQ }); 
-                }).then(() => { 
-                    if(myObj) catatLogSuperDetail("BATAL_ANTREAN", myObj.userName, myObj.plat, "Batal antrean mandiri");
-                    localStorage.removeItem('myPlat'); myPlat = ""; window.hideActionLoader(); 
-                }).catch(e => { window.hideActionLoader(); window.showEliteAlert("GAGAL", e.message || e); }); 
+                    const d = await t.get(mainRef); let q = [...(d.data().waitingQueue || [])];
+                    myObj = q.find(x => cleanStr(x.plat) === cleanStr(myPlat)); const newQ = q.filter(x => cleanStr(x.plat) !== cleanStr(myPlat)); t.update(mainRef, { waitingQueue: newQ }); 
+                }).then(() => { if(myObj) catatLogSuperDetail("BATAL_ANTREAN", myObj.userName, myObj.plat, "Batal antrean mandiri"); localStorage.removeItem('myPlat'); myPlat = ""; window.hideActionLoader(); }).catch(e => { window.hideActionLoader(); window.showEliteAlert("GAGAL", e.message || e); }); 
             });
         };
 
         window.stopCharging = (idx) => { 
             window.showEliteConfirm("SELESAI CHARGING", "Selesai dan kosongkan slot?", "normal", () => {
-                window.showActionLoader();
-                let myObj = null;
+                window.showActionLoader(); let myObj = null;
                 runTransaction(dbQueue, async(t)=>{ 
-                    const d = await t.get(mainRef); 
-                    let slots = [...d.data().chargingSlots];
-                    myObj = slots[idx];
-                    slots[idx] = null; 
-                    t.update(mainRef, {chargingSlots: slots}); 
-                }).then(() => { 
-                    if(myObj) catatLogSuperDetail("SELESAI_CHARGING", myObj.userName, myObj.plat, `Selesai charging Slot 0${idx+1}`);
-                    localStorage.removeItem('myPlat'); myPlat = ""; window.hideActionLoader(); 
-                }).catch(e=>{ window.hideActionLoader(); window.showEliteAlert("GAGAL", e.message || e); }); 
+                    const d = await t.get(mainRef); let slots = [...d.data().chargingSlots]; myObj = slots[idx]; slots[idx] = null; t.update(mainRef, {chargingSlots: slots}); 
+                }).then(() => { if(myObj) catatLogSuperDetail("SELESAI_CHARGING", myObj.userName, myObj.plat, `Selesai charging Slot 0${idx+1}`); localStorage.removeItem('myPlat'); myPlat = ""; window.hideActionLoader(); }).catch(e=>{ window.hideActionLoader(); window.showEliteAlert("GAGAL", e.message || e); }); 
             });
         };
 
-        window.openSlotList = () => {
-            let html = ''; let myQIndex = localQueue.findIndex(q => cleanStr(q.plat) === cleanStr(myPlat));
-            localSlots.forEach((s, i) => {
-                if(s) {
-                    let durMin = Math.floor((Date.now() - (s.startTime || Date.now())) / 60000);
-                    let batVal = s.batreSisa || s.batre || s.battery || "-";
-                    let kudetaHtml = ((myQIndex === 0 || myQIndex === 1) && cleanStr(s.plat) !== cleanStr(myPlat)) ? `<button class="btn-kudeta" onclick="window.prosesKudeta(${i})"><i class="fas fa-hand-rock"></i> KUDETA (HAPUS USER)</button>` : '';
-                    html += `<div class="list-item" style="flex-wrap: wrap;"><div style="display:flex; justify-content:space-between; width:100%; align-items:center;"><div><div class="li-plat">${s.plat}</div><div class="li-name">${cleanName(s.userName)} • ${durMin} MNT</div></div><div class="li-batre"><i class="fas fa-battery-half"></i> ${batVal.replace('%','')} %</div></div>${kudetaHtml}</div>`;
-                } else {
-                    let kudetaHtml = (myQIndex === 0 || myQIndex === 1) ? `<button class="btn-kudeta" style="background: var(--success);" onclick="window.prosesKudeta(${i})"><i class="fas fa-bolt"></i> AMBIL ALIH KOSONG</button>` : '';
-                    html += `<div class="list-item" style="flex-wrap: wrap; background:var(--bg-off);"><div style="display:flex; justify-content:space-between; width:100%; align-items:center;"><div><div class="li-plat" style="color:var(--text-gray);">SLOT 0${i+1}</div><div class="li-name">KOSONG</div></div></div>${kudetaHtml}</div>`;
-                }
-            });
-            window.showModal("<i class='fas fa-charging-station'></i> SLOT CHARGING", html);
+        window.openSlotSelection = () => {
+            let html = '<div style="font-size:12px; color:var(--text-gray); font-weight:900; margin-bottom:15px;">Pilih slot kosong untuk mulai charging:</div>';
+            localSlots.forEach((s, i) => { if(!s) { html += `<div class="list-item" style="cursor:pointer; border-color:var(--success);" onclick="window.pilihSlotEks(${i})"><div><div class="li-plat" style="color:var(--success);">SLOT 0${i+1}</div><div class="li-name">TERSEDIA</div></div><i class="fas fa-chevron-right" style="color:var(--success);"></i></div>`; } });
+            window.showModal("<i class='fas fa-plug'></i> PILIH SLOT", html);
         }
 
-        window.openQueueList = () => {
-            let html = '';
-            if(localQueue.length === 0) html = '<div style="text-align:center; color:var(--text-gray); font-weight:900; padding:20px;">Antrean Kosong</div>';
-            else {
-                localQueue.forEach((q, i) => {
-                    let batVal = q.batreSisa || q.batre || q.battery || "-";
-                    let isMeStyle = cleanStr(q.plat) === cleanStr(myPlat) ? 'border-color:var(--mlu-gold); background:rgba(220,163,17,0.05);' : '';
-                    html += `<div class="list-item" style="${isMeStyle}"><div><div class="li-plat">${q.plat}</div><div class="li-name">#${i+1} • ${cleanName(q.userName)}</div></div><div class="li-batre"><i class="fas fa-battery-half"></i> ${batVal.replace('%','')} %</div></div>`;
-                });
-            }
-            window.showModal("<i class='fas fa-users'></i> DAFTAR TUNGGU", html);
-        }
-
-        window.pilihSlotEks = (i) => {
-            window.showEliteConfirm(`Anda yakin masuk SLOT 0${i+1}?`, "Klik LANJUTKAN untuk mengisi slot.", "normal", () => {
-                window.showActionLoader();
-                let myObj = null;
-                runTransaction(dbQueue, async(t)=>{ 
-                    const d = await t.get(mainRef); 
-                    if(d.data().chargingSlots[i]) throw new Error("SLOT SUDAH TERISI!"); 
-                    let q = [...d.data().waitingQueue]; 
-                    const idx = q.findIndex(x => cleanStr(x.plat) === cleanStr(myPlat)); 
-                    if(idx === -1) throw new Error("DATA TIDAK DITEMUKAN DI ANTREAN!"); 
-                    
-                    const oldUser = q[idx];
-                    q.splice(idx, 1); 
-                    myObj = { ...oldUser, startTime: Date.now() }; 
-                    
-                    let newSlots = [...d.data().chargingSlots];
-                    newSlots[i] = myObj; 
-                    
-                    t.update(mainRef, { chargingSlots: newSlots, waitingQueue: q }); 
-                }).then(() => { 
-                    if(myObj) catatLogSuperDetail("MASUK_SLOT", myObj.userName, myObj.plat, `Masuk Slot 0${i+1}`);
-                    window.hideActionLoader(); window.closeModal('mainModal'); 
-                }).catch(e => { window.hideActionLoader(); window.showEliteAlert("INFO", e.message || e); }); 
-            });
-        }
-
-        window.prosesKudeta = (idx) => {
-            window.showEliteConfirm("AMBIL ALIH SLOT", "Ambil alih paksa dan hapus user sebelumnya?", "danger", () => {
-                window.showActionLoader();
-                let myObj = null;
-                runTransaction(dbQueue, async(t)=>{ 
-                    const d = await t.get(mainRef); 
-                    let q = [...(d.data().waitingQueue || [])]; 
-                    let slots = [...(d.data().chargingSlots || [null, null, null])];
-                    
-                    const myIndex = q.findIndex(x => cleanStr(x.plat) === cleanStr(myPlat)); 
-                    if(myIndex !== 0 && myIndex !== 1) throw new Error("Hanya Antrean #1 & #2 yang bisa kudeta!");
-                    
-                    const oldUser = q[myIndex];
-                    q.splice(myIndex, 1); 
-                    myObj = { ...oldUser, userName: cleanName(oldUser.userName), role: "KUDETA", startTime: Date.now() };
-                    slots[idx] = myObj; 
-                    
-                    t.update(mainRef, { chargingSlots: slots, waitingQueue: q }); 
-                }).then(() => { 
-                    if(myObj) catatLogSuperDetail("KUDETA", myObj.userName, myObj.plat, `Kudeta Slot 0${idx+1}`);
-                    window.hideActionLoader();
-                    window.closeModal('mainModal'); 
-                    window.showEliteAlert("BERHASIL", "Slot diambil alih!");
-                }).catch(e => { window.hideActionLoader(); window.showEliteAlert("GAGAL KUDETA", e.message || e); }); 
-            });
-        }
-
-        // === LOGIKA PASAR E-COMMERCE ===
-        let carouselInterval; 
-        
+        // AUTO CAROUSEL PASAR LOGIC
         onSnapshot(query(collection(dbStore, 'mlu_store'), orderBy('timestamp', 'desc')), (snap) => {
-            const feed = document.getElementById('storeFeed');
-            if (snap.empty) { feed.innerHTML = '<div style="width:100%; text-align:center; font-size:12px; font-weight:900; color:var(--text-gray);">Pasar Kosong</div>'; return; }
-            
-            let allProducts = [];
-            snap.forEach(docSnap => { allProducts.push({ id: docSnap.id, ...docSnap.data() }); });
-
-            let kampasItems = []; let kopiItems = []; let normalItems = [];
-            allProducts.forEach(p => {
-                let titleLow = p.title.toLowerCase();
-                if(titleLow.includes('kampas') || titleLow.includes('kanvas') || titleLow.includes('rem')) { kampasItems.push(p); } 
-                else if(titleLow.includes('kopi')) { kopiItems.push(p); } 
-                else { normalItems.push(p); }
-            });
-
-            window.allStoreItems = [...kampasItems, ...kopiItems, ...normalItems];
-
-            feed.innerHTML = '';
+            const feed = document.getElementById('storeFeed'); if (snap.empty) { feed.innerHTML = '<div style="width:100%; text-align:center; font-size:12px; font-weight:900; color:var(--text-gray);">Pasar Kosong</div>'; return; }
+            let allProducts = []; snap.forEach(docSnap => { allProducts.push({ id: docSnap.id, ...docSnap.data() }); });
+            window.allStoreItems = allProducts; feed.innerHTML = '';
             window.allStoreItems.forEach(p => {
-                let img = p.image || 'https://placehold.co/300x300/E2E8F0/94A3B8?text=NO+IMAGE';
-                let priceStr = window.formatK(p.price);
-                
+                let img = p.image || 'https://placehold.co/300x300/E2E8F0/94A3B8?text=NO+IMAGE'; let priceStr = window.formatK(p.price);
                 const stockVal = p.stock !== undefined ? p.stock : 99;
-                let stockBadge = `<span class="stock-badge"><i class="fas fa-box"></i> Stok: ${stockVal}</span>`;
-                if(stockVal <= 0) stockBadge = `<span class="stock-badge empty"><i class="fas fa-times-circle"></i> Habis</span>`;
-
-                let sellerBadge = '';
-                if(cleanStr(p.sellerPlat) === 'B4794SWF') {
-                    sellerBadge = `<div style="font-size:9px; color:#10B981; font-weight:900; background:#ECFDF5; border:1px solid #A7F3D0; padding:3px 6px; border-radius:6px; display:inline-block; margin-top:4px;"><i class="fas fa-tree"></i> Keluarga Cemara</div>`;
-                } else {
-                    sellerBadge = `<div class="seller-badge"><i class="fas fa-store"></i> ${p.sellerName}</div>`;
-                }
-
-                feed.innerHTML += `
-                <div class="item-float" onclick="window.openStoreDetail('${p.id}')">
-                    <div class="item-img-bg"><img src="${img}"></div>
-                    <div class="item-name">${p.title}</div>
-                    ${stockBadge}
-                    <div class="p-price-promo">Rp ${priceStr}</div>
-                    ${sellerBadge}
-                    <button class="btn-beli">LIHAT DETAIL</button>
-                </div>`;
+                let stockBadge = `<span class="stock-badge"><i class="fas fa-box"></i> Stok: ${stockVal}</span>`; if(stockVal <= 0) stockBadge = `<span class="stock-badge empty"><i class="fas fa-times-circle"></i> Habis</span>`;
+                feed.innerHTML += `<div class="item-float" onclick="window.openStoreDetail('${p.id}')"><div class="item-img-bg"><img src="${img}"></div><div class="item-name">${p.title}</div>${stockBadge}<div class="p-price-promo">Rp ${priceStr}</div><button class="btn-beli">LIHAT DETAIL</button></div>`;
             });
-
-            clearInterval(carouselInterval);
-            carouselInterval = setInterval(() => {
-                if (feed.scrollLeft + feed.clientWidth >= feed.scrollWidth - 10) {
-                    feed.scrollTo({ left: 0, behavior: 'smooth' });
-                } else {
-                    feed.scrollBy({ left: 142, behavior: 'smooth' }); 
-                }
-            }, 3000);
-
-            feed.onpointerdown = () => clearInterval(carouselInterval);
-            feed.onpointerup = () => {
-                clearInterval(carouselInterval);
-                carouselInterval = setInterval(() => {
-                    if (feed.scrollLeft + feed.clientWidth >= feed.scrollWidth - 10) {
-                        feed.scrollTo({ left: 0, behavior: 'smooth' });
-                    } else {
-                        feed.scrollBy({ left: 142, behavior: 'smooth' });
-                    }
-                }, 3000);
-            };
         });
-
-        window.openStoreDetail = (id) => {
-            const data = window.allStoreItems.find(x => x.id === id);
-            if(!data) return;
-            window.currentCheckoutItem = data;
-
-            let titleLow = data.title.toLowerCase();
-            let isKampas = titleLow.includes('kampas') || titleLow.includes('kanvas') || titleLow.includes('rem');
-            
-            let extraInfo = isKampas ? `<div style="background:#FFFBEB; border:1px dashed #F59E0B; color:#B45309; padding:10px; border-radius:12px; margin-bottom:15px; font-size:11px; font-weight:800; line-height:1.4;"><i class="fas fa-tools"></i> INFO: Sistem Booking. Pembelian hari ini, pemasangan paling cepat BESOK (H+1). Silakan konfirmasi jadwal via WA.</div>` : '';
-            
-            const stockVal = data.stock !== undefined ? data.stock : 99;
-            let stockBadge = `<div style="display:inline-block; font-size:11px; font-weight:900; color:var(--text-gray); background:#E2E8F0; padding:4px 10px; border-radius:8px; margin-bottom:15px;"><i class="fas fa-box"></i> Stok: ${stockVal}</div>`;
-            
-            let actionButtons = '';
-            if(!uData) {
-                actionButtons = `<button class="btn-elite btn-success-mode" onclick="window.chatSeller()"><i class="fab fa-whatsapp" style="font-size:20px;"></i> HUBUNGI PENJUAL</button>`;
-            } else if (cleanStr(data.sellerPlat) === myPlatClean) { 
-                actionButtons = `<button class="btn-elite" style="background:#E2E8F0; color:#64748B;" disabled><i class="fas fa-store"></i> INI LAPAK ANDA</button>`;
-            } else if (stockVal <= 0) {
-                actionButtons = `<div style="display:flex; gap:10px;"><button class="btn-elite btn-restore-light" style="flex:1;" onclick="window.chatSeller()"><i class="fab fa-whatsapp"></i> TANYA</button><button class="btn-elite" style="flex:1; background:#CBD5E1; color:white;" disabled><i class="fas fa-ban"></i> HABIS</button></div>`;
-            } else {
-                actionButtons = `<div style="display:flex; gap:10px;"><button class="btn-elite btn-restore-light" style="flex:0.8;" onclick="window.chatSeller()"><i class="fab fa-whatsapp"></i> TANYA</button><button class="btn-elite btn-success-mode" style="flex:1.2;" onclick="window.openCheckoutModal()"><i class="fas fa-shopping-cart"></i> BELI</button></div>`;
-            }
-
-            const html = `
-                <img src="${data.image || 'https://placehold.co/400x400'}" style="width:100%; height:200px; object-fit:cover; border-radius:16px; margin-bottom:15px; border:1px solid #E2E8F0;">
-                <div style="font-family:'Space Grotesk'; font-size:24px; font-weight:900; color:var(--danger); text-align:left; line-height:1; margin-bottom:5px;">Rp ${Number(data.price).toLocaleString('id-ID')}</div>
-                <div style="font-family:'Inter'; font-size:16px; font-weight:900; color:var(--text-dark); text-align:left; margin-bottom:10px;">${data.title}</div>
-                ${stockBadge}
-                ${extraInfo}
-                <div style="font-size:12px; font-weight:600; color:var(--text-gray); text-align:left; background:#F8FAFC; padding:10px; border-radius:12px; margin-bottom:20px; white-space:pre-wrap; border:1px solid var(--border-soft);">${data.desc || 'Tidak ada deskripsi.'}</div>
-                ${actionButtons}
-            `;
-            window.showModal("<i class='fas fa-shopping-bag'></i> DETAIL PRODUK", html);
-        }
-
-        window.chatSeller = () => {
-            if(!window.currentCheckoutItem) return;
-            let noWa = window.currentCheckoutItem.sellerWa; if(!noWa) return window.showEliteAlert("INFO", "Penjual tidak melampirkan no WA.");
-            if(noWa.startsWith('0')) noWa = '62' + noWa.substring(1);
-            window.open(`https://wa.me/${noWa}?text=Halo%20${window.currentCheckoutItem.sellerName},%20saya%20tertarik%20dengan%20barang%20${window.currentCheckoutItem.title}%20di%20Pasar%20MLU.`, '_blank');
-        }
-
-        window.openCheckoutModal = () => {
-            if(!window.currentCheckoutItem) return;
-            if(!uData) return window.showEliteAlert("AKSES DITOLAK", "Silakan Login di Dashboard untuk membeli.");
-            
-            window.closeModal('mainModal'); 
-            document.getElementById('coTitle').innerText = window.currentCheckoutItem.title;
-            document.getElementById('coPrice').innerText = "Rp " + Number(window.currentCheckoutItem.price).toLocaleString('id-ID');
-            document.getElementById('coNotes').value = '';
-            document.getElementById('coMethod').value = 'QRIS';
-            window.changePaymentNote();
-            
-            const cm = document.getElementById('checkoutModal');
-            cm.style.display = 'flex'; setTimeout(() => cm.classList.add('show'), 300);
-        }
-
-        window.submitOrder = async () => {
-            if(!uData) return window.showEliteAlert("AKSES DITOLAK", "Silakan Login di Dashboard MLU untuk membeli.");
-            const btn = document.getElementById('btnSubmitOrder');
-            btn.innerText = "MEMPROSES..."; btn.style.opacity = '0.7';
-            window.showActionLoader();
-            
-            try {
-                await runTransaction(dbStore, async (t) => {
-                    const itemRef = doc(dbStore, 'mlu_store', window.currentCheckoutItem.id);
-                    const itemSnap = await t.get(itemRef);
-                    if (!itemSnap.exists()) throw new Error("Barang sudah dihapus penjual!");
-                    
-                    const currentStock = itemSnap.data().stock !== undefined ? itemSnap.data().stock : 99;
-                    if(currentStock <= 0) throw new Error("STOK_HABIS");
-                    
-                    t.update(itemRef, { stock: currentStock - 1 });
-                    
-                    const orderNotes = document.getElementById('coNotes').value.trim();
-                    const payMethod = document.getElementById('coMethod').value;
-                    const statusAwal = payMethod === 'QRIS' ? 'UNPAID' : 'WAITING_COD';
-
-                    const newOrderRef = doc(collection(dbStore, 'mlu_store_orders'));
-                    t.set(newOrderRef, {
-                        productId: window.currentCheckoutItem.id, productTitle: window.currentCheckoutItem.title, price: window.currentCheckoutItem.price,
-                        buyerName: myName, buyerPlat: myPlatClean, buyerWa: uData.hp || "", 
-                        sellerName: window.currentCheckoutItem.sellerName, sellerPlat: window.currentCheckoutItem.sellerPlat, sellerWa: window.currentCheckoutItem.sellerWa, sellerId: window.currentCheckoutItem.sellerId || null,
-                        notes: orderNotes, paymentMethod: payMethod, status: statusAwal, timestamp: Date.now()
-                    });
-                });
-                
-                const payMethod = document.getElementById('coMethod').value;
-                const orderNotes = document.getElementById('coNotes').value.trim();
-
-                catatLogSuperDetail("BELI_BARANG", myName, myPlatClean, `Membeli ${window.currentCheckoutItem.title} via ${payMethod}`);
-
-                let noWa = window.currentCheckoutItem.sellerWa; 
-                if(noWa) {
-                    if(noWa.startsWith('0')) noWa = '62' + noWa.substring(1);
-                    const tipeBayarTxt = payMethod === 'QRIS' ? 'Transfer QRIS (Rekber MLU)' : 'COD / Bayar Tunai';
-                    const waMsg = `Halo *${window.currentCheckoutItem.sellerName}*! 🎉\n\nAda pesanan baru masuk dari *${myName}* (${myPlatClean}) di Pasar MLU.\n\n*Barang:* ${window.currentCheckoutItem.title}\n*Harga:* Rp ${Number(window.currentCheckoutItem.price).toLocaleString('id-ID')}\n*Metode:* ${tipeBayarTxt}\n*Catatan Pembeli:* ${orderNotes || '-'}\n\nSilakan cek aplikasi MLU Anda di tab *Pesanan* untuk memprosesnya.`;
-                    
-                    window.open(`https://wa.me/${noWa}?text=${encodeURIComponent(waMsg)}`, '_blank');
-                }
-                
-                window.closeModal('checkoutModal');
-                setTimeout(() => { window.showEliteAlert("PESANAN BERHASIL", "Pesanan berhasil dibuat!\nSilakan buka aplikasi Dashboard -> Pasar MLU -> Pesanan untuk mengecek."); }, 500);
-                
-            } catch(e) { 
-                window.hideActionLoader(); 
-                if(e.message === "STOK_HABIS") {
-                    window.showEliteAlert("STOK HABIS", "Mohon maaf Bos, barang ini baru saja dibeli orang lain dan stoknya habis!");
-                    window.closeModal('checkoutModal');
-                } else {
-                    window.showEliteAlert("GAGAL", e.message); 
-                }
-            } finally { 
-                window.hideActionLoader();
-                btn.innerText = "BUAT PESANAN SEKARANG"; btn.style.opacity = '1'; 
-            }
-        }
     </script>
 </body>
 </html>
