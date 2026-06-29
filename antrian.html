@@ -17,7 +17,7 @@
     <title>FC Kelapa Gading - Elite</title>
     
     <script>
-        const APP_VERSION = "10.0_FINAL_STABLE_NO_CHAT"; 
+        const APP_VERSION = "10.0_FINAL_BOSS_WARNING"; 
         if (localStorage.getItem('maka_antrian_v') !== APP_VERSION) {
             if ('caches' in window) { caches.keys().then((names) => { names.forEach(name => { caches.delete(name); }); }); }
             localStorage.setItem('maka_antrian_v', APP_VERSION); window.location.reload(true); 
@@ -41,6 +41,11 @@
             --success: #10B981;
             --danger: #EF4444;
             --electric-blue: #2D63ED;
+            
+            /* WARNA WARNING POPUP */
+            --warn-red: #EF4444;
+            --warn-dark: #7F1D1D;
+            --warn-bg: #FEF2F2;
         }
 
         body { 
@@ -88,22 +93,13 @@
             position: relative; border: 1px solid var(--border-soft); box-shadow: 0 10px 30px rgba(0,0,0,0.05);
         }
 
-        /* LOGO JUMBO FULL CIRCLE */
         .mlu-logo-container { 
             position: absolute; top: 15px; left: 15px; right: 15px; bottom: 15px; 
             --batre-level: 0%; border-radius: 50%; overflow: hidden;
         }
-        .logo-gray { 
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
-            object-fit: contain; filter: grayscale(100%) opacity(0.15); 
-        }
-        .logo-color { 
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
-            object-fit: contain; clip-path: inset(calc(100% - var(--batre-level)) 0 0 0); 
-            transition: clip-path 1.5s cubic-bezier(0.4, 0, 0.2, 1); 
-        }
+        .logo-gray { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; filter: grayscale(100%) opacity(0.15); }
+        .logo-color { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; clip-path: inset(calc(100% - var(--batre-level)) 0 0 0); transition: clip-path 1.5s cubic-bezier(0.4, 0, 0.2, 1); }
 
-        /* PILL STANDBY MENGAMBANG DI BAWAH */
         .battery-text {
             position: absolute; bottom: -18px; left: 50%; transform: translateX(-50%); z-index: 5;
             font-family: 'Space Grotesk', sans-serif; font-size: 14px; font-weight: 900; color: var(--text-gray);
@@ -120,7 +116,6 @@
             border: none; cursor: pointer; transition: 0.2s; letter-spacing: 1px;
         }
         .btn-elite:active { transform: scale(0.97); }
-        
         .btn-main-dark { background: var(--mlu-black); color: var(--bg-pure); box-shadow: 0 10px 25px rgba(11, 17, 32, 0.2); }
         .btn-restore-light { background: var(--bg-pure); color: var(--text-dark); border: 2px solid var(--border-soft); }
         .btn-danger-mode { background: var(--danger) !important; color: white !important; box-shadow: 0 10px 25px rgba(239,68,68,0.3) !important; border:none !important; }
@@ -164,7 +159,6 @@
         .m-title { font-family: 'Space Grotesk'; font-size: 20px; font-weight: 900; color: var(--text-dark); margin: 0; }
         .btn-close-modal { width: 35px; height: 35px; border-radius: 50%; background: var(--bg-off); color: var(--text-dark); border: none; cursor: pointer; font-size: 14px;}
         .list-area { overflow-y: auto; flex: 1; padding-right: 5px; }
-
         .list-item { background: var(--bg-pure); border: 1px solid var(--border-soft); border-radius: 16px; padding: 15px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 10px rgba(0,0,0,0.02);}
         .li-plat { font-family: 'Space Grotesk'; font-size: 20px; font-weight: 900; color: var(--text-dark); margin-bottom: 4px;}
         .li-name { font-size: 12px; font-weight: 900; color: var(--text-gray); text-transform: uppercase;}
@@ -175,7 +169,6 @@
         .inp-label { font-size: 12px; font-weight: 900; color: var(--text-gray); text-transform: uppercase; margin-bottom: 8px; display: block;}
         .inp-text { width: 100%; padding: 16px; border-radius: 14px; border: 1px solid var(--border-soft); background: var(--bg-off); color: var(--text-dark); font-family: 'Inter'; font-weight: 800; font-size: 16px; outline: none; }
         .inp-text:focus { border-color: var(--mlu-gold); background: var(--bg-pure); }
-
         .co-box { background: #F8FAFC; border: 1px solid #E2E8F0; padding: 15px; border-radius: 16px; margin-bottom: 15px; text-align: left; }
 
         /* FULL STORE */
@@ -191,7 +184,6 @@
         #loader { position: fixed; inset: 0; background: var(--bg-pure); z-index: 999999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: 0.3s;}
         #actionLoader { position:fixed; inset:0; background:rgba(255,255,255,0.8); backdrop-filter:blur(5px); z-index:999999; display:none; flex-direction:column; align-items:center; justify-content:center; opacity:0; transition:0.3s;}
         .spinner { width: 40px; height: 40px; border: 4px solid var(--border-soft); border-top: 4px solid var(--text-dark); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 15px; }
-
         .restore-overlay { display:none; position:fixed; inset:0; background:var(--bg-pure); z-index:9999999; flex-direction:column; align-items:center; justify-content:center; padding:20px; text-align:center; background-image: radial-gradient(circle at top left, var(--mlu-gold-glow) 0%, transparent 60%); }
         .restore-inp { width:100%; max-width:320px; padding:18px; border-radius:16px; border:2px solid var(--mlu-gold); background:var(--bg-off); color:var(--text-dark); font-family:'Space Grotesk'; font-size:24px; font-weight:900; text-align:center; text-transform:uppercase; margin-bottom:20px; outline:none; box-shadow:0 10px 30px rgba(220,163,17,0.1); letter-spacing:2px; }
 
@@ -207,11 +199,25 @@
         .btn-em-cancel { background: var(--bg-off); color: var(--text-dark); border: 1px solid var(--border-soft); }
         .btn-em-confirm { background: var(--text-dark); color: var(--bg-pure); }
         .btn-em-danger { background: var(--danger); color: white; }
+
+        /* WARNING TIDUR POPUP KHUSUS */
+        .warning-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(8px); display: none; align-items: center; justify-content: center; padding: 20px; z-index: 9999999; }
+        .warning-box { background: #FFFFFF; border-radius: 24px; padding: 0; overflow: hidden; width: 100%; max-width: 380px; box-shadow: 0 25px 50px rgba(239, 68, 68, 0.4); border: 2px solid var(--warn-red); animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes popIn { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        .warning-header { background: var(--warn-red); padding: 25px 20px 20px; text-align: center; color: white; position: relative; overflow: hidden; }
+        .warning-header::before { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: repeating-linear-gradient( 45deg, transparent, transparent 10px, rgba(0,0,0,0.1) 10px, rgba(0,0,0,0.1) 20px ); z-index: 1; }
+        .warning-icon { font-size: 55px; margin-bottom: 10px; position: relative; z-index: 2; animation: blinkFast 1s infinite alternate; text-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        @keyframes blinkFast { 0% { opacity: 1; transform: scale(1); } 100% { opacity: 0.8; transform: scale(0.95); } }
+        .warning-title { font-family: 'Space Grotesk', sans-serif; font-size: 26px; font-weight: 900; margin: 0; line-height: 1.1; letter-spacing: -0.5px; position: relative; z-index: 2; }
+        .warning-body { padding: 25px 20px; text-align: center; }
+        .warning-text-1 { font-size: 15px; font-weight: 900; color: #0F172A; margin-bottom: 15px; line-height: 1.4; text-transform: uppercase; }
+        .warning-text-2 { font-size: 12px; font-weight: 800; color: var(--warn-dark); background: var(--warn-bg); padding: 15px; border-radius: 12px; border: 2px dashed #FCA5A5; line-height: 1.6; }
+        .btn-mengerti { width: 100%; background: #0F172A; color: #FFFFFF; border: none; padding: 20px; font-family: 'Space Grotesk', sans-serif; font-size: 15px; font-weight: 900; cursor: pointer; transition: 0.2s; letter-spacing: 1px; display: flex; justify-content: center; align-items: center; gap: 8px; }
+        .btn-mengerti:active { background: #1E293B; }
     </style>
 </head>
 <body>
 
-    <!-- LOADING SCREEN DENGAN QUOTES RANDOM -->
     <div id="loader">
         <div class="spinner"></div>
         <div id="loadingText" style="font-family:'Space Grotesk'; font-weight:900; color:var(--text-dark); letter-spacing:1px; font-size:14px; text-align:center; max-width:80%; line-height:1.5;">MENYAMBUNGKAN...</div>
@@ -224,7 +230,7 @@
             "MENGISI ENERGI LINTAS UTARA...",
             "SELAMAT DATANG DI RUMAH MAKA LINTAS UTARA..."
         ];
-        document.getElementById('loadingText').innerText = quotes[Math.floor(Math.random() * quotes.length)];[span_0](start_span)[span_0](end_span)
+        document.getElementById('loadingText').innerText = quotes[Math.floor(Math.random() * quotes.length)];
     </script>
     
     <div id="actionLoader">
@@ -232,15 +238,15 @@
         <div style="font-family:'Space Grotesk'; font-weight:900; color:var(--text-dark); letter-spacing:2px;">MEMPROSES...</div>
     </div>
 
+    <!-- PWA INSTALL PROMPT -->
+    <div class="pwa-prompt" id="pwaPrompt" style="display: none;"></div>
+
     <!-- OVERLAY PULIHKAN SESI -->
     <div class="restore-overlay" id="restoreOverlay">
         <i class="fas fa-id-badge" style="font-size:60px; color:var(--mlu-gold); margin-bottom:20px;"></i>
         <h1 style="color:var(--text-dark); font-family:'Space Grotesk'; font-size:32px; font-weight:900; margin:0 0 10px; letter-spacing:-1px;">SESI TERPUTUS</h1>
         <p style="color:var(--text-gray); font-family:'Inter'; font-size:14px; margin-bottom:30px; max-width:300px; font-weight:800;">Masukkan Plat Kendaraan Anda untuk masuk kembali ke sistem.</p>
-        
         <input type="text" id="inpRestorePlat" class="restore-inp" placeholder="Cth: B 1234 XYZ" autocomplete="off">
-        
-        <!-- PANGGILAN FUNGSI JS GLOBAL -->
         <button class="btn-elite btn-main-dark" style="max-width:320px; margin-bottom:15px;" onclick="window.restoreSessionProcess()">PULIHKAN SESI</button>
         <button class="btn-elite btn-restore-light" style="max-width:320px;" onclick="document.getElementById('restoreOverlay').style.display='none'">KEMBALI KE PORTAL AWAL</button>
     </div>
@@ -252,6 +258,28 @@
             <h3 class="em-title" id="emTitle">KONFIRMASI</h3>
             <div class="em-msg" id="emMsg">Apakah Anda yakin?</div>
             <div class="em-actions" id="emBtns"></div>
+        </div>
+    </div>
+
+    <!-- WARNING ANTI-TIDUR OVERLAY -->
+    <div class="warning-overlay" id="tidurWarningOverlay">
+        <div class="warning-box">
+            <div class="warning-header">
+                <div class="warning-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                <h2 class="warning-title">CHARGING MAX 95%</h2>
+            </div>
+            <div class="warning-body">
+                <div class="warning-text-1">
+                    HARAP TETAP SIUMAN SAAT MOTOR ANDA SEDANG DI CAS DAN PANTAU AGAR TIDAK LEBIH DARI 95%.
+                </div>
+                <div class="warning-text-2">
+                    <i class="fas fa-bullhorn" style="font-size: 16px; margin-bottom: 8px; color: #EF4444; display: block;"></i>
+                    KORLAP DAN SATGAS MLU TUGASNYA HANYA MEMASTIKAN ANTREAN BERJALAN LANCAR, BUKAN JAGAIN MOTOR SAAT ANDA TIDUR!
+                </div>
+            </div>
+            <button class="btn-mengerti" onclick="document.getElementById('tidurWarningOverlay').style.display='none'">
+                <i class="fas fa-check-double"></i> SAYA PAHAM & SIAP PANTAU
+            </button>
         </div>
     </div>
 
@@ -274,19 +302,17 @@
         <main class="dashboard-core" id="dashboardCore">
             <div class="ring-outer">
                 <div class="ring-glow"></div>
-                
                 <div class="ring-inner">
                     <div class="mlu-logo-container" id="logoContainer">
                         <img src="logomlumaster.png" class="logo-gray" alt="Logo Empty">
                         <img src="logomlumaster.png" class="logo-color" alt="Logo Full">
                     </div>
                 </div>
-                
                 <div class="battery-text" id="batteryText">STANDBY</div>
             </div>
         </main>
 
-        <!-- Action Buttons (TENGAH) -->
+        <!-- Action Buttons -->
         <div class="action-center" id="actionWrapper">
             <button class="btn-elite btn-main-dark" id="btnMainAction">
                 <i class="fas fa-ticket-alt"></i> DAFTAR ANTREAN
@@ -323,7 +349,6 @@
                     JELAJAHI <i class="fas fa-arrow-right"></i>
                 </button>
             </div>
-            
             <div class="store-carousel" id="storeFeed">
                 <div style="text-align:center; width:100%; font-size:12px; font-weight:800; color:var(--text-gray);">Memuat Katalog...</div>
             </div>
@@ -373,16 +398,13 @@
                         <option value="COD">Bayar Tunai / COD Gading</option>
                     </select>
                 </div>
-                
                 <div class="inp-group">
                     <label class="inp-label">Catatan untuk Penjual (Opsional)</label>
                     <textarea id="coNotes" class="inp-text" style="height:80px; resize:none;" placeholder="Contoh: Tolong bungkus yang rapi ya..."></textarea>
                 </div>
-
                 <div id="coWarning" style="font-size:11px; color:#B45309; text-align:center; font-weight:700; margin-bottom:10px; background:#FFFBEB; padding:10px; border-radius:12px; border:1px solid #FCD34D;">
                     <b>KHUSUS TRANSFER QRIS:</b><br>Dana ditampung di Rekber Kas MLU (Aman). Penjual otomatis dipotong 5% untuk Kas.
                 </div>
-                
                 <button class="btn-elite btn-success-mode" id="btnSubmitOrder" onclick="window.submitOrder()">BUAT PESANAN SEKARANG</button>
             </div>
         </div>
@@ -390,15 +412,11 @@
 
     <!-- SCRIPT UTILS GLOBAL UI -->
     <script>
-        // MENGHAPUS LOADER SETELAH 1 DETIK
         window.addEventListener('DOMContentLoaded', (event) => {
             setTimeout(() => { 
                 const loader = document.getElementById('loader');
-                if(loader) {
-                    loader.style.opacity = '0'; 
-                    setTimeout(()=> loader.style.display = 'none', 300);
-                }
-            }, 1000);
+                if(loader) { loader.style.opacity = '0'; setTimeout(()=> loader.style.display = 'none', 300); }
+            }, 1200); 
         });
 
         window.showActionLoader = () => { document.getElementById('actionLoader').style.display = 'flex'; setTimeout(() => document.getElementById('actionLoader').style.opacity = '1', 10); };
@@ -579,17 +597,41 @@
         window.openFormDaftar = () => {
             let defNama = uData ? (uData.namaKtp || uData.namaWa) : ""; let defPlat = uData ? uData.plat : myPlat;
             const html = `
-                <div class="inp-group"><label class="inp-label">Nama Pilot</label><input type="text" id="inpNama" class="inp-text" value="${defNama}" placeholder="Ketik Nama" ${uData ? 'readonly' : ''}></div>
-                <div class="inp-group"><label class="inp-label">Plat Nomor</label><input type="text" id="inpPlat" class="inp-text" value="${defPlat}" placeholder="B 1234 XYZ" ${uData ? 'readonly' : ''}></div>
-                <div class="inp-group"><label class="inp-label">Sisa Baterai (%)</label><input type="number" id="inpBatre" class="inp-text" placeholder="Contoh: 15" min="0" max="100"></div>
+                <div class="inp-group"><label class="inp-label">Nama Pilot</label><input type="text" id="inpNama" class="inp-text" value="${defNama}" placeholder="Ketik Nama (Wajib Huruf)" ${uData ? 'readonly' : ''}></div>
+                <div class="inp-group"><label class="inp-label">Plat Nomor</label><input type="text" id="inpPlat" class="inp-text" value="${defPlat}" placeholder="Contoh: B 1234 XYZ" ${uData ? 'readonly' : ''}></div>
+                <div class="inp-group"><label class="inp-label">Sisa Baterai (%)</label><input type="number" id="inpBatre" class="inp-text" placeholder="Contoh: 15" min="0" max="90"></div>
                 <button class="btn-elite btn-main-dark" style="margin-top:20px;" onclick="window.submitData()"><i class="fas fa-check"></i> DAFTAR SEKARANG</button>
             `;
             window.showModal("<i class='fas fa-id-card'></i> REGISTRASI ANTREAN", html);
         }
 
         window.submitData = async () => { 
-            const n = document.getElementById('inpNama').value.toUpperCase(); const p = document.getElementById('inpPlat').value.toUpperCase(); const b = document.getElementById('inpBatre').value; 
-            if(!n || !p || !b) return window.showEliteAlert("DATA BELUM LENGKAP", "Harap isi semua kolom formulir."); 
+            const nRaw = document.getElementById('inpNama').value; 
+            const pRaw = document.getElementById('inpPlat').value; 
+            const b = document.getElementById('inpBatre').value; 
+            
+            if(!nRaw || !pRaw || !b) return window.showEliteAlert("DATA BELUM LENGKAP", "Harap isi semua kolom formulir."); 
+            
+            const n = nRaw.toUpperCase().trim(); 
+            const p = pRaw.toUpperCase().trim();
+            const bInt = parseInt(b);
+
+            // VALIDASI 1: BATAS MAKSIMAL BATERAI 90%
+            if(bInt > 90) return window.showEliteAlert("BATERAI DITOLAK", "Maksimal sisa baterai saat pendaftaran adalah <b>90%</b>.");
+
+            // VALIDASI 2: FORMAT PLAT JAKARTA (Depan B)
+            const platRegex = /^B\s*\d{1,4}\s*[A-Z]{1,3}$/;
+            if(!platRegex.test(p)) return window.showEliteAlert("PLAT TIDAK VALID", "Format plat harus sesuai area Jakarta. Contoh yang benar: <b>B 1234 XYZ</b> atau <b>B 123 ABC</b>.");
+
+            // VALIDASI 3: NAMA ASLI (HANYA HURUF)
+            const nameRegex = /^[A-Z\s]{3,50}$/;
+            if(!nameRegex.test(n)) return window.showEliteAlert("NAMA TIDAK VALID", "Gunakan nama asli Anda (hanya huruf, tanpa angka/simbol, minimal 3 karakter).");
+
+            // VALIDASI 4: BLACKLIST KATA KASAR / NAMA BINATANG
+            const kataTerlarang = ["JANGKRIK", "MONYET", "ANJING", "BABI", "KUNYUK", "TAI", "BANGSAT", "GOBLOK", "TOLOL", "ASU", "KONTOL", "MEMEK"];
+            const isBlacklisted = kataTerlarang.some(kata => n.includes(kata));
+            if(isBlacklisted) return window.showEliteAlert("NAMA DIBLOKIR", "Tolong gunakan nama asli yang sopan. Nama samaran/binatang tidak diizinkan di sistem MLU.");
+
             window.showActionLoader();
             try { 
                 await runTransaction(dbQueue, async (t) => {
@@ -599,10 +641,22 @@
                     q.push({ userName: n, plat: p, batre: b + "%", battery: b + "%", batreSisa: b, role: myRole, timestamp: Date.now(), qNo: (d.lastTicket || 0) + 1 }); 
                     t.update(mainRef, { waitingQueue: q, lastTicket: (d.lastTicket || 0) + 1 }); 
                 });
+                
                 catatLogSuperDetail("DAFTAR_ANTREAN", n, p, `Berhasil mengambil antrean dengan baterai ${b}%`);
-                localStorage.setItem('myPlat', p); myPlat = p; window.closeModal('mainModal'); 
+                localStorage.setItem('myPlat', p); myPlat = p; 
+                window.closeModal('mainModal'); 
+                
+                // MUNCULKAN POP-UP WARNING ANTI-TIDUR SETELAH BERHASIL DAFTAR
+                setTimeout(() => {
+                    document.getElementById('tidurWarningOverlay').style.display = 'flex';
+                }, 500);
+                
             } catch(e) { 
-                if(e.message === "ALREADY_REGISTERED") { localStorage.setItem('myPlat', p); myPlat = p; window.closeModal('mainModal'); window.showEliteAlert("INFO", "Kendaraan sudah terdaftar. Sesi dipulihkan."); } 
+                if(e.message === "ALREADY_REGISTERED") { 
+                    localStorage.setItem('myPlat', p); myPlat = p; 
+                    window.closeModal('mainModal'); 
+                    window.showEliteAlert("INFO", "Kendaraan sudah terdaftar. Sesi dipulihkan."); 
+                } 
                 else { window.showEliteAlert("ERROR", e.message || e); }
             } finally { window.hideActionLoader(); }
         };
@@ -698,7 +752,7 @@
                     html += `<div class="list-item" style="flex-wrap: wrap; background:var(--bg-off);"><div style="display:flex; justify-content:space-between; width:100%; align-items:center;"><div><div class="li-plat" style="color:var(--text-gray);">SLOT 0${i+1}</div><div class="li-name">KOSONG</div></div></div>${kudetaHtml}</div>`;
                 }
             });
-            window.showModal("<i class='fas fa-charging-station'></i> SLOT CHARGING", html);
+            window.showModal("<i class='fas fa-charging-station'></i> SLOT AKTIF", html);
         }
 
         window.openQueueList = () => {
@@ -794,14 +848,27 @@
                 await runTransaction(dbStore, async (t) => {
                     const itemRef = doc(dbStore, 'mlu_store', window.currentCheckoutItem.id);
                     const itemSnap = await t.get(itemRef);
+                    if (!itemSnap.exists()) throw new Error("Barang sudah dihapus penjual!");
+                    
                     const currentStock = itemSnap.data().stock !== undefined ? itemSnap.data().stock : 99;
                     if(currentStock <= 0) throw new Error("STOK_HABIS");
+                    
                     t.update(itemRef, { stock: currentStock - 1 });
+                    
+                    const orderNotes = document.getElementById('coNotes').value.trim();
+                    const payMethod = document.getElementById('coMethod').value;
+                    const statusAwal = payMethod === 'QRIS' ? 'UNPAID' : 'WAITING_COD';
+
                     const newOrderRef = doc(collection(dbStore, 'mlu_store_orders'));
-                    t.set(newOrderRef, { productId: window.currentCheckoutItem.id, productTitle: window.currentCheckoutItem.title, price: window.currentCheckoutItem.price, buyerName: myName, buyerPlat: myPlatClean, buyerWa: uData.hp || "", sellerName: window.currentCheckoutItem.sellerName, sellerPlat: window.currentCheckoutItem.sellerPlat, sellerWa: window.currentCheckoutItem.sellerWa, notes: document.getElementById('coNotes').value.trim(), paymentMethod: document.getElementById('coMethod').value, status: document.getElementById('coMethod').value === 'QRIS' ? 'UNPAID' : 'WAITING_COD', timestamp: Date.now() });
+                    t.set(newOrderRef, {
+                        productId: window.currentCheckoutItem.id, productTitle: window.currentCheckoutItem.title, price: window.currentCheckoutItem.price,
+                        buyerName: myName, buyerPlat: myPlatClean, buyerWa: uData.hp || "", 
+                        sellerName: window.currentCheckoutItem.sellerName, sellerPlat: window.currentCheckoutItem.sellerPlat, sellerWa: window.currentCheckoutItem.sellerWa, sellerId: window.currentCheckoutItem.sellerId || null,
+                        notes: orderNotes, paymentMethod: payMethod, status: statusAwal, timestamp: Date.now()
+                    });
                 });
                 
-                catatLogSuperDetail("BELI_BARANG", myName, myPlatClean, `Beli ${window.currentCheckoutItem.title}`);
+                catatLogSuperDetail("BELI_BARANG", myName, myPlatClean, `Membeli ${window.currentCheckoutItem.title}`);
                 window.closeModal('checkoutModal');
                 setTimeout(() => { window.showEliteAlert("PESANAN BERHASIL", "Pesanan berhasil dibuat!\nCek aplikasi Dashboard -> Pasar MLU -> Pesanan."); }, 500);
             } catch(e) { 
