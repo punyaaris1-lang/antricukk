@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mockup Tribute Pop-up V3</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --obsidian: #0A1128; --gold-lux: #C5A059; --text-main: #0F172A; 
+            --text-muted: #64748B; --success-glow: #059669; --danger-red: #E11D48;
+        }
+
+        body {
+            margin: 0; padding: 0; font-family: 'Montserrat', sans-serif;
+            background-color: var(--obsidian); display: flex; align-items: center; 
+            justify-content: center; height: 100vh; overflow: hidden;
+        }
+
+        .btn-simulasi {
+            background: #1E293B; color: var(--gold-lux); border: 1px solid var(--gold-lux);
+            padding: 15px 30px; border-radius: 15px; font-family: 'Montserrat';
+            font-size: 14px; font-weight: 800; cursor: pointer; transition: 0.2s;
+        }
+        .btn-simulasi:active { transform: scale(0.95); }
+
+        /* =======================================================
+           TRIBUTE POP-UP OVERLAY
+           ======================================================= */
+        .tribute-overlay {
+            position: fixed; inset: 0; background: rgba(5, 8, 20, 0.95);
+            backdrop-filter: blur(10px); z-index: 99999;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            opacity: 0; pointer-events: none; transition: opacity 0.5s ease-in-out;
+            padding: 20px; box-sizing: border-box;
+        }
+        .tribute-overlay.show { opacity: 1; pointer-events: auto; }
+
+        /* KARTU POP-UP - Background Putih & Mewah */
+        .tribute-card {
+            background: #FFFFFF; width: 100%; max-width: 360px;
+            border-radius: 20px; overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.1);
+            transform: translateY(20px) scale(0.95); 
+            transition: all 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+            display: flex; flex-direction: column;
+        }
+        .tribute-overlay.show .tribute-card { transform: translateY(0) scale(1); }
+
+        /* AREA FOTO - Landscape 16:9 Murni */
+        .photo-area {
+            position: relative; width: 100%; aspect-ratio: 16/9;
+            background: #E2E8F0; overflow: hidden;
+        }
+
+        .t-slide {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            object-fit: cover; object-position: center; 
+            opacity: 0; transition: opacity 1.5s ease-in-out;
+        }
+        .t-slide.active { opacity: 1; }
+
+        /* AREA TEKS - Terpisah di bawah foto */
+        .text-area {
+            padding: 25px 20px; text-align: center;
+            display: flex; flex-direction: column; align-items: center;
+        }
+
+        .quote-icon {
+            font-size: 24px; color: var(--gold-lux);
+            margin-bottom: 10px; opacity: 0.5;
+        }
+
+        .t-title {
+            font-family: 'Space Grotesk', sans-serif; font-size: 15px; font-weight: 800;
+            color: var(--text-main); letter-spacing: 0.5px; margin-bottom: 12px;
+            text-transform: uppercase; line-height: 1.4;
+        }
+        
+        .t-desc {
+            font-size: 12px; font-weight: 500; color: var(--text-muted); 
+            line-height: 1.6; margin-bottom: 25px;
+        }
+
+        /* TOMBOL PANTAU ANTREAN */
+        .btn-tribute-close {
+            background: transparent; border: 1px solid var(--gold-lux);
+            color: var(--gold-lux); padding: 10px 24px; border-radius: 20px;
+            font-family: 'Montserrat'; font-size: 11px; font-weight: 700;
+            cursor: pointer; transition: 0.3s; letter-spacing: 0.5px;
+        }
+        .btn-tribute-close:active { background: rgba(197, 160, 89, 0.1); }
+
+        /* =======================================================
+           AREA KONTROL CHARGING (DI LUAR KARTU PUTIH)
+           ======================================================= */
+        .charging-controls {
+            margin-top: 25px; display: flex; flex-direction: column; align-items: center; gap: 12px;
+            width: 100%; max-width: 360px;
+        }
+
+        .charging-status-text {
+            color: #10B981; font-size: 11px; font-weight: 800;
+            letter-spacing: 1.5px; text-transform: uppercase;
+            display: flex; align-items: center; gap: 6px;
+            animation: pulseText 2s infinite;
+        }
+        @keyframes pulseText {
+            0%, 100% { opacity: 0.6; } 50% { opacity: 1; }
+        }
+
+        .btn-stop-charging {
+            background: var(--danger-red); color: white; border: none;
+            padding: 14px 0; width: 100%; border-radius: 14px;
+            font-family: 'Montserrat'; font-size: 13px; font-weight: 800; letter-spacing: 1px;
+            cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+            box-shadow: 0 8px 20px rgba(225, 29, 72, 0.25); transition: 0.2s;
+        }
+        .btn-stop-charging:active { transform: scale(0.97); }
+    </style>
+</head>
+<body>
+
+    <button class="btn-simulasi" onclick="bukaTribute()">
+        <i class="fas fa-bolt"></i> MASUK SLOT CHARGING
+    </button>
+
+    <div class="tribute-overlay" id="modalTribute">
+        
+        <!-- KARTU POP-UP PUTIH -->
+        <div class="tribute-card">
+            
+            <!-- AREA FOTO MURNI (TANPA TEKS) -->
+            <div class="photo-area">
+                <img id="tFoto1" class="t-slide active" src="foto1.jpg" alt="" onerror="this.src='https://images.unsplash.com/photo-1558981420-87aa9dad1c89?q=80&w=600&auto=format&fit=crop'">
+                <img id="tFoto2" class="t-slide" src="foto2.jpg" alt="" onerror="this.src='https://images.unsplash.com/photo-1568772585407-9361f9bf3a87?q=80&w=600&auto=format&fit=crop'">
+            </div>
+            
+            <!-- AREA TEKS (BACKGROUND PUTIH) -->
+            <div class="text-area">
+                <i class="fas fa-quote-left quote-icon"></i>
+                <div class="t-title" id="tributeTitle">[H-X] SEBELUM SAYA BENAR-BENAR PADAM.</div>
+                <div class="t-desc">"Biarkan saya mengisi daya kalian sekali lagi. Bukan hanya untuk motor kalian, tapi untuk semua kenangan hebat yang pernah kita ciptakan bersama di sudut Kelapa Gading ini. Terima kasih telah singgah."</div>
+                
+                <button class="btn-tribute-close" onclick="tutupTribute()">
+                    <i class="fas fa-eye"></i> PANTAU ANTREAN
+                </button>
+            </div>
+            
+        </div>
+
+        <!-- KONTROL CHARGING BAWAH -->
+        <div class="charging-controls">
+            <div class="charging-status-text">
+                <i class="fas fa-bolt"></i> PENGISIAN SEDANG BERJALAN...
+            </div>
+            <button class="btn-stop-charging" onclick="alert('Simulasi: Proses charging dihentikan!')">
+                <i class="fas fa-power-off"></i> STOP CHARGING
+            </button>
+        </div>
+
+    </div>
+
+    <script>
+        const modalTribute = document.getElementById('modalTribute');
+        const tributeTitle = document.getElementById('tributeTitle');
+        let slideInterval;
+
+        function hitungMundur() {
+            const sekarang = new Date().getTime();
+            const tahunIni = new Date().getFullYear();
+            const target = new Date(`${tahunIni}-07-31T23:59:59`).getTime();
+            
+            const selisih = target - sekarang;
+            const hari = Math.ceil(selisih / (1000 * 60 * 60 * 24));
+            
+            if (hari > 0) {
+                tributeTitle.innerText = `[ H-${hari} ] SEBELUM SAYA BENAR-BENAR PADAM.`;
+            } else if (hari === 0) {
+                tributeTitle.innerText = `[ HARI TERAKHIR ] SEBELUM SAYA PADAM.`;
+            } else {
+                tributeTitle.innerText = `[ MEMORI ] SEBELUM SAYA PADAM.`;
+            }
+        }
+        hitungMundur();
+
+        function bukaTribute() {
+            modalTribute.classList.add('show');
+            mulaiSlideshow();
+        }
+
+        function tutupTribute() {
+            modalTribute.classList.remove('show');
+            clearInterval(slideInterval);
+        }
+
+        const totalPhotos = 14;
+        let currentIdx = 1;
+        const img1 = document.getElementById('tFoto1');
+        const img2 = document.getElementById('tFoto2');
+        let isImg1Active = true;
+
+        function mulaiSlideshow() {
+            if(slideInterval) clearInterval(slideInterval);
+            
+            slideInterval = setInterval(() => {
+                currentIdx++;
+                if (currentIdx > totalPhotos) currentIdx = 1;
+
+                if (isImg1Active) {
+                    img2.src = `foto${currentIdx}.jpg`;
+                    img2.onerror = function() { this.src = 'https://images.unsplash.com/photo-1558981806-ec527fa84c39?q=80&w=600&auto=format&fit=crop'; };
+                    img2.classList.add('active');
+                    img1.classList.remove('active');
+                } else {
+                    img1.src = `foto${currentIdx}.jpg`;
+                    img1.onerror = function() { this.src = 'https://images.unsplash.com/photo-1449426468159-d96dbf08f19f?q=80&w=600&auto=format&fit=crop'; };
+                    img1.classList.add('active');
+                    img2.classList.remove('active');
+                }
+                isImg1Active = !isImg1Active;
+            }, 4000); 
+        }
+    </script>
+</body>
+</html>
