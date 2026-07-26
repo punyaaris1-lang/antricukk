@@ -17,7 +17,7 @@
     <title>Farewell FC Gading</title>
     
     <script>
-        const APP_VERSION = "11.4_FAREWELL_COUNTDOWN"; 
+        const APP_VERSION = "11.5_FAREWELL_LAYOUT"; 
         if (localStorage.getItem('maka_antrian_v') !== APP_VERSION) {
             if ('caches' in window) { caches.keys().then((names) => { names.forEach(name => { caches.delete(name); }); }); }
             localStorage.setItem('maka_antrian_v', APP_VERSION); window.location.reload(true); 
@@ -117,8 +117,35 @@
             transition: all 0.5s ease;
         }
 
+        /* --- CAROUSEL KENANGAN ELEGAN (DIPERBESAR & DITERANGKAN) --- */
+        .memories-container {
+            width: 90%; max-width: 400px; 
+            height: 260px; /* Diperbesar dari 180px */
+            margin: 0 auto 30px auto;
+            border-radius: 16px; overflow: hidden; position: relative;
+            border: 1px solid var(--border); background: #121212;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+        }
+        .memory-slide {
+            position: absolute; inset: 0; background-size: cover; background-position: center;
+            opacity: 0; transition: opacity 2.5s ease-in-out; 
+            filter: grayscale(30%) brightness(0.8); /* Background dibuat agak terang */
+        }
+        .memory-slide.active { 
+            opacity: 1; 
+            filter: grayscale(0%) brightness(1); /* Warna dan cahaya asli saat foto tampil */
+        }
+        .memory-overlay {
+            position: absolute; bottom: 0; left: 0; right: 0; padding: 40px 15px 15px;
+            background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+            color: #E4E4E7; font-family: 'Space Grotesk'; 
+            font-size: 15px; /* Teks diperbesar */
+            font-weight: 900; text-align: center; letter-spacing: 2px; z-index: 10;
+            text-shadow: 0 2px 5px rgba(0,0,0,0.8);
+        }
+
         /* --- CIRCLE DASHBOARD --- */
-        .dashboard-core { display: flex; justify-content: center; padding: 10px 0 40px; position: relative; }
+        .dashboard-core { display: flex; justify-content: center; padding: 0 0 40px; position: relative; }
         .ring-outer { width: 250px; height: 250px; border-radius: 50%; display: flex; justify-content: center; align-items: center; border: 2px dashed var(--border); transition: 0.8s;}
         .ring-inner { width: 235px; height: 235px; border-radius: 50%; background: var(--bg-container); position: relative; border: 1px solid var(--border); box-shadow: 0 10px 30px rgba(0,0,0,0.5); transition: 0.8s;}
         
@@ -128,32 +155,8 @@
         .logo-gray { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; filter: var(--logo-filter); opacity: 0.2; transition: 0.8s; }
         .logo-color { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; filter: var(--logo-filter); clip-path: inset(calc(100% - var(--batre-level)) 0 0 0); transition: clip-path 1.5s ease, filter 0.8s; }
 
-        .battery-text {
-            position: absolute; bottom: -15px; left: 50%; transform: translateX(-50%); z-index: 5;
-            font-family: 'Space Grotesk'; font-size: 14px; font-weight: 900; color: var(--text-sub);
-            background: var(--bg-body); padding: 8px 24px; border-radius: 30px; border: 1px solid var(--border); 
-            letter-spacing: 1px; transition: 0.8s; white-space: nowrap;
-        }
-
-        /* --- CAROUSEL KENANGAN ELEGAN --- */
-        .memories-container {
-            width: 90%; max-width: 400px; height: 180px; margin: 0 auto 30px auto;
-            border-radius: 16px; overflow: hidden; position: relative;
-            border: 1px solid var(--border); background: #121212;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
-        }
-        .memory-slide {
-            position: absolute; inset: 0; background-size: cover; background-position: center;
-            opacity: 0; transition: opacity 2.5s ease-in-out; 
-            filter: grayscale(70%) brightness(0.6); 
-        }
-        .memory-slide.active { opacity: 1; filter: grayscale(20%) brightness(0.8); }
-        .memory-overlay {
-            position: absolute; bottom: 0; left: 0; right: 0; padding: 30px 15px 10px;
-            background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
-            color: #A1A1AA; font-family: 'Space Grotesk'; font-size: 11px; font-weight: 800;
-            text-align: center; letter-spacing: 2px; z-index: 10;
-        }
+        /* Tombol standby dihilangkan dari tampilan UI */
+        .battery-text { display: none !important; }
 
         /* --- BUTTONS --- */
         .action-center { display: flex; flex-direction: column; gap: 12px; padding: 0 20px; margin-bottom: 30px; }
@@ -248,18 +251,6 @@
         .btn-em-cancel { background: #27272A; color: #FFF; }
         .btn-em-confirm { background: #FAFAFA; color: #09090B; }
         .btn-em-danger { background: var(--danger); color: white; }
-
-        /* PWA BANNER */
-        .pwa-prompt { 
-            position: fixed; bottom: -150px; left: 50%; transform: translateX(-50%); 
-            width: 92%; max-width: 400px; background: rgba(15, 23, 42, 0.98); 
-            backdrop-filter: blur(15px); padding: 16px 20px; border-radius: 24px; 
-            display: flex; justify-content: space-between; align-items: center; 
-            transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 999999; 
-            border: 1px solid rgba(255,255,255,0.1); 
-        }
-        .pwa-prompt.show { bottom: 20px; }
-        .pwa-btn { background: var(--gold); color: #000; border: none; padding: 12px 22px; border-radius: 12px; font-family: 'Space Grotesk'; font-weight: 900; font-size: 12px; cursor: pointer; }
     </style>
 </head>
 <body class="theme-live" id="appBody">
@@ -286,15 +277,6 @@
     <div id="actionLoader">
         <div class="spinner" style="border-top-color:#38BDF8;"></div>
         <div style="font-family:'Space Grotesk'; font-weight:900; color:#FFF; letter-spacing:2px;">MEMPROSES...</div>
-    </div>
-
-    <!-- PWA INSTALL PROMPT BANNER -->
-    <div class="pwa-prompt" id="pwaPrompt">
-        <div>
-            <div style="font-family:'Space Grotesk'; font-size:14px; font-weight:900; color:white; margin-bottom:2px;">Install Aplikasi MLU</div>
-            <div style="font-size:11px; color:rgba(255,255,255,0.7); font-weight:700;">Akses lebih cepat, ringan & anti-logout</div>
-        </div>
-        <button class="pwa-btn" id="btnInstallPwa">INSTALL</button>
     </div>
 
     <!-- OVERLAY PULIHKAN SESI -->
@@ -350,7 +332,6 @@
         <!-- Header -->
         <header class="header-elite">
             <div class="header-left">
-                <!-- KLIK 2X DI SINI BUAT AKSES MENU ADMIN / SAKLAR KUBURAN -->
                 <h1 class="h-title" ondblclick="window.triggerAdminPrompt()">
                     FC KELAPA GADING <div class="status-dot" id="dotStatus"></div>
                 </h1>
@@ -372,6 +353,11 @@
             <i class="fas fa-clock"></i> MENGHITUNG WAKTU...
         </div>
 
+        <!-- CAROUSEL FOTO KENANGAN (SEKARANG ADA DI SINI) -->
+        <div class="memories-container" id="memoriesSlideshow">
+            <!-- Script otomatis akan ngisi div ini dengan foto1.jpg dst -->
+        </div>
+
         <!-- Animated Circular Dashboard -->
         <main class="dashboard-core" id="dashboardCore">
             <div class="ring-outer">
@@ -381,14 +367,10 @@
                         <img src="logomlumaster.png" class="logo-color" alt="Logo Full">
                     </div>
                 </div>
-                <div class="battery-text" id="batteryText">STANDBY</div>
+                <!-- Battery Text disembunyikan pakai CSS (display:none) -->
+                <div class="battery-text" id="batteryText">STANDBY</div> 
             </div>
         </main>
-
-        <!-- CAROUSEL FOTO KENANGAN -->
-        <div class="memories-container" id="memoriesSlideshow">
-            <!-- Script otomatis akan ngisi div ini -->
-        </div>
 
         <!-- Action Buttons -->
         <div class="action-center" id="actionWrapper">
@@ -602,10 +584,8 @@
             }
         });
 
-        // EKSPOS FUNGSI KE WINDOW SUPAYA BISA DIPANGGIL DARI LUAR
         window.setUIKuburan = function() {
             document.getElementById('teksSubtitle').innerText = "END OF AN ERA — MAKA LINTAS UTARA";
-            document.getElementById('batteryText').innerText = "OFFLINE";
             document.getElementById('dotStatus').style.background = "var(--text-sub)";
             document.getElementById('dotStatus').style.boxShadow = "none";
             document.getElementById('logoContainer').style.setProperty('--batre-level', '0%');
@@ -630,7 +610,6 @@
 
         function setUIMaintenance() {
             document.getElementById('teksSubtitle').innerText = "STASIUN DALAM PERBAIKAN";
-            document.getElementById('batteryText').innerText = "OFFLINE";
             document.getElementById('dotStatus').style.background = "var(--text-sub)";
             document.getElementById('dotStatus').style.boxShadow = "none";
             document.getElementById('logoContainer').style.setProperty('--batre-level', '0%');
@@ -673,7 +652,6 @@
 
             let myQIndex = localQueue.findIndex(q => cleanStr(q.plat) === cleanStr(myPlat));
             let mySlotIndex = localSlots.findIndex(s => s && cleanStr(s.plat) === cleanStr(myPlat));
-            const batteryText = document.getElementById('batteryText');
 
             if (mySlotIndex > -1) {
                 let mySlotData = localSlots[mySlotIndex]; let dbBatre = parseInt(mySlotData.batreSisa || mySlotData.batre || mySlotData.battery || 0);
@@ -683,16 +661,12 @@
                 document.getElementById('dashboardCore').classList.add('is-charging');
                 document.getElementById('logoContainer').style.setProperty('--batre-level', simulatedBattery + '%');
                 
-                batteryText.innerHTML = `<i class="fas fa-bolt fa-fade" style="color:var(--gold); margin-right:4px;"></i> CHARGING...`;
-                batteryText.style.color = "var(--gold)"; batteryText.style.borderColor = "var(--gold)"; 
-                
                 btnMain.innerHTML = `<i class="fas fa-plug"></i> SELESAI CHARGING`; btnMain.classList.add('btn-success-mode');
                 btnMain.onclick = function() { window.stopCharging(mySlotIndex); };
                 if (!chargeSimInterval) { chargeSimInterval = setInterval(() => { if (simulatedBattery < 95) { simulatedBattery += 1; document.getElementById('logoContainer').style.setProperty('--batre-level', simulatedBattery + '%'); } else { clearInterval(chargeSimInterval); } }, 3000); }
             } else {
                 simulatedBattery = null; if (chargeSimInterval) { clearInterval(chargeSimInterval); chargeSimInterval = null; }
                 document.getElementById('logoContainer').style.setProperty('--batre-level', '0%'); document.getElementById('dashboardCore').classList.remove('is-charging');
-                batteryText.innerText = "STANDBY"; batteryText.style.color = "var(--text-sub)"; batteryText.style.borderColor = "var(--border)"; 
                 document.getElementById('displaySlot').innerText = "-"; document.getElementById('displaySlot').style.color = "var(--text-sub)";
                 
                 if (myQIndex > -1) {
@@ -898,10 +872,11 @@
             const container = document.getElementById('memoriesSlideshow');
             if (!container) return;
 
-            const totalPhotos = 15; 
+            const totalPhotos = 14; 
             let html = '<div class="memory-overlay">TILL WE MEET AGAIN</div>';
             
             for(let i = 1; i <= totalPhotos; i++) {
+                // Nama file diubah jadi foto1.jpg dst
                 html += `<div class="memory-slide ${i === 1 ? 'active' : ''}" style="background-image: url('foto${i}.jpg'); background-color: #18181B;"></div>`;
             }
             container.innerHTML = html;
