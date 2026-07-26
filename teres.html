@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mockup Tribute Gading</title>
+    
+    <!-- Font Asli Elite -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --obsidian: #0A1128; --gold-lux: #C5A059; --text-main: #0F172A; 
+            --text-muted: #64748B; --electric-blue: #2D63ED; --success-glow: #059669;
+        }
+
+        body {
+            margin: 0; padding: 0; font-family: 'Montserrat', sans-serif;
+            background-color: var(--obsidian); overflow: hidden;
+        }
+
+        /* 1. LAYER SLIDESHOW BACKGROUND */
+        .slideshow-container {
+            position: fixed; inset: 0; z-index: 0; overflow: hidden;
+            background-color: var(--obsidian);
+        }
+        
+        .slideshow-img {
+            width: 100%; height: 100%; object-fit: cover; object-position: center;
+            opacity: 0; transform: scale(1.05); /* Sedikit zoom di awal */
+            transition: opacity 1.5s ease-in-out, transform 4s linear;
+        }
+        
+        .slideshow-img.active {
+            opacity: 0.45; /* Dibuat redup biar elegan & teks tetep kebaca */
+            transform: scale(1);
+        }
+
+        /* Lapisan Gradasi Gelap biar UI di depannya Pop-up */
+        .slideshow-overlay {
+            position: fixed; inset: 0; z-index: 1;
+            background: linear-gradient(180deg, rgba(10,17,40,0.4) 0%, rgba(10,17,40,0.95) 100%);
+        }
+
+        /* 2. LAYER UI ANTREAN (Z-INDEX 2) */
+        .dashboard-container {
+            position: relative; z-index: 2; display: flex; flex-direction: column;
+            height: 100vh; padding: 20px; gap: 15px; box-sizing: border-box;
+        }
+
+        /* Header Disesuaikan ke Tema Gelap */
+        .hud-header {
+            display: flex; justify-content: space-between; align-items: center; 
+            padding-bottom: 15px; border-bottom: 1px dashed rgba(255,255,255,0.2); 
+            margin-bottom: 5px;
+        }
+        .hud-location { font-size: 20px; font-weight: 900; color: #FFFFFF; letter-spacing: 1px; }
+        .hud-subtitle { font-size: 10px; font-weight: 700; color: var(--gold-lux); letter-spacing: 3px; }
+
+        /* Style Slot Tetap Terang Biar Kontras */
+        .stage-slots { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 15px; }
+        .light-slot {
+            background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(15px);
+            border: 1px solid rgba(255,255,255,1); border-radius: 20px;
+            padding: 18px; display: flex; align-items: center; gap: 15px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.3); position: relative; overflow: hidden;
+        }
+        .light-slot.active { border-color: rgba(197, 160, 89, 0.6); }
+        .light-slot.active::before {
+            content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 6px;
+            background: linear-gradient(180deg, #DFBE7B, #C5A059);
+        }
+
+        .ls-num { font-family: 'Space Grotesk', sans-serif; font-size: 26px; font-weight: 900; color: #CBD5E1; width: 45px; text-align: center; }
+        .light-slot.active .ls-num { color: var(--gold-lux); }
+        
+        .ls-name { font-size: 11px; font-weight: 800; color: var(--text-main); text-transform: uppercase; }
+        .ls-plat { font-family: 'Montserrat', sans-serif; font-size: 18px; font-weight: 900; color: var(--obsidian); margin-top: 2px;}
+        
+        /* Queue Dock Tetap Sama */
+        .queue-dock {
+            background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px);
+            border-radius: 24px; padding: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .qd-title { font-size: 10px; font-weight: 800; color: var(--text-muted); }
+        .qd-name { font-family: 'Montserrat'; font-size: 18px; font-weight: 900; color: var(--obsidian); margin-top: 4px; }
+        .qd-count { font-family: 'Space Grotesk'; font-size: 28px; font-weight: 900; color: var(--electric-blue); }
+
+    </style>
+</head>
+<body>
+
+    <!-- LAYER BACKGROUND FOTO -->
+    <div class="slideshow-container">
+        <!-- Pakai 2 tag img biar efek crossfadenya mulus -->
+        <img id="bgSlide1" class="slideshow-img active" src="foto1.jpg" alt="MLU Tribute" onerror="this.src='https://images.unsplash.com/photo-1558981806-ec527fa84c39?q=80&w=1000&auto=format&fit=crop'">
+        <img id="bgSlide2" class="slideshow-img" src="foto2.jpg" alt="MLU Tribute" onerror="this.src='https://images.unsplash.com/photo-1568772585407-9361f9bf3a87?q=80&w=1000&auto=format&fit=crop'">
+        <div class="slideshow-overlay"></div>
+    </div>
+
+    <!-- LAYER UI -->
+    <div class="dashboard-container">
+        <!-- Header Custom untuk Tribute -->
+        <div class="hud-header">
+            <div style="flex: 1; text-align: center;">
+                <div class="hud-subtitle">TRIBUTE TO</div>
+                <div class="hud-location">FAST CHARGING GADING</div>
+            </div>
+        </div>
+
+        <!-- Contoh Slot -->
+        <div class="stage-slots">
+            <div class="light-slot active">
+                <div class="ls-num">01</div>
+                <div style="flex: 1;">
+                    <div class="ls-name">Bang Jago</div>
+                    <div class="ls-plat">B 1234 MLU</div>
+                </div>
+                <div style="text-align: right;">
+                    <div style="color: var(--success-glow); font-weight: 900; font-size: 16px;"><i class="fas fa-bolt"></i> 85%</div>
+                    <div style="font-size: 10px; font-weight: 800; color: var(--text-muted); margin-top: 5px;">20 MIN</div>
+                </div>
+            </div>
+            
+            <div class="light-slot active">
+                <div class="ls-num">02</div>
+                <div style="flex: 1;">
+                    <div class="ls-name">Si Paling Ngantre</div>
+                    <div class="ls-plat">B 9999 BOS</div>
+                </div>
+                <div style="text-align: right;">
+                    <div style="color: var(--success-glow); font-weight: 900; font-size: 16px;"><i class="fas fa-bolt"></i> 40%</div>
+                    <div style="font-size: 10px; font-weight: 800; color: var(--text-muted); margin-top: 5px;">5 MIN</div>
+                </div>
+            </div>
+
+            <div class="light-slot" style="background: rgba(255,255,255,0.7); border-style: dashed;">
+                <div class="ls-num">03</div>
+                <div style="flex: 1;">
+                    <div class="ls-name" style="color: var(--text-muted);">KOSONG</div>
+                    <div class="ls-plat" style="color: #CBD5E1;">Tersedia</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contoh Dock -->
+        <div class="queue-dock">
+            <div>
+                <div class="qd-title">ANTRIAN BERIKUTNYA</div>
+                <div class="qd-name">MEMBER BARU</div>
+            </div>
+            <div style="text-align: right;">
+                <div class="qd-title">TOTAL</div>
+                <div class="qd-count">3</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Logic Slideshow Crossfade Mulus
+        const totalPhotos = 14;
+        let currentPhotoIndex = 1;
+        
+        const img1 = document.getElementById('bgSlide1');
+        const img2 = document.getElementById('bgSlide2');
+        let isImg1Active = true;
+
+        setInterval(() => {
+            currentPhotoIndex++;
+            if (currentPhotoIndex > totalPhotos) currentPhotoIndex = 1;
+
+            // Kita tembak fotonya ke img tag yang lagi nganggur (di belakang)
+            if (isImg1Active) {
+                img2.src = `foto${currentPhotoIndex}.jpg`;
+                // Panggil fallback unsplash kalau foto belum ada di folder (buat test doang)
+                img2.onerror = function() { this.src = 'https://images.unsplash.com/photo-1558981420-87aa9dad1c89?q=80&w=1000&auto=format&fit=crop'; };
+                
+                img2.classList.add('active');
+                img1.classList.remove('active');
+            } else {
+                img1.src = `foto${currentPhotoIndex}.jpg`;
+                img1.onerror = function() { this.src = 'https://images.unsplash.com/photo-1449426468159-d96dbf08f19f?q=80&w=1000&auto=format&fit=crop'; };
+                
+                img1.classList.add('active');
+                img2.classList.remove('active');
+            }
+            
+            isImg1Active = !isImg1Active;
+        }, 4000); // Ganti tiap 4 detik biar user sempet liat fotonya
+    </script>
+</body>
+</html>
