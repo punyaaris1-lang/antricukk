@@ -17,7 +17,7 @@
     <title>Farewell FC Gading</title>
     
     <script>
-        const APP_VERSION = "11.5_FAREWELL_LAYOUT"; 
+        const APP_VERSION = "11.6_FAREWELL_COMPACT"; 
         if (localStorage.getItem('maka_antrian_v') !== APP_VERSION) {
             if ('caches' in window) { caches.keys().then((names) => { names.forEach(name => { caches.delete(name); }); }); }
             localStorage.setItem('maka_antrian_v', APP_VERSION); window.location.reload(true); 
@@ -144,8 +144,8 @@
             text-shadow: 0 2px 5px rgba(0,0,0,0.8);
         }
 
-        /* --- CIRCLE DASHBOARD --- */
-        .dashboard-core { display: flex; justify-content: center; padding: 0 0 40px; position: relative; }
+        /* --- CIRCLE DASHBOARD (DISEMBUNYIKAN BY DEFAULT) --- */
+        .dashboard-core { display: none; justify-content: center; padding: 0 0 40px; position: relative; } /* display diubah jadi none */
         .ring-outer { width: 250px; height: 250px; border-radius: 50%; display: flex; justify-content: center; align-items: center; border: 2px dashed var(--border); transition: 0.8s;}
         .ring-inner { width: 235px; height: 235px; border-radius: 50%; background: var(--bg-container); position: relative; border: 1px solid var(--border); box-shadow: 0 10px 30px rgba(0,0,0,0.5); transition: 0.8s;}
         
@@ -353,12 +353,12 @@
             <i class="fas fa-clock"></i> MENGHITUNG WAKTU...
         </div>
 
-        <!-- CAROUSEL FOTO KENANGAN (SEKARANG ADA DI SINI) -->
+        <!-- CAROUSEL FOTO KENANGAN -->
         <div class="memories-container" id="memoriesSlideshow">
             <!-- Script otomatis akan ngisi div ini dengan foto1.jpg dst -->
         </div>
 
-        <!-- Animated Circular Dashboard -->
+        <!-- Animated Circular Dashboard (HANYA MUNCUL PAS CHARGING) -->
         <main class="dashboard-core" id="dashboardCore">
             <div class="ring-outer">
                 <div class="ring-inner">
@@ -367,7 +367,7 @@
                         <img src="logomlumaster.png" class="logo-color" alt="Logo Full">
                     </div>
                 </div>
-                <!-- Battery Text disembunyikan pakai CSS (display:none) -->
+                <!-- Battery Text disembunyikan pakai CSS -->
                 <div class="battery-text" id="batteryText">STANDBY</div> 
             </div>
         </main>
@@ -589,6 +589,9 @@
             document.getElementById('dotStatus').style.background = "var(--text-sub)";
             document.getElementById('dotStatus').style.boxShadow = "none";
             document.getElementById('logoContainer').style.setProperty('--batre-level', '0%');
+            
+            // Sembunyiin ring dashboard
+            document.getElementById('dashboardCore').style.display = 'none';
             document.getElementById('dashboardCore').classList.remove('is-charging');
             
             if (chargeSimInterval) { clearInterval(chargeSimInterval); chargeSimInterval = null; }
@@ -613,6 +616,9 @@
             document.getElementById('dotStatus').style.background = "var(--text-sub)";
             document.getElementById('dotStatus').style.boxShadow = "none";
             document.getElementById('logoContainer').style.setProperty('--batre-level', '0%');
+            
+            // Sembunyiin ring dashboard
+            document.getElementById('dashboardCore').style.display = 'none';
             document.getElementById('dashboardCore').classList.remove('is-charging');
             
             if (chargeSimInterval) { clearInterval(chargeSimInterval); chargeSimInterval = null; }
@@ -654,6 +660,9 @@
             let mySlotIndex = localSlots.findIndex(s => s && cleanStr(s.plat) === cleanStr(myPlat));
 
             if (mySlotIndex > -1) {
+                // TAMPILIN RING DASHBOARD KALAU LAGI CHARGING
+                document.getElementById('dashboardCore').style.display = 'flex';
+
                 let mySlotData = localSlots[mySlotIndex]; let dbBatre = parseInt(mySlotData.batreSisa || mySlotData.batre || mySlotData.battery || 0);
                 if (simulatedBattery === null || simulatedBattery < dbBatre) { simulatedBattery = dbBatre; }
                 document.getElementById('displaySlot').innerText = "0" + (mySlotIndex + 1);
@@ -665,6 +674,9 @@
                 btnMain.onclick = function() { window.stopCharging(mySlotIndex); };
                 if (!chargeSimInterval) { chargeSimInterval = setInterval(() => { if (simulatedBattery < 95) { simulatedBattery += 1; document.getElementById('logoContainer').style.setProperty('--batre-level', simulatedBattery + '%'); } else { clearInterval(chargeSimInterval); } }, 3000); }
             } else {
+                // SEMBUNYIIN RING DASHBOARD KALAU STANDBY/ANTRE
+                document.getElementById('dashboardCore').style.display = 'none';
+
                 simulatedBattery = null; if (chargeSimInterval) { clearInterval(chargeSimInterval); chargeSimInterval = null; }
                 document.getElementById('logoContainer').style.setProperty('--batre-level', '0%'); document.getElementById('dashboardCore').classList.remove('is-charging');
                 document.getElementById('displaySlot').innerText = "-"; document.getElementById('displaySlot').style.color = "var(--text-sub)";
@@ -876,7 +888,6 @@
             let html = '<div class="memory-overlay">TILL WE MEET AGAIN</div>';
             
             for(let i = 1; i <= totalPhotos; i++) {
-                // Nama file diubah jadi foto1.jpg dst
                 html += `<div class="memory-slide ${i === 1 ? 'active' : ''}" style="background-image: url('foto${i}.jpg'); background-color: #18181B;"></div>`;
             }
             container.innerHTML = html;
