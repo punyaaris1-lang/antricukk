@@ -3,7 +3,7 @@
 <head>
     <!-- SECURITY BUSTER -->
     <script>
-    const BUSTER_VERSION = "10.3_ZIUNG_MASSIVE_LOGO"; 
+    const BUSTER_VERSION = "10.4_ZIUNG_MASSIVE_WATERMARK"; 
     if (localStorage.getItem('maka_buster_v') !== BUSTER_VERSION) {
         localStorage.removeItem('sa_sess'); 
         localStorage.setItem('maka_buster_v', BUSTER_VERSION); 
@@ -42,8 +42,24 @@
         body { 
             margin: 0; font-family: 'Plus Jakarta Sans', sans-serif; 
             background-color: var(--bg-base); color: var(--text-main);
+            /* Grid Pattern dipindah ke body biar full-screen seperti di SS */
+            background-image: radial-gradient(rgba(226,232,240,0.6) 1px, transparent 1px);
+            background-size: 20px 20px;
             min-height: 100vh; display: flex; flex-direction: column; align-items: center;
             overflow-x: hidden; position: relative;
+        }
+
+        /* === LOGO WATERMARK RAKSASA (FIXED BACKGROUND) === */
+        .bg-watermark {
+            position: fixed;
+            top: 55%; left: 50%; /* Posisi dari tengah agak ke bawah */
+            transform: translate(-50%, -50%) rotate(-25deg); /* Dimiringin ekstrem */
+            width: 200vw; 
+            max-width: 950px; /* SUPER GEDE */
+            opacity: 0.04; /* Sangat tipis dan elegan */
+            z-index: 0; /* Di belakang semua elemen */
+            pointer-events: none;
+            filter: grayscale(100%);
         }
 
         .app-container {
@@ -68,30 +84,14 @@
         .hero-matrix {
             position: relative; width: 100%; height: 350px; 
             display: flex; justify-content: center;
-            background: var(--bg-pure);
-            background-image: radial-gradient(rgba(226,232,240,0.4) 1px, transparent 1px);
-            background-size: 20px 20px;
+            background: rgba(255, 255, 255, 0.4); /* Transparan biar watermark tembus */
             border-bottom: 1px solid var(--border-fine);
             border-bottom-left-radius: 40px; border-bottom-right-radius: 40px;
             box-shadow: 0 15px 35px rgba(0,0,0,0.02);
             overflow: hidden;
         }
 
-        /* LOGO BACKGROUND GEDE (WATERMARK) - MIRING DARI BAWAH */
-        .bg-watermark {
-            position: absolute;
-            bottom: -100px; /* Ditarik dari bawah */
-            left: 40%; /* Posisinya agak ke tengah */
-            transform: translateX(-50%) rotate(-25deg); /* Dimiringin ekstrem */
-            width: 600px; /* RAKSASA */
-            height: auto;
-            opacity: 0.04; 
-            z-index: 0;
-            pointer-events: none;
-            filter: grayscale(100%);
-        }
-
-        /* LOGO MLU ASLI (Interaktif) - DIBESARIN */
+        /* LOGO MLU ASLI (Interaktif) - TENGAH */
         .logo-source {
             position: absolute; top: 40px; left: 50%; transform: translateX(-50%);
             display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -99,7 +99,7 @@
         }
         
         .main-logo-img {
-            width: 150px; /* DIBESARIN (Sebelumnya 90px) */
+            width: 150px; /* Logo di tengah tetap proporsional besar */
             height: auto;
             transition: 0.5s ease;
             filter: drop-shadow(0 10px 15px rgba(0,0,0,0.08));
@@ -108,7 +108,7 @@
         .logo-source.active .main-logo-img { filter: drop-shadow(0 5px 25px var(--gold-glow)); }
 
         /* Efek Nafas Logo Saat Tertutup */
-        .hero-matrix:not(.open) .logo-source { animation: breatheLogo 3s ease-in-out infinite; top: 100px; } /* Top disesuaikan karena logo lebih gede */
+        .hero-matrix:not(.open) .logo-source { animation: breatheLogo 3s ease-in-out infinite; top: 100px; }
         @keyframes breatheLogo { 0%, 100% { transform: translateX(-50%) scale(1); } 50% { transform: translateX(-50%) scale(1.05); } }
 
         /* Hint Tap */
@@ -295,8 +295,10 @@
 
 
     <!-- ============================================== -->
-    <!-- MAIN UI APP CONTENT -->
+    <!-- LOGO WATERMARK RAKSASA DI BACKGROUND UTAMA -->
     <!-- ============================================== -->
+    <img src="logomlumaster.png" class="bg-watermark" alt="Background Logo">
+
     <div class="app-container">
         
         <div class="top-bar">
@@ -309,9 +311,6 @@
 
         <div class="hero-matrix" id="heroMatrix">
             
-            <!-- LOGO BACKGROUND WATERMARK RAKSASA - DARI BAWAH MIRING -->
-            <img src="logomlumaster.png" class="bg-watermark" alt="Background Logo">
-
             <!-- SVG KOMET -->
             <svg class="matrix-svg" viewBox="0 0 360 360">
                 <path fill="none" class="track-base" d="M 180 80 Q 180 140 100 140 L 100 180" />
@@ -320,7 +319,7 @@
                 <path fill="none" class="supply-comet" id="cometRight" d="M 180 80 Q 180 140 260 140 L 260 180" />
             </svg>
 
-            <!-- LOGO MLU ASLI - DIBESARIN -->
+            <!-- LOGO MLU TENGAH (INTERAKTIF) -->
             <div class="logo-source" id="logoPower" onclick="window.toggleSlots()">
                 <img src="logomlumaster.png" alt="MLU Logo" class="main-logo-img">
                 <div class="tap-hint"><i class="fas fa-hand-pointer"></i> TAP TO OPEN</div>
