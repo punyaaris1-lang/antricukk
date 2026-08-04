@@ -3,7 +3,7 @@
 <head>
     <!-- SECURITY BUSTER -->
     <script>
-    const BUSTER_VERSION = "10.5_ZIUNG_STARVO_INTEGRATION"; 
+    const BUSTER_VERSION = "10.6_ZIUNG_STARVO_FIX"; 
     if (localStorage.getItem('maka_buster_v') !== BUSTER_VERSION) {
         localStorage.removeItem('sa_sess'); 
         localStorage.setItem('maka_buster_v', BUSTER_VERSION); 
@@ -55,7 +55,7 @@
             transform: translate(-50%, -50%) rotate(-25deg);
             width: 200vw; 
             max-width: 1200px; 
-            opacity: 0.15; /* OPACITY DINAIKAN BIAR JELAS BANGET */
+            opacity: 0.15; 
             z-index: 0; 
             pointer-events: none;
             filter: grayscale(100%);
@@ -83,7 +83,7 @@
         .hero-matrix {
             position: relative; width: 100%; height: 350px; 
             display: flex; justify-content: center;
-            background: rgba(255, 255, 255, 0.4); /* Transparan */
+            background: rgba(255, 255, 255, 0.4); 
             border-bottom: 1px solid var(--border-fine);
             border-bottom-left-radius: 40px; border-bottom-right-radius: 40px;
             box-shadow: 0 15px 35px rgba(0,0,0,0.02);
@@ -748,10 +748,9 @@
 
         // FUNGSI MULAI CAS LEWAT STARVO (DIKLIK SETELAH MASUK SLOT)
         window.mulaiCasStarvo = (idx) => {
-            // Langsung buka link buat nembus Pop-up Blocker browser
-            window.open("https://play.google.com/store/apps/details?id=com.moizasia.starvo_mobile", "_blank");
+            window.showActionLoader(); 
             
-            window.showActionLoader();
+            // 1. UPDATE DATABASE FIREBASE DULU
             runTransaction(dbQueue, async(t)=>{ 
                 const d = await t.get(mainRef); 
                 let slots = [...(d.data().chargingSlots || [null, null])]; 
@@ -762,7 +761,16 @@
                 }
             }).then(() => { 
                 window.hideActionLoader(); 
-            }).catch(e=>{ window.hideActionLoader(); window.showEliteAlert("GAGAL", e.message || e); }); 
+                
+                // 2. SETELAH DATABASE SUKSES 100%, BARU BUKA APLIKASI STARVO
+                setTimeout(() => {
+                    window.location.href = "intent://#Intent;package=com.moizasia.starvo_mobile;S.browser_fallback_url=https://play.google.com/store/apps/details?id=com.moizasia.starvo_mobile;end;";
+                }, 400); 
+                
+            }).catch(e=>{ 
+                window.hideActionLoader(); 
+                window.showEliteAlert("GAGAL", e.message || e); 
+            }); 
         }
 
         window.openSlotList = () => {
@@ -817,6 +825,21 @@
                     if(myObj) catatLogSuperDetail("KUDETA", myObj.userName, myObj.plat, `Kudeta Slot 0${idx+1}`);
                     window.hideActionLoader(); window.closeModal('mainModal'); window.showEliteAlert("BERHASIL", "Slot diambil alih!");
                 }).catch(e => { window.hideActionLoader(); window.showEliteAlert("GAGAL KUDETA", e.message || e); }); 
+            });
+        }
+    </script>
+    
+    <!-- REGISTER SERVICE WORKER -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => {
+                        console.log('Service Worker Registered BOS!', registration.scope);
+                    })
+                    .catch(err => {
+                        console.log('Service Worker Gagal:', err);
+                    });
             });
         }
     </script>
