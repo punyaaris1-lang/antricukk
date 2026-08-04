@@ -3,7 +3,7 @@
 <head>
     <!-- SECURITY BUSTER -->
     <script>
-    const BUSTER_VERSION = "10.4_ZIUNG_MASSIVE_WATERMARK"; 
+    const BUSTER_VERSION = "10.5_ZIUNG_STARVO_INTEGRATION"; 
     if (localStorage.getItem('maka_buster_v') !== BUSTER_VERSION) {
         localStorage.removeItem('sa_sess'); 
         localStorage.setItem('maka_buster_v', BUSTER_VERSION); 
@@ -42,22 +42,21 @@
         body { 
             margin: 0; font-family: 'Plus Jakarta Sans', sans-serif; 
             background-color: var(--bg-base); color: var(--text-main);
-            /* Grid Pattern dipindah ke body biar full-screen seperti di SS */
             background-image: radial-gradient(rgba(226,232,240,0.6) 1px, transparent 1px);
             background-size: 20px 20px;
             min-height: 100vh; display: flex; flex-direction: column; align-items: center;
             overflow-x: hidden; position: relative;
         }
 
-        /* === LOGO WATERMARK RAKSASA (FIXED BACKGROUND) === */
+        /* === LOGO WATERMARK RAKSASA (DIPERJELAS) === */
         .bg-watermark {
             position: fixed;
-            top: 55%; left: 50%; /* Posisi dari tengah agak ke bawah */
-            transform: translate(-50%, -50%) rotate(-25deg); /* Dimiringin ekstrem */
+            top: 55%; left: 50%;
+            transform: translate(-50%, -50%) rotate(-25deg);
             width: 200vw; 
-            max-width: 950px; /* SUPER GEDE */
-            opacity: 0.04; /* Sangat tipis dan elegan */
-            z-index: 0; /* Di belakang semua elemen */
+            max-width: 1200px; 
+            opacity: 0.15; /* OPACITY DINAIKAN BIAR JELAS BANGET */
+            z-index: 0; 
             pointer-events: none;
             filter: grayscale(100%);
         }
@@ -84,14 +83,14 @@
         .hero-matrix {
             position: relative; width: 100%; height: 350px; 
             display: flex; justify-content: center;
-            background: rgba(255, 255, 255, 0.4); /* Transparan biar watermark tembus */
+            background: rgba(255, 255, 255, 0.4); /* Transparan */
             border-bottom: 1px solid var(--border-fine);
             border-bottom-left-radius: 40px; border-bottom-right-radius: 40px;
             box-shadow: 0 15px 35px rgba(0,0,0,0.02);
             overflow: hidden;
         }
 
-        /* LOGO MLU ASLI (Interaktif) - TENGAH */
+        /* LOGO MLU ASLI (Interaktif) */
         .logo-source {
             position: absolute; top: 40px; left: 50%; transform: translateX(-50%);
             display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -99,7 +98,7 @@
         }
         
         .main-logo-img {
-            width: 150px; /* Logo di tengah tetap proporsional besar */
+            width: 150px;
             height: auto;
             transition: 0.5s ease;
             filter: drop-shadow(0 10px 15px rgba(0,0,0,0.08));
@@ -107,30 +106,24 @@
 
         .logo-source.active .main-logo-img { filter: drop-shadow(0 5px 25px var(--gold-glow)); }
 
-        /* Efek Nafas Logo Saat Tertutup */
         .hero-matrix:not(.open) .logo-source { animation: breatheLogo 3s ease-in-out infinite; top: 100px; }
         @keyframes breatheLogo { 0%, 100% { transform: translateX(-50%) scale(1); } 50% { transform: translateX(-50%) scale(1.05); } }
 
-        /* Hint Tap */
         .tap-hint {
             position: absolute; bottom: -30px; font-size: 8px; font-weight: 800; color: var(--gold-main); 
             text-transform: uppercase; letter-spacing: 2px; opacity: 0; transition: 0.3s; pointer-events: none; white-space: nowrap;
         }
         .hero-matrix:not(.open) .tap-hint { opacity: 1; animation: blink 2s infinite; }
 
-        /* SVG SUPPLY LINE (Hidden default) */
         .matrix-svg { position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 360px; height: 360px; z-index: 1; opacity: 0; transition: opacity 0.5s ease; }
         .hero-matrix.open .matrix-svg { opacity: 1; }
         
         .track-base { stroke: rgba(226, 232, 240, 0.4); stroke-width: 1.5; stroke-linecap: round; }
-        .supply-comet {
-            stroke: var(--gold-main); stroke-width: 2.5; stroke-linecap: round;
-            stroke-dasharray: 40 300; stroke-dashoffset: 340; opacity: 0; transition: 0.3s;
-        }
+        .supply-comet { stroke: var(--gold-main); stroke-width: 2.5; stroke-linecap: round; stroke-dasharray: 40 300; stroke-dashoffset: 340; opacity: 0; transition: 0.3s; }
         .supply-comet.active { opacity: 1; animation: shootComet 3.5s cubic-bezier(0.4, 0, 0.2, 1) infinite; }
         @keyframes shootComet { 0% { stroke-dashoffset: 340; opacity: 0; } 10% { opacity: 1; } 80% { opacity: 1; } 100% { stroke-dashoffset: 0; opacity: 0; } }
 
-        /* SLOT GLASSMORPHISM (Hidden default) */
+        /* SLOT GLASSMORPHISM */
         .slot-wrapper {
             position: absolute; top: 180px; width: 145px; height: 120px;
             border-radius: 20px; display: flex; align-items: center; justify-content: center;
@@ -138,15 +131,9 @@
             opacity: 0; transform: translateY(-30px) scale(0.8); pointer-events: none;
         }
         .hero-matrix.open .slot-wrapper { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
-
         .slot-wrapper.left { left: 50%; margin-left: -160px; } 
         .slot-wrapper.right { left: 50%; margin-left: 15px; } 
-
-        .slot-wrapper::before {
-            content: ''; position: absolute; inset: -8px; 
-            background: var(--gold-main); border-radius: 30px;
-            filter: blur(20px); opacity: 0; transition: opacity 0.8s ease; z-index: 1;
-        }
+        .slot-wrapper::before { content: ''; position: absolute; inset: -8px; background: var(--gold-main); border-radius: 30px; filter: blur(20px); opacity: 0; transition: opacity 0.8s ease; z-index: 1; }
         .slot-wrapper.active::before { animation: breatheGlow 4s ease-in-out infinite alternate; }
         @keyframes breatheGlow { 0% { opacity: 0.15; transform: scale(0.95); } 100% { opacity: 0.45; transform: scale(1.05); } }
 
@@ -252,7 +239,7 @@
     <!-- LOADING SCREEN -->
     <div id="loader">
         <div class="spinner" style="border-top-color: var(--text-main); border-color: var(--border-fine);"></div>
-        <div style="font-family:'Space Grotesk'; font-weight:900; color:var(--text-main); letter-spacing:1px; font-size:14px;">MENGHUBUNGKAN SERVER...</div>
+        <div style="font-family:'Space Grotesk'; font-weight:900; color:var(--text-main); letter-spacing:1px; font-size:14px;">MAKA LINTAS UTARA HUB...</div>
     </div>
     
     <div id="actionLoader">
@@ -403,12 +390,10 @@
         window.showActionLoader = () => { document.getElementById('actionLoader').style.display = 'flex'; setTimeout(() => document.getElementById('actionLoader').style.opacity = '1', 10); };
         window.hideActionLoader = () => { document.getElementById('actionLoader').style.opacity = '0'; setTimeout(() => document.getElementById('actionLoader').style.display = 'none', 300); };
         
-        // MODALS
         window.showModal = (title, contentHTML) => { const m = document.getElementById('mainModal'); document.getElementById('modalTitle').innerHTML = title; document.getElementById('modalContent').innerHTML = contentHTML; m.style.display = 'flex'; setTimeout(() => m.classList.add('show'), 10); }
         window.closeModal = (id = 'mainModal') => { const m = document.getElementById(id); m.classList.remove('show'); setTimeout(() => m.style.display = 'none', 300); }
         window.bukaRestoreSesi = () => { document.getElementById('restoreOverlay').style.display = 'flex'; };
 
-        // ELITE ALERTS
         window.showEliteAlert = (title, msg, callback=null) => {
             document.getElementById('emTitle').innerText = title; document.getElementById('emMsg').innerHTML = msg;
             document.getElementById('emIcon').innerHTML = '<i class="fas fa-info-circle"></i>';
@@ -429,12 +414,10 @@
         }
         window.closeEliteModal = () => { const m = document.getElementById('eliteModal'); m.classList.remove('show'); setTimeout(() => m.style.display = 'none', 300); }
 
-        // LOGGING
         async function catatLogSuperDetail(action, nama, plat, detailStr) {
             try { await addDoc(collection(dbQueue, "mlu_super_logs"), { waktu: new Date().toLocaleString('id-ID'), timestamp: Date.now(), nama: nama || "SYSTEM", plat: plat || "-", action: action, detail: detailStr, sumber: "ZIUNG_PREMIUM" }); } catch(e) {}
         }
 
-        // ADMIN TRIGGER
         window.triggerAdminPrompt = () => {
             const pwd = prompt("Masukkan Password Admin MLU:");
             if (pwd === "2505") { 
@@ -452,7 +435,6 @@
             window.hideActionLoader();
         };
 
-        // RESTORE SESSION
         window.restoreSessionProcess = async () => {
             const inp = document.getElementById('inpRestorePlat'); if(!inp) return;
             const p = inp.value.toUpperCase().replace(/\s+/g, ''); if(!p) return window.showEliteAlert("PERHATIAN", "Masukkan Plat Kendaraan Anda!");
@@ -467,14 +449,12 @@
             } catch(e) { window.hideActionLoader(); window.showEliteAlert("GAGAL MEMULIHKAN", "Error: " + e.message); }
         };
 
-        // LOGIKA KLIK LOGO MLU (BUAT BUKA/TUTUP SLOT)
         window.toggleSlots = () => {
             window.isSlotsOpen = !window.isSlotsOpen;
             if (navigator.vibrate) navigator.vibrate(30);
             renderUI(false); 
         }
 
-        // SNAPSHOT LISTENER
         onSnapshot(mainRef, (snap) => {
             if (!snap.exists()) return; 
             const d = snap.data(); 
@@ -492,19 +472,22 @@
             renderUI();
         });
 
-        // ---------------------------------------------------------
-        // RENDER UI LOGIC 
-        // ---------------------------------------------------------
         window.setInterval(() => { renderUI(); }, 1000); 
 
         function generateSlotHtml(s, i) {
             if (s) {
-                let diffMs = Date.now() - (s.startTime || Date.now());
-                let diffSec = Math.floor(diffMs / 1000);
-                let hours = Math.floor(diffSec / 3600);
-                let mins = Math.floor((diffSec % 3600) / 60).toString().padStart(2, '0');
-                let secs = (diffSec % 60).toString().padStart(2, '0');
-                let timeDisplay = hours > 0 ? `${hours}:${mins}:${secs}` : `${mins}:${secs}`;
+                let timeDisplay = "";
+                if(s.isChargingStarted === false) {
+                    timeDisplay = '<span style="animation: blink 2s infinite; color:var(--gold-main);">PENDING STARVO</span>';
+                } else {
+                    let diffMs = Date.now() - (s.startTime || Date.now());
+                    let diffSec = Math.floor(diffMs / 1000);
+                    let hours = Math.floor(diffSec / 3600);
+                    let mins = Math.floor((diffSec % 3600) / 60).toString().padStart(2, '0');
+                    let secs = (diffSec % 60).toString().padStart(2, '0');
+                    timeDisplay = hours > 0 ? `${hours}:${mins}:${secs}` : `${mins}:${secs}`;
+                }
+                
                 let bat = s.batreSisa || s.batre || s.battery || "0";
 
                 return `
@@ -586,7 +569,7 @@
                 document.getElementById('qNextInfo').innerHTML = `<div style="font-size:11px; font-weight:700; color:var(--text-mute); padding: 5px 0;">Belum ada antrean masuk.</div>`;
             }
 
-            // SMART DECK
+            // SMART DECK LOGIC
             let myQIndex = localQueue.findIndex(q => cleanStr(q.plat) === cleanStr(myPlat));
             let mySlotIndex = localSlots.findIndex(s => s && cleanStr(s.plat) === cleanStr(myPlat));
             let firstEmptySlot = localSlots.findIndex(s => s === null);
@@ -596,20 +579,41 @@
             const bpActions = document.getElementById('bpActions');
             
             if (mySlotIndex > -1) {
-                bpStatusText.innerText = 'Status Pengisian';
-                bpStatusVal.innerText = `CHARGING (0${mySlotIndex+1})`;
-                bpStatusVal.style.color = 'var(--gold-main)';
-                bpActions.innerHTML = `<button class="btn btn-starvo" onclick="window.stopCharging(${mySlotIndex})"><i class="fas fa-power-off"></i> SELESAI CHARGING</button>`;
+                let mySlotData = localSlots[mySlotIndex];
+                if(mySlotData.isChargingStarted === false) {
+                    bpStatusText.innerText = 'Status Pengisian';
+                    bpStatusVal.innerText = `MENUNGGU AKTIVASI`;
+                    bpStatusVal.style.color = 'var(--gold-main)';
+                    bpActions.innerHTML = `
+                        <button class="btn btn-starvo" onclick="window.mulaiCasStarvo(${mySlotIndex})"><i class="fas fa-play"></i> BUKA STARVO & CAS</button>
+                        <button class="btn btn-danger-outline" style="flex:0.3;" onclick="window.stopCharging(${mySlotIndex})"><i class="fas fa-times"></i></button>
+                    `;
+                } else {
+                    bpStatusText.innerText = 'Status Pengisian';
+                    bpStatusVal.innerText = `CHARGING (0${mySlotIndex+1})`;
+                    bpStatusVal.style.color = 'var(--gold-main)';
+                    bpActions.innerHTML = `<button class="btn btn-primary" onclick="window.stopCharging(${mySlotIndex})"><i class="fas fa-power-off"></i> SELESAI CHARGING</button>`;
+                }
             } else if (myQIndex > -1) {
                 bpStatusText.innerText = 'Posisi Antrean';
                 bpStatusVal.innerText = `URUTAN #${myQIndex+1}`;
                 bpStatusVal.style.color = 'var(--text-main)';
                 
                 if (myQIndex === 0 && firstEmptySlot > -1) {
-                    bpActions.innerHTML = `
-                        <button class="btn btn-primary" onclick="window.pilihSlotEks(${firstEmptySlot})">MASUK SLOT 0${firstEmptySlot+1}</button>
-                        <button class="btn btn-danger-outline" style="flex:0.4;" onclick="window.cancelQueue()">BATAL</button>
-                    `;
+                    let emptyCount = localSlots.filter(s => s === null).length;
+                    // JIKA ADA 2 SLOT KOSONG, KASIH PILIHAN
+                    if (emptyCount > 1) {
+                        bpActions.innerHTML = `
+                            <button class="btn btn-primary" onclick="window.openSlotSelection()">PILIH SLOT KOSONG</button>
+                            <button class="btn btn-danger-outline" style="flex:0.4;" onclick="window.cancelQueue()">BATAL</button>
+                        `;
+                    } else {
+                        // KALAU CUMA 1 KOSONG, LANGSUNG ARAHKAN KE SLOT TERSEBUT
+                        bpActions.innerHTML = `
+                            <button class="btn btn-primary" onclick="window.pilihSlotEks(${firstEmptySlot})">MASUK SLOT 0${firstEmptySlot+1}</button>
+                            <button class="btn btn-danger-outline" style="flex:0.4;" onclick="window.cancelQueue()">BATAL</button>
+                        `;
+                    }
                 } else {
                     bpActions.innerHTML = `<button class="btn btn-danger-outline" style="width:100%;" onclick="window.cancelQueue()">BATALKAN TIKET</button>`;
                 }
@@ -706,8 +710,22 @@
             });
         };
 
+        // FUNGSI PILIH DARI BEBERAPA SLOT KOSONG
+        window.openSlotSelection = () => {
+            let html = '<div style="font-size:12px; color:var(--text-mute); font-weight:800; margin-bottom:15px;">Pilih slot kosong untuk masuk:</div>';
+            localSlots.forEach((s, i) => {
+                if(!s) {
+                    html += `<div class="list-item" style="cursor:pointer; border-color:var(--gold-main);" onclick="window.pilihSlotEks(${i})">
+                                <div><div class="li-plat" style="color:var(--text-main);">SLOT 0${i+1}</div><div class="li-name">TERSEDIA</div></div>
+                                <i class="fas fa-chevron-right" style="color:var(--gold-main);"></i>
+                             </div>`;
+                }
+            });
+            window.showModal("PILIH SLOT", html);
+        }
+
         window.pilihSlotEks = (i) => {
-            window.showEliteConfirm(`MASUK SLOT 0${i+1}?`, "Pastikan motor sudah dicolok ke sumber listrik.", "normal", () => {
+            window.showEliteConfirm(`MASUK SLOT 0${i+1}?`, "Pastikan motor sudah dicolok ke sumber listrik Ziung.", "normal", () => {
                 window.showActionLoader(); let myObj = null;
                 runTransaction(dbQueue, async(t)=>{ 
                     const d = await t.get(mainRef); 
@@ -716,24 +734,51 @@
                     const idxQ = q.findIndex(x => cleanStr(x.plat) === cleanStr(myPlat)); 
                     if(idxQ === -1) throw new Error("DATA TIDAK DITEMUKAN DI ANTREAN!"); 
                     
-                    const oldUser = q[idxQ]; q.splice(idxQ, 1); myObj = { ...oldUser, startTime: Date.now() }; 
+                    const oldUser = q[idxQ]; q.splice(idxQ, 1); 
+                    // isChargingStarted kita set false biar harus pencet tombol STARVO
+                    myObj = { ...oldUser, isChargingStarted: false }; 
                     let newSlots = [...(d.data().chargingSlots || [null, null, null])]; newSlots[i] = myObj; 
                     t.update(mainRef, { chargingSlots: newSlots, waitingQueue: q }); 
                 }).then(() => { 
-                    if(myObj) catatLogSuperDetail("MASUK_SLOT", myObj.userName, myObj.plat, `Masuk Slot 0${i+1}`);
+                    if(myObj) catatLogSuperDetail("MASUK_SLOT", myObj.userName, myObj.plat, `Masuk Slot 0${i+1} (Pending Starvo)`);
                     window.hideActionLoader(); window.closeModal('mainModal'); 
                 }).catch(e => { window.hideActionLoader(); window.showEliteAlert("INFO", e.message || e); }); 
             });
+        }
+
+        // FUNGSI MULAI CAS LEWAT STARVO (DIKLIK SETELAH MASUK SLOT)
+        window.mulaiCasStarvo = (idx) => {
+            // Langsung buka link buat nembus Pop-up Blocker browser
+            window.open("https://play.google.com/store/apps/details?id=com.moizasia.starvo_mobile", "_blank");
+            
+            window.showActionLoader();
+            runTransaction(dbQueue, async(t)=>{ 
+                const d = await t.get(mainRef); 
+                let slots = [...(d.data().chargingSlots || [null, null])]; 
+                if(slots[idx] && cleanStr(slots[idx].plat) === cleanStr(myPlat)) {
+                    slots[idx].isChargingStarted = true;
+                    slots[idx].startTime = Date.now();
+                    t.update(mainRef, {chargingSlots: slots}); 
+                }
+            }).then(() => { 
+                window.hideActionLoader(); 
+            }).catch(e=>{ window.hideActionLoader(); window.showEliteAlert("GAGAL", e.message || e); }); 
         }
 
         window.openSlotList = () => {
             let html = ''; let myQIndex = localQueue.findIndex(q => cleanStr(q.plat) === cleanStr(myPlat));
             localSlots.forEach((s, i) => {
                 if(s) {
-                    let durMin = Math.floor((Date.now() - (s.startTime || Date.now())) / 60000);
+                    let durStr = "";
+                    if(s.isChargingStarted === false) {
+                        durStr = "PENDING STARVO";
+                    } else {
+                        let durMin = Math.floor((Date.now() - (s.startTime || Date.now())) / 60000);
+                        durStr = `${durMin} MNT`;
+                    }
                     let bat = s.batreSisa || s.batre || s.battery || "0";
                     let kudetaHtml = ((myQIndex === 0 || myQIndex === 1) && cleanStr(s.plat) !== cleanStr(myPlat)) ? `<button class="btn-kudeta" onclick="window.prosesKudeta(${i})"><i class="fas fa-hand-rock"></i> KUDETA (HAPUS USER)</button>` : '';
-                    html += `<div class="list-item" style="flex-wrap: wrap;"><div style="display:flex; justify-content:space-between; width:100%; align-items:center;"><div><div class="li-plat">${s.plat}</div><div class="li-name">${cleanName(s.userName)} • ${durMin} MNT</div></div><div class="li-batre"><i class="fas fa-battery-half"></i> ${bat.replace('%','')}%</div></div>${kudetaHtml}</div>`;
+                    html += `<div class="list-item" style="flex-wrap: wrap;"><div style="display:flex; justify-content:space-between; width:100%; align-items:center;"><div><div class="li-plat">${s.plat}</div><div class="li-name">${cleanName(s.userName)} • ${durStr}</div></div><div class="li-batre"><i class="fas fa-battery-half"></i> ${bat.replace('%','')}%</div></div>${kudetaHtml}</div>`;
                 } else {
                     let kudetaHtml = (myQIndex === 0 || myQIndex === 1) ? `<button class="btn-kudeta" style="background: var(--text-main);" onclick="window.pilihSlotEks(${i})"><i class="fas fa-bolt"></i> AMBIL ALIH KOSONG</button>` : '';
                     html += `<div class="list-item" style="flex-wrap: wrap; background:var(--bg-base);"><div style="display:flex; justify-content:space-between; width:100%; align-items:center;"><div><div class="li-plat" style="color:var(--text-mute);">SLOT 0${i+1}</div><div class="li-name">KOSONG</div></div></div>${kudetaHtml}</div>`;
@@ -764,7 +809,9 @@
                     const myIndex = q.findIndex(x => cleanStr(x.plat) === cleanStr(myPlat)); 
                     if(myIndex !== 0 && myIndex !== 1) throw new Error("Hanya Antrean #1 & #2 yang bisa kudeta!");
                     
-                    const oldUser = q[myIndex]; q.splice(myIndex, 1); myObj = { ...oldUser, userName: cleanName(oldUser.userName), role: "KUDETA", startTime: Date.now() }; slots[idx] = myObj; 
+                    const oldUser = q[myIndex]; q.splice(myIndex, 1); 
+                    // Yang kudeta juga harus pencet tombol aktivasi Starvo
+                    myObj = { ...oldUser, userName: cleanName(oldUser.userName), role: "KUDETA", isChargingStarted: false }; slots[idx] = myObj; 
                     t.update(mainRef, { chargingSlots: slots, waitingQueue: q }); 
                 }).then(() => { 
                     if(myObj) catatLogSuperDetail("KUDETA", myObj.userName, myObj.plat, `Kudeta Slot 0${idx+1}`);
